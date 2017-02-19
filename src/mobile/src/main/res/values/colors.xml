@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#9F22BB</color>
+    <color name="colorPrimaryDark">#480F5B</color>
+    <color name="colorAccent">#A424C3</color>
+
+    <color name="splash_background">#64000000</color>
+
+    <color name="av_color1">#64f7b09e</color>
+    <color name="av_color2">#64f0979b</color>
+    <color name="av_color3">#64e36a97</color>
+    <color name="av_color4">#64303F9F</color>
+
+    <color name="av_color_bg">#8f367c</color>
+
+    <array name="av_colors">
+        <item>@color/av_color4</item>
+        <item>@color/av_color3</item>
+        <item>@color/av_color2</item>
+        <item>@color/av_color1</item>
+    </array>
+
+</resources>
