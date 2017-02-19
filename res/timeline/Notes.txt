@@ -1,0 +1,12 @@
+## harmony
+
+Music player
+
+### Features
+
+- EQ 7-10 bands (per song adjustable)
+- Bass, Pitch, Reverb (per song adjustable)
+- Lyrics (per song adjustable, in notifications, in navbar, float, in-app)
+- Scrobbler support
+- Auto metadata / details fetcher
+- Auto-organizer
