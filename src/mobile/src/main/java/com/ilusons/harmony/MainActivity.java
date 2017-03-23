@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,8 +23,10 @@ import com.anthonycr.grant.PermissionsManager;
 import com.anthonycr.grant.PermissionsResultAction;
 import com.ilusons.harmony.fx.DbmHandler;
 import com.ilusons.harmony.fx.GLAudioVisualizationView;
+import com.ilusons.harmony.ref.ID3TagsEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.StorageEx;
+import com.ilusons.harmony.views.LyricsViewFragment;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
 
@@ -80,13 +83,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
 
-//                Intent i = new Intent();
-//                i.setType("audio/*");
-//                i.setAction(Intent.ACTION_GET_CONTENT);
-//                startActivityForResult(i, REQUEST_FILE_PICK);
+                Intent i = new Intent();
+                i.setType("audio/*");
+                i.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(i, REQUEST_FILE_PICK);
 
-                openFile(Uri.parse("/storage/9016-4EF8/Music/f2k_ows/Amberian Dawn - Magic Forest [The Best Of].mp3"));
-
+                // openFile(Uri.parse("/storage/9016-4EF8/Music/f2k_ows/Amberian Dawn - Magic Forest [Magic Forest].mp3"));
             }
         });
     }
@@ -157,6 +159,7 @@ public class MainActivity extends Activity {
             Mp3File mp3file = new Mp3File(uri.getPath());
             if (mp3file.hasId3v2Tag()) {
                 ID3v2 id3v2Tag = mp3file.getId3v2Tag();
+
                 byte[] imageData = id3v2Tag.getAlbumImage();
                 if (imageData != null) {
                     String mimeType = id3v2Tag.getAlbumImageMimeType();
@@ -165,9 +168,16 @@ public class MainActivity extends Activity {
                             getWindow().getDecorView().getWidth(),
                             getWindow().getDecorView().getHeight());
 
-                    if (bmp != null)
-                        startFX(uri, bmp);
+                    //if (bmp != null)
+                    //    startFX(uri, bmp);
                 }
+
+                String lyrics = ID3TagsEx.getLyrics(id3v2Tag);
+                if (!TextUtils.isEmpty(lyrics))
+                    getFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.lyrics_container, LyricsViewFragment.create(lyrics, id3v2Tag.getLength()))
+                            .commit();
             }
         } catch (Exception e) {
             Log.e(TAG, "open file", e);

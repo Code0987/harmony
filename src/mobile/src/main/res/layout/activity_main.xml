@@ -13,4 +13,12 @@
 
     </RelativeLayout>
 
+    <FrameLayout
+        android:id="@+id/lyrics_container"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_gravity="bottom"
+        android:gravity="bottom"
+        android:layout_alignParentBottom="true"/>
+
 </RelativeLayout>
