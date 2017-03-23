@@ -67,13 +67,15 @@ public class LyricsViewFragment extends Fragment {
             @Override
             public void run() {
 
-                final int dy = (int) Math.ceil((double) scrollView.getChildAt(0).getHeight() / 500.0);
-                final int dt = (int) Math.ceil((double) length / dy);
+                final int dt = Math.max(
+                        10,
+                        (int) Math.ceil((double) length / (double) scrollView.getChildAt(0).getHeight()));
 
                 Runnable runnable = new Runnable() {
                     public void run() {
-                        scrollView.scrollBy(0, dy);
+                        scrollView.scrollBy(0, 1);
 
+                        handler.removeCallbacks(this);
                         handler.postDelayed(this, dt);
                     }
                 };
