@@ -312,11 +312,11 @@ public class MusicService extends Service {
                         "",
                         retrievePlaybackAction(NEXT_ACTION))*/;
 
-        builder.setVisibility(Notification.VISIBILITY_PUBLIC);
-        NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle()
-                .setMediaSession(mediaSession.getSessionToken())
-                .setShowActionsInCompactView(0, 1, 2, 3);
-        builder.setStyle(style);
+//        builder.setVisibility(Notification.VISIBILITY_PUBLIC);
+//        NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle()
+//                .setMediaSession(mediaSession.getSessionToken())
+//                .setShowActionsInCompactView(0, 1, 2, 3);
+//        builder.setStyle(style);
 
         if (cover != null)
             builder.setColor(Palette.from(cover).generate().getVibrantColor(Color.parseColor("#403f4d")));
