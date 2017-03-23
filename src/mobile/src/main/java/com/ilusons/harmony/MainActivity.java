@@ -7,8 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
@@ -17,6 +19,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.anthonycr.grant.PermissionsManager;
@@ -56,6 +59,12 @@ public class MainActivity extends Activity {
             isMusicServiceBound = false;
         }
     };
+
+    // Events
+    private Handler handler = new Handler();
+
+    // UI
+    private LyricsViewFragment lyricsViewFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,16 +174,27 @@ public class MainActivity extends Activity {
                             getWindow().getDecorView().getWidth(),
                             getWindow().getDecorView().getHeight());
 
-                    //if (bmp != null)
-                    //    startFX(uri, bmp);
+                    if (bmp != null) {
+                        ImageView backdrop = ((ImageView) findViewById(R.id.backdrop));
+                        backdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        backdrop.setImageBitmap(bmp);
+                    }
                 }
 
+                musicService.add(uri.getPath());
+                musicService.next();
+                musicService.start();
+
                 String lyrics = ID3TagsEx.getLyrics(id3v2Tag);
-                if (!TextUtils.isEmpty(lyrics))
+                if (!TextUtils.isEmpty(lyrics)) {
+                    lyricsViewFragment = LyricsViewFragment.create(lyrics);
                     getFragmentManager()
                             .beginTransaction()
-                            .replace(R.id.lyrics_container, LyricsViewFragment.create(lyrics, id3v2Tag.getLength()))
+                            .replace(R.id.lyrics_container, lyricsViewFragment)
                             .commit();
+                }
+
+                setupProgressHandler();
             }
         } catch (Exception e) {
             Log.e(TAG, "open file", e);
@@ -204,8 +224,33 @@ public class MainActivity extends Activity {
         musicService.start();
     }
 
+    private Runnable progressHandlerRunnable;
+
+    private void setupProgressHandler() {
+        final int dt = (int) (1000.0 / 20.0);
+
+        final MediaPlayer mp = musicService.getMediaPlayer();
+
+        progressHandlerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (mp != null && mp.isPlaying()) {
+
+                    double v = (double) mp.getCurrentPosition() / (double) mp.getDuration();
+
+                    if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
+                        lyricsViewFragment.setProgress(v);
+                }
+
+                handler.removeCallbacks(progressHandlerRunnable);
+                handler.postDelayed(progressHandlerRunnable, dt);
+            }
+        };
+        handler.postDelayed(progressHandlerRunnable, dt);
+    }
+
     public void info(String s) {
-        View view = findViewById(R.id.coordinatorLayout);
+        View view = findViewById(R.id.root);
 
         if (view != null) {
             final Snackbar snackbar = Snackbar.make(view, s, Snackbar.LENGTH_LONG);
@@ -229,6 +274,5 @@ public class MainActivity extends Activity {
             Toast.makeText(this, s, Toast.LENGTH_LONG).show();
         }
     }
-
 
 }

@@ -48,6 +48,6 @@ public class ID3TagsEx {
         Pattern p = Pattern.compile(
                 "\\[(.*?)\\]",
                 Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-        return p.matcher(s).replaceAll("").trim();
+        return p.matcher(s).replaceAll("");
     }
 }

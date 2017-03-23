@@ -54,10 +54,12 @@ public class Music {
                 data.Album = tags.getAlbum();
 
                 byte[] cover = tags.getAlbumImage();
-                Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                if (cover != null && cover.length > 0) {
+                    Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
 
-                if (bmp != null)
-                    putCover(context, data, bmp);
+                    if (bmp != null)
+                        putCover(context, data, bmp);
+                }
 
             } else if (mp3file.hasId3v1Tag()) {
                 ID3v1 tags = mp3file.getId3v1Tag();
