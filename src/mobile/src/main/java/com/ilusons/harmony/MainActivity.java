@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onDenied(String permission) {
-                        info("Please grant all the required permissions :)");
+                        info("Please grant all the required permissions :(");
 
                         finish();
                     }
@@ -79,16 +79,13 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
 
-        findViewById(R.id.content).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 Intent i = new Intent();
                 i.setType("audio/*");
                 i.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(i, REQUEST_FILE_PICK);
-
-                // openFile(Uri.parse("/storage/9016-4EF8/Music/f2k_ows/Amberian Dawn - Magic Forest [Magic Forest].mp3"));
             }
         });
     }
@@ -211,7 +208,7 @@ public class MainActivity extends Activity {
         View view = findViewById(R.id.coordinatorLayout);
 
         if (view != null) {
-            Snackbar snackbar = Snackbar.make(view, s, Snackbar.LENGTH_INDEFINITE);
+            final Snackbar snackbar = Snackbar.make(view, s, Snackbar.LENGTH_LONG);
             View snackbarView = snackbar.getView();
             if (snackbarView.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
@@ -221,9 +218,15 @@ public class MainActivity extends Activity {
                         p.bottomMargin);
                 snackbarView.requestLayout();
             }
+            snackbar.setAction("Dismiss", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    snackbar.dismiss();
+                }
+            });
             snackbar.show();
         } else {
-            Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, s, Toast.LENGTH_LONG).show();
         }
     }
 

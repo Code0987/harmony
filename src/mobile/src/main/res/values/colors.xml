@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#9F22BB</color>
-    <color name="colorPrimaryDark">#480F5B</color>
-    <color name="colorAccent">#A424C3</color>
+    <color name="primary">#424242</color>
+    <color name="primary_dark">#212121</color>
+    <color name="primary_light">#e0e0e0</color>
+    <color name="accent">#7b1fa2</color>
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#757575</color>
+    <color name="icons">#212121</color>
+    <color name="divider">#BDBDBD</color>
+
+    <color name="transparent">#00000000</color>
+    <color name="translucent">#94000000</color>
+    <color name="translucent_primary">#94424242</color>
+    <color name="translucent_primary_dark">#94212121</color>
+
+    <color name="colorPrimary">@color/primary</color>
+    <color name="colorPrimaryDark">@color/primary_dark</color>
+    <color name="colorAccent">@color/accent</color>
 
     <color name="splash_background">#64000000</color>
 
