@@ -39,7 +39,7 @@ public class ID3TagsEx {
                 "LYRICS");
 
         if (txxxFrameData != null)
-            return cleanLyrics(txxxFrameData.getValue().toString());
+            return txxxFrameData.getValue().toString();
 
         return null;
     }

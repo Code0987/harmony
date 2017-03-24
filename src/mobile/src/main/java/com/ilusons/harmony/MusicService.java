@@ -215,7 +215,7 @@ public class MusicService extends Service {
         if (mediaPlayer == null) return;
         mediaPlayer.start();
 
-        updateNotification();
+        //updateNotification();
     }
 
     public void stop() {
@@ -257,7 +257,7 @@ public class MusicService extends Service {
 
             mediaPlayer.start();
 
-            updateNotification();
+            //updateNotification();
         }
     }
 
@@ -270,7 +270,7 @@ public class MusicService extends Service {
 
             mediaPlayer.pause();
 
-            updateNotification();
+            //updateNotification();
         }
     }
 
