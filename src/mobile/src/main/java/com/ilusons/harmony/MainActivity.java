@@ -227,7 +227,10 @@ public class MainActivity extends Activity {
     private Runnable progressHandlerRunnable;
 
     private void setupProgressHandler() {
-        final int dt = (int) (1000.0 / 20.0);
+        if (progressHandlerRunnable != null)
+            handler.removeCallbacks(progressHandlerRunnable);
+
+        final int dt = (int) (1000.0 / 24.0);
 
         final MediaPlayer mp = musicService.getMediaPlayer();
 
@@ -239,7 +242,7 @@ public class MainActivity extends Activity {
                     double v = (double) mp.getCurrentPosition() / (double) mp.getDuration();
 
                     if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
-                        lyricsViewFragment.setProgress(v);
+                        lyricsViewFragment.updateScroll(v, mp.getCurrentPosition());
                 }
 
                 handler.removeCallbacks(progressHandlerRunnable);
