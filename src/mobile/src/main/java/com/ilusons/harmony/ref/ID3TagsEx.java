@@ -44,10 +44,10 @@ public class ID3TagsEx {
         return null;
     }
 
+    private static Pattern ts = Pattern.compile("\\[(.*?)\\]", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+    private static Pattern lb = Pattern.compile("[\\r\\n]+", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+
     public static String cleanLyrics(String s) {
-        Pattern p = Pattern.compile(
-                "\\[(.*?)\\]",
-                Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-        return p.matcher(s).replaceAll("");
+        return lb.matcher(ts.matcher(s).replaceAll("")).replaceAll("\n");
     }
 }
