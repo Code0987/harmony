@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.ilusons.harmony.ref.ID3TagsEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.mpatric.mp3agic.ID3v1;
@@ -20,10 +21,13 @@ public class Music {
 
     public static final String KEY_CACHE_DIR_COVER = "covers";
 
-    public String Title;
-    public String Artist;
+    public String Title = "Untitled";
+    public String Artist = "Unknown artist";
     public String Album;
     public String Path;
+    public String Lyrics;
+
+    public ID3v2 Tags;
 
     public String getText() {
         return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
@@ -52,8 +56,9 @@ public class Music {
                 data.Title = tags.getTitle();
                 data.Artist = tags.getArtist();
                 data.Album = tags.getAlbum();
+                data.Tags = tags;
 
-                byte[] cover = tags.getAlbumImage();
+                byte[] cover = ID3TagsEx.getCover(tags);
                 if (cover != null && cover.length > 0) {
                     Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
 
@@ -61,15 +66,22 @@ public class Music {
                         putCover(context, data, bmp);
                 }
 
-            } else if (mp3file.hasId3v1Tag()) {
+                data.Lyrics = ID3TagsEx.getLyrics(tags);
+
+            }
+
+            if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
                 ID3v1 tags = mp3file.getId3v1Tag();
 
                 data.Title = tags.getTitle();
                 data.Artist = tags.getArtist();
                 data.Album = tags.getAlbum();
-            } else {
+            }
+
+            if (TextUtils.isEmpty(data.Title)) {
                 data.Title = file.getName().replaceFirst("[.][^.]+$", "");
             }
+
         } catch (Exception e) {
             Log.e(TAG, "decode audio data tags", e);
 

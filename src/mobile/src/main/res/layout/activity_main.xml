@@ -32,6 +32,21 @@
             app:titleEnabled="false"
             >
 
+            <com.wang.avi.AVLoadingIndicatorView
+                android:id="@+id/loading_view"
+                style="@style/AVLoadingIndicatorView.Large"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_centerHorizontal="true"
+                android:layout_centerInParent="true"
+                android:layout_centerVertical="true"
+                android:layout_gravity="center"
+                android:visibility="visible"
+                app:indicatorColor="@color/colorAccent"
+                app:indicatorName="LineScalePulseOutRapidIndicator"
+                app:layout_collapseMode="parallax"
+                />
+
             <ImageView
                 android:id="@+id/backdrop"
                 android:layout_width="match_parent"
@@ -67,20 +82,35 @@
             android:id="@+id/lyrics_container"
             android:layout_width="match_parent"
             android:layout_height="160dp"
-            android:layout_alignParentBottom="true"
-            android:layout_gravity="bottom"
-            android:gravity="bottom"/>
+            android:layout_alignParentBottom="true"/>
 
     </RelativeLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_horizontal_margin"
-        android:src="@drawable/ic_play_dark"
+        android:orientation="horizontal"
         app:layout_anchor="@id/appbar"
         app:layout_anchorGravity="bottom|right|end"
-        />
+        >
+
+        <android.support.v7.widget.AppCompatSeekBar
+            android:id="@+id/seek_bar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            app:layout_collapseMode="parallax"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_action_name"
+            />
+
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

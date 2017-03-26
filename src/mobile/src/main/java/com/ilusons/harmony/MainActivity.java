@@ -17,23 +17,24 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.anthonycr.grant.PermissionsManager;
 import com.anthonycr.grant.PermissionsResultAction;
+import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.fx.DbmHandler;
 import com.ilusons.harmony.fx.GLAudioVisualizationView;
-import com.ilusons.harmony.ref.ID3TagsEx;
-import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.views.LyricsViewFragment;
-import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.Mp3File;
+import com.squareup.picasso.Picasso;
+import com.wang.avi.AVLoadingIndicatorView;
+
+import java.io.File;
 
 public class MainActivity extends Activity {
 
@@ -88,6 +89,9 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
+        // Start service
+        startService(new Intent(this, MusicService.class));
+
         setContentView(R.layout.activity_main);
 
         getWindow().getDecorView().post(new Runnable() {
@@ -115,6 +119,7 @@ public class MainActivity extends Activity {
                 startActivityForResult(i, REQUEST_FILE_PICK);
             }
         });
+
     }
 
     @Override
@@ -180,43 +185,44 @@ public class MainActivity extends Activity {
 
     private void openFile(Uri uri) {
         try {
-            Mp3File mp3file = new Mp3File(uri.getPath());
-            if (mp3file.hasId3v2Tag()) {
-                ID3v2 id3v2Tag = mp3file.getId3v2Tag();
+            Music music = Music.decodeFromFile(this, new File(uri.getPath()));
 
-                byte[] imageData = id3v2Tag.getAlbumImage();
-                if (imageData != null) {
-                    String mimeType = id3v2Tag.getAlbumImageMimeType();
+            if (music != null) {
 
-                    Bitmap bmp = ImageEx.decodeBitmap(imageData,
-                            getWindow().getDecorView().getWidth(),
-                            getWindow().getDecorView().getHeight());
-
-                    if (bmp != null) {
-                        ImageView backdrop = ((ImageView) findViewById(R.id.backdrop));
-                        backdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        backdrop.setImageBitmap(bmp);
-                    }
-                }
+                Picasso.with(this)
+                        .load(new File(Music.getCover(this, music)))
+                        .fit()
+                        .centerCrop()
+                        .into((ImageView) findViewById(R.id.backdrop));
 
                 musicService.add(uri.getPath());
                 musicService.next();
                 musicService.start();
 
-                String lyrics = ID3TagsEx.getLyrics(id3v2Tag);
-                if (!TextUtils.isEmpty(lyrics)) {
-                    lyricsViewFragment = LyricsViewFragment.create(lyrics);
+                ((AVLoadingIndicatorView) findViewById(R.id.loading_view)).show();
+
+                if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
                     getFragmentManager()
                             .beginTransaction()
-                            .replace(R.id.lyrics_container, lyricsViewFragment)
+                            .remove(lyricsViewFragment)
                             .commit();
                 }
 
+                lyricsViewFragment = LyricsViewFragment.create(music.Title, music.Artist, music.Lyrics);
+
+                getFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.lyrics_container, lyricsViewFragment)
+                        .commit();
+
                 setupProgressHandler();
+
             }
+
         } catch (Exception e) {
             Log.e(TAG, "open file", e);
         }
+
     }
 
     private void startFX(Uri uri, Bitmap bmp) {
@@ -252,15 +258,22 @@ public class MainActivity extends Activity {
 
         final MediaPlayer mp = musicService.getMediaPlayer();
 
+        final SeekBar seek_bar = (SeekBar) findViewById(R.id.seek_bar);
+
+        seek_bar.setMax(mp.getDuration());
+
         progressHandlerRunnable = new Runnable() {
             @Override
             public void run() {
                 if (mp != null && mp.isPlaying()) {
 
+                    seek_bar.setProgress(mp.getCurrentPosition());
+
                     double v = (double) mp.getCurrentPosition() / (double) mp.getDuration();
 
                     if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
                         lyricsViewFragment.updateScroll(v, mp.getCurrentPosition());
+
                 }
 
                 handler.removeCallbacks(progressHandlerRunnable);
@@ -268,6 +281,7 @@ public class MainActivity extends Activity {
             }
         };
         handler.postDelayed(progressHandlerRunnable, dt);
+
     }
 
     public void info(String s) {
