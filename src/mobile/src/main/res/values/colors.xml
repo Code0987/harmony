@@ -4,8 +4,8 @@
     <color name="primary_dark">#000000</color>
     <color name="primary_light">#9e9e9e</color>
     <color name="accent">#7b1fa2</color>
-    <color name="primary_text">#9e9e9e</color>
-    <color name="secondary_text">#424242</color>
+    <color name="primary_text">#bdbdbd</color>
+    <color name="secondary_text">#9e9e9e</color>
     <color name="icons">#212121</color>
     <color name="divider">#424242</color>
 

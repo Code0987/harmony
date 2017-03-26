@@ -1,6 +1,7 @@
 package com.ilusons.harmony;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -57,6 +58,7 @@ public class MusicService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand executed");
+
         return Service.START_NOT_STICKY;
     }
 
@@ -215,7 +217,7 @@ public class MusicService extends Service {
         if (mediaPlayer == null) return;
         mediaPlayer.start();
 
-        //updateNotification();
+        updateNotification();
     }
 
     public void stop() {
@@ -257,7 +259,7 @@ public class MusicService extends Service {
 
             mediaPlayer.start();
 
-            //updateNotification();
+            updateNotification();
         }
     }
 
@@ -270,7 +272,7 @@ public class MusicService extends Service {
 
             mediaPlayer.pause();
 
-            //updateNotification();
+            updateNotification();
         }
     }
 
@@ -286,7 +288,6 @@ public class MusicService extends Service {
         int playButtonResId = isPlaying
                 ? R.drawable.ic_pause_circle_outline_black_36dp : R.drawable.ic_play_circle_outline_black_36dp;
 
-
         Bitmap cover = null;
         try {
             cover = BitmapFactory.decodeFile(Music.getCover(this, currentMusic));
@@ -296,21 +297,26 @@ public class MusicService extends Service {
         if (cover == null)
             cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
         android.support.v4.app.NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(cover)
-                // TODO: .setContentIntent(clickIntent)
-                .setContentTitle(currentMusic.Title)
-                .setContentText(currentMusic.getText())
-                /* TODO: .setWhen(0)
-                .addAction(R.drawable.ic_skip_previous_white_36dp,
-                        "",
-                        retrievePlaybackAction(PREVIOUS_ACTION))
-                .addAction(playButtonResId, "",
-                        retrievePlaybackAction(TOGGLEPAUSE_ACTION))
-                .addAction(R.drawable.ic_skip_next_white_36dp,
-                        "",
-                        retrievePlaybackAction(NEXT_ACTION))*/;
+                .setContentIntent(contentIntent)
+                .setContentTitle(currentMusic.getText())
+                .setContentText("Now playing ...");
+//                .setWhen(0)
+//                .addAction(R.drawable.quantum_ic_skip_previous_white_36,
+//                        "",
+//                        )
+//                .addAction(playButtonResId, "",
+//                        retrievePlaybackAction(TOGGLEPAUSE_ACTION))
+//                .addAction(R.drawable.quantum_ic_skip_next_white_36,
+//                        "",
+//                        retrievePlaybackAction(NEXT_ACTION));
 
 //        builder.setVisibility(Notification.VISIBILITY_PUBLIC);
 //        NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle()
