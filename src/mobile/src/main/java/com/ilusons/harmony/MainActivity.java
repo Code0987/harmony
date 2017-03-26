@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -87,6 +89,22 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        getWindow().getDecorView().post(new Runnable() {
+            @Override
+            public void run() {
+
+                getWindow().getDecorView().setBackground(
+                        new BitmapDrawable(
+                                getResources(),
+                                Bitmap.createScaledBitmap(
+                                        ((BitmapDrawable) ContextCompat.getDrawable(MainActivity.this, R.drawable.bg1)).getBitmap(),
+                                        getWindow().getDecorView().getWidth(),
+                                        getWindow().getDecorView().getHeight(),
+                                        false)));
+
+            }
+        });
 
         findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
