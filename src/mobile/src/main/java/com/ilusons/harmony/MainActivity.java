@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -63,6 +64,8 @@ public class MainActivity extends Activity {
         }
     };
 
+    PowerManager.WakeLock wakeLockForScreenOn;
+
     // Events
     private Handler handler = new Handler();
 
@@ -86,6 +89,9 @@ public class MainActivity extends Activity {
                         finish();
                     }
                 });
+
+        wakeLockForScreenOn = ((PowerManager) getSystemService(Context.POWER_SERVICE))
+                .newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, getClass().getName());
 
         super.onCreate(savedInstanceState);
 
@@ -130,6 +136,7 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, MusicService.class);
         bindService(intent, musicServiceConnection, Context.BIND_AUTO_CREATE);
 
+        wakeLockForScreenOn.acquire();
     }
 
     @Override
@@ -142,6 +149,7 @@ public class MainActivity extends Activity {
             isMusicServiceBound = false;
         }
 
+        wakeLockForScreenOn.release();
     }
 
     @Override
@@ -269,7 +277,7 @@ public class MainActivity extends Activity {
 
                     seek_bar.setProgress(mp.getCurrentPosition());
 
-                    double v = (double) mp.getCurrentPosition() / (double) mp.getDuration();
+                    float v = (float) mp.getCurrentPosition() / (float) mp.getDuration();
 
                     if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
                         lyricsViewFragment.updateScroll(v, mp.getCurrentPosition());
