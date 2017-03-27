@@ -2,6 +2,7 @@ package com.ilusons.harmony.data;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -31,6 +32,30 @@ public class Music {
 
     public String getText() {
         return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
+    }
+
+    private Bitmap cover;
+
+    public Bitmap getCover(Context context) {
+        Bitmap b = cover;
+
+        if (b == null)
+            try {
+                b = BitmapFactory.decodeFile(Music.getCover(context, this));
+
+                if (b != null) {
+                    Bitmap.Config config = b.getConfig();
+                    if (config == null) {
+                        config = Bitmap.Config.ARGB_8888;
+                    }
+                    b = b.copy(config, false);
+                }
+
+            } catch (Exception e) {
+                Log.w(TAG, "bitmap decode", e);
+            }
+
+        return (cover = b);
     }
 
     public static String getCover(Context context, Music data) {

@@ -107,13 +107,15 @@ public class LyricsEx {
                     for (String line : text.split("<br> ")) {
                         String strippedLine = line.replaceAll("\\s", "");
                         if (!pattern.matcher(strippedLine).matches() && !(strippedLine.isEmpty() && builder.length() == 0))
-                            builder.append(line.replaceAll("\\P{Print}", "")).append("<br/>");
+                            builder.append(line.replaceAll("\\P{Print}", "")).append("\n");
                     }
                     if (builder.length() > 5)
                         builder.delete(builder.length() - 5, builder.length());
 
                     lyrics.Content = Normalizer
                             .normalize(builder.toString(), Normalizer.Form.NFD);
+
+                    results.add(lyrics);
 
                 } catch (Exception e) {
                     Log.w(TAG, e);

@@ -156,11 +156,11 @@ public class LyricsViewFragment extends Fragment {
         isContentProcessed = true;
     }
 
-    private double lastV = -0;
-    private long lastTS = -1L;
+    private float lastV = 0;
+    private long lastTS = 0;
     private int lastIndex = -1;
 
-    public void updateScroll(double v, int p) {
+    public void updateScroll(float v, int p) {
         if (!isContentProcessed)
             return;
 
@@ -192,9 +192,13 @@ public class LyricsViewFragment extends Fragment {
 
         // For un-synced (no else to show little scroll always)
 
-        int dy = (int) Math.round(scrollView.getChildAt(0).getHeight() * (v - lastV));
-        scrollView.smoothScrollBy(0, dy);
-        lastV = v;
+        float dv = Math.abs(v - lastV);
+        if (dv > 1.09 /* TODO: Magic! Make it better and real */) {
+            scrollView.smoothScrollBy(0, Math.round(dv));
+            lastV = v;
+        } else {
+            lastV += v;
+        }
 
     }
 
