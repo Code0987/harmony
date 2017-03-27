@@ -1,4 +1,4 @@
-package com.ilusons.harmony;
+package com.ilusons.harmony.base;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -28,6 +29,8 @@ import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.ilusons.harmony.MainActivity;
+import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
 
 import java.io.File;
@@ -47,6 +50,9 @@ public class MusicService extends Service {
     public static final String ACTION_TOGGLE_PLAYBACK = TAG + ".toggle_playback";
     public static final String ACTION_RANDOM = TAG + ".random";
 
+    public static final String ACTION_OPEN = TAG + ".open";
+    public static final String KEY_URI = "uri";
+
     // Threads
     private Handler handler = new Handler();
 
@@ -55,6 +61,24 @@ public class MusicService extends Service {
 
     // Components
     private AudioManager audioManager;
+    private final AudioManager.OnAudioFocusChangeListener audioManagerFocusListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(final int focusChange) {
+            Log.d(TAG, "onAudioFocusChange\n" + focusChange);
+
+            switch (focusChange) {
+                case AudioManager.AUDIOFOCUS_GAIN:
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS:
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    break;
+            }
+        }
+    };
+
     private MediaPlayer mediaPlayer;
     private MediaSessionCompat mediaSession;
 
@@ -63,6 +87,7 @@ public class MusicService extends Service {
     private Music currentMusic;
 
     private BroadcastReceiver intentReceiver;
+    private ComponentName headsetMediaButtonIntentReceiverComponent;
 
     private PowerManager.WakeLock wakeLock;
 
@@ -73,11 +98,9 @@ public class MusicService extends Service {
     public void onCreate() {
         Log.d(TAG, "onCreate called");
 
-
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        // mMediaButtonReceiverComponent = new ComponentName(getPackageName(), MediaButtonIntentReceiver.class.getName());
-        // audioManager.registerMediaButtonEventReceiver(mMediaButtonReceiverComponent);
-
+        headsetMediaButtonIntentReceiverComponent = new ComponentName(getPackageName(), HeadsetMediaButtonIntentReceiver.class.getName());
+        audioManager.registerMediaButtonEventReceiver(headsetMediaButtonIntentReceiverComponent);
 
         // Intent handler
         intentReceiver = new BroadcastReceiver() {
@@ -112,6 +135,9 @@ public class MusicService extends Service {
         unregisterReceiver(intentReceiver);
 
         wakeLock.release();
+
+        audioManager.abandonAudioFocus(audioManagerFocusListener);
+
     }
 
     @Override
@@ -224,6 +250,12 @@ public class MusicService extends Service {
         return playlist;
     }
 
+    public String getCurrentPlaylistItem() {
+        if (playlistPosition < 0 || playlistPosition >= playlist.size())
+            return null;
+        return playlist.get(playlistPosition);
+    }
+
     private void prepare() {
         // Fix playlist position
         if (!canPlay())
@@ -327,19 +359,19 @@ public class MusicService extends Service {
             return;
 
         synchronized (this) {
-            // int status = audioManager.requestAudioFocus(audioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            int status = audioManager.requestAudioFocus(audioManagerFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
-            // Log.d(TAG, "Starting playback: audio focus request status = " + status);
+            Log.d(TAG, "Starting playback: audio focus request status = " + status);
 
-            // if (status != AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
-            //    return;
+            if (status != AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+                return;
 
             final Intent intent = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
             intent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
             intent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
             sendBroadcast(intent);
 
-            // audioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(), MediaButtonIntentReceiver.class.getName()));
+            audioManager.registerMediaButtonEventReceiver(headsetMediaButtonIntentReceiverComponent);
 
             mediaSession.setActive(true);
 
@@ -371,6 +403,7 @@ public class MusicService extends Service {
     private void updateNotification() {
 
         int bgColor = Color.parseColor("#9e9e9e");
+
         Bitmap cover = currentMusic.getCover(this);
         if (cover == null)
             cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
@@ -385,6 +418,7 @@ public class MusicService extends Service {
         android.support.v4.app.NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(cover)
+                .setColor(bgColor)
                 .setContentIntent(contentIntent)
                 .setContentTitle(currentMusic.Title)
                 .setContentText(currentMusic.getText())
@@ -411,9 +445,6 @@ public class MusicService extends Service {
                         "Random",
                         createActionIntent(this, ACTION_RANDOM))
                 .setProgress(getDuration(), getPosition(), true);
-
-        if (cover != null)
-            builder.setColor(bgColor);
 
         builder.setVisibility(Notification.VISIBILITY_PUBLIC);
         NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle()
@@ -471,7 +502,8 @@ public class MusicService extends Service {
                 stop();
             }
         });
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
+
     }
 
     private void updateMediaSession() {
@@ -528,22 +560,41 @@ public class MusicService extends Service {
                 play();
         } else if (action.equals(ACTION_RANDOM)) {
             random();
+        } else if (action.equals(ACTION_OPEN)) {
+            String file = intent.getStringExtra(KEY_URI);
+
+            if (TextUtils.isEmpty(file))
+                return;
+
+            add(file);
+            next();
+            start();
+
+            Intent broadcastIntent = new Intent(BaseMediaBroadcastReceiver.ACTION_OPEN);
+            broadcastIntent.putExtra(BaseMediaBroadcastReceiver.KEY_URI, file);
+            LocalBroadcastManager.getInstance(this)
+                    .sendBroadcast(broadcastIntent);
+
         }
 
     }
 
     public class ServiceBinder extends Binder {
 
-        MusicService getService() {
+        public MusicService getService() {
             return MusicService.this;
         }
 
     }
 
-    public static PendingIntent createActionIntent(MusicService service, String action) {
-        Intent intent = new Intent(action);
+    private static PendingIntent createIntent(MusicService service, Intent intent) {
         intent.setComponent(new ComponentName(service, MusicService.class));
         PendingIntent pendingIntent = PendingIntent.getService(service, 0, intent, 0);
+        return pendingIntent;
+    }
+
+    private static PendingIntent createActionIntent(MusicService service, String action) {
+        PendingIntent pendingIntent = createIntent(service, new Intent(action));
         return pendingIntent;
     }
 

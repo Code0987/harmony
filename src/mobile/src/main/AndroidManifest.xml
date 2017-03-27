@@ -28,6 +28,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <service
+            android:name=".base.MusicService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+
         <activity android:name=".splash.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -39,6 +45,17 @@
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="audio/*"/>
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -50,15 +67,48 @@
                 <data android:mimeType="application/x-ogg"/>
                 <data android:mimeType="application/itunes"/>
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:scheme="http"/>
+                <data android:mimeType="audio/*"/>
+                <data android:mimeType="application/ogg"/>
+                <data android:mimeType="application/x-ogg"/>
+                <data android:mimeType="application/itunes"/>
+            </intent-filter>
+
+            <intent-filter android:priority="-1">
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:scheme="content"/>
+                <data android:mimeType="audio/*"/>
+                <data android:mimeType="application/ogg"/>
+                <data android:mimeType="application/x-ogg"/>
+                <data android:mimeType="application/itunes"/>
+            </intent-filter>
+
+        </activity>
+
+        <activity android:name=".views.PlaybackUIDarkActivity">
         </activity>
 
         <activity android:name=".ref.Permissions$PermissionRequestActivity"/>
 
-        <service
-            android:name=".MusicService"
-            android:enabled="true"
-            android:exported="true">
-        </service>
+        <receiver android:name=".base.HeadsetMediaButtonIntentReceiver">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+            </intent-filter>
+
+        </receiver>
 
     </application>
 
