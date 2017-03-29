@@ -21,8 +21,8 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.fx.DbmHandler;
 import com.ilusons.harmony.fx.GLAudioVisualizationView;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
-import com.squareup.picasso.Picasso;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.File;
@@ -133,11 +133,13 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
             if (music != null) {
 
-                Picasso.with(this)
-                        .load(new File(Music.getCover(this, music)))
-                        .fit()
-                        .centerCrop()
-                        .into((ImageView) findViewById(R.id.backdrop));
+                Music.getCoverOrDownload(this, music, new JavaEx.ActionT<Bitmap>() {
+                    @Override
+                    public void execute(Bitmap bitmap) {
+                        ((ImageView) findViewById(R.id.backdrop))
+                                .setImageBitmap(bitmap);
+                    }
+                });
 
                 ((AVLoadingIndicatorView) findViewById(R.id.loading_view)).show();
 
