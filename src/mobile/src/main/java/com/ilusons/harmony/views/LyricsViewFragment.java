@@ -156,6 +156,7 @@ public class LyricsViewFragment extends Fragment {
         isContentProcessed = true;
     }
 
+    private int lastP = 0;
     private float lastV = 0;
     private long lastTS = 0;
     private int lastIndex = -1;
@@ -163,6 +164,14 @@ public class LyricsViewFragment extends Fragment {
     public void updateScroll(float v, int p) {
         if (!isContentProcessed)
             return;
+
+        // Reset if seek-ed back
+        if (lastP > p){
+            lastV = 0;
+            lastTS = 0;
+            lastIndex = -1;
+        }
+        lastP = p;
 
         // For synced
         if (contentProcessed.size() > 0) {

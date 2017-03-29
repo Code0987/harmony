@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.audiofx.AudioEffect;
@@ -126,6 +125,7 @@ public class MusicService extends Service {
         wakeLock.setReferenceCounted(false);
 
         setUpMediaSession();
+
     }
 
     @Override
@@ -155,6 +155,8 @@ public class MusicService extends Service {
     }
 
     public int getAudioSessionId() {
+        if (mediaPlayer == null)
+            return 0;
         return mediaPlayer.getAudioSessionId();
     }
 
@@ -203,11 +205,11 @@ public class MusicService extends Service {
                 playlistPosition = 0;
             else
                 playlistPosition += 1;
-
-            stop();
-            prepare();
-            play();
         }
+
+        stop();
+        prepare();
+        play();
     }
 
     public void prev() {
@@ -219,11 +221,11 @@ public class MusicService extends Service {
                 playlistPosition = 0;
             else
                 playlistPosition -= 1;
-
-            stop();
-            prepare();
-            play();
         }
+
+        stop();
+        prepare();
+        play();
     }
 
     public void random() {
@@ -235,11 +237,11 @@ public class MusicService extends Service {
                 playlistPosition = 0;
             else
                 playlistPosition = (int) Math.round(Math.random() * playlist.size());
-
-            stop();
-            prepare();
-            play();
         }
+
+        stop();
+        prepare();
+        play();
     }
 
     public int getPlaylistPosition() {
@@ -261,50 +263,57 @@ public class MusicService extends Service {
         if (!canPlay())
             return;
 
-        String path = playlist.get(playlistPosition);
+        synchronized (this) {
+            String path = playlist.get(playlistPosition);
 
-        // Decode file
-        currentMusic = Music.decodeFromFile(this, new File(path));
-        if (currentMusic == null)
-            return;
+            // Decode file
+            currentMusic = Music.decodeFromFile(this, new File(path));
+            if (currentMusic == null)
+                return;
 
-        // Setup player
-        if (mediaPlayer == null)
-            mediaPlayer = new MediaPlayer();
-        try {
-            mediaPlayer.reset();
-            mediaPlayer.setOnPreparedListener(null);
-            mediaPlayer.setDataSource(path);
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.prepare();
-        } catch (Exception e) {
-            Log.w(TAG, "media init failed", e);
-        }
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                Log.d(TAG, "onCompletion");
+            // Setup player
+            if (mediaPlayer == null)
+                mediaPlayer = new MediaPlayer();
+            try {
+                mediaPlayer.reset();
+                mediaPlayer.setOnPreparedListener(null);
+                mediaPlayer.setDataSource(path);
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mediaPlayer.prepare();
+            } catch (Exception e) {
+                Log.w(TAG, "media init failed", e);
             }
-        });
-        mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-                Log.d(TAG, "onError");
-                return false;
-            }
-        });
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    Log.d(TAG, "onCompletion");
 
-        // Update media session
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.Title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.Artist)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.Album)
-                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
-                    .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, getPlaylistPosition() + 1)
-                    .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlaylist().size())
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this))
-                    .build());
+                    random();
+                }
+            });
+            mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+                    Log.d(TAG, "onError");
+
+                    random();
+
+                    return false;
+                }
+            });
+
+            // Update media session
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.Title)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.Artist)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.Album)
+                        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
+                        .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, getPlaylistPosition() + 1)
+                        .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlaylist().size())
+                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this))
+                        .build());
+            }
         }
 
     }
@@ -402,7 +411,7 @@ public class MusicService extends Service {
 
     private void updateNotification() {
 
-        int bgColor = Color.parseColor("#9e9e9e");
+        int bgColor = getApplicationContext().getColor(R.color.primary);
 
         Bitmap cover = currentMusic.getCover(this);
         if (cover == null)
@@ -416,17 +425,18 @@ public class MusicService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         android.support.v4.app.NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setContentTitle(currentMusic.Title)
+                .setContentText(currentMusic.Album)
+                .setSubText(currentMusic.Artist)
+                .setContentIntent(contentIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(cover)
                 .setColor(bgColor)
-                .setContentIntent(contentIntent)
-                .setContentTitle(currentMusic.Title)
-                .setContentText(currentMusic.getText())
                 .setTicker(currentMusic.getText())
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setWhen(0)
+                .setWhen(350)
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel,
                         "Stop",
                         createActionIntent(this, ACTION_STOP))
@@ -448,10 +458,10 @@ public class MusicService extends Service {
 
         builder.setVisibility(Notification.VISIBILITY_PUBLIC);
         NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle()
-                .setMediaSession(mediaSession.getSessionToken())
-                .setShowActionsInCompactView(2, 4, 0)
+                .setShowCancelButton(true)
                 .setCancelButtonIntent(createActionIntent(this, ACTION_STOP))
-                .setShowCancelButton(true);
+                .setMediaSession(mediaSession.getSessionToken())
+                .setShowActionsInCompactView(2, 4, 0);
         builder.setStyle(style);
 
         Notification currentNotification = builder.build();
@@ -461,6 +471,7 @@ public class MusicService extends Service {
         } else {
             NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, currentNotification);
         }
+
 
     }
 
@@ -568,7 +579,6 @@ public class MusicService extends Service {
 
             add(file);
             next();
-            start();
 
             Intent broadcastIntent = new Intent(BaseMediaBroadcastReceiver.ACTION_OPEN);
             broadcastIntent.putExtra(BaseMediaBroadcastReceiver.KEY_URI, file);

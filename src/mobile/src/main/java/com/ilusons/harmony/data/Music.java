@@ -11,16 +11,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ilusons.harmony.ref.CacheEx;
-import com.ilusons.harmony.ref.ID3TagsEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
+import com.ilusons.harmony.ref.LyricsEx;
 import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -38,9 +36,9 @@ public class Music {
 
     public static final String KEY_CACHE_DIR_COVER = "covers";
 
-    public String Title = "Untitled";
-    public String Artist = "Unknown artist";
-    public String Album;
+    public String Title = "";
+    public String Artist = "";
+    public String Album = "";
     public String Path;
     public String Lyrics;
 
@@ -195,15 +193,17 @@ public class Music {
                 data.Album = tags.getAlbum();
                 data.Tags = tags;
 
-                byte[] cover = ID3TagsEx.getCover(tags);
-                if (cover != null && cover.length > 0) {
-                    Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                if (data.getCover(context) == null) {
+                    byte[] cover = tags.getAlbumImage();
+                    if (cover != null && cover.length > 0) {
+                        Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
 
-                    if (bmp != null)
-                        putCover(context, data, bmp);
+                        if (bmp != null)
+                            putCover(context, data, bmp);
+                    }
                 }
 
-                data.Lyrics = ID3TagsEx.getLyrics(tags);
+                data.Lyrics = LyricsEx.getLyrics(tags);
 
             }
 
@@ -215,14 +215,12 @@ public class Music {
                 data.Album = tags.getAlbum();
             }
 
-            if (TextUtils.isEmpty(data.Title)) {
-                data.Title = file.getName().replaceFirst("[.][^.]+$", "");
-            }
-
         } catch (Exception e) {
             Log.e(TAG, "decode audio data tags", e);
+        }
 
-            return null;
+        if (TextUtils.isEmpty(data.Title)) {
+            data.Title = file.getName().replaceFirst("[.][^.]+$", "");
         }
 
         return data;

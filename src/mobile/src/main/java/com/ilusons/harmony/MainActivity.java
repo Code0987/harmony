@@ -25,8 +25,11 @@ public class MainActivity extends BaseActivity {
 
         // UI
         Intent intent = new Intent(this, PlaybackUIDarkActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
 
+        // Finish TODO: ? Think later ...
+        finish();
     }
 
     private void handleIntent(final Intent intent) {

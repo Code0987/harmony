@@ -1,11 +1,15 @@
 package com.ilusons.harmony.ref;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.mpatric.mp3agic.ID3v2;
+import com.mpatric.mp3agic.ID3v2FrameSet;
+import com.mpatric.mp3agic.ID3v2TXXXFrameData;
 
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
@@ -19,6 +23,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class LyricsEx {
@@ -127,6 +132,43 @@ public class LyricsEx {
             return results;
         }
 
+    }
+
+    public static String getLyrics(ID3v2 id3v2) {
+        String value = id3v2.getLyrics();
+
+        if (value != null && !TextUtils.isEmpty(value))
+            return value;
+
+        Map<String, ID3v2FrameSet> frameSets = id3v2.getFrameSets();
+
+        ID3v2FrameSet txxx = frameSets.get(ID3v2TXXXFrameData.ID_FIELD);
+        if (txxx == null)
+            return null;
+
+        ID3v2TXXXFrameData txxxFrameData = ID3v2TXXXFrameData.extract(
+                txxx,
+                id3v2.hasUnsynchronisation(),
+                "UNSYNCED LYRICS");
+
+        if (txxxFrameData != null)
+            return txxxFrameData.getValue().toString();
+
+        txxxFrameData = ID3v2TXXXFrameData.extract(
+                txxx,
+                id3v2.hasUnsynchronisation(),
+                "LYRICS");
+
+        if (txxxFrameData != null)
+            return txxxFrameData.getValue().toString();
+
+        return null;
+    }
+
+    private static Pattern ts = Pattern.compile("\\[(.*?)\\]", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+
+    public static String cleanLyrics(String s) {
+        return ts.matcher(s).replaceAll("");
     }
 
 }
