@@ -39,6 +39,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 
         intentFilter.addAction(ACTION_OPEN);
 
+        intentFilter.addAction(MusicService.ACTION_PLAY);
+        intentFilter.addAction(MusicService.ACTION_PAUSE);
+        intentFilter.addAction(MusicService.ACTION_STOP);
+
         broadcastManager.registerReceiver(this, intentFilter);
     }
 
