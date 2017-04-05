@@ -105,7 +105,7 @@ public class LyricsViewFragment extends Fragment {
                     super.onPostExecute(results);
 
                     if (results == null || results.size() == 0)
-                        textView.setText("Lyrics not found!");
+                        textView.setText(title + "\n\n" + artist);
                     else
                         textView.setText(results.get(0).Content);
 
@@ -122,7 +122,7 @@ public class LyricsViewFragment extends Fragment {
 
             Matcher m = lf.matcher(content);
             while (m.find()) {
-                String c = m.group(4);
+                String c = m.group(4).trim();
 
                 Matcher mts = ts.matcher(m.group(3));
                 while (mts.find()) { // Decode multiple time lines
@@ -165,8 +165,11 @@ public class LyricsViewFragment extends Fragment {
         if (!isContentProcessed)
             return;
 
+        if (textView == null)
+            return;
+
         // Reset if seek-ed back
-        if (lastP > p){
+        if (lastP > p) {
             lastV = 0;
             lastTS = 0;
             lastIndex = -1;
@@ -202,7 +205,7 @@ public class LyricsViewFragment extends Fragment {
         // For un-synced (no else to show little scroll always)
 
         float dv = Math.abs(v - lastV);
-        if (dv > 1.09 /* TODO: Magic! Make it better and real */) {
+        if (dv > 1.07 /* TODO: Magic! Make it better and real */) {
             scrollView.smoothScrollBy(0, Math.round(dv));
             lastV = v;
         } else {

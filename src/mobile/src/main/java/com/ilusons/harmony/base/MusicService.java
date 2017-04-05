@@ -24,9 +24,9 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
-import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -126,6 +126,20 @@ public class MusicService extends Service {
 
         setUpMediaSession();
 
+        // Init loop
+        final int dt = 350;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                if (customNotificationView != null) {
+                    customNotificationView.setProgressBar(R.id.progress, getDuration(), getPosition(), false);
+                }
+
+                handler.removeCallbacks(this);
+                handler.postDelayed(this, dt);
+            }
+        }, dt);
     }
 
     @Override
@@ -137,7 +151,6 @@ public class MusicService extends Service {
         wakeLock.release();
 
         audioManager.abandonAudioFocus(audioManagerFocusListener);
-
     }
 
     @Override
@@ -387,6 +400,10 @@ public class MusicService extends Service {
             mediaPlayer.start();
 
             update();
+
+            LocalBroadcastManager
+                    .getInstance(this)
+                    .sendBroadcast(new Intent(ACTION_PLAY));
         }
     }
 
@@ -400,6 +417,10 @@ public class MusicService extends Service {
             mediaPlayer.pause();
 
             update();
+
+            LocalBroadcastManager
+                    .getInstance(this)
+                    .sendBroadcast(new Intent(ACTION_PAUSE));
         }
     }
 
@@ -409,20 +430,29 @@ public class MusicService extends Service {
 
     private static final int NOTIFICATION_ID = 4524;
 
-    private void updateNotification() {
+    private RemoteViews customNotificationView;
 
-        int bgColor = getApplicationContext().getColor(R.color.primary);
+    private void updateNotification() {
 
         Bitmap cover = currentMusic.getCover(this);
         if (cover == null)
             cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-        else
-            bgColor = Palette.from(cover).generate().getVibrantColor(bgColor);
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        customNotificationView = new RemoteViews(getPackageName(), R.layout.notification_media_view);
+        customNotificationView.setImageViewBitmap(R.id.cover, cover);
+        customNotificationView.setTextViewText(R.id.title, currentMusic.Title);
+        customNotificationView.setTextViewText(R.id.album, currentMusic.Album);
+        customNotificationView.setTextViewText(R.id.artist, currentMusic.Artist);
+        customNotificationView.setOnClickPendingIntent(R.id.prev, createActionIntent(this, ACTION_PREVIOUS));
+        customNotificationView.setOnClickPendingIntent(R.id.next, createActionIntent(this, ACTION_NEXT));
+        customNotificationView.setOnClickPendingIntent(R.id.play_pause, createActionIntent(this, ACTION_TOGGLE_PLAYBACK));
+        customNotificationView.setOnClickPendingIntent(R.id.stop, createActionIntent(this, ACTION_STOP));
+        customNotificationView.setOnClickPendingIntent(R.id.random, createActionIntent(this, ACTION_RANDOM));
 
         android.support.v4.app.NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setContentTitle(currentMusic.Title)
@@ -431,38 +461,31 @@ public class MusicService extends Service {
                 .setContentIntent(contentIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(cover)
-                .setColor(bgColor)
+                .setColor(getApplicationContext().getColor(R.color.primary))
                 .setTicker(currentMusic.getText())
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setWhen(350)
-                .addAction(android.R.drawable.ic_menu_close_clear_cancel,
+                .setAutoCancel(false)
+                /*.addAction(android.R.drawable.ic_menu_close_clear_cancel,
                         "Stop",
                         createActionIntent(this, ACTION_STOP))
-                .addAction(android.R.drawable.ic_media_previous,
-                        "Previous",
-                        createActionIntent(this, ACTION_PREVIOUS))
                 .addAction(isPlaying()
                                 ? android.R.drawable.ic_media_pause
                                 : android.R.drawable.ic_media_play,
                         "Play / Pause",
                         createActionIntent(this, ACTION_TOGGLE_PLAYBACK))
-                .addAction(android.R.drawable.ic_media_next,
-                        "Next",
-                        createActionIntent(this, ACTION_NEXT))
                 .addAction(android.R.drawable.ic_media_ff,
                         "Random",
-                        createActionIntent(this, ACTION_RANDOM))
-                .setProgress(getDuration(), getPosition(), true);
+                        createActionIntent(this, ACTION_RANDOM))*/
+                .setCustomBigContentView(customNotificationView)
+                /*.setStyle(new NotificationCompat.DecoratedMediaCustomViewStyle()
+                        .setShowCancelButton(true)
+                        .setCancelButtonIntent(createActionIntent(this, ACTION_STOP))
+                        .setMediaSession(mediaSession.getSessionToken())
+                        .setShowActionsInCompactView(1, 2, 0))*/;
 
         builder.setVisibility(Notification.VISIBILITY_PUBLIC);
-        NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle()
-                .setShowCancelButton(true)
-                .setCancelButtonIntent(createActionIntent(this, ACTION_STOP))
-                .setMediaSession(mediaSession.getSessionToken())
-                .setShowActionsInCompactView(2, 4, 0);
-        builder.setStyle(style);
 
         Notification currentNotification = builder.build();
 
@@ -471,7 +494,6 @@ public class MusicService extends Service {
         } else {
             NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, currentNotification);
         }
-
 
     }
 
@@ -580,9 +602,10 @@ public class MusicService extends Service {
             add(file);
             next();
 
-            Intent broadcastIntent = new Intent(BaseMediaBroadcastReceiver.ACTION_OPEN);
-            broadcastIntent.putExtra(BaseMediaBroadcastReceiver.KEY_URI, file);
-            LocalBroadcastManager.getInstance(this)
+            Intent broadcastIntent = new Intent(ACTION_OPEN);
+            broadcastIntent.putExtra(KEY_URI, file);
+            LocalBroadcastManager
+                    .getInstance(this)
                     .sendBroadcast(broadcastIntent);
 
         }

@@ -23,7 +23,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.base.BaseMediaBroadcastReceiver;
 import com.ilusons.harmony.base.BasePlaybackUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
@@ -43,18 +42,14 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     // Request codes
     private static final int REQUEST_FILE_PICK = 4684;
 
-    // Events
-    private BaseMediaBroadcastReceiver mediaBroadcastReceiver = new BaseMediaBroadcastReceiver() {
-        @Override
-        public void open(String uri) {
-            resetForUri(uri);
-        }
-    };
-
     // UI
     private View root;
 
     private FloatingActionButton fab;
+    private FloatingActionButton fab_prev;
+    private FloatingActionButton fab_next;
+    private FloatingActionButton fab_random;
+    private FloatingActionButton fab_stop;
 
     private LyricsViewFragment lyricsViewFragment;
 
@@ -113,18 +108,58 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         });
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab_prev = (FloatingActionButton) findViewById(R.id.fab_prev);
+        fab_next = (FloatingActionButton) findViewById(R.id.fab_next);
+        fab_random = (FloatingActionButton) findViewById(R.id.fab_random);
+        fab_stop = (FloatingActionButton) findViewById(R.id.fab_stop);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent();
-                i.setType("audio/*");
-                i.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(i, REQUEST_FILE_PICK);
+                if (getMusicService() != null && getMusicService().isPlaying()) {
+                    getMusicService().pause();
+                } else {
+                    getMusicService().play();
+                }
             }
         });
 
-        // Broadcast receiver
-        mediaBroadcastReceiver.register(this);
+        fab_prev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (getMusicService() != null) {
+                    getMusicService().prev();
+                }
+            }
+        });
+
+        fab_next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (getMusicService() != null) {
+                    getMusicService().next();
+                }
+            }
+        });
+
+        fab_random.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (getMusicService() != null) {
+                    getMusicService().random();
+                }
+            }
+        });
+
+        fab_stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (getMusicService() != null) {
+                    getMusicService().stop();
+                }
+            }
+        });
+
         getWindow().getDecorView().post(new Runnable() {
             @Override
             public void run() {
@@ -140,13 +175,13 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
             }
         });
+
+        loadingView.hide();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        mediaBroadcastReceiver.unRegister();
     }
 
     @Override
@@ -158,7 +193,11 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
         switch (id) {
             case android.R.id.home:
-                onBackPressed();
+                // TODO: Impl - close now playing ui back to - tracks list / selector
+                Intent i = new Intent();
+                i.setType("audio/*");
+                i.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(i, REQUEST_FILE_PICK);
                 return true;
         }
 
@@ -199,6 +238,27 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         });
     }
 
+    @Override
+    protected void OnOnMusicServiceOpen(String uri) {
+        super.OnOnMusicServiceOpen(uri);
+
+        resetForUri(uri);
+    }
+
+    @Override
+    protected void OnOnMusicServicePlay() {
+        super.OnOnMusicServicePlay();
+
+        fab.setImageDrawable(getDrawable(R.drawable.ic_media_pause));
+    }
+
+    @Override
+    protected void OnOnMusicServicePause() {
+        super.OnOnMusicServicePlay();
+
+        fab.setImageDrawable(getDrawable(R.drawable.ic_media_play));
+    }
+
     private void resetForUri(String uri) {
         Log.d(TAG, "resetForUri\n" + uri);
 
@@ -215,8 +275,12 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         if (bitmap == null)
                             bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
 
+                        loadingView.hide();
+
                         if (bitmap == null)
                             return;
+
+                        loadingView.show();
 
                         // Load cover
                         if (cover.getDrawable() != null) {
@@ -233,16 +297,31 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                             cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
                         }
 
+                        Palette palette = Palette.from(bitmap).generate();
                         int color = getApplicationContext().getColor(R.color.accent);
-                        color = Palette.from(bitmap).generate().getVibrantColor(color);
+                        int colorBackup = color;
+                        color = palette.getVibrantColor(color);
+                        if (color == colorBackup)
+                            color = palette.getDarkVibrantColor(color);
+                        if (color == colorBackup)
+                            color = palette.getDarkMutedColor(color);
+
                         root.setBackground(new ColorDrawable(color));
 
                         seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         seekBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
                         fab.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                        fab_prev.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                        fab_next.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                        fab_random.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                        fab_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+
+                        loadingView.hide();
                     }
                 });
+
+                loadingView.show();
 
                 if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
                     getFragmentManager()
@@ -261,6 +340,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                 seekBar.setMax(getMusicService().getDuration());
 
                 setupProgressHandler();
+
+                loadingView.hide();
 
             }
 
