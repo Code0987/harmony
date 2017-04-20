@@ -13,6 +13,7 @@
     <color name="translucent">#94000000</color>
     <color name="translucent_primary">#94212121</color>
     <color name="translucent_primary_dark">#94000000</color>
+    <color name="translucent_accent">#947b1fa2</color>
 
     <color name="colorPrimary">@color/primary</color>
     <color name="colorPrimaryDark">@color/primary_dark</color>

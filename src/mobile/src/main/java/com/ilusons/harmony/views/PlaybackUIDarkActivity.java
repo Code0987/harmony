@@ -194,10 +194,11 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         switch (id) {
             case android.R.id.home:
                 // TODO: Impl - close now playing ui back to - tracks list / selector
-                Intent i = new Intent();
-                i.setType("audio/*");
-                i.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(i, REQUEST_FILE_PICK);
+//                Intent i = new Intent();
+//                i.setType("audio/*");
+//                i.setAction(Intent.ACTION_GET_CONTENT);
+//                startActivityForResult(i, REQUEST_FILE_PICK);
+                onBackPressed();
                 return true;
         }
 

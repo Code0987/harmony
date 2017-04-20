@@ -52,6 +52,8 @@ public class MusicService extends Service {
     public static final String ACTION_OPEN = TAG + ".open";
     public static final String KEY_URI = "uri";
 
+    public static final String ACTION_LIBRARY_UPDATED = TAG + ".library_updated";
+
     // Threads
     private Handler handler = new Handler();
 
@@ -115,6 +117,8 @@ public class MusicService extends Service {
         filter.addAction(ACTION_PLAY);
         filter.addAction(ACTION_PAUSE);
         filter.addAction(ACTION_STOP);
+        filter.addAction(ACTION_OPEN);
+        filter.addAction(ACTION_LIBRARY_UPDATED);
 
         // Attach
         registerReceiver(intentReceiver, filter);
@@ -132,9 +136,7 @@ public class MusicService extends Service {
             @Override
             public void run() {
 
-                if (customNotificationView != null) {
-                    customNotificationView.setProgressBar(R.id.progress, getDuration(), getPosition(), false);
-                }
+                updateNotification();
 
                 handler.removeCallbacks(this);
                 handler.postDelayed(this, dt);
@@ -430,10 +432,11 @@ public class MusicService extends Service {
 
     private static final int NOTIFICATION_ID = 4524;
 
+    private android.support.v4.app.NotificationCompat.Builder builder;
+
     private RemoteViews customNotificationView;
 
-    private void updateNotification() {
-
+    private void setupNotification() {
         Bitmap cover = currentMusic.getCover(this);
         if (cover == null)
             cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
@@ -453,8 +456,11 @@ public class MusicService extends Service {
         customNotificationView.setOnClickPendingIntent(R.id.play_pause, createActionIntent(this, ACTION_TOGGLE_PLAYBACK));
         customNotificationView.setOnClickPendingIntent(R.id.stop, createActionIntent(this, ACTION_STOP));
         customNotificationView.setOnClickPendingIntent(R.id.random, createActionIntent(this, ACTION_RANDOM));
+        customNotificationView.setImageViewResource(R.id.play_pause, isPlaying()
+                ? android.R.drawable.ic_media_pause
+                : android.R.drawable.ic_media_play);
 
-        android.support.v4.app.NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+        builder = new NotificationCompat.Builder(this)
                 .setContentTitle(currentMusic.Title)
                 .setContentText(currentMusic.Album)
                 .setSubText(currentMusic.Artist)
@@ -486,6 +492,13 @@ public class MusicService extends Service {
                         .setShowActionsInCompactView(1, 2, 0))*/;
 
         builder.setVisibility(Notification.VISIBILITY_PUBLIC);
+    }
+
+    private void updateNotification() {
+        if (builder == null)
+            return;
+
+        customNotificationView.setProgressBar(R.id.progress, getDuration(), getPosition(), false);
 
         Notification currentNotification = builder.build();
 
@@ -494,12 +507,13 @@ public class MusicService extends Service {
         } else {
             NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, currentNotification);
         }
-
     }
 
     private void cancelNotification() {
         stopForeground(true);
         NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID);
+
+        builder = null;
     }
 
     private void setUpMediaSession() {
@@ -565,7 +579,7 @@ public class MusicService extends Service {
         updateMediaSession();
 
         // Update notification
-        updateNotification();
+        setupNotification();
 
     }
 
@@ -608,6 +622,12 @@ public class MusicService extends Service {
                     .getInstance(this)
                     .sendBroadcast(broadcastIntent);
 
+        } else if (action.equals(ACTION_LIBRARY_UPDATED)) {
+            stop();
+            getPlaylist().clear();
+            for (Music music : Music.load(this))
+                getPlaylist().add(music.Path);
+            next();
         }
 
     }

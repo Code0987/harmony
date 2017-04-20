@@ -8,8 +8,13 @@ import android.util.Log;
 
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
+import com.ilusons.harmony.views.LibraryUIDarkActivity;
 import com.ilusons.harmony.views.PlaybackUIDarkActivity;
+
+import java.util.ArrayList;
 
 public class MainActivity extends BaseActivity {
 
@@ -20,11 +25,19 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Start scan
+        Music.scan(this, new JavaEx.ActionT<ArrayList<Music>>() {
+            @Override
+            public void execute(ArrayList<Music> data) {
+                Log.d(TAG, "scan\n" + data.size());
+            }
+        });
+
         // Intent
         handleIntent(getIntent());
 
         // UI
-        Intent intent = new Intent(this, PlaybackUIDarkActivity.class);
+        Intent intent = new Intent(this, LibraryUIDarkActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
 
