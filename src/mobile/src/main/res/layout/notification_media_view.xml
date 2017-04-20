@@ -6,25 +6,29 @@
     android:layout_width="match_parent"
     android:layout_height="128dp"
     android:background="@color/primary_dark"
-    android:minHeight="128dp">
+    android:minHeight="128dp"
+    >
 
     <ImageView
         android:id="@+id/cover"
         android:layout_width="128dp"
         android:layout_height="128dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/logo"/>
+        android:src="@drawable/logo"
+        />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="128dp">
+        android:layout_marginStart="128dp"
+        >
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentStart="true"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            >
 
             <TextView
                 android:id="@+id/title"
@@ -34,7 +38,8 @@
                 android:maxLines="1"
                 android:paddingStart="8dp"
                 android:textColor="@color/primary_text"
-                tools:text="Title"/>
+                tools:text="Title"
+                />
 
             <TextView
                 android:id="@+id/album"
@@ -45,7 +50,8 @@
                 android:paddingStart="8dp"
                 android:paddingTop="5dp"
                 android:textColor="@color/primary_text"
-                tools:text="Album"/>
+                tools:text="Album"
+                />
 
             <TextView
                 android:id="@+id/artist"
@@ -56,7 +62,8 @@
                 android:paddingStart="8dp"
                 android:paddingTop="5dp"
                 android:textColor="@color/primary_text"
-                tools:text="Artist"/>
+                tools:text="Artist"
+                />
 
         </LinearLayout>
 
@@ -64,15 +71,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            >
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                >
 
                 <Button
-                    android:id="@+id/close"
+                    android:id="@+id/stop"
                     style="@android:style/Widget.Material.Light.Button.Borderless.Small"
                     android:layout_width="0dp"
                     android:layout_height="48dp"
@@ -80,14 +89,15 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:drawablePadding="8dp"
+                    android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
                     android:ellipsize="end"
                     android:gravity="start|center_vertical"
                     android:paddingStart="8dp"
                     android:scaleType="centerInside"
                     android:singleLine="true"
-                    android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
                     android:textColor="@color/secondary_text"
-                    android:textSize="13sp"/>
+                    android:textSize="13sp"
+                    />
 
                 <Button
                     android:id="@+id/prev"
@@ -98,14 +108,15 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:drawablePadding="8dp"
+                    android:drawableStart="@android:drawable/ic_media_previous"
                     android:ellipsize="end"
                     android:gravity="start|center_vertical"
                     android:paddingStart="8dp"
                     android:scaleType="centerInside"
                     android:singleLine="true"
-                    android:drawableStart="@android:drawable/ic_media_previous"
                     android:textColor="@color/secondary_text"
-                    android:textSize="13sp"/>
+                    android:textSize="13sp"
+                    />
 
                 <Button
                     android:id="@+id/play_pause"
@@ -116,14 +127,15 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:drawablePadding="8dp"
+                    android:drawableStart="@android:drawable/ic_media_play"
                     android:ellipsize="end"
                     android:gravity="start|center_vertical"
                     android:paddingStart="8dp"
                     android:scaleType="centerInside"
                     android:singleLine="true"
-                    android:drawableStart="@android:drawable/ic_media_play"
                     android:textColor="@color/secondary_text"
-                    android:textSize="13sp"/>
+                    android:textSize="13sp"
+                    />
 
                 <Button
                     android:id="@+id/next"
@@ -134,14 +146,15 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:drawablePadding="8dp"
+                    android:drawableStart="@android:drawable/ic_media_next"
                     android:ellipsize="end"
                     android:gravity="start|center_vertical"
                     android:paddingStart="8dp"
                     android:scaleType="centerInside"
                     android:singleLine="true"
-                    android:drawableStart="@android:drawable/ic_media_next"
                     android:textColor="@color/secondary_text"
-                    android:textSize="13sp"/>
+                    android:textSize="13sp"
+                    />
 
                 <Button
                     android:id="@+id/random"
@@ -152,14 +165,15 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:drawablePadding="8dp"
+                    android:drawableStart="@android:drawable/ic_media_ff"
                     android:ellipsize="end"
                     android:gravity="start|center_vertical"
                     android:paddingStart="8dp"
                     android:scaleType="centerInside"
                     android:singleLine="true"
-                    android:drawableStart="@android:drawable/ic_media_ff"
                     android:textColor="@color/secondary_text"
-                    android:textSize="13sp"/>
+                    android:textSize="13sp"
+                    />
 
             </LinearLayout>
 
@@ -171,7 +185,8 @@
                 android:layout_marginBottom="-4dp"
                 android:indeterminate="true"
                 android:max="100"
-                android:progress="100"/>
+                android:progress="100"
+                />
 
         </LinearLayout>
 
