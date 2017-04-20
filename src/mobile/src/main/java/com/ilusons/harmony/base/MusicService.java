@@ -456,9 +456,7 @@ public class MusicService extends Service {
         customNotificationView.setOnClickPendingIntent(R.id.play_pause, createActionIntent(this, ACTION_TOGGLE_PLAYBACK));
         customNotificationView.setOnClickPendingIntent(R.id.stop, createActionIntent(this, ACTION_STOP));
         customNotificationView.setOnClickPendingIntent(R.id.random, createActionIntent(this, ACTION_RANDOM));
-        customNotificationView.setImageViewResource(R.id.play_pause, isPlaying()
-                ? android.R.drawable.ic_media_pause
-                : android.R.drawable.ic_media_play);
+        
 
         builder = new NotificationCompat.Builder(this)
                 .setContentTitle(currentMusic.Title)
