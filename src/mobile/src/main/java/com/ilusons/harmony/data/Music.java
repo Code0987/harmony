@@ -7,9 +7,18 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
@@ -19,6 +28,7 @@ import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
 
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,8 +36,11 @@ import org.jsoup.nodes.Document;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Music {
 
@@ -36,13 +49,15 @@ public class Music {
 
     public static final String KEY_CACHE_DIR_COVER = "covers";
 
+    public static final String KEY_CACHE_KEY_LIBRARY = "library.index";
+
     public String Title = "";
     public String Artist = "";
     public String Album = "";
     public String Path;
     public String Lyrics;
 
-    public ID3v2 Tags;
+    ID3v2 Tags;
 
     public String getText() {
         return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
@@ -224,6 +239,102 @@ public class Music {
         }
 
         return data;
+    }
+
+    public static ArrayList<Music> load(Context context) {
+        ArrayList<Music> result = new ArrayList<>();
+
+        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
+        if (!cacheFile.exists())
+            return result;
+
+        String json;
+        try {
+            json = FileUtils.readFileToString(cacheFile, "utf-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return result;
+        }
+
+        Gson serializer = getSerializer();
+
+        result.addAll(Arrays.asList(serializer.fromJson(json, Music[].class)));
+
+        return result;
+    }
+
+    public static void save(Context context, ArrayList<Music> data) {
+        Gson serializer = getSerializer();
+
+        String json = serializer.toJson(data.toArray(), Music[].class);
+
+        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
+        try {
+            FileUtils.writeStringToFile(cacheFile, json, "utf-8", false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static LibraryUpdaterAsyncTask scan(Context context, final JavaEx.ActionT<ArrayList<Music>> onData) {
+        LibraryUpdaterAsyncTask task = new LibraryUpdaterAsyncTask(context) {
+            @Override
+            protected void onPostExecute(Result result) {
+                super.onPostExecute(result);
+
+                onData.execute(result.Data);
+            }
+        };
+        task.execute();
+
+        return task;
+    }
+
+    static Gson getSerializer() {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+
+        gsonBuilder.registerTypeAdapter(Music.class, new Serializer());
+        gsonBuilder.registerTypeAdapter(Music.class, new Deserializer());
+
+        Gson gson = gsonBuilder.create();
+
+        return gson;
+    }
+
+    static class Serializer implements JsonSerializer<Music> {
+
+        @Override
+        public JsonElement serialize(final Music data, final Type type, final JsonSerializationContext context) {
+            JsonObject result = new JsonObject();
+
+            result.add("Title", new JsonPrimitive(data.Title));
+            result.add("Artist", new JsonPrimitive(TextUtils.isEmpty(data.Artist) ? "" : data.Artist));
+            result.add("Album", new JsonPrimitive(TextUtils.isEmpty(data.Album) ? "" : data.Album));
+            result.add("Path", new JsonPrimitive(data.Path));
+            result.add("Lyrics", new JsonPrimitive(TextUtils.isEmpty(data.Lyrics) ? "" : data.Lyrics));
+
+            return result;
+        }
+
+    }
+
+    static class Deserializer implements JsonDeserializer<Music> {
+
+        @Override
+        public Music deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            Music result = new Music();
+
+            JsonObject data = json.getAsJsonObject();
+
+            result.Title = data.get("Title").getAsString();
+            result.Artist = data.get("Artist").getAsString();
+            result.Album = data.get("Album").getAsString();
+            result.Path = data.get("Path").getAsString();
+            result.Lyrics = data.get("Lyrics").getAsString();
+
+            return result;
+        }
     }
 
 }

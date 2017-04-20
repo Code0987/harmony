@@ -91,25 +91,35 @@ public class IOEx {
         return storageDirectories;
     }
 
-    public static File getDiskCache(Context context, String dir) {
+    public static File getDiskCache(Context context, String path, boolean isDir) {
         // Create a path pointing to the system-recommended cache dir for the app, with sub-dir named
         // thumbnails
-        File cacheDir = new File(context.getCacheDir(), dir);
+        File cacheDir = new File(context.getCacheDir(), path);
 
-        if (!cacheDir.exists()) {
-            if (cacheDir.mkdirs()) {
-                Log.d(TAG, "Successfully created dir:" + cacheDir.getName());
+        File parent = cacheDir;
+        if(!isDir)
+            parent = cacheDir.getParentFile();
+
+        if (!parent.exists()) {
+            if (parent.mkdirs()) {
+                Log.d(TAG, "Successfully created dir:" + parent.getName());
             } else {
-                Log.d(TAG, "Failed to create the dir:" + cacheDir.getName());
+                Log.d(TAG, "Failed to create the dir:" + parent.getName());
             }
         }
 
         return cacheDir;
     }
 
+    public static File getDiskCacheFile(Context context, String path) {
+        File cacheFile = getDiskCache(context, path, false);
+
+        return cacheFile;
+    }
+
     public static File getDiskCacheFile(Context context, String dir, String key) {
         // Create a path in that dir for a file, named by the default hash of the url
-        File cacheFile = new File(getDiskCache(context, dir), "" + key.hashCode());
+        File cacheFile = new File(getDiskCache(context, dir, true), "" + key.hashCode());
 
         return cacheFile;
     }

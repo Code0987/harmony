@@ -29,7 +29,7 @@ public class BaseActivity extends AppCompatActivity {
                 new PermissionsResultAction() {
                     @Override
                     public void onGranted() {
-                        info("All needed permissions have been granted :)");
+                        // info("All needed permissions have been granted :)");
                     }
 
                     @Override

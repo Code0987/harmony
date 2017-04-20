@@ -22,11 +22,15 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 
         String action = intent.getAction();
 
-        if (action.equals(ACTION_OPEN)) {
+        if (action.equals(ACTION_OPEN) || action.equals(MusicService.ACTION_OPEN)) {
             String uri = intent.getStringExtra(KEY_URI);
 
             if (!TextUtils.isEmpty(uri))
                 open(uri);
+        }
+
+        if (action.equals(MusicService.ACTION_LIBRARY_UPDATED)) {
+            libraryUpdated();
         }
     }
 
@@ -39,9 +43,11 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 
         intentFilter.addAction(ACTION_OPEN);
 
+        intentFilter.addAction(MusicService.ACTION_OPEN);
         intentFilter.addAction(MusicService.ACTION_PLAY);
         intentFilter.addAction(MusicService.ACTION_PAUSE);
         intentFilter.addAction(MusicService.ACTION_STOP);
+        intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATED);
 
         broadcastManager.registerReceiver(this, intentFilter);
     }
@@ -50,6 +56,12 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
         broadcastManager.unregisterReceiver(this);
     }
 
-    public abstract void open(String uri);
+    public void open(String uri) {
+
+    }
+
+    public void libraryUpdated() {
+
+    }
 
 }
