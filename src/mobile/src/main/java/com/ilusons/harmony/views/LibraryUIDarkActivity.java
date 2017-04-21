@@ -34,21 +34,6 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
 
     RecyclerViewAdapter adapter;
 
-    BaseMediaBroadcastReceiver broadcastReceiver = new BaseMediaBroadcastReceiver() {
-        @Override
-        public void open(String uri) {
-            Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-            startActivity(intent);
-        }
-
-        @Override
-        public void libraryUpdated() {
-            if (adapter != null)
-                adapter.setData(Music.load(LibraryUIDarkActivity.this));
-        }
-    };
-
     // UI
     private View root;
 
@@ -92,24 +77,6 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        try {
-            broadcastReceiver.unRegister();
-        } catch (final Throwable e) {
-            Log.w(TAG, e);
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        broadcastReceiver.register(this);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -146,6 +113,18 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    @Override
+    public void OnMusicServiceOpen(String uri) {
+        Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
+    }
+
+    @Override
+    public void OnMusicServiceLibraryUpdated() {
+        if (adapter != null)
+            adapter.setData(Music.load(LibraryUIDarkActivity.this));
+    }
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
 

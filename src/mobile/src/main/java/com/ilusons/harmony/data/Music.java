@@ -277,6 +277,12 @@ public class Music {
         }
     }
 
+    public static void reset(Context context) {
+        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
+        if (cacheFile.exists())
+            cacheFile.delete();
+    }
+
     public static LibraryUpdaterAsyncTask scan(Context context, final JavaEx.ActionT<ArrayList<Music>> onData) {
         LibraryUpdaterAsyncTask task = new LibraryUpdaterAsyncTask(context) {
             @Override

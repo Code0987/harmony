@@ -1,19 +1,13 @@
 package com.ilusons.harmony.base;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
-import android.text.TextUtils;
 import android.util.Log;
-
-import java.lang.ref.WeakReference;
 
 public abstract class BasePlaybackUIActivity extends BaseActivity {
 
@@ -45,7 +39,7 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
     PowerManager.WakeLock wakeLockForScreenOn;
 
     // Events
-    PlaybackBroadcastReceiver playbackBroadcastReceiver;
+    BaseMediaBroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +54,34 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
         startService(new Intent(this, MusicService.class));
 
         // Broadcast receivers
-        playbackBroadcastReceiver = new PlaybackBroadcastReceiver(this);
+        broadcastReceiver = new BaseMediaBroadcastReceiver(this) {
+
+            @Override
+            public void OnMusicServicePlay() {
+                BasePlaybackUIActivity.this.OnMusicServicePlay();
+            }
+
+            @Override
+            public void OnMusicServicePause() {
+                BasePlaybackUIActivity.this.OnMusicServicePause();
+            }
+
+            @Override
+            public void OnMusicServiceStop() {
+                BasePlaybackUIActivity.this.OnMusicServiceStop();
+            }
+
+            @Override
+            public void OnMusicServiceOpen(String uri) {
+                BasePlaybackUIActivity.this.OnMusicServiceOpen(uri);
+            }
+
+            @Override
+            public void OnMusicServiceLibraryUpdated() {
+                BasePlaybackUIActivity.this.OnMusicServiceLibraryUpdated();
+            }
+
+        };
 
     }
 
@@ -81,7 +102,7 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
 
         // Intents
         try {
-            playbackBroadcastReceiver.unRegister();
+            broadcastReceiver.unRegister();
         } catch (final Throwable e) {
             Log.w(TAG, e);
         }
@@ -100,7 +121,7 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
         wakeLockForScreenOn.acquire();
 
         // Events
-        playbackBroadcastReceiver.register(this);
+        broadcastReceiver.register(this);
 
     }
 
@@ -127,74 +148,23 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
     protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
     }
 
-    protected void OnOnMusicServiceOpen(String uri) {
+    protected void OnMusicServicePlay() {
 
     }
 
-    protected void OnOnMusicServicePlay() {
+    protected void OnMusicServicePause() {
 
     }
 
-    protected void OnOnMusicServicePause() {
+    protected void OnMusicServiceStop() {
 
     }
 
-    protected void OnOnMusicServiceStop() {
+    public void OnMusicServiceOpen(String uri) {
 
     }
 
-    private final static class PlaybackBroadcastReceiver extends BroadcastReceiver {
-
-        private final WeakReference<BasePlaybackUIActivity> reference;
-
-        public PlaybackBroadcastReceiver(final BasePlaybackUIActivity activity) {
-            reference = new WeakReference<>(activity);
-        }
-
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            final String action = intent.getAction();
-            BasePlaybackUIActivity activity = reference.get();
-
-            if (activity != null) {
-
-                if (action.equals(MusicService.ACTION_OPEN)) {
-                    String uri = intent.getStringExtra(MusicService.KEY_URI);
-
-                    if (!TextUtils.isEmpty(uri))
-                        activity.OnOnMusicServiceOpen(uri);
-                }
-
-                if (action.equals(MusicService.ACTION_PLAY))
-                    activity.OnOnMusicServicePlay();
-
-                if (action.equals(MusicService.ACTION_PAUSE))
-                    activity.OnOnMusicServicePause();
-
-                if (action.equals(MusicService.ACTION_STOP))
-                    activity.OnOnMusicServiceStop();
-
-            }
-        }
-
-        LocalBroadcastManager broadcastManager;
-
-        public void register(Context context) {
-            broadcastManager = LocalBroadcastManager.getInstance(context);
-
-            IntentFilter intentFilter = new IntentFilter();
-
-            intentFilter.addAction(MusicService.ACTION_OPEN);
-            intentFilter.addAction(MusicService.ACTION_PLAY);
-            intentFilter.addAction(MusicService.ACTION_PAUSE);
-            intentFilter.addAction(MusicService.ACTION_STOP);
-
-            broadcastManager.registerReceiver(this, intentFilter);
-        }
-
-        public void unRegister() {
-            broadcastManager.unregisterReceiver(this);
-        }
+    public void OnMusicServiceLibraryUpdated() {
 
     }
 
