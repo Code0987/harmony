@@ -138,7 +138,7 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
             // TODO: make it user editable
             if (m.Tags.getLength() > 2 * 60 * 1000)
                 data.add(m);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -168,6 +168,10 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
         LocalBroadcastManager
                 .getInstance(context)
                 .sendBroadcast(broadcastIntent);
+
+        Intent musicServiceIntent = new Intent(context, MusicService.class);
+        musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
+        context.startService(musicServiceIntent);
     }
 
     public static class Result {

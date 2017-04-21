@@ -1,7 +1,6 @@
 package com.ilusons.harmony.views;
 
 import android.content.ComponentName;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
@@ -29,7 +28,6 @@ import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.fx.DbmHandler;
 import com.ilusons.harmony.fx.GLAudioVisualizationView;
 import com.ilusons.harmony.ref.JavaEx;
-import com.ilusons.harmony.ref.StorageEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.File;
@@ -72,8 +70,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         toolbar.setCollapsible(false);
 
         getSupportActionBar().setTitle(null);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setHomeButtonEnabled(false);
         getSupportActionBar().setElevation(0);
 
         // Set views
@@ -193,34 +191,11 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
         switch (id) {
             case android.R.id.home:
-                // TODO: Impl - close now playing ui back to - tracks list / selector
-//                Intent i = new Intent();
-//                i.setType("audio/*");
-//                i.setAction(Intent.ACTION_GET_CONTENT);
-//                startActivityForResult(i, REQUEST_FILE_PICK);
                 onBackPressed();
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, "onActivityResult\nrequestCode=" + requestCode + "\nresultCode=" + resultCode + "\ndata=" + data);
-
-        if (requestCode == REQUEST_FILE_PICK && resultCode == RESULT_OK) {
-            Uri uri = Uri.parse(StorageEx.getPath(this, data.getData()));
-
-            Intent i = new Intent(this, MusicService.class);
-
-            i.setAction(MusicService.ACTION_OPEN);
-            i.putExtra(MusicService.KEY_URI, uri.toString());
-
-            startService(i);
-        }
-
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -234,34 +209,54 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         getWindow().getDecorView().post(new Runnable() {
             @Override
             public void run() {
-                resetForUri(item);
+                resetForUriIfNeeded(item);
             }
         });
     }
 
     @Override
-    protected void OnOnMusicServiceOpen(String uri) {
-        super.OnOnMusicServiceOpen(uri);
-
-        resetForUri(uri);
-    }
-
-    @Override
-    protected void OnOnMusicServicePlay() {
-        super.OnOnMusicServicePlay();
+    public void OnMusicServicePlay() {
+        super.OnMusicServicePlay();
 
         fab.setImageDrawable(getDrawable(R.drawable.ic_media_pause));
+
+        resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
 
     @Override
-    protected void OnOnMusicServicePause() {
-        super.OnOnMusicServicePlay();
+    public void OnMusicServicePause() {
+        super.OnMusicServicePlay();
 
         fab.setImageDrawable(getDrawable(R.drawable.ic_media_play));
+
+        resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
 
-    private void resetForUri(String uri) {
+    @Override
+    public void OnMusicServiceStop() {
+        super.OnMusicServicePlay();
+
+        fab.setImageDrawable(getDrawable(R.drawable.ic_media_play));
+
+        resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+    }
+
+    @Override
+    public void OnMusicServiceOpen(String uri) {
+        super.OnMusicServiceOpen(uri);
+
+        resetForUriIfNeeded(uri);
+    }
+
+    private String currentUri;
+
+    private void resetForUriIfNeeded(String uri) {
         Log.d(TAG, "resetForUri\n" + uri);
+
+        if (currentUri != null && currentUri.equals(uri))
+            return;
+
+        currentUri = uri;
 
         loadingView.show();
 

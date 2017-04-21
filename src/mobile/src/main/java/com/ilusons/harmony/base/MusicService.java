@@ -456,7 +456,10 @@ public class MusicService extends Service {
         customNotificationView.setOnClickPendingIntent(R.id.play_pause, createActionIntent(this, ACTION_TOGGLE_PLAYBACK));
         customNotificationView.setOnClickPendingIntent(R.id.stop, createActionIntent(this, ACTION_STOP));
         customNotificationView.setOnClickPendingIntent(R.id.random, createActionIntent(this, ACTION_RANDOM));
-        
+        // TODO: Fix this crashing issue
+//        customNotificationView.setImageViewResource(R.id.play_pause, isPlaying()
+//                ? android.R.drawable.ic_media_pause
+//                : android.R.drawable.ic_media_play);
 
         builder = new NotificationCompat.Builder(this)
                 .setContentTitle(currentMusic.Title)
@@ -621,11 +624,12 @@ public class MusicService extends Service {
                     .sendBroadcast(broadcastIntent);
 
         } else if (action.equals(ACTION_LIBRARY_UPDATED)) {
-            stop();
-            getPlaylist().clear();
+            if (!isPlaying()) {
+                stop();
+                getPlaylist().clear();
+            }
             for (Music music : Music.load(this))
                 getPlaylist().add(music.Path);
-            next();
         }
 
     }
