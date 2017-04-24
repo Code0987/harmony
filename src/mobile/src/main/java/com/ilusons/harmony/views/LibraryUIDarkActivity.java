@@ -14,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.base.BaseMediaBroadcastReceiver;
 import com.ilusons.harmony.base.BasePlaybackUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
@@ -71,6 +70,15 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
                 i.setType("audio/*");
                 i.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(i, REQUEST_FILE_PICK);
+            }
+        });
+
+        findViewById(R.id.fab_playback_ui).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
             }
         });
 
