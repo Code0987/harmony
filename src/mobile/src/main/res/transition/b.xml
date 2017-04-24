@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<transitionSet xmlns:android="http://schemas.android.com/apk/res/android"
+               android:duration="1200"
+               android:transitionOrdering="together">
+    <slide android:interpolator="@android:interpolator/decelerate_cubic"/>
+    <changeBounds android:interpolator="@android:interpolator/bounce"/>
+    <fade
+        android:fadingMode="fade_out"
+        android:interpolator="@android:interpolator/decelerate_cubic"/>
+</transitionSet>

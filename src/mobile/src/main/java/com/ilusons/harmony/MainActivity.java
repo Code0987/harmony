@@ -1,5 +1,6 @@
 package com.ilusons.harmony;
 
+import android.app.ActivityOptions;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
@@ -39,6 +40,7 @@ public class MainActivity extends BaseActivity {
         // UI
         Intent intent = new Intent(this, LibraryUIDarkActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
         startActivity(intent);
 
         // Finish TODO: ? Think later ...

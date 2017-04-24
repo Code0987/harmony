@@ -165,7 +165,7 @@ public class LyricsViewFragment extends Fragment {
         if (!isContentProcessed)
             return;
 
-        if (textView == null)
+        if (textView == null || textView.getLayout() == null)
             return;
 
         // Reset if seek-ed back
