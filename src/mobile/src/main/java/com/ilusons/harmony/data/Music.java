@@ -248,18 +248,18 @@ public class Music {
         if (!cacheFile.exists())
             return result;
 
-        String json;
         try {
+            String json;
             json = FileUtils.readFileToString(cacheFile, "utf-8");
+
+            Gson serializer = getSerializer();
+
+            result.addAll(Arrays.asList(serializer.fromJson(json, Music[].class)));
         } catch (Exception e) {
             e.printStackTrace();
 
             return result;
         }
-
-        Gson serializer = getSerializer();
-
-        result.addAll(Arrays.asList(serializer.fromJson(json, Music[].class)));
 
         return result;
     }

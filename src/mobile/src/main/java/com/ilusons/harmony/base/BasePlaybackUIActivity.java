@@ -146,6 +146,7 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
     }
 
     protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
+
     }
 
     protected void OnMusicServicePlay() {

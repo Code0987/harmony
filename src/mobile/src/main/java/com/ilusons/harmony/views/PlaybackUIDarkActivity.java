@@ -345,6 +345,11 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
             Log.e(TAG, "open file", e);
         }
 
+        if(getMusicService().isPlaying())
+            OnMusicServicePlay();
+        else
+            OnMusicServicePause();
+
     }
 
     private void startFX(Uri uri, Bitmap bmp) {

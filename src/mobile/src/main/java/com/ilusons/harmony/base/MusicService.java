@@ -83,10 +83,6 @@ public class MusicService extends Service {
     private MediaPlayer mediaPlayer;
     private MediaSessionCompat mediaSession;
 
-    private ArrayList<String> playlist = new ArrayList<>(25);
-    private int playlistPosition = -1;
-    private Music currentMusic;
-
     private BroadcastReceiver intentReceiver;
     private ComponentName headsetMediaButtonIntentReceiverComponent;
 
@@ -153,6 +149,11 @@ public class MusicService extends Service {
         wakeLock.release();
 
         audioManager.abandonAudioFocus(audioManagerFocusListener);
+
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 
     @Override
@@ -175,12 +176,20 @@ public class MusicService extends Service {
         return mediaPlayer.getAudioSessionId();
     }
 
-    public void add(String path, int position) {
+    private Music currentMusic;
+    private ArrayList<String> playlist = new ArrayList<>(25);
+    private int playlistPosition = -1;
+
+    public int add(String path, int position) {
         playlist.add(position, path);
+
+        return position;
     }
 
-    public void add(String path) {
+    public int add(String path) {
         playlist.add(path);
+
+        return playlist.size() - 1;
     }
 
     public void clear() {
@@ -197,6 +206,24 @@ public class MusicService extends Service {
         playlist.remove(position);
     }
 
+    public int getPlaylistPosition() {
+        return playlistPosition;
+    }
+
+    public ArrayList<String> getPlaylist() {
+        return playlist;
+    }
+
+    public String getCurrentPlaylistItem() {
+        if (playlistPosition < 0 || playlistPosition >= playlist.size())
+            return null;
+        return playlist.get(playlistPosition);
+    }
+
+    public MediaPlayer getMediaPlayer() {
+        return mediaPlayer;
+    }
+
     public boolean canPlay() {
         if (playlistPosition < 0 || playlistPosition >= playlist.size())
             playlistPosition = 0;
@@ -211,66 +238,28 @@ public class MusicService extends Service {
         return false;
     }
 
-    public void next() {
-        synchronized (this) {
-            if (playlist.size() <= 0)
-                return;
+    public int getPosition() {
+        if (mediaPlayer == null)
+            return -1;
+        return mediaPlayer.getCurrentPosition();
+    }
 
-            if (playlistPosition < 0 || playlistPosition >= playlist.size())
-                playlistPosition = 0;
-            else
-                playlistPosition += 1;
+    public int getDuration() {
+        if (mediaPlayer == null)
+            return -1;
+        return mediaPlayer.getDuration();
+    }
+
+    public void seek(int position) {
+        if (mediaPlayer == null) return;
+        if (position < 0) {
+            position = 0;
+        } else if (position > mediaPlayer.getDuration()) {
+            position = mediaPlayer.getDuration();
         }
+        mediaPlayer.seekTo(position);
 
-        stop();
-        prepare();
-        play();
-    }
-
-    public void prev() {
-        synchronized (this) {
-            if (playlist.size() <= 0)
-                return;
-
-            if (playlistPosition < 0 || playlistPosition >= playlist.size())
-                playlistPosition = 0;
-            else
-                playlistPosition -= 1;
-        }
-
-        stop();
-        prepare();
-        play();
-    }
-
-    public void random() {
-        synchronized (this) {
-            if (playlist.size() <= 0)
-                return;
-
-            if (playlistPosition < 0 || playlistPosition >= playlist.size())
-                playlistPosition = 0;
-            else
-                playlistPosition = (int) Math.round(Math.random() * playlist.size());
-        }
-
-        stop();
-        prepare();
-        play();
-    }
-
-    public int getPlaylistPosition() {
-        return playlistPosition;
-    }
-
-    public ArrayList<String> getPlaylist() {
-        return playlist;
-    }
-
-    public String getCurrentPlaylistItem() {
-        if (playlistPosition < 0 || playlistPosition >= playlist.size())
-            return null;
-        return playlist.get(playlistPosition);
+        update();
     }
 
     private void prepare() {
@@ -333,21 +322,23 @@ public class MusicService extends Service {
 
     }
 
-    public void release() {
-        if (mediaPlayer == null) return;
-        mediaPlayer.release();
-        mediaPlayer = null;
+    public boolean isPrepared() {
+        if (currentMusic == null)
+            return false;
+        return true;
     }
 
     public void start() {
-        if (mediaPlayer == null) return;
+        if (mediaPlayer == null)
+            return;
         mediaPlayer.start();
 
         update();
     }
 
     public void stop() {
-        if (mediaPlayer == null) return;
+        if (mediaPlayer == null)
+            return;
         mediaPlayer.stop();
 
         update();
@@ -355,32 +346,13 @@ public class MusicService extends Service {
         cancelNotification();
     }
 
-    public void seek(int position) {
-        if (mediaPlayer == null) return;
-        if (position < 0) {
-            position = 0;
-        } else if (position > mediaPlayer.getDuration()) {
-            position = mediaPlayer.getDuration();
-        }
-        mediaPlayer.seekTo(position);
-
-        update();
-    }
-
-    public int getPosition() {
-        if (mediaPlayer == null) return -1;
-        return mediaPlayer.getCurrentPosition();
-    }
-
-    public int getDuration() {
-        if (mediaPlayer == null) return -1;
-        return mediaPlayer.getDuration();
-    }
-
     public void play() {
-        // Fix playlist position
+        // TODO: Fix playlist position
         if (!canPlay())
             return;
+
+        if (!isPrepared())
+            prepare();
 
         synchronized (this) {
             int status = audioManager.requestAudioFocus(audioManagerFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
@@ -410,6 +382,9 @@ public class MusicService extends Service {
     }
 
     public void pause() {
+        if (!isPlaying())
+            return;
+
         synchronized (this) {
             Intent intent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
             intent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
@@ -426,8 +401,48 @@ public class MusicService extends Service {
         }
     }
 
-    public MediaPlayer getMediaPlayer() {
-        return mediaPlayer;
+    public void skip(int position) {
+        synchronized (this) {
+            if (playlist.size() <= 0)
+                return;
+
+            playlistPosition = position;
+
+            if (playlistPosition < 0 || playlistPosition >= playlist.size())
+                playlistPosition = 0;
+        }
+
+        stop();
+        prepare();
+        play();
+    }
+
+    public void next() {
+        playlistPosition++;
+
+        skip(playlistPosition);
+    }
+
+    public void prev() {
+        playlistPosition--;
+
+        skip(playlistPosition);
+    }
+
+    public void random() {
+        synchronized (this) {
+            if (playlist.size() <= 0)
+                return;
+
+            if (playlistPosition < 0 || playlistPosition >= playlist.size())
+                playlistPosition = 0;
+            else
+                playlistPosition = (int) Math.round(Math.random() * playlist.size());
+        }
+
+        stop();
+        prepare();
+        play();
     }
 
     private static final int NOTIFICATION_ID = 4524;
@@ -551,7 +566,6 @@ public class MusicService extends Service {
             }
         });
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS | MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
-
     }
 
     private void updateMediaSession() {
@@ -614,8 +628,7 @@ public class MusicService extends Service {
             if (TextUtils.isEmpty(file))
                 return;
 
-            add(file);
-            next();
+            skip(add(file));
 
             Intent broadcastIntent = new Intent(ACTION_OPEN);
             broadcastIntent.putExtra(KEY_URI, file);

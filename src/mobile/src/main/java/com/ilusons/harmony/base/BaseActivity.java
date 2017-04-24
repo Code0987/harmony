@@ -52,7 +52,7 @@ public class BaseActivity extends AppCompatActivity {
 
     /**
      * Shows toast or snack bar as per appropriate
-     * Root view shoud have id of root to show proper snack bar
+     * Root view should have id of root to show proper snack bar
      *
      * @param s content to show
      */
