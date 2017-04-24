@@ -35,6 +35,8 @@
                 style="@style/TextAppearance.AppCompat.Notification.Title.Media"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="24dp"
+                android:ellipsize="end"
                 android:maxLines="1"
                 android:paddingStart="8dp"
                 android:textColor="@color/primary_text"
@@ -46,6 +48,7 @@
                 style="@style/TextAppearance.AppCompat.Notification.Line2.Media"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:maxLines="1"
                 android:paddingStart="8dp"
                 android:paddingTop="5dp"
@@ -58,6 +61,7 @@
                 style="@style/TextAppearance.AppCompat.Notification.Info.Media"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:maxLines="1"
                 android:paddingStart="8dp"
                 android:paddingTop="5dp"
@@ -74,30 +78,26 @@
             android:orientation="vertical"
             >
 
+            <TextView
+                android:id="@+id/info"
+                style="@style/TextAppearance.AppCompat.Notification.Info.Media"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:maxLines="1"
+                android:paddingEnd="8dp"
+                android:paddingTop="5dp"
+                android:textColor="@color/primary_text"
+                android:textSize="9sp"
+                android:textStyle="italic"
+                tools:text="Info"
+                />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 >
-
-                <Button
-                    android:id="@+id/stop"
-                    style="@android:style/Widget.Material.Light.Button.Borderless.Small"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_margin="0dp"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:drawablePadding="8dp"
-                    android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
-                    android:ellipsize="end"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
-                    android:scaleType="centerInside"
-                    android:singleLine="true"
-                    android:textColor="@color/secondary_text"
-                    android:textSize="13sp"
-                    />
 
                 <Button
                     android:id="@+id/prev"
@@ -118,7 +118,7 @@
                     android:textSize="13sp"
                     />
 
-                <Button
+                <ImageView
                     android:id="@+id/play_pause"
                     style="@android:style/Widget.Material.Light.Button.Borderless.Small"
                     android:layout_width="0dp"
@@ -126,15 +126,10 @@
                     android:layout_margin="0dp"
                     android:layout_weight="1"
                     android:background="@null"
-                    android:drawablePadding="8dp"
-                    android:drawableStart="@android:drawable/ic_media_play"
                     android:ellipsize="end"
                     android:gravity="start|center_vertical"
-                    android:paddingStart="8dp"
                     android:scaleType="centerInside"
-                    android:singleLine="true"
-                    android:textColor="@color/secondary_text"
-                    android:textSize="13sp"
+                    android:src="@android:drawable/ic_media_play"
                     />
 
                 <Button
@@ -189,6 +184,21 @@
                 />
 
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/stop"
+            style="@android:style/Widget.Material.Light.Button.Borderless.Small"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="8dp"
+            android:background="@null"
+            android:ellipsize="end"
+            android:gravity="start|center_vertical"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            />
 
     </RelativeLayout>
 

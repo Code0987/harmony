@@ -261,7 +261,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         loadingView.show();
 
         try {
-            Music music = Music.decodeFromFile(this, new File(uri));
+            Music music = Music.load(this, uri);
 
             if (music != null) {
 

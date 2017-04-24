@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:background="@color/primary_dark"
+    android:minHeight="64dp"
+    >
+
+    <ImageView
+        android:id="@+id/cover"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/logo"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/lomo"
+        android:orientation="horizontal"
+        >
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginBottom="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_weight="6"
+            android:orientation="vertical"
+            >
+
+            <TextView
+                android:id="@+id/title"
+                style="@style/TextAppearance.AppCompat.Notification.Title.Media"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/primary_text"
+                tools:text="Title"
+                />
+
+            <TextView
+                android:id="@+id/album"
+                style="@style/TextAppearance.AppCompat.Notification.Line2.Media"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingTop="0dp"
+                android:textColor="@color/primary_text"
+                tools:text="Album"
+                />
+
+            <TextView
+                android:id="@+id/artist"
+                style="@style/TextAppearance.AppCompat.Notification.Info.Media"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingTop="0dp"
+                android:textColor="@color/primary_text"
+                tools:text="Artist"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginBottom="4dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="4dp"
+            android:layout_weight="3"
+            android:orientation="horizontal"
+            >
+
+            <ImageView
+                android:id="@+id/play_pause"
+                style="@android:style/Widget.Material.Light.Button.Borderless.Small"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_margin="0dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:ellipsize="end"
+                android:gravity="start|center_vertical"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_play"
+                />
+
+            <Button
+                android:id="@+id/random"
+                style="@android:style/Widget.Material.Light.Button.Borderless.Small"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_margin="0dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:drawablePadding="8dp"
+                android:drawableStart="@android:drawable/ic_media_ff"
+                android:ellipsize="end"
+                android:gravity="start|center_vertical"
+                android:paddingStart="8dp"
+                android:scaleType="centerInside"
+                android:singleLine="true"
+                android:textColor="@color/secondary_text"
+                android:textSize="13sp"
+                />
+
+            <Button
+                android:id="@+id/stop"
+                style="@android:style/Widget.Material.Light.Button.Borderless.Small"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_margin="0dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:drawablePadding="8dp"
+                android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
+                android:ellipsize="end"
+                android:gravity="start|center_vertical"
+                android:paddingStart="8dp"
+                android:scaleType="centerInside"
+                android:singleLine="true"
+                android:textColor="@color/secondary_text"
+                android:textSize="13sp"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

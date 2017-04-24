@@ -108,6 +108,11 @@ public class HeadsetMediaButtonIntentReceiver extends WakefulBroadcastReceiver {
         startWakefulService(context, intent);
     }
 
+    private static void startService(Context context) {
+        final Intent intent = new Intent(context, MusicService.class);
+        startWakefulService(context, intent);
+    }
+
     private static void acquireWakeLockAndSendMessage(Context context, Message msg, long delay) {
         if (wakeLock == null) {
             Context appContext = context.getApplicationContext();
@@ -143,7 +148,30 @@ public class HeadsetMediaButtonIntentReceiver extends WakefulBroadcastReceiver {
         Log.d(TAG, "onReceive\n" + intent);
 
         final String action = intent.getAction();
-        if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
+
+        if (action.equals(Intent.ACTION_USER_PRESENT) || action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+
+            startService(context);
+
+        } else if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
+
+            int state = intent.getIntExtra("state", -1);
+            switch (state) {
+                case 0:
+                    startService(context, MusicService.ACTION_PAUSE);
+
+                    Log.d(TAG, "Headset is unplugged");
+                    break;
+                case 1:
+                    startService(context, MusicService.ACTION_PLAY);
+
+                    Log.d(TAG, "Headset is plugged");
+                    break;
+                default:
+                    Log.d(TAG, "I have no idea what the headset state is");
+            }
+
+        } else if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
 
             startService(context, MusicService.ACTION_PAUSE);
 

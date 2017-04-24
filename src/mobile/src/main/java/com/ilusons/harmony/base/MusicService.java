@@ -32,7 +32,6 @@ import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class MusicService extends Service {
@@ -103,21 +102,14 @@ public class MusicService extends Service {
         intentReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, final Intent intent) {
+                Log.d(TAG, "onReceive\n" + intent);
+
                 handleIntent(intent);
             }
         };
 
-        final IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_PREVIOUS);
-        filter.addAction(ACTION_NEXT);
-        filter.addAction(ACTION_PLAY);
-        filter.addAction(ACTION_PAUSE);
-        filter.addAction(ACTION_STOP);
-        filter.addAction(ACTION_OPEN);
-        filter.addAction(ACTION_LIBRARY_UPDATED);
-
         // Attach
-        registerReceiver(intentReceiver, filter);
+        registerReceiver(intentReceiver, getIntentFilter());
 
         // Initialize the wake lock
         wakeLock = ((PowerManager) getSystemService(Context.POWER_SERVICE))
@@ -181,12 +173,18 @@ public class MusicService extends Service {
     private int playlistPosition = -1;
 
     public int add(String path, int position) {
+        if (playlist.contains(path))
+            return playlist.indexOf(path);
+
         playlist.add(position, path);
 
         return position;
     }
 
     public int add(String path) {
+        if (playlist.contains(path))
+            return playlist.indexOf(path);
+
         playlist.add(path);
 
         return playlist.size() - 1;
@@ -271,7 +269,7 @@ public class MusicService extends Service {
             String path = playlist.get(playlistPosition);
 
             // Decode file
-            currentMusic = Music.decodeFromFile(this, new File(path));
+            currentMusic = Music.load(this, path);
             if (currentMusic == null)
                 return;
 
@@ -323,7 +321,7 @@ public class MusicService extends Service {
     }
 
     public boolean isPrepared() {
-        if (currentMusic == null)
+        if (currentMusic == null || mediaPlayer == null)
             return false;
         return true;
     }
@@ -347,7 +345,6 @@ public class MusicService extends Service {
     }
 
     public void play() {
-        // TODO: Fix playlist position
         if (!canPlay())
             return;
 
@@ -450,6 +447,7 @@ public class MusicService extends Service {
     private android.support.v4.app.NotificationCompat.Builder builder;
 
     private RemoteViews customNotificationView;
+    private RemoteViews customNotificationViewS;
 
     private void setupNotification() {
         Bitmap cover = currentMusic.getCover(this);
@@ -461,20 +459,38 @@ public class MusicService extends Service {
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-        customNotificationView = new RemoteViews(getPackageName(), R.layout.notification_media_view);
+        if (customNotificationView == null) {
+            customNotificationView = new RemoteViews(getPackageName(), R.layout.notification_media_view);
+
+            customNotificationView.setOnClickPendingIntent(R.id.prev, createActionIntent(this, ACTION_PREVIOUS));
+            customNotificationView.setOnClickPendingIntent(R.id.next, createActionIntent(this, ACTION_NEXT));
+            customNotificationView.setOnClickPendingIntent(R.id.play_pause, createActionIntent(this, ACTION_TOGGLE_PLAYBACK));
+            customNotificationView.setOnClickPendingIntent(R.id.stop, createActionIntent(this, ACTION_STOP));
+            customNotificationView.setOnClickPendingIntent(R.id.random, createActionIntent(this, ACTION_RANDOM));
+        }
         customNotificationView.setImageViewBitmap(R.id.cover, cover);
         customNotificationView.setTextViewText(R.id.title, currentMusic.Title);
         customNotificationView.setTextViewText(R.id.album, currentMusic.Album);
         customNotificationView.setTextViewText(R.id.artist, currentMusic.Artist);
-        customNotificationView.setOnClickPendingIntent(R.id.prev, createActionIntent(this, ACTION_PREVIOUS));
-        customNotificationView.setOnClickPendingIntent(R.id.next, createActionIntent(this, ACTION_NEXT));
-        customNotificationView.setOnClickPendingIntent(R.id.play_pause, createActionIntent(this, ACTION_TOGGLE_PLAYBACK));
-        customNotificationView.setOnClickPendingIntent(R.id.stop, createActionIntent(this, ACTION_STOP));
-        customNotificationView.setOnClickPendingIntent(R.id.random, createActionIntent(this, ACTION_RANDOM));
-        // TODO: Fix this crashing issue
-//        customNotificationView.setImageViewResource(R.id.play_pause, isPlaying()
-//                ? android.R.drawable.ic_media_pause
-//                : android.R.drawable.ic_media_play);
+        customNotificationView.setTextViewText(R.id.info, (getPlaylistPosition() + 1) + "/" + getPlaylist().size());
+        customNotificationView.setImageViewResource(R.id.play_pause, isPlaying()
+                ? android.R.drawable.ic_media_pause
+                : android.R.drawable.ic_media_play);
+
+        if (customNotificationViewS == null) {
+            customNotificationViewS = new RemoteViews(getPackageName(), R.layout.notification_media_view_s);
+
+            customNotificationViewS.setOnClickPendingIntent(R.id.play_pause, createActionIntent(this, ACTION_TOGGLE_PLAYBACK));
+            customNotificationViewS.setOnClickPendingIntent(R.id.stop, createActionIntent(this, ACTION_STOP));
+            customNotificationViewS.setOnClickPendingIntent(R.id.random, createActionIntent(this, ACTION_RANDOM));
+        }
+        customNotificationViewS.setImageViewBitmap(R.id.cover, cover);
+        customNotificationViewS.setTextViewText(R.id.title, currentMusic.Title);
+        customNotificationViewS.setTextViewText(R.id.album, currentMusic.Album);
+        customNotificationViewS.setTextViewText(R.id.artist, currentMusic.Artist);
+        customNotificationViewS.setImageViewResource(R.id.play_pause, isPlaying()
+                ? android.R.drawable.ic_media_pause
+                : android.R.drawable.ic_media_play);
 
         builder = new NotificationCompat.Builder(this)
                 .setContentTitle(currentMusic.Title)
@@ -500,6 +516,8 @@ public class MusicService extends Service {
                 .addAction(android.R.drawable.ic_media_ff,
                         "Random",
                         createActionIntent(this, ACTION_RANDOM))*/
+                .setCustomContentView(customNotificationViewS)
+                .setCustomHeadsUpContentView(customNotificationViewS)
                 .setCustomBigContentView(customNotificationView)
                 /*.setStyle(new NotificationCompat.DecoratedMediaCustomViewStyle()
                         .setShowCancelButton(true)
@@ -514,7 +532,7 @@ public class MusicService extends Service {
         if (builder == null)
             return;
 
-        customNotificationView.setProgressBar(R.id.progress, getDuration(), getPosition(), false);
+        customNotificationView.setProgressBar(R.id.progress, getDuration(), getPosition(), !isPlaying());
 
         Notification currentNotification = builder.build();
 
@@ -537,12 +555,14 @@ public class MusicService extends Service {
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onPause() {
-                pause();
+                // TODO: Check this
+                // pause();
             }
 
             @Override
             public void onPlay() {
-                play();
+                // TODO: Check this
+                // play();
             }
 
             @Override
@@ -598,6 +618,22 @@ public class MusicService extends Service {
 
     }
 
+    private IntentFilter getIntentFilter() {
+        final IntentFilter filter = new IntentFilter();
+
+        filter.addAction(ACTION_PREVIOUS);
+        filter.addAction(ACTION_NEXT);
+        filter.addAction(ACTION_PLAY);
+        filter.addAction(ACTION_PAUSE);
+        filter.addAction(ACTION_STOP);
+        filter.addAction(ACTION_OPEN);
+        filter.addAction(ACTION_LIBRARY_UPDATED);
+
+        filter.addAction(Intent.ACTION_HEADSET_PLUG);
+
+        return filter;
+    }
+
     private void handleIntent(Intent intent) {
 
         final String action = intent.getAction();
@@ -641,8 +677,22 @@ public class MusicService extends Service {
                 stop();
                 getPlaylist().clear();
             }
+
             for (Music music : Music.load(this))
                 getPlaylist().add(music.Path);
+
+        } else if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
+
+            int state = intent.getIntExtra("state", -1);
+            switch (state) {
+                case 0:
+                    pause();
+                    break;
+                case 1:
+                    play();
+                    break;
+            }
+
         }
 
     }
