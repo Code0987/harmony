@@ -87,8 +87,14 @@
         <receiver android:name=".base.HeadsetMediaButtonIntentReceiver">
 
             <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <action android:name="android.intent.action.USER_PRESENT" />
+                <action android:name="android.intent.action.HEADSET_PLUG"/>
                 <action android:name="android.intent.action.MEDIA_BUTTON"/>
                 <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
 
         </receiver>

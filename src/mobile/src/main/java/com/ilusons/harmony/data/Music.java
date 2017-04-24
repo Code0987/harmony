@@ -57,8 +57,6 @@ public class Music {
     public String Path;
     public String Lyrics;
 
-    ID3v2 Tags;
-
     public String getText() {
         return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
     }
@@ -206,8 +204,8 @@ public class Music {
                 data.Title = tags.getTitle();
                 data.Artist = tags.getArtist();
                 data.Album = tags.getAlbum();
-                data.Tags = tags;
 
+                // TODO: This tags decoder is inefficient for android, takes too much memory
                 if (data.getCover(context) == null) {
                     byte[] cover = tags.getAlbumImage();
                     if (cover != null && cover.length > 0) {
@@ -231,7 +229,7 @@ public class Music {
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "decode audio data tags", e);
+            Log.w(TAG, "decode audio data tags", e);
         }
 
         if (TextUtils.isEmpty(data.Title)) {
@@ -239,6 +237,24 @@ public class Music {
         }
 
         return data;
+    }
+
+    public static Music load(Context context, String path) {
+        ArrayList<Music> all = load(context);
+
+        Music m = null;
+
+        for (Music item : all) {
+            if (item.Path.equalsIgnoreCase(path)) {
+                m = item;
+                break;
+            }
+        }
+
+        if (m == null)
+            m = decodeFromFile(context, new File(path));
+
+        return m;
     }
 
     public static ArrayList<Music> load(Context context) {

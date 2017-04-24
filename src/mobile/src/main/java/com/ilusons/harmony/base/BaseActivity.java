@@ -24,6 +24,7 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        // TODO: Not working, fix it
         // Check if all permissions are granted
         PermissionsManager.getInstance().requestAllManifestPermissionsIfNecessary(this,
                 new PermissionsResultAction() {

@@ -22,8 +22,6 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
     // Logger TAG
     private static final String TAG = LibraryUpdaterAsyncTask.class.getSimpleName();
 
-    private static final int KEY_NOTIFICATION_ID = 1500;
-
     private static final int MIN_SCAN_INTERVAL = 5 * 60 * 1000;
 
     private static LibraryUpdaterAsyncTask instance;
@@ -55,14 +53,7 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
                 Result result = new Result();
 
                 // Notification
-                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context.getApplicationContext())
-                        .setOngoing(true)
-                        .setContentTitle(context.getString(R.string.app_name))
-                        .setContentText("Scanning for audio and updating database ...")
-                        .setProgress(100, 0, true)
-                        .setSmallIcon(R.drawable.ic_scan);
-                notificationManager.notify(KEY_NOTIFICATION_ID, notificationBuilder.build());
+                setupNotification();
 
                 // Process
                 try {
@@ -92,12 +83,12 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
                     result.Data.clear();
                     result.Data.addAll(data);
                 } catch (Exception e) {
-                    Log.e(TAG, "doInBackground", e);
+                    Log.w(TAG, "doInBackground", e);
                 }
 
                 Log.d(TAG, "Library update from filesystem took " + (System.currentTimeMillis() - time) + "ms");
 
-                notificationManager.cancel(KEY_NOTIFICATION_ID);
+                cancelNotification();
 
                 // To keep single instance active only
                 notifyAll();
@@ -126,6 +117,9 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
     }
 
     private void add(final File path, final ArrayList<Music> data) {
+
+        updateNotification("Scanning " + path.getName());
+
         // Ignore if already present
         for (Music item : data) {
             if ((item).Path.equals(path.getAbsolutePath()))
@@ -135,9 +129,11 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
         try {
             Music m = Music.decodeFromFile(context, path);
 
-            // TODO: make it user editable
-            if (m.Tags.getLength() > 2 * 60 * 1000)
-                data.add(m);
+            data.add(m);
+
+            // HACK: Calling the devil
+            System.gc();
+            Runtime.getRuntime().gc();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -155,6 +151,43 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
         }
 
         data.removeAll(toRemove);
+    }
+
+    NotificationManager notificationManager = null;
+    NotificationCompat.Builder notificationBuilder = null;
+
+    private static final int KEY_NOTIFICATION_ID = 1500;
+
+    private void setupNotification() {
+        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationBuilder = new NotificationCompat.Builder(context.getApplicationContext())
+                .setOngoing(true)
+                .setContentTitle(context.getString(R.string.app_name))
+                .setContentText("Updating ...")
+                .setProgress(100, 0, true)
+                .setSmallIcon(R.drawable.ic_scan);
+
+        notificationManager.notify(KEY_NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    private void updateNotification(String msg) {
+        if (notificationManager == null || notificationBuilder == null)
+            return;
+
+        notificationBuilder
+                .setContentText(msg);
+
+        notificationManager.notify(KEY_NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    private void cancelNotification() {
+        if (notificationManager == null || notificationBuilder == null)
+            return;
+
+        notificationManager.cancel(KEY_NOTIFICATION_ID);
+
+        notificationBuilder = null;
     }
 
     @Override
