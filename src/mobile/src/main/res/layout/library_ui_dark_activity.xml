@@ -22,23 +22,45 @@
         android:layout_height="match_parent"
         android:animateLayoutChanges="false"
         android:animationCache="true"
+        android:clipToPadding="false"
         android:nestedScrollingEnabled="false"
+        android:paddingBottom="128dp"
+        android:paddingTop="128dp"
         android:scrollbars="vertical"
         app:layoutManager="android.support.v7.widget.LinearLayoutManager"
         tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
         tools:listitem="@layout/library_ui_dark_item"
         />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
-        android:src="@drawable/ic_play_for_work_black"
-        android:tint="@color/icons"
-        android:tintMode="src_atop"
-        />
+        android:orientation="horizontal"
+        >
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_playback_ui"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_audiotrack"
+            android:tint="@color/icons"
+            android:tintMode="src_atop"
+            />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_play_for_work_black"
+            android:tint="@color/icons"
+            android:tintMode="src_atop"
+            />
+
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,9 @@ import android.widget.Toast;
 import com.anthonycr.grant.PermissionsManager;
 import com.anthonycr.grant.PermissionsResultAction;
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.ref.Permissions;
+
+import java.util.Iterator;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -24,7 +28,6 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        // TODO: Not working, fix it
         // Check if all permissions are granted
         PermissionsManager.getInstance().requestAllManifestPermissionsIfNecessary(this,
                 new PermissionsResultAction() {
@@ -36,10 +39,6 @@ public class BaseActivity extends AppCompatActivity {
                     @Override
                     public void onDenied(String permission) {
                         info("Please grant all the required permissions :(");
-
-                        // TODO: Better handle this
-
-                        finish();
                     }
                 });
 

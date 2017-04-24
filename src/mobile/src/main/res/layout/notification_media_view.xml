@@ -39,6 +39,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:paddingStart="8dp"
+                android:paddingTop="4dp"
                 android:textColor="@color/primary_text"
                 tools:text="Title"
                 />
@@ -192,10 +193,11 @@
             android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="4dp"
             android:background="@null"
             android:ellipsize="end"
             android:gravity="start|center_vertical"
+            android:paddingTop="4dp"
             android:scaleType="centerInside"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             />
