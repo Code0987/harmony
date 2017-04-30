@@ -1,6 +1,5 @@
 package com.ilusons.harmony;
 
-import android.app.ActivityOptions;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
@@ -9,13 +8,8 @@ import android.util.Log;
 
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.views.LibraryUIDarkActivity;
-import com.ilusons.harmony.views.PlaybackUIDarkActivity;
-
-import java.util.ArrayList;
 
 public class MainActivity extends BaseActivity {
 
@@ -27,12 +21,9 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         // Start scan
-        Music.scan(this, new JavaEx.ActionT<ArrayList<Music>>() {
-            @Override
-            public void execute(ArrayList<Music> data) {
-                Log.d(TAG, "scan\n" + data.size());
-            }
-        });
+        Intent musicServiceIntent = new Intent(MainActivity.this, MusicService.class);
+        musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+        startService(musicServiceIntent);
 
         // Intent
         handleIntent(getIntent());

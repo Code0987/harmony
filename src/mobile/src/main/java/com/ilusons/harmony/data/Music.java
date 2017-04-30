@@ -299,20 +299,6 @@ public class Music {
             cacheFile.delete();
     }
 
-    public static LibraryUpdaterAsyncTask scan(Context context, final JavaEx.ActionT<ArrayList<Music>> onData) {
-        LibraryUpdaterAsyncTask task = new LibraryUpdaterAsyncTask(context) {
-            @Override
-            protected void onPostExecute(Result result) {
-                super.onPostExecute(result);
-
-                onData.execute(result.Data);
-            }
-        };
-        task.execute();
-
-        return task;
-    }
-
     static Gson getSerializer() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 

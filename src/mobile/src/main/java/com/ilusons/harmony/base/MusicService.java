@@ -51,7 +51,9 @@ public class MusicService extends Service {
     public static final String ACTION_OPEN = TAG + ".open";
     public static final String KEY_URI = "uri";
 
+    public static final String ACTION_LIBRARY_UPDATE = TAG + ".library_update";
     public static final String ACTION_LIBRARY_UPDATED = TAG + ".library_updated";
+    public static final String ACTION_LIBRARY_UPDATE_CANCEL = TAG + ".library_update_cancel";
 
     // Threads
     private Handler handler = new Handler();
@@ -119,7 +121,8 @@ public class MusicService extends Service {
         setUpMediaSession();
 
         // Init loop
-        final int dt = 350;
+        /* TODO: Review this, it's making whole android slow
+        final int dt = 1500;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -130,6 +133,7 @@ public class MusicService extends Service {
                 handler.postDelayed(this, dt);
             }
         }, dt);
+        */
     }
 
     @Override
@@ -168,6 +172,7 @@ public class MusicService extends Service {
         return mediaPlayer.getAudioSessionId();
     }
 
+    private MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
     private Music currentMusic;
     private ArrayList<String> playlist = new ArrayList<>(25);
     private int playlistPosition = -1;
@@ -532,7 +537,8 @@ public class MusicService extends Service {
         if (builder == null)
             return;
 
-        customNotificationView.setProgressBar(R.id.progress, getDuration(), getPosition(), !isPlaying());
+        // TODO: Review this, it's making whole android slow
+        // customNotificationView.setProgressBar(R.id.progress, getDuration(), getPosition(), !isPlaying());
 
         Notification currentNotification = builder.build();
 
@@ -615,6 +621,7 @@ public class MusicService extends Service {
 
         // Update notification
         setupNotification();
+        updateNotification();
 
     }
 
@@ -627,7 +634,9 @@ public class MusicService extends Service {
         filter.addAction(ACTION_PAUSE);
         filter.addAction(ACTION_STOP);
         filter.addAction(ACTION_OPEN);
+        filter.addAction(ACTION_LIBRARY_UPDATE);
         filter.addAction(ACTION_LIBRARY_UPDATED);
+        filter.addAction(ACTION_LIBRARY_UPDATE_CANCEL);
 
         filter.addAction(Intent.ACTION_HEADSET_PLUG);
 
@@ -672,6 +681,18 @@ public class MusicService extends Service {
                     .getInstance(this)
                     .sendBroadcast(broadcastIntent);
 
+        } else if (action.equals(ACTION_LIBRARY_UPDATE)) {
+
+            libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this) {
+                @Override
+                protected void onPostExecute(Result result) {
+                    super.onPostExecute(result);
+
+                    libraryUpdater = null;
+                }
+            };
+            libraryUpdater.execute();
+
         } else if (action.equals(ACTION_LIBRARY_UPDATED)) {
             if (!isPlaying()) {
                 stop();
@@ -680,6 +701,11 @@ public class MusicService extends Service {
 
             for (Music music : Music.load(this))
                 getPlaylist().add(music.Path);
+
+        } else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {
+
+            if (libraryUpdater != null)
+                libraryUpdater.cancel(true);
 
         } else if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
 
