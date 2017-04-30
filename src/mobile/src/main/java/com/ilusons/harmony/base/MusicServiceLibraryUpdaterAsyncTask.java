@@ -1,6 +1,8 @@
-package com.ilusons.harmony.data;
+package com.ilusons.harmony.base;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -11,24 +13,24 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.IOEx;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpdaterAsyncTask.Result> {
+public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, MusicServiceLibraryUpdaterAsyncTask.Result> {
 
     // Logger TAG
-    private static final String TAG = LibraryUpdaterAsyncTask.class.getSimpleName();
+    private static final String TAG = MusicServiceLibraryUpdaterAsyncTask.class.getSimpleName();
 
-    private static final int MIN_SCAN_INTERVAL = 5 * 60 * 1000;
-
-    private static LibraryUpdaterAsyncTask instance;
+    // For single task per session
+    @SuppressLint("StaticFieldLeak")
+    private static MusicServiceLibraryUpdaterAsyncTask instance;
 
     private Context context;
 
-    public LibraryUpdaterAsyncTask(Context c) {
+    public MusicServiceLibraryUpdaterAsyncTask(Context c) {
         context = c;
     }
 
@@ -57,6 +59,9 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
 
                 // Process
                 try {
+                    if (isCancelled())
+                        throw new Exception("Canceled by user");
+
                     ArrayList<Music> data = new ArrayList<>();
 
                     // Load previous data
@@ -104,6 +109,10 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
     }
 
     private void addFromDirectory(File path, ArrayList<Music> data) {
+
+        if (isCancelled())
+            return;
+
         for (File file : path.listFiles()) {
             if (file.canRead()) {
                 String filePath = file.getAbsolutePath();
@@ -119,6 +128,9 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
     private void add(final File path, final ArrayList<Music> data) {
 
         updateNotification("Scanning " + path.getName());
+
+        if (isCancelled())
+            return;
 
         // Ignore if already present
         for (Music item : data) {
@@ -141,9 +153,14 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
     }
 
     private void update(final ArrayList<Music> data) {
+
+        if (isCancelled())
+            return;
+
         ArrayList<Music> toRemove = new ArrayList<>();
 
         for (Music music : data) {
+
             File file = (new File(music.Path));
 
             if (!file.exists())
@@ -161,12 +178,15 @@ public class LibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, LibraryUpd
     private void setupNotification() {
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
+        Intent cancelIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATE_CANCEL);
+        PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         notificationBuilder = new NotificationCompat.Builder(context.getApplicationContext())
                 .setOngoing(true)
                 .setContentTitle(context.getString(R.string.app_name))
                 .setContentText("Updating ...")
                 .setProgress(100, 0, true)
-                .setSmallIcon(R.drawable.ic_scan);
+                .setSmallIcon(R.drawable.ic_scan)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent);
 
         notificationManager.notify(KEY_NOTIFICATION_ID, notificationBuilder.build());
     }

@@ -173,6 +173,7 @@
 
             </LinearLayout>
 
+            <!-- TODO: Review this, it's making whole android slow
             <ProgressBar
                 android:id="@+id/progress"
                 style="@style/Widget.AppCompat.ProgressBar.Horizontal"
@@ -183,6 +184,7 @@
                 android:max="100"
                 android:progress="100"
                 />
+            -->
 
         </LinearLayout>
 
