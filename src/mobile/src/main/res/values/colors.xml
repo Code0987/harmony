@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#212121</color>
-    <color name="primary_dark">#000000</color>
-    <color name="primary_light">#e0e0e0</color>
-    <color name="accent">#7b1fa2</color>
-    <color name="primary_text">#e0e0e0</color>
+    <color name="primary">#616161</color>
+    <color name="primary_dark">#424242</color>
+    <color name="primary_light">#eeeeee</color>
+    <color name="accent">#424242</color>
+    <color name="primary_text">#bdbdbd</color>
     <color name="secondary_text">#9e9e9e</color>
-    <color name="icons">#e0e0e0</color>
-    <color name="divider">#424242</color>
+    <color name="icons">#bdbdbd</color>
+    <color name="divider">#BDBDBD</color>
 
     <color name="transparent">#00000000</color>
     <color name="translucent">#94000000</color>
-    <color name="translucent_primary">#94212121</color>
-    <color name="translucent_primary_dark">#94000000</color>
-    <color name="translucent_accent">#947b1fa2</color>
+    <color name="translucent_primary">#949E9E9E</color>
+    <color name="translucent_primary_dark">#94757575</color>
+    <color name="translucent_accent">#94424242</color>
 
     <color name="colorPrimary">@color/primary</color>
     <color name="colorPrimaryDark">@color/primary_dark</color>
@@ -21,12 +21,12 @@
 
     <color name="splash_background">#64000000</color>
 
-    <color name="av_color1">#64f7b09e</color>
-    <color name="av_color2">#64f0979b</color>
-    <color name="av_color3">#64e36a97</color>
-    <color name="av_color4">#64303F9F</color>
+    <color name="av_color1">#64f7d29e</color>
+    <color name="av_color2">#64d93037</color>
+    <color name="av_color3">#64ffa915</color>
+    <color name="av_color4">#64b40511</color>
 
-    <color name="av_color_bg">#8f367c</color>
+    <color name="av_color_bg">@color/accent</color>
 
     <array name="av_colors">
         <item>@color/av_color4</item>

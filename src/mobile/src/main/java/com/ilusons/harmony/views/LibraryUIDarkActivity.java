@@ -2,8 +2,13 @@ package com.ilusons.harmony.views;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -35,8 +40,10 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
 
     // UI
     private View root;
+    private RecyclerView recyclerView;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
-    RecyclerView recyclerView;
+    private AsyncTask<Void, Void, Collection<Music>> refreshTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +55,54 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
         // Set views
         root = findViewById(R.id.root);
 
+        // Set recycler
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-
         adapter = new RecyclerViewAdapter();
-
         recyclerView.setAdapter(adapter);
 
-        adapter.setData(Music.load(this));
+        // Set swipe to refresh
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (refreshTask != null && !refreshTask.isCancelled()) {
+                    refreshTask.cancel(true);
+
+                    try {
+                        refreshTask.get();
+                    } catch (Exception e) {
+                        Log.w(TAG, e);
+                    }
+                }
+
+                refreshTask = (new AsyncTask<Void, Void, Collection<Music>>() {
+                    @Override
+                    protected Collection<Music> doInBackground(Void... voids) {
+                        return Music.load(LibraryUIDarkActivity.this);
+                    }
+
+                    @Override
+                    protected void onPreExecute() {
+                        swipeRefreshLayout.setRefreshing(true);
+                    }
+
+                    @Override
+                    protected void onPostExecute(Collection<Music> data) {
+                        adapter.setData(data);
+
+                        swipeRefreshLayout.setRefreshing(false);
+
+                        refreshTask = null;
+                    }
+                });
+
+                refreshTask.execute();
+            }
+        };
+        swipeRefreshLayout.setOnRefreshListener(swipeRefreshLayoutOnRefreshListener);
+
+        // Load data
+        swipeRefreshLayoutOnRefreshListener.onRefresh();
 
         // Load player ui
         if (getMusicService() != null && getMusicService().isPlaying()) {
@@ -169,10 +217,28 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
                 loadingView.hide();
             }
 
-            ImageView cover = (ImageView) v.findViewById(R.id.cover);
-            Bitmap coverBitmap = item.getCover(LibraryUIDarkActivity.this);
-            if (coverBitmap != null)
-                cover.setImageBitmap(coverBitmap);
+            final ImageView cover = (ImageView) v.findViewById(R.id.cover);
+            cover.setImageBitmap(null);
+            // HACK: This animates aw well as reduces load on image view
+            (new AsyncTask<Void, Void, Bitmap>() {
+                @Override
+                protected Bitmap doInBackground(Void... voids) {
+                    return item.getCover(LibraryUIDarkActivity.this);
+                }
+
+                @Override
+                protected void onPostExecute(Bitmap bitmap) {
+                    TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+                            cover.getDrawable(),
+                            new BitmapDrawable(getResources(), bitmap)
+                    });
+
+                    cover.setImageDrawable(d);
+
+                    d.setCrossFadeEnabled(true);
+                    d.startTransition(200);
+                }
+            }).execute();
 
             TextView title = (TextView) v.findViewById(R.id.title);
             title.setText(item.Title);
