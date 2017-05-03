@@ -346,7 +346,7 @@ public class MusicService extends Service {
         mediaPlayer.stop();
 
         update();
-        
+
         cancelNotification();
     }
 
