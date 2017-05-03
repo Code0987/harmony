@@ -127,7 +127,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
     private void add(final File path, final ArrayList<Music> data) {
 
-        updateNotification("Scanning " + path.getName());
+        updateNotification(path.getName());
 
         if (isCancelled())
             return;
@@ -208,6 +208,16 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         notificationManager.cancel(KEY_NOTIFICATION_ID);
 
         notificationBuilder = null;
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+
+        Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATE_BEGINS);
+        LocalBroadcastManager
+                .getInstance(context)
+                .sendBroadcast(broadcastIntent);
     }
 
     @Override

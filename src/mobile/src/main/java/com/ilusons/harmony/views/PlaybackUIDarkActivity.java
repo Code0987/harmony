@@ -7,18 +7,19 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.ColorUtils;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
 import com.ilusons.harmony.R;
@@ -29,8 +30,6 @@ import com.ilusons.harmony.fx.DbmHandler;
 import com.ilusons.harmony.fx.GLAudioVisualizationView;
 import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
-
-import java.io.File;
 
 public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
@@ -60,6 +59,10 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         // Set view
         setContentView(R.layout.playback_ui_dark_activity);
@@ -158,23 +161,6 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
             }
         });
 
-        getWindow().getDecorView().post(new Runnable() {
-            @Override
-            public void run() {
-
-                getWindow().getDecorView().setBackground(
-                        new BitmapDrawable(
-                                getResources(),
-                                Bitmap.createScaledBitmap(
-                                        ((BitmapDrawable) ContextCompat.getDrawable(PlaybackUIDarkActivity.this, R.drawable.bg1)).getBitmap(),
-                                        getWindow().getDecorView().getWidth(),
-                                        getWindow().getDecorView().getHeight(),
-                                        false)));
-
-            }
-        });
-
-        loadingView.hide();
     }
 
     @Override
@@ -265,6 +251,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
             if (music != null) {
 
+                loadingView.show();
+
                 Music.getCoverOrDownload(this, music, new JavaEx.ActionT<Bitmap>() {
                     @Override
                     public void execute(Bitmap bitmap) {
@@ -275,8 +263,6 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                         if (bitmap == null)
                             return;
-
-                        loadingView.show();
 
                         // Load cover
                         if (cover.getDrawable() != null) {
@@ -302,7 +288,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         if (color == colorBackup)
                             color = palette.getDarkMutedColor(color);
 
-                        root.setBackground(new ColorDrawable(color));
+                        root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 127)));
 
                         seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         seekBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
@@ -337,42 +323,18 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                 setupProgressHandler();
 
-                loadingView.hide();
-
+                setupFX();
             }
 
         } catch (Exception e) {
             Log.e(TAG, "open file", e);
         }
 
-        if(getMusicService().isPlaying())
+        if (getMusicService().isPlaying())
             OnMusicServicePlay();
         else
             OnMusicServicePause();
 
-    }
-
-    private void startFX(Uri uri, Bitmap bmp) {
-        GLAudioVisualizationView fx = new GLAudioVisualizationView.Builder(this)
-                .setBubblesSize(R.dimen.bubble_size)
-                .setBubblesRandomizeSize(true)
-                .setWavesHeight(R.dimen.wave_height)
-                .setWavesFooterHeight(R.dimen.footer_height)
-                .setWavesCount(7)
-                .setLayersCount(4)
-                .setBackgroundColorRes(R.color.av_color_bg)
-                .setLayerColors(R.array.av_colors)
-                .setBubblesPerLayer(16)
-                .build();
-
-        addContentView(fx, new CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.MATCH_PARENT));
-
-        getMusicService().add(uri.getPath());
-        getMusicService().next();
-
-        fx.linkTo(DbmHandler.Factory.newVisualizerHandler(this, getMusicService().getAudioSessionId()));
-
-        getMusicService().start();
     }
 
     private Runnable progressHandlerRunnable;
@@ -403,6 +365,24 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         };
         handler.postDelayed(progressHandlerRunnable, dt);
 
+    }
+
+    private void setupFX() {
+        GLAudioVisualizationView fx = new GLAudioVisualizationView.Builder(this)
+                .setBubblesSize(R.dimen.bubble_size)
+                .setBubblesRandomizeSize(true)
+                .setWavesHeight(R.dimen.wave_height)
+                .setWavesFooterHeight(R.dimen.footer_height)
+                .setWavesCount(9)
+                .setLayersCount(9)
+                .setBackgroundColorRes(R.color.av_color_bg)
+                .setLayerColors(R.array.av_colors)
+                .setBubblesPerLayer(25)
+                .build();
+
+        ((RelativeLayout) findViewById(R.id.viewRoot)).addView(fx, 0);
+
+        fx.linkTo(DbmHandler.Factory.newVisualizerHandler(this, getMusicService().getAudioSessionId()));
     }
 
 }

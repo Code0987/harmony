@@ -119,7 +119,7 @@
                 />
 
             <Button
-                android:id="@+id/stop"
+                android:id="@+id/close"
                 style="@android:style/Widget.Material.Light.Button.Borderless.Small"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
