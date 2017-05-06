@@ -53,7 +53,6 @@
     </android.support.design.widget.AppBarLayout>
 
     <RelativeLayout
-        android:id="@+id/viewRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/translucent_primary_dark"
@@ -74,7 +73,7 @@
 
             <ImageView
                 android:id="@+id/cover"
-                android:scaleType="centerCrop"
+                android:scaleType="fitXY"
                 android:src="@drawable/logo"
                 app:layout_aspectRatio="100%"
                 app:layout_widthPercent="100%"
@@ -190,14 +189,29 @@
 
         </RelativeLayout>
 
-        <FrameLayout
-            android:id="@+id/lyrics_container"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="160dp"
             android:layout_alignParentBottom="true"
             android:layout_below="@+id/controlsLayout"
             android:background="@drawable/gradient_bottom_up"
-            />
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            >
+
+            <RelativeLayout
+                android:id="@+id/fxContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+
+            <FrameLayout
+                android:id="@+id/lyrics_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+
+        </RelativeLayout>
 
     </RelativeLayout>
 
