@@ -92,6 +92,12 @@
             android:clipToPadding="false"
             >
 
+            <RelativeLayout
+                android:id="@+id/fxContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+
             <android.support.v7.widget.AppCompatSeekBar
                 android:id="@+id/seekBar"
                 android:layout_width="match_parent"
@@ -198,12 +204,6 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             >
-
-            <RelativeLayout
-                android:id="@+id/fxContainer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                />
 
             <FrameLayout
                 android:id="@+id/lyrics_container"

@@ -312,7 +312,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         fab_random.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         fab_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
-                        setupFXHorizon(color);
+                        // TODO: setupFXHorizon(color);
+                        setupFXView(color);
 
                         loadingView.hide();
                     }
@@ -396,7 +397,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
         horizon = new Horizon(
                 horizonView,
-                color,
+                Color.argb(255, 0, 0, 0),
                 44100,
                 1,
                 16);
@@ -688,7 +689,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                     Y += Vy;
                 } else {
                     // X += Vx;
-                    Y = height - 50 - R + y + 50;
+                    Y = height / 2 - R + y + 50;
                 }
 
             }
