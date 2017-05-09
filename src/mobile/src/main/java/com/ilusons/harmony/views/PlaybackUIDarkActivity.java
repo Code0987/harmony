@@ -217,7 +217,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     public void OnMusicServicePlay() {
         super.OnMusicServicePlay();
 
-        fab.setImageDrawable(getDrawable(R.drawable.ic_media_pause));
+        fab.setImageDrawable(getDrawable(android.R.drawable.ic_media_pause));
 
         resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
@@ -226,7 +226,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     public void OnMusicServicePause() {
         super.OnMusicServicePlay();
 
-        fab.setImageDrawable(getDrawable(R.drawable.ic_media_play));
+        fab.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
 
         resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
@@ -235,7 +235,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     public void OnMusicServiceStop() {
         super.OnMusicServicePlay();
 
-        fab.setImageDrawable(getDrawable(R.drawable.ic_media_play));
+        fab.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
 
         resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
@@ -392,6 +392,11 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
             parent.removeView(horizonView);
 
         horizonView = new GLSurfaceView(this);
+
+        horizonView.setZOrderOnTop(true);
+        horizonView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        horizonView.getHolder().setFormat(PixelFormat.RGBA_8888);
+        horizonView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
         parent.addView(horizonView, 0);
 
