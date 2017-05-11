@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -48,6 +49,7 @@ public class Music {
     private static final String TAG = Music.class.getSimpleName();
 
     public static final String KEY_CACHE_DIR_COVER = "covers";
+    public static final String KEY_CACHE_DIR_LYRICS = "lyrics";
 
     public static final String KEY_CACHE_KEY_LIBRARY = "library.index";
 
@@ -55,10 +57,24 @@ public class Music {
     public String Artist = "";
     public String Album = "";
     public String Path;
-    public String Lyrics;
 
     public String getText() {
         return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
+    }
+
+    public String getTextDetailed() {
+        StringBuilder sb = new StringBuilder();
+
+        String nl = System.getProperty("line.separator");
+
+        sb.append(Title);
+        sb.append(nl);
+        sb.append(Artist);
+        sb.append(nl);
+        sb.append(Album);
+        sb.append(nl);
+
+        return sb.toString();
     }
 
     public Bitmap getCover(final Context context) {
@@ -190,6 +206,71 @@ public class Music {
         IOEx.putBitmapInDiskCache(context, KEY_CACHE_DIR_COVER, data.Path, bmp);
     }
 
+    public String getLyrics(final Context context) {
+        String result;
+
+        // Load from cache
+        result = CacheEx.getInstance().get(KEY_CACHE_DIR_LYRICS + Path).toString();
+
+        if (result != null)
+            return result;
+
+        // File
+        File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_LYRICS, Path);
+
+        // Load from cache folder
+        if (file.exists()) try {
+            result = FileUtils.readFileToString(file, Charset.defaultCharset());
+        } catch (Exception e) {
+            Log.w(TAG, e);
+        }
+
+        if (result != null) {
+            // Put in cache
+            CacheEx.getInstance().put(KEY_CACHE_DIR_LYRICS + Path, result);
+        }
+
+        return result;
+    }
+
+    public void getLyricsOrDownload(final Context context, final JavaEx.ActionT<String> onResult) {
+        (new AsyncTask<Void, Void, String>() {
+            @Override
+            protected void onPostExecute(String result) {
+                if (onResult != null)
+                    onResult.execute(result);
+            }
+
+            @Override
+            protected String doInBackground(Void... Voids) {
+                String result = getLyrics(context);
+
+                if (!TextUtils.isEmpty(result))
+                    return result;
+
+                ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(Artist + " " + Title);
+
+                if (!(results == null || results.size() == 0))
+                    result = results.get(0).Content;
+
+                putLyrics(context, result);
+
+                return result;
+            }
+        }).execute();
+    }
+
+    public void putLyrics(Context context, String content) {
+        // File
+        File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_LYRICS, Path);
+
+        try {
+            FileUtils.writeStringToFile(file, content, Charset.defaultCharset());
+        } catch (Exception e) {
+            Log.w(TAG, e);
+        }
+    }
+
     public static Music decodeFromFile(Context context, File file) {
         Music data = new Music();
 
@@ -216,7 +297,7 @@ public class Music {
                     }
                 }
 
-                data.Lyrics = LyricsEx.getLyrics(tags);
+                data.putLyrics(context, LyricsEx.getLyrics(tags));
 
             }
 
@@ -320,7 +401,6 @@ public class Music {
             result.add("Artist", new JsonPrimitive(TextUtils.isEmpty(data.Artist) ? "" : data.Artist));
             result.add("Album", new JsonPrimitive(TextUtils.isEmpty(data.Album) ? "" : data.Album));
             result.add("Path", new JsonPrimitive(data.Path));
-            result.add("Lyrics", new JsonPrimitive(TextUtils.isEmpty(data.Lyrics) ? "" : data.Lyrics));
 
             return result;
         }
@@ -339,7 +419,6 @@ public class Music {
             result.Artist = data.get("Artist").getAsString();
             result.Album = data.get("Album").getAsString();
             result.Path = data.get("Path").getAsString();
-            result.Lyrics = data.get("Lyrics").getAsString();
 
             return result;
         }
