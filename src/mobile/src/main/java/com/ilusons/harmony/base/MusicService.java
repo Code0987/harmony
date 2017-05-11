@@ -624,6 +624,9 @@ public class MusicService extends Service {
         // Update notification
         updateNotification();
 
+        // HACK: Calling the devil
+        System.gc();
+        Runtime.getRuntime().gc();
     }
 
     private IntentFilter getIntentFilter() {

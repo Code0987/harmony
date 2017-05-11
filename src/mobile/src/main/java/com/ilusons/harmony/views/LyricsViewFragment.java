@@ -1,7 +1,6 @@
 package com.ilusons.harmony.views;
 
 import android.app.Fragment;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -11,10 +10,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.ref.LyricsEx;
+import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
-import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,13 +23,10 @@ public class LyricsViewFragment extends Fragment {
     // Logger TAG
     private static final String TAG = LyricsViewFragment.class.getSimpleName();
 
-    public static String KEY_TITLE = "title";
-    public static String KEY_ARTIST = "artist";
-    public static String KEY_CONTENT = "content";
+    public static String KEY_PATH = "path";
+    private String path = null;
+    private Music music = null;
 
-    private String title = null;
-    private String artist = null;
-    private String content = null;
     private boolean isContentProcessed = false;
 
     private AVLoadingIndicatorView loading_view;
@@ -40,9 +36,7 @@ public class LyricsViewFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putString(KEY_TITLE, title);
-        savedInstanceState.putString(KEY_ARTIST, artist);
-        savedInstanceState.putString(KEY_CONTENT, content);
+        savedInstanceState.putString(KEY_PATH, path);
 
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -52,13 +46,9 @@ public class LyricsViewFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            title = (String) savedInstanceState.get(KEY_TITLE);
-            artist = (String) savedInstanceState.get(KEY_ARTIST);
-            content = (String) savedInstanceState.get(KEY_CONTENT);
+            path = (String) savedInstanceState.get(KEY_PATH);
         } else {
-            title = (String) getArguments().get(KEY_TITLE);
-            artist = (String) getArguments().get(KEY_ARTIST);
-            content = (String) getArguments().get(KEY_CONTENT);
+            path = (String) getArguments().get(KEY_PATH);
         }
     }
 
@@ -71,9 +61,23 @@ public class LyricsViewFragment extends Fragment {
         textView = (TextView) v.findViewById(R.id.lyrics);
         scrollView = (ScrollView) v.findViewById(R.id.scrollView);
 
-        processContent();
+        reset(path);
 
         return v;
+    }
+
+    public void reset(String path) {
+        this.path = path;
+        this.music = Music.load(getContext(), path);
+
+        processContent();
+    }
+
+    public void reset(Music music) {
+        this.path = music.Path;
+        this.music = music;
+
+        processContent();
     }
 
     private String contentFormatted = null;
@@ -83,75 +87,68 @@ public class LyricsViewFragment extends Fragment {
     private static Pattern lf = Pattern.compile("((\\[(.*)\\])+)(.*)", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     private void processContent() {
+        // If no data loaded return
+        if (music == null)
+            return;
+
+        // Load lyrics
+        String content = music.getLyrics(getContext());
+        // Check if need to download or not
         if (TextUtils.isEmpty(content)) {
-
-            AsyncTask<Void, Void, ArrayList<LyricsEx.Lyrics>> task = new AsyncTask<Void, Void, ArrayList<LyricsEx.Lyrics>>() {
-                @Override
-                protected ArrayList<LyricsEx.Lyrics> doInBackground(Void... voids) {
-                    ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(artist + " " + title);
-
-                    return results;
-                }
-
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-
-                    loading_view.show();
-                }
-
-                @Override
-                protected void onPostExecute(ArrayList<LyricsEx.Lyrics> results) {
-                    super.onPostExecute(results);
-
-                    if (results == null || results.size() == 0)
-                        textView.setText(title + "\n\n" + artist);
-                    else
-                        textView.setText(results.get(0).Content);
-
-                    loading_view.hide();
-                }
-            };
-            task.execute();
-
-        } else {
-
+            // If download required, postpone function to later
             loading_view.show();
+            music.getLyricsOrDownload(getContext(), new JavaEx.ActionT<String>() {
+                @Override
+                public void execute(String s) {
+                    loading_view.hide();
 
-            contentProcessed.clear();
-
-            Matcher m = lf.matcher(content);
-            while (m.find()) {
-                String c = m.group(4).trim();
-
-                Matcher mts = ts.matcher(m.group(3));
-                while (mts.find()) { // Decode multiple time lines
-
-                    long ts = Long.parseLong(mts.group(1)) * 60000
-                            + Long.parseLong(mts.group(2)) * 1000
-                            + Long.parseLong(mts.group(3));
-
-                    contentProcessed.put(ts, c);
+                    processContent();
                 }
-            }
-
-            if (contentProcessed.size() > 0) { // Re-build user friendly lyrics
-                StringBuilder sb = new StringBuilder();
-
-                for (TreeMap.Entry entry : contentProcessed.entrySet()) {
-                    sb.append(entry.getValue());
-                    sb.append(System.lineSeparator());
-                }
-
-                contentFormatted = sb.toString();
-            } else {
-                contentFormatted = content;
-            }
-
-            textView.setText(contentFormatted);
-
-            loading_view.hide();
+            });
+            return;
         }
+
+        loading_view.show();
+
+        // Format content
+        String nl = System.getProperty("line.separator");
+        content = music.getTextDetailed() + nl + nl + content;
+
+        textView.setText(content);
+
+        contentProcessed.clear();
+
+        Matcher m = lf.matcher(content);
+        while (m.find()) {
+            String c = m.group(4).trim();
+
+            Matcher mts = ts.matcher(m.group(3));
+            while (mts.find()) { // Decode multiple time lines
+
+                long ts = Long.parseLong(mts.group(1)) * 60000
+                        + Long.parseLong(mts.group(2)) * 1000
+                        + Long.parseLong(mts.group(3));
+
+                contentProcessed.put(ts, c);
+            }
+        }
+
+        if (contentProcessed.size() > 0) { // Re-build user friendly lyrics
+            StringBuilder sb = new StringBuilder();
+
+            for (TreeMap.Entry entry : contentProcessed.entrySet()) {
+                sb.append(entry.getValue());
+                sb.append(System.lineSeparator());
+            }
+
+            contentFormatted = sb.toString();
+        } else {
+            contentFormatted = content;
+        }
+
+        textView.setText(contentFormatted);
+
+        loading_view.hide();
 
         isContentProcessed = true;
     }
@@ -214,12 +211,10 @@ public class LyricsViewFragment extends Fragment {
 
     }
 
-    public static LyricsViewFragment create(String title, String artist, String content) {
+    public static LyricsViewFragment create(String path) {
         LyricsViewFragment f = new LyricsViewFragment();
         Bundle b = new Bundle();
-        b.putString(KEY_TITLE, title);
-        b.putString(KEY_ARTIST, artist);
-        b.putString(KEY_CONTENT, content);
+        b.putString(KEY_PATH, path);
         f.setArguments(b);
         return f;
     }

@@ -328,16 +328,14 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                 loadingView.show();
 
                 if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
+                    lyricsViewFragment.reset(music);
+                } else {
+                    lyricsViewFragment = LyricsViewFragment.create(music.Path);
                     getFragmentManager()
                             .beginTransaction()
-                            .remove(lyricsViewFragment)
+                            .replace(R.id.lyrics_container, lyricsViewFragment)
                             .commit();
                 }
-                lyricsViewFragment = LyricsViewFragment.create(music.Title, music.Artist, music.Lyrics);
-                getFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.lyrics_container, lyricsViewFragment)
-                        .commit();
 
                 seekBar.setMax(getMusicService().getDuration());
 
@@ -432,6 +430,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     private void setupFXView(int color) {
         if (fxView != null) {
             fxView.Color = color;
+            fxView.reset();
 
             return;
         }
@@ -441,6 +440,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         fxView = new FXView(this, parent.getWidth(), parent.getHeight(), color);
 
         parent.addView(fxView, 0);
+
+        fxView.reset();
     }
 
     public class FXView extends SurfaceView implements SurfaceHolder.Callback {
@@ -486,44 +487,6 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
             this.height = height;
 
             setWillNotDraw(false);
-
-            try {
-                visualizerEx = new VisualizerEx(PlaybackUIDarkActivity.this, getMusicService().getAudioSessionId(), new VisualizerEx.OnFftDataCaptureListener() {
-                    @Override
-                    public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
-                        int dataSize = fft.length / 2 - 1;
-
-                        sr = samplingRate;
-
-                        if (dbs == null || dbs.length != dataSize) {
-                            dbs = new float[dataSize];
-                        }
-                        if (amps == null || amps.length != dataSize) {
-                            amps = new float[dataSize];
-                        }
-
-                        for (int i = 0; i < dataSize; i++) {
-                            float re = fft[2 * i];
-                            float im = fft[2 * i + 1];
-                            float sq = re * re + im * im;
-
-                            dbs[i] = (float) (sq > 0 ? 20 * Math.log10(sq) : 0);
-
-                            float k = 1;
-                            if (i == 0 || i == dataSize - 1) {
-                                k = 2;
-                            }
-
-                            amps[i] = (float) (k * Math.sqrt(sq) / dataSize);
-                        }
-                    }
-                });
-                visualizerEx.setEnabled(true);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
         }
 
         @Override
@@ -606,6 +569,45 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                 }
             }
 
+        }
+
+        public void reset() {
+            try {
+                visualizerEx = new VisualizerEx(PlaybackUIDarkActivity.this, getMusicService().getAudioSessionId(), new VisualizerEx.OnFftDataCaptureListener() {
+                    @Override
+                    public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
+                        int dataSize = fft.length / 2 - 1;
+
+                        sr = samplingRate;
+
+                        if (dbs == null || dbs.length != dataSize) {
+                            dbs = new float[dataSize];
+                        }
+                        if (amps == null || amps.length != dataSize) {
+                            amps = new float[dataSize];
+                        }
+
+                        for (int i = 0; i < dataSize; i++) {
+                            float re = fft[2 * i];
+                            float im = fft[2 * i + 1];
+                            float sq = re * re + im * im;
+
+                            dbs[i] = (float) (sq > 0 ? 20 * Math.log10(sq) : 0);
+
+                            float k = 1;
+                            if (i == 0 || i == dataSize - 1) {
+                                k = 2;
+                            }
+
+                            amps[i] = (float) (k * Math.sqrt(sq) / dataSize);
+                        }
+                    }
+                });
+                visualizerEx.setEnabled(true);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         public class UpdaterThread extends Thread {
