@@ -112,8 +112,19 @@ public class Music {
         return result;
     }
 
+    private static AsyncTask<Object, Object, Bitmap> getCoverOrDownloadTask = null;
+
     public static void getCoverOrDownload(final Context context, final Music data, final JavaEx.ActionT<Bitmap> onResult) {
-        (new AsyncTask<Object, Object, Bitmap>() {
+        if (getCoverOrDownloadTask != null) {
+            getCoverOrDownloadTask.cancel(true);
+            try {
+                getCoverOrDownloadTask.get();
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            getCoverOrDownloadTask = null;
+        }
+        getCoverOrDownloadTask = (new AsyncTask<Object, Object, Bitmap>() {
             @Override
             protected void onPostExecute(Bitmap bitmap) {
                 if (onResult != null)
@@ -199,7 +210,8 @@ public class Music {
 
                 return result;
             }
-        }).execute();
+        });
+        getCoverOrDownloadTask.execute();
     }
 
     public static void putCover(Context context, Music data, Bitmap bmp) {
@@ -233,8 +245,19 @@ public class Music {
         return result;
     }
 
+    private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
+
     public void getLyricsOrDownload(final Context context, final JavaEx.ActionT<String> onResult) {
-        (new AsyncTask<Void, Void, String>() {
+        if (getLyricsOrDownloadTask != null) {
+            getLyricsOrDownloadTask.cancel(true);
+            try {
+                getLyricsOrDownloadTask.get();
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            getLyricsOrDownloadTask = null;
+        }
+        getLyricsOrDownloadTask = (new AsyncTask<Void, Void, String>() {
             @Override
             protected void onPostExecute(String result) {
                 if (onResult != null)
@@ -261,7 +284,8 @@ public class Music {
 
                 return result;
             }
-        }).execute();
+        });
+        getLyricsOrDownloadTask.execute();
     }
 
     public void putLyrics(Context context, String content) {

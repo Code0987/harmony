@@ -261,7 +261,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         loadingView.show();
 
         try {
-            Music music = Music.load(this, uri);
+            final Music music = Music.load(this, uri);
 
             if (music != null) {
 
@@ -322,20 +322,21 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         setupFXView(color);
 
                         loadingView.hide();
+
+                        if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
+                            lyricsViewFragment.reset(music);
+                        } else {
+                            lyricsViewFragment = LyricsViewFragment.create(music.Path);
+                            getFragmentManager()
+                                    .beginTransaction()
+                                    .replace(R.id.lyrics_container, lyricsViewFragment)
+                                    .commit();
+                        }
+
                     }
                 });
 
                 loadingView.show();
-
-                if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
-                    lyricsViewFragment.reset(music);
-                } else {
-                    lyricsViewFragment = LyricsViewFragment.create(music.Path);
-                    getFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.lyrics_container, lyricsViewFragment)
-                            .commit();
-                }
 
                 seekBar.setMax(getMusicService().getDuration());
 

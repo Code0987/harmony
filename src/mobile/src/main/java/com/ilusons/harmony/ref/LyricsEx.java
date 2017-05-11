@@ -98,12 +98,8 @@ public class LyricsEx {
                             text = Jsoup.clean(lyricsDiv.html(), Whitelist.none().addTags("br")).trim();
 
                     } catch (HttpStatusException e) {
-                        Log.w(TAG, e);
-
                         return null;
                     } catch (IOException | StringIndexOutOfBoundsException e) {
-                        Log.w(TAG, e);
-
                         return null;
                     }
 
