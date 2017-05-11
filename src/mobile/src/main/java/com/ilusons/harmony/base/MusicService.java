@@ -691,7 +691,7 @@ public class MusicService extends Service {
 
         } else if (action.equals(ACTION_LIBRARY_UPDATE)) {
 
-            libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this) {
+            libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this, false) {
                 @Override
                 protected void onPostExecute(Result result) {
                     super.onPostExecute(result);
