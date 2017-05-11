@@ -15,6 +15,7 @@ import android.util.Log;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.IOEx;
+import com.ilusons.harmony.ref.SPrefEx;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,14 +25,20 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
     // Logger TAG
     private static final String TAG = MusicServiceLibraryUpdaterAsyncTask.class.getSimpleName();
 
+    private static final String TAG_SPREF_SCAN_LAST_TS = SPrefEx.TAG_SPREF + ".scan_last_ts";
+    // TODO: Create settings ui for this
+    private static final long SCAN_INTERVAL = 86400000;
+
     // For single task per session
     @SuppressLint("StaticFieldLeak")
     private static MusicServiceLibraryUpdaterAsyncTask instance;
 
     private Context context;
+    private boolean force;
 
-    public MusicServiceLibraryUpdaterAsyncTask(Context c) {
+    public MusicServiceLibraryUpdaterAsyncTask(Context c, boolean force) {
         context = c;
+        this.force = force;
     }
 
     protected Result doInBackground(Void... params) {
@@ -50,6 +57,18 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                 // Record time
                 long time = System.currentTimeMillis();
+
+                // Check if really scan is needed
+                if (!force) {
+                    long interval = SCAN_INTERVAL;
+                    long last = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_LAST_TS, 0);
+
+                    long dt = System.currentTimeMillis() - (last + interval);
+
+                    if (dt < 0) {
+                        return new Result();
+                    }
+                }
 
                 // Return
                 Result result = new Result();
@@ -92,6 +111,11 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 }
 
                 Log.d(TAG, "Library update from filesystem took " + (System.currentTimeMillis() - time) + "ms");
+
+                SPrefEx.get(context)
+                        .edit()
+                        .putLong(TAG_SPREF_SCAN_LAST_TS, System.currentTimeMillis())
+                        .apply();
 
                 cancelNotification();
 

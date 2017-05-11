@@ -43,7 +43,10 @@ public class CacheEx {
         if (value != null && value.get() == null)
             softMemoryCache.remove(key);
 
-        return value;
+        if (value != null)
+            return value.get();
+
+        return null;
     }
 
     public void put(String key, SoftReference<Object> value) {

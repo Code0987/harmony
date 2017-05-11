@@ -210,7 +210,7 @@ public class Music {
         String result;
 
         // Load from cache
-        result = CacheEx.getInstance().get(KEY_CACHE_DIR_LYRICS + Path).toString();
+        result = (String) CacheEx.getInstance().get(KEY_CACHE_DIR_LYRICS + Path);
 
         if (result != null)
             return result;
@@ -248,12 +248,16 @@ public class Music {
                 if (!TextUtils.isEmpty(result))
                     return result;
 
-                ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(Artist + " " + Title);
+                try {
+                    ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(Artist + " " + Title);
 
-                if (!(results == null || results.size() == 0))
-                    result = results.get(0).Content;
+                    if (!(results == null || results.size() == 0))
+                        result = results.get(0).Content;
 
-                putLyrics(context, result);
+                    putLyrics(context, result);
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
 
                 return result;
             }
