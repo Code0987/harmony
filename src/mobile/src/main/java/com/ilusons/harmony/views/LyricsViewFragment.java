@@ -91,30 +91,26 @@ public class LyricsViewFragment extends Fragment {
         if (music == null)
             return;
 
+        loading_view.show();
+
+        textView.setText(music.getTextDetailed());
+
         // Load lyrics
         String content = music.getLyrics(getContext());
         // Check if need to download or not
-        if (TextUtils.isEmpty(content)) {
+        if (content == null) {
             // If download required, postpone function to later
-            loading_view.show();
             music.getLyricsOrDownload(getContext(), new JavaEx.ActionT<String>() {
                 @Override
                 public void execute(String s) {
-                    loading_view.hide();
-
                     processContent();
                 }
             });
             return;
         }
 
-        loading_view.show();
-
         // Format content
         String nl = System.getProperty("line.separator");
-        content = music.getTextDetailed() + nl + nl + content;
-
-        textView.setText(content);
 
         contentProcessed.clear();
 
@@ -141,9 +137,9 @@ public class LyricsViewFragment extends Fragment {
                 sb.append(System.lineSeparator());
             }
 
-            contentFormatted = sb.toString();
+            contentFormatted = music.getTextDetailed() + nl + nl + sb.toString();
         } else {
-            contentFormatted = content;
+            contentFormatted = music.getTextDetailed() + nl + nl + content;
         }
 
         textView.setText(contentFormatted);

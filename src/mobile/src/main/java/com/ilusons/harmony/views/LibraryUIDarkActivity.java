@@ -58,9 +58,9 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
         // Set recycler
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setItemViewCacheSize(20);
+        recyclerView.setItemViewCacheSize(7);
         recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 
         adapter = new RecyclerViewAdapter();
         recyclerView.setAdapter(adapter);

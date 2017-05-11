@@ -42,6 +42,8 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeUnit;
 
 public class Music {
 
@@ -118,7 +120,7 @@ public class Music {
         if (getCoverOrDownloadTask != null) {
             getCoverOrDownloadTask.cancel(true);
             try {
-                getCoverOrDownloadTask.get();
+                getCoverOrDownloadTask.get(0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 Log.w(TAG, e);
             }
@@ -133,10 +135,16 @@ public class Music {
 
             @Override
             protected Bitmap doInBackground(Object... objects) {
+                if (isCancelled())
+                    throw new CancellationException();
+
                 Bitmap result = data.getCover(context);
 
                 // File
                 File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, data.Path);
+
+                if (isCancelled())
+                    throw new CancellationException();
 
                 // Download and cache to folder then load
                 if (result == null) {
@@ -251,7 +259,7 @@ public class Music {
         if (getLyricsOrDownloadTask != null) {
             getLyricsOrDownloadTask.cancel(true);
             try {
-                getLyricsOrDownloadTask.get();
+                getLyricsOrDownloadTask.get(0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 Log.w(TAG, e);
             }
@@ -272,10 +280,16 @@ public class Music {
                     return result;
 
                 try {
+                    if (isCancelled())
+                        throw new CancellationException();
+
                     ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(Artist + " " + Title);
 
                     if (!(results == null || results.size() == 0))
                         result = results.get(0).Content;
+
+                    if (isCancelled())
+                        throw new CancellationException();
 
                     putLyrics(context, result);
                 } catch (Exception e) {
