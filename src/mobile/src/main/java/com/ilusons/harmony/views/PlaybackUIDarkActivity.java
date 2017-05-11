@@ -3,6 +3,7 @@ package com.ilusons.harmony.views;
 import android.content.ComponentName;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -269,8 +270,12 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                 Music.getCoverOrDownload(this, music, new JavaEx.ActionT<Bitmap>() {
                     @Override
                     public void execute(Bitmap bitmap) {
-                        if (bitmap == null)
-                            bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
+                        try {
+                            if (bitmap == null)
+                                bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
+                        } catch (Exception e) {
+                            // Eat!
+                        }
 
                         loadingView.hide();
 
@@ -301,7 +306,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         if (color == colorBackup)
                             color = palette.getDarkMutedColor(color);
 
-                        root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 127)));
+                        root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
 
                         seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         seekBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
@@ -313,6 +318,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         fab_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
                         // TODO: setupFXHorizon(color);
+                        // TODO: setupFXView(color);
                         setupFXView(color);
 
                         loadingView.hide();
@@ -327,9 +333,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                             .remove(lyricsViewFragment)
                             .commit();
                 }
-
                 lyricsViewFragment = LyricsViewFragment.create(music.Title, music.Artist, music.Lyrics);
-
                 getFragmentManager()
                         .beginTransaction()
                         .replace(R.id.lyrics_container, lyricsViewFragment)
@@ -396,7 +400,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         horizonView.setZOrderOnTop(true);
         horizonView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         horizonView.getHolder().setFormat(PixelFormat.RGBA_8888);
-        horizonView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        // horizonView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
         parent.addView(horizonView, 0);
 
@@ -426,10 +430,13 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     private FXView fxView;
 
     private void setupFXView(int color) {
-        RelativeLayout parent = (RelativeLayout) findViewById(R.id.fxContainer);
+        if (fxView != null) {
+            fxView.Color = color;
 
-        if (fxView != null)
-            parent.removeView(fxView);
+            return;
+        }
+
+        RelativeLayout parent = (RelativeLayout) findViewById(R.id.fxContainer);
 
         fxView = new FXView(this, parent.getWidth(), parent.getHeight(), color);
 
@@ -442,7 +449,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
         Context context;
 
-        int color;
+        public int Color;
 
         private SurfaceHolder holder;
         private UpdaterThread thread;
@@ -459,13 +466,15 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
         private Paint paint = new Paint();
         private Path path = new Path();
+        private BlurMaskFilter blurFilter1 = new BlurMaskFilter(1, BlurMaskFilter.Blur.NORMAL);
+        private BlurMaskFilter blurFilter2 = new BlurMaskFilter(2, BlurMaskFilter.Blur.NORMAL);
 
         public FXView(Context context, int width, int height, int color) {
             super(context);
 
             this.context = context;
 
-            this.color = color;
+            this.Color = color;
 
             holder = getHolder();
             holder.addCallback(this);
@@ -582,10 +591,11 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                     paint.reset();
                     paint.setAntiAlias(true);
-                    paint.setColor(p.C);
+                    paint.setColor(Color);
                     paint.setAlpha((int) (((p.Proximity - d) / p.Proximity) * 255));
                     paint.setStyle(Paint.Style.FILL_AND_STROKE);
                     paint.setStrokeWidth(1f);
+                    paint.setMaskFilter(blurFilter1);
 
                     path.reset();
                     path.moveTo(particles.get(i).X, particles.get(i).Y);
@@ -615,7 +625,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                     if (particles.size() < 25) {
                         while (particles.size() < 25)
-                            particles.add(new Particle(color));
+                            particles.add(new Particle());
                     }
 
                     for (int i = 0; i < particles.size(); i++) {
@@ -648,18 +658,16 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
             public float R = 1.0f;
             public float X;
             public float Y;
-            public int C;
             public float Vx;
             public float Vy;
             public float Proximity;
 
-            public Particle(int color) {
+            public Particle() {
                 X = (float) Math.random() * width;
                 Y = (float) Math.random() * height;
-                C = color;
                 Vx = ((float) Math.random() - 0.5f) * 5;
                 Vy = ((float) Math.random() - 0.5f) * 5;
-                Proximity = ((float) Math.random() * 0.22f * (float) Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)));
+                Proximity = ((float) Math.random() * 0.24f * (float) Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)));
             }
 
             public void update() {
@@ -694,7 +702,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                     Y += Vy;
                 } else {
                     // X += Vx;
-                    Y = height / 2 - R + y + 50;
+                    Y += (-Y + (height / 2 - R + y + 50));
                 }
 
             }
@@ -702,9 +710,10 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
             public void draw(Canvas c) {
                 Paint paint = new Paint();
                 paint.setAntiAlias(true);
-                paint.setColor(C);
+                paint.setColor(Color);
                 paint.setStyle(Paint.Style.FILL_AND_STROKE);
                 paint.setStrokeWidth(3f);
+                paint.setMaskFilter(blurFilter2);
 
                 c.drawCircle(X + R, Y + R, R, paint);
             }

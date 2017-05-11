@@ -82,21 +82,24 @@
         </android.support.percent.PercentRelativeLayout>
 
         <RelativeLayout
+            android:id="@+id/fxContainer"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_below="@id/coverLayout"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            />
+
+        <RelativeLayout
             android:id="@+id/controlsLayout"
             android:layout_width="match_parent"
             android:layout_height="86dp"
-            android:layout_below="@id/coverLayout"
+            android:layout_below="@id/fxContainer"
             android:layout_marginEnd="16dp"
             android:layout_marginStart="16dp"
             android:clipChildren="false"
             android:clipToPadding="false"
             >
-
-            <RelativeLayout
-                android:id="@+id/fxContainer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                />
 
             <android.support.v7.widget.AppCompatSeekBar
                 android:id="@+id/seekBar"
