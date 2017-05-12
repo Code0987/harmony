@@ -324,7 +324,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                     lyricsViewFragment = LyricsViewFragment.create(music.Path);
                     getFragmentManager()
                             .beginTransaction()
-                            .replace(R.id.lyrics_container, lyricsViewFragment)
+                            .replace(R.id.lyrics_layout, lyricsViewFragment)
                             .commit();
                 }
 

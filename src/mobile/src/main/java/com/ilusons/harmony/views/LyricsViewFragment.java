@@ -2,7 +2,6 @@ package com.ilusons.harmony.views;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -137,9 +136,9 @@ public class LyricsViewFragment extends Fragment {
                 sb.append(System.lineSeparator());
             }
 
-            contentFormatted = music.getTextDetailed() + nl + sb.toString();
+            contentFormatted = music.getTextDetailed() + nl + nl + sb.toString();
         } else {
-            contentFormatted = nl + music.getTextDetailed() + nl + content;
+            contentFormatted = music.getTextDetailed() + nl + nl + content;
         }
 
         textView.setText(contentFormatted);
