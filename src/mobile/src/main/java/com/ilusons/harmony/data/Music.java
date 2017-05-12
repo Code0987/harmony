@@ -74,7 +74,6 @@ public class Music {
         sb.append(Artist);
         sb.append(nl);
         sb.append(Album);
-        sb.append(nl);
 
         return sb.toString();
     }
@@ -120,7 +119,7 @@ public class Music {
         if (getCoverOrDownloadTask != null) {
             getCoverOrDownloadTask.cancel(true);
             try {
-                getCoverOrDownloadTask.get(0, TimeUnit.MILLISECONDS);
+                getCoverOrDownloadTask.get(1, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 Log.w(TAG, e);
             }
@@ -255,11 +254,11 @@ public class Music {
 
     private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
 
-    public void getLyricsOrDownload(final Context context, final JavaEx.ActionT<String> onResult) {
+    public static void getLyricsOrDownload(final Context context, final Music data, final JavaEx.ActionT<String> onResult) {
         if (getLyricsOrDownloadTask != null) {
             getLyricsOrDownloadTask.cancel(true);
             try {
-                getLyricsOrDownloadTask.get(0, TimeUnit.MILLISECONDS);
+                getLyricsOrDownloadTask.get(1, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 Log.w(TAG, e);
             }
@@ -274,7 +273,7 @@ public class Music {
 
             @Override
             protected String doInBackground(Void... Voids) {
-                String result = getLyrics(context);
+                String result = data.getLyrics(context);
 
                 if (!TextUtils.isEmpty(result))
                     return result;
@@ -283,7 +282,7 @@ public class Music {
                     if (isCancelled())
                         throw new CancellationException();
 
-                    ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(Artist + " " + Title);
+                    ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(data.Artist + " " + data.Title);
 
                     if (!(results == null || results.size() == 0))
                         result = results.get(0).Content;
@@ -291,9 +290,11 @@ public class Music {
                     if (isCancelled())
                         throw new CancellationException();
 
-                    putLyrics(context, result);
+                    data.putLyrics(context, result);
                 } catch (Exception e) {
                     Log.w(TAG, e);
+
+                    data.putLyrics(context, "");
                 }
 
                 return result;

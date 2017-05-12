@@ -100,7 +100,7 @@ public class LyricsViewFragment extends Fragment {
         // Check if need to download or not
         if (content == null) {
             // If download required, postpone function to later
-            music.getLyricsOrDownload(getContext(), new JavaEx.ActionT<String>() {
+            Music.getLyricsOrDownload(getContext(), music, new JavaEx.ActionT<String>() {
                 @Override
                 public void execute(String s) {
                     processContent();
@@ -137,9 +137,9 @@ public class LyricsViewFragment extends Fragment {
                 sb.append(System.lineSeparator());
             }
 
-            contentFormatted = music.getTextDetailed() + nl + nl + sb.toString();
+            contentFormatted = music.getTextDetailed() + nl + sb.toString();
         } else {
-            contentFormatted = music.getTextDetailed() + nl + nl + content;
+            contentFormatted = nl + music.getTextDetailed() + nl + content;
         }
 
         textView.setText(contentFormatted);
