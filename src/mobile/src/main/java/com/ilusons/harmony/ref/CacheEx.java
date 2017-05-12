@@ -28,7 +28,7 @@ public class CacheEx {
     private CacheEx() {
         // Get the Max available memory
         int maxMemory = (int) Runtime.getRuntime().maxMemory() / 1024;
-        int cacheSize = maxMemory / 16;
+        int cacheSize = maxMemory / 16; // HACK: Works so far!
 
         Log.d(TAG, "maxMemory = " + maxMemory + "\ncachesize = " + cacheSize);
 
