@@ -45,15 +45,15 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         try {
             synchronized (this) {
 
-                // To keep single instance active only
-                if (instance != null)
-                    wait();
-                instance = this;
-
                 // Check permissions
                 if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) == -1) {
                     return new Result();
                 }
+
+                // To keep single instance active only
+                if (instance != null)
+                    wait();
+                instance = this;
 
                 // Record time
                 long time = System.currentTimeMillis();
@@ -66,7 +66,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     long dt = System.currentTimeMillis() - (last + interval);
 
                     if (dt < 0) {
-                        return new Result();
+                        throw new Exception("Skipped due to time constraints!");
                     }
                 }
 
@@ -121,14 +121,17 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                 // To keep single instance active only
                 notifyAll();
-                instance = null;
 
                 return result;
             }
         } catch (Exception e) {
             e.printStackTrace();
 
+            instance = null;
+
             return new Result();
+        } finally {
+            instance = null;
         }
     }
 

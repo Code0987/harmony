@@ -76,6 +76,11 @@ public class LyricsViewFragment extends Fragment {
         this.path = music.Path;
         this.music = music;
 
+        lastP = 0;
+        lastV = 0;
+        lastTS = 0;
+        lastIndex = -1;
+
         processContent();
     }
 
