@@ -2,11 +2,15 @@ package com.ilusons.harmony.ref;
 
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
+import android.util.Log;
 
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
 
 public class CacheEx {
+
+    // Logger TAG
+    private static final String TAG = CacheEx.class.getSimpleName();
 
     private static CacheEx instance;
 
@@ -23,8 +27,10 @@ public class CacheEx {
 
     private CacheEx() {
         // Get the Max available memory
-        int maxMemory = (int) Runtime.getRuntime().maxMemory();
-        int cacheSize = maxMemory / 8;
+        int maxMemory = (int) Runtime.getRuntime().maxMemory() / 1024;
+        int cacheSize = maxMemory / 16;
+
+        Log.d(TAG, "maxMemory = " + maxMemory + "\ncachesize = " + cacheSize);
 
         // Init
         softMemoryCache = new HashMap<>();
@@ -32,7 +38,7 @@ public class CacheEx {
         bitmapCache = new LruCache<String, Bitmap>(cacheSize) {
             @Override
             protected int sizeOf(String key, Bitmap value) {
-                return value.getRowBytes() * value.getHeight();
+                return value == null ? 0 : value.getRowBytes() * value.getHeight() / 1024;
             }
         };
     }

@@ -239,11 +239,7 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             (new AsyncTask<Void, Void, Bitmap>() {
                 @Override
                 protected Bitmap doInBackground(Void... voids) {
-                    Bitmap result = item.getCover(LibraryUIDarkActivity.this, coverSize);
-
-                    Log.d(TAG, "cover scaled\n" + result);
-
-                    return result;
+                    return item.getCover(LibraryUIDarkActivity.this, coverSize);
                 }
 
                 @Override
