@@ -57,17 +57,17 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
 
         // Set recycler
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setItemViewCacheSize(7);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+        //recyclerView.setHasFixedSize(true);
+        //recyclerView.setItemViewCacheSize(5);
+        //recyclerView.setDrawingCacheEnabled(true);
+        //recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 
         adapter = new RecyclerViewAdapter();
         recyclerView.setAdapter(adapter);
 
         // Set swipe to refresh
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-        SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+        final SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 if (refreshTask != null && !refreshTask.isCancelled()) {
@@ -123,6 +123,16 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
                 i.setType("audio/*");
                 i.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(i, REQUEST_FILE_PICK);
+            }
+        });
+
+        findViewById(R.id.fab_refresh).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent musicServiceIntent = new Intent(LibraryUIDarkActivity.this, MusicService.class);
+                musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+                musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+                startService(musicServiceIntent);
             }
         });
 

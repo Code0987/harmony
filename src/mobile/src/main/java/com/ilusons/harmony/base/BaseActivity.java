@@ -27,27 +27,7 @@ public class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        // Check if all permissions are granted
-        PermissionsManager.getInstance().requestAllManifestPermissionsIfNecessary(this,
-                new PermissionsResultAction() {
-                    @Override
-                    public void onGranted() {
-                        // info("All needed permissions have been granted :)");
-                    }
-
-                    @Override
-                    public void onDenied(String permission) {
-                        info("Please grant all the required permissions :(");
-                    }
-                });
-
         super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        PermissionsManager.getInstance().notifyPermissionsChange(permissions, grantResults);
     }
 
     /**

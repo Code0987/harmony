@@ -97,7 +97,7 @@ public class IOEx {
         File cacheDir = new File(context.getCacheDir(), path);
 
         File parent = cacheDir;
-        if(!isDir)
+        if (!isDir)
             parent = cacheDir.getParentFile();
 
         if (!parent.exists()) {
@@ -112,6 +112,9 @@ public class IOEx {
     }
 
     public static File getDiskCacheFile(Context context, String path) {
+        if (context == null)
+            return null;
+
         File cacheFile = getDiskCache(context, path, false);
 
         return cacheFile;

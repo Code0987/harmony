@@ -81,16 +81,6 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         // Set view
         setContentView(R.layout.playback_ui_dark_activity);
 
-        // Set toolbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setCollapsible(false);
-
-        getSupportActionBar().setTitle(null);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        getSupportActionBar().setHomeButtonEnabled(false);
-        getSupportActionBar().setElevation(0);
-
         // Set views
         root = findViewById(R.id.root);
 
@@ -323,20 +313,20 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                         loadingView.hide();
 
-                        if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
-                            lyricsViewFragment.reset(music);
-                        } else {
-                            lyricsViewFragment = LyricsViewFragment.create(music.Path);
-                            getFragmentManager()
-                                    .beginTransaction()
-                                    .replace(R.id.lyrics_container, lyricsViewFragment)
-                                    .commit();
-                        }
-
                     }
                 });
 
                 loadingView.show();
+
+                if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
+                    lyricsViewFragment.reset(music);
+                } else {
+                    lyricsViewFragment = LyricsViewFragment.create(music.Path);
+                    getFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.lyrics_container, lyricsViewFragment)
+                            .commit();
+                }
 
                 seekBar.setMax(getMusicService().getDuration());
 
@@ -389,7 +379,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     private GLSurfaceView horizonView;
 
     private void setupFXHorizon(int color) {
-        RelativeLayout parent = (RelativeLayout) findViewById(R.id.fxContainer);
+        RelativeLayout parent = (RelativeLayout) findViewById(R.id.fx_layout);
 
         if (horizonView != null)
             parent.removeView(horizonView);
@@ -436,7 +426,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
             return;
         }
 
-        RelativeLayout parent = (RelativeLayout) findViewById(R.id.fxContainer);
+        RelativeLayout parent = (RelativeLayout) findViewById(R.id.fx_layout);
 
         fxView = new FXView(this, parent.getWidth(), parent.getHeight(), color);
 
@@ -574,6 +564,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
         public void reset() {
             try {
+                if (visualizerEx != null)
+                    visualizerEx.release();
                 visualizerEx = new VisualizerEx(PlaybackUIDarkActivity.this, getMusicService().getAudioSessionId(), new VisualizerEx.OnFftDataCaptureListener() {
                     @Override
                     public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
