@@ -513,7 +513,7 @@ public class MusicService extends Service {
         if (builder == null)
             return;
 
-        Bitmap cover = currentMusic.getCover(this);
+        Bitmap cover = currentMusic.getCover(this, 128); // TODO: Check this
         if (cover == null)
             cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 

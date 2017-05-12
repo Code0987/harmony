@@ -78,11 +78,15 @@ public class Music {
         return sb.toString();
     }
 
-    public Bitmap getCover(final Context context) {
+    public Bitmap getCover(final Context context, int size) {
         Bitmap result;
 
+        String key = Path;
+        if (size > 0)
+            key = key + size;
+
         // Load from cache
-        result = CacheEx.getInstance().getBitmap(Path);
+        result = CacheEx.getInstance().getBitmap(key);
 
         if (result != null)
             return result;
@@ -94,7 +98,7 @@ public class Music {
         if (file.exists())
             result = BitmapFactory.decodeFile(file.getAbsolutePath());
 
-        // Resample
+        // Re-sample
         if (result != null) {
             try {
                 Bitmap.Config config = result.getConfig();
@@ -106,16 +110,27 @@ public class Music {
                 Log.w(TAG, e);
             }
 
+            // Re-size
+            if (result != null && size > 0) {
+                size = Math.min(size, Math.max(result.getWidth(), result.getHeight()));
+
+                result = Bitmap.createScaledBitmap(result, size, size, true);
+            }
+
             // Put in cache
-            CacheEx.getInstance().putBitmap(Path, result);
+            CacheEx.getInstance().putBitmap(key, result);
         }
 
         return result;
     }
 
+    public Bitmap getCover(final Context context) {
+        return getCover(context, -1);
+    }
+
     private static AsyncTask<Object, Object, Bitmap> getCoverOrDownloadTask = null;
 
-    public static void getCoverOrDownload(final Context context, final Music data, final JavaEx.ActionT<Bitmap> onResult) {
+    public static void getCoverOrDownload(final Context context, final int size, final Music data, final JavaEx.ActionT<Bitmap> onResult) {
         if (getCoverOrDownloadTask != null) {
             getCoverOrDownloadTask.cancel(true);
             try {
@@ -137,7 +152,7 @@ public class Music {
                 if (isCancelled())
                     throw new CancellationException();
 
-                Bitmap result = data.getCover(context);
+                Bitmap result = data.getCover(context, size);
 
                 // File
                 File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, data.Path);

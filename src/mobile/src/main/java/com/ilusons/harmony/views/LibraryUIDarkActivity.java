@@ -57,10 +57,10 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
 
         // Set recycler
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        //recyclerView.setHasFixedSize(true);
-        //recyclerView.setItemViewCacheSize(5);
-        //recyclerView.setDrawingCacheEnabled(true);
-        //recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setItemViewCacheSize(7);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 
         adapter = new RecyclerViewAdapter();
         recyclerView.setAdapter(adapter);
@@ -235,10 +235,15 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             final ImageView cover = (ImageView) v.findViewById(R.id.cover);
             cover.setImageBitmap(null);
             // HACK: This animates aw well as reduces load on image view
+            final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
             (new AsyncTask<Void, Void, Bitmap>() {
                 @Override
                 protected Bitmap doInBackground(Void... voids) {
-                    return item.getCover(LibraryUIDarkActivity.this);
+                    Bitmap result = item.getCover(LibraryUIDarkActivity.this, coverSize);
+
+                    Log.d(TAG, "cover scaled\n" + result);
+
+                    return result;
                 }
 
                 @Override

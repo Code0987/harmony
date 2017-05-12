@@ -257,7 +257,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                 loadingView.show();
 
-                Music.getCoverOrDownload(this, music, new JavaEx.ActionT<Bitmap>() {
+                Music.getCoverOrDownload(this, cover.getWidth(), music, new JavaEx.ActionT<Bitmap>() {
                     @Override
                     public void execute(Bitmap bitmap) {
                         try {
