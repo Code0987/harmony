@@ -205,6 +205,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
 
+    //TODO: Stop button not changing the play/pause button icon back to play
+
     @Override
     public void OnMusicServiceStop() {
         super.OnMusicServicePlay();
