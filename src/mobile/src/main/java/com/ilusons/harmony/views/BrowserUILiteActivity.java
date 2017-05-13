@@ -50,13 +50,13 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
         super.onCreate(savedInstanceState);
 
         // Set view
-        setContentView(R.layout.library_ui_dark_activity);
+        setContentView(R.layout.browser_lite_activty);
 
         // Set views
         root = findViewById(R.id.root);
 
         // Set recycler
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView_lite);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemViewCacheSize(7);
         recyclerView.setDrawingCacheEnabled(true);
@@ -66,7 +66,7 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
         recyclerView.setAdapter(adapter);
 
         // Set swipe to refresh
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout_lite);
         final SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -209,7 +209,7 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
-            View view = inflater.inflate(R.layout.library_ui_dark_item, parent, false);
+            View view = inflater.inflate(R.layout.browser_item, parent, false);
 
             return new ViewHolder(view);
         }
