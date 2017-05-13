@@ -228,7 +228,7 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
                 protected void onPostExecute(Bitmap bitmap) {
                     try{
                             if(bitmap==null)
-                                bitmap=((BitmapDrawable)getDrawable(R.drawable.logo)).getBitmap();
+                                bitmap=((BitmapDrawable)getDrawable(R.drawable.logo_square)).getBitmap();
                     }catch (Exception e){
                         //Eaaaatt
                     }
