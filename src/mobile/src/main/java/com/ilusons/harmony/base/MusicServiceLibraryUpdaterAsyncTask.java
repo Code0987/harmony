@@ -116,7 +116,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     Log.w(TAG, "doInBackground", e);
                 }
 
-
                 SPrefEx.get(context)
                         .edit()
                         .putLong(TAG_SPREF_SCAN_LAST_TS, System.currentTimeMillis())
@@ -214,7 +213,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
     }
 
     private void scanStorage(final ArrayList<Music> data) {
-        if (!force) {
+        {
             long interval = SCAN_INTERVAL_STORAGE;
             long last = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_LAST_TS_STORAGE, 0);
 
@@ -225,6 +224,11 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                 return;
             }
+
+            SPrefEx.get(context)
+                    .edit()
+                    .putLong(TAG_SPREF_SCAN_LAST_TS_STORAGE, System.currentTimeMillis())
+                    .apply();
         }
 
         String externalStorageState = Environment.getExternalStorageState();
