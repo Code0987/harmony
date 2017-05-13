@@ -226,6 +226,13 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
 
                 @Override
                 protected void onPostExecute(Bitmap bitmap) {
+                    try{
+                            if(bitmap==null)
+                                bitmap=((BitmapDrawable)getDrawable(R.drawable.logo)).getBitmap();
+                    }catch (Exception e){
+                        //Eaaaatt
+                    }
+
                     TransitionDrawable d = new TransitionDrawable(new Drawable[]{
                             cover.getDrawable(),
                             new BitmapDrawable(getResources(), bitmap)
