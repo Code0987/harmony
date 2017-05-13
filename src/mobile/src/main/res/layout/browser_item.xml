@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent" android:layout_height="80dp">
+    android:id="@+id/card_lite"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:layout_marginStart="5dp"
+    android:layout_marginEnd="5dp"
+    android:layout_marginTop="3dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -15,7 +23,9 @@
             android:layout_width="75dp"
             android:layout_height="75dp"
             android:src="@drawable/logo"
-            android:scaleType="centerCrop" />
+            android:scaleType="fitCenter"
+            tools:ignore="ContentDescription" />
+
         <LinearLayout
             android:layout_toEndOf="@id/cover"
             android:layout_width="match_parent"
@@ -26,15 +36,26 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/accent"
+                android:textColor="@color/cardview_dark_background"
                 android:maxLines="1"
+                android:textSize="14sp"
 
                 tools:text="SongName"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textSize="13sp"
 
                 tools:text="Artist"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textSize="12sp"
+
+                tools:text="Album"/>
 
         </LinearLayout>
 
