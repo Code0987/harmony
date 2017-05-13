@@ -31,6 +31,7 @@ import android.widget.RemoteViews;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.JavaEx;
 
 import java.util.ArrayList;
 
@@ -275,7 +276,7 @@ public class MusicService extends Service {
         update();
     }
 
-    private void prepare() {
+    private void prepare(final JavaEx.Action onPrepare) {
         // Fix playlist position
         if (!canPlay())
             return;
@@ -293,7 +294,13 @@ public class MusicService extends Service {
                 mediaPlayer = new MediaPlayer();
             try {
                 mediaPlayer.reset();
-                mediaPlayer.setOnPreparedListener(null);
+                if (onPrepare != null)
+                    mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                        @Override
+                        public void onPrepared(MediaPlayer mediaPlayer) {
+                            onPrepare.execute();
+                        }
+                    });
                 mediaPlayer.setDataSource(path);
                 mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mediaPlayer.prepare();
@@ -311,7 +318,7 @@ public class MusicService extends Service {
             mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
                 @Override
                 public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
-                    Log.d(TAG, "onError");
+                    Log.w(TAG, "onError\nwhat = " + what + "\nextra = " + extra);
 
                     random();
 
@@ -344,19 +351,39 @@ public class MusicService extends Service {
     public void stop() {
         if (mediaPlayer == null)
             return;
+
+        Intent intent = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
+        intent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
+        intent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
+        sendBroadcast(intent);
+
         mediaPlayer.stop();
 
         update();
 
+        LocalBroadcastManager
+                .getInstance(this)
+                .sendBroadcast(new Intent(ACTION_STOP));
+
         cancelNotification();
+
+        currentMusic = null;
     }
 
     public void play() {
         if (!canPlay())
             return;
 
-        if (!isPrepared())
-            prepare();
+        if (!isPrepared()) {
+            prepare(new JavaEx.Action() {
+                @Override
+                public void execute() {
+                    play();
+                }
+            });
+
+            return;
+        }
 
         synchronized (this) {
             int status = audioManager.requestAudioFocus(audioManagerFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
@@ -380,7 +407,7 @@ public class MusicService extends Service {
             update();
 
             LocalBroadcastManager
-                    .getInstance(this)
+                    .getInstance(MusicService.this)
                     .sendBroadcast(new Intent(ACTION_PLAY));
         }
     }
@@ -416,8 +443,12 @@ public class MusicService extends Service {
                 playlistPosition = 0;
         }
 
-        prepare();
-        play();
+        prepare(new JavaEx.Action() {
+            @Override
+            public void execute() {
+                play();
+            }
+        });
     }
 
     public void next() {
@@ -443,8 +474,12 @@ public class MusicService extends Service {
                 playlistPosition = (int) Math.round(Math.random() * playlist.size());
         }
 
-        prepare();
-        play();
+        prepare(new JavaEx.Action() {
+            @Override
+            public void execute() {
+                play();
+            }
+        });
     }
 
     private static final int NOTIFICATION_ID = 4524;

@@ -205,15 +205,11 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
         resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
 
-    //TODO: Stop button not changing the play/pause button icon back to play
-
     @Override
     public void OnMusicServiceStop() {
         super.OnMusicServicePlay();
 
         fab.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
-
-        resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
 
     @Override

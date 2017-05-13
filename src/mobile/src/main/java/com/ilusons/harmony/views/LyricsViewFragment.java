@@ -65,25 +65,6 @@ public class LyricsViewFragment extends Fragment {
         return v;
     }
 
-    public void reset(String path) {
-        this.path = path;
-        this.music = Music.load(getContext(), path);
-
-        processContent();
-    }
-
-    public void reset(Music music) {
-        this.path = music.Path;
-        this.music = music;
-
-        lastP = 0;
-        lastV = 0;
-        lastTS = 0;
-        lastIndex = -1;
-
-        processContent();
-    }
-
     private String contentFormatted = null;
     private TreeMap<Long, String> contentProcessed = new TreeMap<>();
 
@@ -153,10 +134,10 @@ public class LyricsViewFragment extends Fragment {
         isContentProcessed = true;
     }
 
-    private int lastP = 0;
-    private float lastV = 0;
-    private long lastTS = 0;
-    private int lastIndex = -1;
+    private int lastP;
+    private float lastV;
+    private long lastTS;
+    private int lastIndex;
 
     public void updateScroll(float v, int p) {
         if (!isContentProcessed)
@@ -209,6 +190,34 @@ public class LyricsViewFragment extends Fragment {
             lastV += v;
         }
 
+    }
+
+    public void reset(String path) {
+        this.path = path;
+        this.music = Music.load(getContext(), path);
+
+        lastP = 0;
+        lastV = 0;
+        lastTS = 0;
+        lastIndex = -1;
+
+        scrollView.smoothScrollTo(0, 0);
+
+        processContent();
+    }
+
+    public void reset(Music music) {
+        this.path = music.Path;
+        this.music = music;
+
+        lastP = 0;
+        lastV = 0;
+        lastTS = 0;
+        lastIndex = -1;
+
+        scrollView.smoothScrollTo(0, 0);
+
+        processContent();
     }
 
     public static LyricsViewFragment create(String path) {
