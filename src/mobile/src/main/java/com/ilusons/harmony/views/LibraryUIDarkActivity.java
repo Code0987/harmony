@@ -147,14 +147,14 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             }
         });
 
-        findViewById(R.id.fab_playback_ui).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                startActivity(intent);
-            }
-        });
+//        findViewById(R.id.fab_playback_ui).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                startActivity(intent);
+//            }
+//        });
 
     }
 

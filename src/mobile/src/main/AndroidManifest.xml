@@ -83,6 +83,11 @@
             android:launchMode="singleTop">
         </activity>
 
+        <activity
+            android:name=".views.BrowserUILiteActivity"
+            android:launchMode="singleTop">
+        </activity>
+
         <activity android:name=".ref.Permissions$PermissionRequestActivity"/>
 
         <receiver android:name=".base.HeadsetMediaButtonIntentReceiver">
