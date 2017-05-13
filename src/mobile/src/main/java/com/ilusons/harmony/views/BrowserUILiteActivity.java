@@ -116,25 +116,7 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
             startActivity(intent);
         }
 
-        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent();
-                i.setType("audio/*");
-                i.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(i, REQUEST_FILE_PICK);
-            }
-        });
 
-        findViewById(R.id.fab_refresh).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent musicServiceIntent = new Intent(BrowserUILiteActivity.this, MusicService.class);
-                musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-                musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
-                startService(musicServiceIntent);
-            }
-        });
 
 //        findViewById(R.id.fab_playback_ui).setOnClickListener(new View.OnClickListener() {
 //            @Override
