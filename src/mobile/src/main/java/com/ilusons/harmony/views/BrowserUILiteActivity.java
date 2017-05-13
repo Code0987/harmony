@@ -53,7 +53,7 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
         setContentView(R.layout.browser_lite_activty);
 
         // Set views
-        root = findViewById(R.id.root);
+        root = findViewById(R.id.root_lite);
 
         // Set recycler
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView_lite);
@@ -136,14 +136,14 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
             }
         });
 
-        findViewById(R.id.fab_playback_ui).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(BrowserUILiteActivity.this, PlaybackUIDarkActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                startActivity(intent);
-            }
-        });
+//        findViewById(R.id.fab_playback_ui).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent(BrowserUILiteActivity.this, PlaybackUIDarkActivity.class);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                startActivity(intent);
+//            }
+//        });
 
     }
 
