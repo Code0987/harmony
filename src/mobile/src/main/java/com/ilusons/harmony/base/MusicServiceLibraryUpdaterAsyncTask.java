@@ -3,10 +3,14 @@ package com.ilusons.harmony.base;
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -26,8 +30,10 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
     private static final String TAG = MusicServiceLibraryUpdaterAsyncTask.class.getSimpleName();
 
     private static final String TAG_SPREF_SCAN_LAST_TS = SPrefEx.TAG_SPREF + ".scan_last_ts";
+    private static final String TAG_SPREF_SCAN_LAST_TS_STORAGE = SPrefEx.TAG_SPREF + ".scan_last_ts_storage";
     // TODO: Create settings ui for this
-    private static final long SCAN_INTERVAL = 86400000;
+    private static final long SCAN_INTERVAL = 3 * 60 * 60 * 1000;
+    private static final long SCAN_INTERVAL_STORAGE = 12 * 60 * 60 * 1000;
 
     // For single task per session
     @SuppressLint("StaticFieldLeak")
@@ -54,9 +60,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 if (instance != null)
                     wait();
                 instance = this;
-
-                // Record time
-                long time = System.currentTimeMillis();
 
                 // Check if really scan is needed
                 if (!force) {
@@ -89,20 +92,23 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     // Update
                     update(data);
 
-                    // Scan all storage
-                    String externalStorageState = Environment.getExternalStorageState();
-                    if ("mounted".equals(externalStorageState) || "mounted_ro".equals(externalStorageState)) {
-                        addFromDirectory(Environment.getExternalStorageDirectory(), data);
-                    } else {
-                        Log.d(TAG, "External/Internal storage is not available.");
-                    }
+                    // Record time
+                    long time = System.currentTimeMillis();
 
-                    for (String path : IOEx.getExternalStorageDirectories(context)) {
-                        addFromDirectory(new File(path), data);
-                    }
+                    // Scan media store
+                    scanMediaStore(data);
+
+                    Log.d(TAG, "Library update from media store took " + (System.currentTimeMillis() - time) + "ms");
+
+                    // Scan storage
+                    scanStorage(data);
+
+                    Log.d(TAG, "Library update from storage took " + (System.currentTimeMillis() - time) + "ms");
 
                     // Save new data
                     Music.save(context, data);
+
+                    Log.d(TAG, "Library update took " + (System.currentTimeMillis() - time) + "ms");
 
                     result.Data.clear();
                     result.Data.addAll(data);
@@ -110,7 +116,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     Log.w(TAG, "doInBackground", e);
                 }
 
-                Log.d(TAG, "Library update from filesystem took " + (System.currentTimeMillis() - time) + "ms");
 
                 SPrefEx.get(context)
                         .edit()
@@ -176,6 +181,61 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void scanMediaStore(final ArrayList<Music> data) {
+        ContentResolver cr = context.getContentResolver();
+
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
+        String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
+
+        Cursor cur = cr.query(uri, null, selection, null, sortOrder);
+        int count = 0;
+        if (cur != null) {
+            count = cur.getCount();
+
+            if (count > 0) {
+                while (cur.moveToNext()) {
+                    String path = cur.getString(cur.getColumnIndex(MediaStore.Audio.Media.DATA));
+
+                    File file = new File(path);
+
+                    if (file.exists())
+                        add(file, data);
+                }
+
+            }
+        }
+
+        if (cur != null)
+            cur.close();
+    }
+
+    private void scanStorage(final ArrayList<Music> data) {
+        if (!force) {
+            long interval = SCAN_INTERVAL_STORAGE;
+            long last = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_LAST_TS_STORAGE, 0);
+
+            long dt = System.currentTimeMillis() - (last + interval);
+
+            if (dt < 0) {
+                Log.d(TAG, "Storage scan skipped due to time constraints!");
+
+                return;
+            }
+        }
+
+        String externalStorageState = Environment.getExternalStorageState();
+        if ("mounted".equals(externalStorageState) || "mounted_ro".equals(externalStorageState)) {
+            addFromDirectory(Environment.getExternalStorageDirectory(), data);
+        } else {
+            Log.d(TAG, "External/Internal storage is not available.");
+        }
+
+        for (String path : IOEx.getExternalStorageDirectories(context)) {
+            addFromDirectory(new File(path), data);
         }
     }
 
