@@ -27,6 +27,8 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
+        <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimationStyle</item>
+
         <item name="android:windowActivityTransitions">true</item>
         <item name="android:windowEnterTransition">@transition/a</item>
         <item name="android:windowExitTransition">@transition/b</item>
@@ -35,6 +37,11 @@
         <item name="android:windowSharedElementEnterTransition">@transition/shared_a</item>
         <item name="android:windowSharedElementExitTransition">@transition/shared_b</item>
         -->
+    </style>
+
+    <style name="AppTheme.ActivityAnimationStyle" parent="@android:style/Animation.Activity">
+        <item name="android:windowEnterAnimation">@anim/activity_enter</item>
+        <item name="android:windowExitAnimation">@anim/activity_exit</item>
     </style>
 
 </resources>

@@ -38,8 +38,6 @@
             android:scrollbars="vertical"
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
             tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="8dp"
             tools:listitem="@layout/library_ui_dark_item"
             />
 

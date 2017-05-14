@@ -10,6 +10,9 @@
     <color name="icons">#eeeeee</color>
     <color name="divider">#BDBDBD</color>
 
+    <color name="primary_text_inverse">#212121</color>
+    <color name="secondary_text_inverse">#757575</color>
+
     <color name="transparent">#00000000</color>
     <color name="translucent">#94000000</color>
     <color name="translucent_primary">#94616161</color>

@@ -16,6 +16,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
@@ -54,6 +56,10 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         // Set view
         setContentView(R.layout.library_ui_dark_activity);
 
@@ -63,7 +69,7 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
         // Set recycler
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setItemViewCacheSize(7);
+        recyclerView.setItemViewCacheSize(11);
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 
@@ -286,15 +292,8 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             // Bind data to view here!
 
             final AVLoadingIndicatorView loadingView = (AVLoadingIndicatorView) v.findViewById(R.id.loadingView);
-            loadingView.show();
 
-            MusicService musicService = getMusicService();
-            if (musicService != null && musicService.getCurrentPlaylistItem() != null) {
-                if (!musicService.getCurrentPlaylistItem().equals(item.Path))
-                    loadingView.hide();
-            } else {
-                loadingView.hide();
-            }
+            loadingView.smoothToShow();
 
             final ImageView cover = (ImageView) v.findViewById(R.id.cover);
             cover.setImageBitmap(null);
@@ -332,7 +331,7 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    loadingView.show();
+                    loadingView.smoothToShow();
 
                     Intent i = new Intent(LibraryUIDarkActivity.this, MusicService.class);
 
@@ -342,6 +341,13 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
                     startService(i);
                 }
             });
+
+            loadingView.smoothToHide();
+
+            MusicService musicService = getMusicService();
+            if (musicService != null && musicService.getCurrentPlaylistItem() != null)
+                if (musicService.getCurrentPlaylistItem().equalsIgnoreCase(item.Path))
+                    loadingView.smoothToShow();
         }
 
         @Override

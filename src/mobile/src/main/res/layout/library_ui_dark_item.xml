@@ -25,8 +25,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:transitionName="action_image"
             android:src="@drawable/lomo_inverse"
+            android:transitionName="action_image"
             />
 
         <RelativeLayout
@@ -83,6 +83,7 @@
             android:visibility="visible"
             app:indicatorColor="@color/primary_light"
             app:indicatorName="LineScalePulseOutRapidIndicator"
+            tools:visibility="visible"
             />
 
     </RelativeLayout>
