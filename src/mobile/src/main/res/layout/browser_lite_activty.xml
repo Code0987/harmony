@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root_lite"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/translucent_primary_dark"
+    android:background="@color/primary_light"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:elevation="0dp"
@@ -15,7 +16,7 @@
 
     <android.support.v4.widget.SwipeRefreshLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swipeRefreshLayout_lite"
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -25,20 +26,18 @@
         >
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/recyclerView_lite"
+            android:id="@+id/recyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:animateLayoutChanges="false"
             android:animationCache="true"
             android:clipToPadding="false"
             android:nestedScrollingEnabled="false"
-            android:paddingBottom="10dp"
-            android:paddingTop="10dp"
+            android:paddingBottom="128dp"
+            android:paddingTop="128dp"
             android:scrollbars="vertical"
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
             tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="8dp"
             tools:listitem="@layout/browser_item"
             />
 

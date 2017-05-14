@@ -290,24 +290,25 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                         if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
                             audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.AVFX, color);
-                        } else {
-                            audioVFXViewFragment = AudioVFXViewFragment.create();
-                            getFragmentManager()
-                                    .beginTransaction()
-                                    .replace(R.id.avfx_layout, audioVFXViewFragment)
-                                    .commit();
                         }
 
                         loadingView.hide();
-
                     }
                 });
 
                 loadingView.show();
 
+                if (!isFinishing()) {
+                    audioVFXViewFragment = AudioVFXViewFragment.create();
+                    getFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.avfx_layout, audioVFXViewFragment)
+                            .commit();
+                }
+
                 if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
                     lyricsViewFragment.reset(music);
-                } else {
+                } else if (!isFinishing()) {
                     lyricsViewFragment = LyricsViewFragment.create(music.Path);
                     getFragmentManager()
                             .beginTransaction()

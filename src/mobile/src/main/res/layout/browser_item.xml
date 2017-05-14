@@ -1,76 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/card_lite"
     android:layout_width="match_parent"
     android:layout_height="80dp"
+    android:layout_marginEnd="5dp"
+    android:layout_marginStart="5dp"
+    android:layout_marginTop="5dp"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
-    android:layout_marginStart="10dp"
-    android:layout_marginEnd="10dp"
-    android:layout_marginTop="3dp">
+    android:elevation="0dp"
+    card_view:cardElevation="5dp"
+    >
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="0dp"
-        android:paddingStart="0dp"
-        android:paddingEnd="15dp">
+        android:layout_height="wrap_content"
+        >
 
         <ImageView
             android:id="@+id/cover"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:src="@drawable/logo_square"
-            android:scaleType="centerCrop"
-            tools:ignore="ContentDescription" />
+            android:background="@color/translucent_primary_light"
+            android:scaleType="fitXY"
+            android:src="@drawable/logo"
+            tools:ignore="ContentDescription"
+            />
 
         <LinearLayout
-            android:layout_toEndOf="@id/cover"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="7dp"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_margin="8dp"
+            android:layout_toEndOf="@id/cover"
+            android:orientation="vertical"
+            >
 
             <TextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/cardview_dark_background"
+                android:ellipsize="end"
                 android:maxLines="1"
+                android:textColor="@color/primary_text_inverse"
                 android:textSize="14sp"
+                tools:text="Title"
+                />
 
-                tools:text="SongName"/>
             <TextView
                 android:id="@+id/artist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:ellipsize="end"
                 android:maxLines="1"
+                android:textColor="@color/secondary_text_inverse"
                 android:textSize="13sp"
-
-                tools:text="Artist"/>
+                tools:text="Artist"
+                />
 
             <TextView
                 android:id="@+id/album"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:ellipsize="end"
                 android:maxLines="1"
+                android:textColor="@color/secondary_text_inverse"
                 android:textSize="12sp"
-
-                tools:text="Album"/>
+                tools:text="Album"
+                />
 
         </LinearLayout>
 
     </RelativeLayout>
 
-    <com.wang.avi.AVLoadingIndicatorView
-        android:id="@+id/loadingView"
-        style="@style/AVLoadingIndicatorView.Small"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="visible"
-
-        />
 </android.support.v7.widget.CardView>

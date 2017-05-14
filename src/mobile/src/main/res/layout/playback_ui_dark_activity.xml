@@ -87,6 +87,7 @@
 
         <ImageView
             android:id="@+id/cover"
+            android:elevation="9dp"
             android:scaleType="fitXY"
             android:src="@drawable/logo"
             app:layout_aspectRatio="100%"
@@ -129,6 +130,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
+            android:elevation="9dp"
             />
 
         <LinearLayout
@@ -145,6 +147,7 @@
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="3dp"
+                android:elevation="9dp"
                 android:padding="3dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:tint="@color/primary_text"
@@ -161,6 +164,7 @@
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="3dp"
+                android:elevation="9dp"
                 android:padding="3dp"
                 android:src="@android:drawable/ic_media_previous"
                 android:tint="@color/primary_text"
@@ -176,6 +180,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:layout_margin="3dp"
+                android:elevation="9dp"
                 android:src="@mipmap/ic_launcher"
                 android:tint="@color/primary_text"
                 android:tintMode="src_in"
@@ -191,6 +196,7 @@
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="3dp"
+                android:elevation="9dp"
                 android:padding="3dp"
                 android:src="@android:drawable/ic_media_next"
                 android:tint="@color/primary_text"
@@ -207,6 +213,7 @@
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="3dp"
+                android:elevation="9dp"
                 android:padding="3dp"
                 android:src="@android:drawable/ic_media_ff"
                 android:tint="@color/primary_text"

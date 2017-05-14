@@ -16,6 +16,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
@@ -54,14 +56,18 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         // Set view
         setContentView(R.layout.browser_lite_activty);
 
         // Set views
-        root = findViewById(R.id.root_lite);
+        root = findViewById(R.id.root);
 
         // Set recycler
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView_lite);
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemViewCacheSize(7);
         recyclerView.setDrawingCacheEnabled(true);
@@ -71,7 +77,7 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
         recyclerView.setAdapter(adapter);
 
         // Set swipe to refresh
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout_lite);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         final SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -286,17 +292,6 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
 
             // Bind data to view here!
 
-            final AVLoadingIndicatorView loadingView = (AVLoadingIndicatorView) v.findViewById(R.id.loadingView);
-            loadingView.show();
-
-            MusicService musicService = getMusicService();
-            if (musicService != null && musicService.getCurrentPlaylistItem() != null) {
-                if (!musicService.getCurrentPlaylistItem().equals(item.Path))
-                    loadingView.hide();
-            } else {
-                loadingView.hide();
-            }
-
             final ImageView cover = (ImageView) v.findViewById(R.id.cover);
             cover.setImageBitmap(null);
             // HACK: This animates aw well as reduces load on image view
@@ -311,7 +306,7 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
                 protected void onPostExecute(Bitmap bitmap) {
                     try {
                         if (bitmap == null)
-                            bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo_square)).getBitmap();
+                            bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
                     } catch (Exception e) {
                         //Eaaaatt
                     }
@@ -340,8 +335,6 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    loadingView.show();
-
                     Intent i = new Intent(BrowserUILiteActivity.this, MusicService.class);
 
                     i.setAction(MusicService.ACTION_OPEN);
