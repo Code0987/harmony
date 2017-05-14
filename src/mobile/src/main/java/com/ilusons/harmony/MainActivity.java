@@ -9,6 +9,7 @@ import android.util.Log;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.StorageEx;
+import com.ilusons.harmony.views.BrowserUILiteActivity;
 import com.ilusons.harmony.views.LibraryUIDarkActivity;
 
 public class MainActivity extends BaseActivity {
@@ -29,7 +30,19 @@ public class MainActivity extends BaseActivity {
         handleIntent(getIntent());
 
         // UI
-        Intent intent = new Intent(this, LibraryUIDarkActivity.class);
+        Intent intent;
+
+        switch (SettingsActivity.getUIStyle(getApplicationContext())) {
+            case LiteUI:
+                intent = new Intent(this, BrowserUILiteActivity.class);
+                break;
+
+            case DarkUI:
+            default:
+                intent = new Intent(this, LibraryUIDarkActivity.class);
+                break;
+        }
+
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
         startActivity(intent);

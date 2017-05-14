@@ -29,11 +29,17 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
     // Logger TAG
     private static final String TAG = MusicServiceLibraryUpdaterAsyncTask.class.getSimpleName();
 
+    public static final long SCAN_INTERVAL_FACTOR = 60 * 60 * 1000;
+
     private static final String TAG_SPREF_SCAN_LAST_TS = SPrefEx.TAG_SPREF + ".scan_last_ts";
+
     private static final String TAG_SPREF_SCAN_LAST_TS_STORAGE = SPrefEx.TAG_SPREF + ".scan_last_ts_storage";
-    // TODO: Create settings ui for this
-    private static final long SCAN_INTERVAL = 3 * 60 * 60 * 1000;
-    private static final long SCAN_INTERVAL_STORAGE = 12 * 60 * 60 * 1000;
+
+    public static final String TAG_SPREF_SCAN_INTERVAL = SPrefEx.TAG_SPREF + ".scan_interval";
+    public static final long SCAN_INTERVAL_DEFAULT = 3 * 60 * 60 * 1000;
+
+    private static final long SCAN_INTERVAL_STORAGE_DEFAULT = 12 * 60 * 60 * 1000;
+
 
     // For single task per session
     @SuppressLint("StaticFieldLeak")
@@ -63,7 +69,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                 // Check if really scan is needed
                 if (!force) {
-                    long interval = SCAN_INTERVAL;
+                    long interval = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_INTERVAL, SCAN_INTERVAL_DEFAULT);
                     long last = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_LAST_TS, 0);
 
                     long dt = System.currentTimeMillis() - (last + interval);
@@ -214,7 +220,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
     private void scanStorage(final ArrayList<Music> data) {
         {
-            long interval = SCAN_INTERVAL_STORAGE;
+            long interval = SCAN_INTERVAL_STORAGE_DEFAULT;
             long last = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_LAST_TS_STORAGE, 0);
 
             long dt = System.currentTimeMillis() - (last + interval);

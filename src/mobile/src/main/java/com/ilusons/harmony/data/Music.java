@@ -42,6 +42,8 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
@@ -420,6 +422,15 @@ public class Music {
     }
 
     public static void save(Context context, ArrayList<Music> data) {
+
+        // TODO: Sort playlist better
+        Collections.sort(data,new Comparator<Music>() {
+            @Override
+            public int compare(Music x, Music y) {
+                return x.getText().compareTo(y.getText());
+            }
+        });
+
         Gson serializer = getSerializer();
 
         String json = serializer.toJson(data.toArray(), Music[].class);
