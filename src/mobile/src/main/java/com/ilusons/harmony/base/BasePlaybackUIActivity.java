@@ -7,7 +7,14 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.view.ViewCompat;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.OvershootInterpolator;
+
+import com.ilusons.harmony.R;
 
 public abstract class BasePlaybackUIActivity extends BaseActivity {
 

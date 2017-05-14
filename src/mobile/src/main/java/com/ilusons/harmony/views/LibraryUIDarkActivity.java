@@ -8,6 +8,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -15,10 +16,14 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BasePlaybackUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
@@ -116,18 +121,14 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             startActivity(intent);
         }
 
-        //TODO: Just for testing,Remove Later
-
-        findViewById(R.id.fab_lite).setOnClickListener(new View.OnClickListener(){
+        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
-                Intent liteIntent=new Intent(LibraryUIDarkActivity.this,BrowserUILiteActivity.class);
-                startActivity(liteIntent);
-
+            public void onClick(View view) {
+                toggleFabItems();
             }
         });
 
-        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.fab_item1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent();
@@ -137,7 +138,7 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             }
         });
 
-        findViewById(R.id.fab_refresh).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.fab_item2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent musicServiceIntent = new Intent(LibraryUIDarkActivity.this, MusicService.class);
@@ -147,15 +148,23 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             }
         });
 
-//        findViewById(R.id.fab_playback_ui).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
-//                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//                startActivity(intent);
-//            }
-//        });
+        findViewById(R.id.fab_item3).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+            }
+        });
 
+        findViewById(R.id.fab_item4).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LibraryUIDarkActivity.this, SettingsActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -193,6 +202,50 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void toggleFabItems() {
+        try {
+            View fab = findViewById(R.id.fab);
+            View fab_item1_layout = findViewById(R.id.fab_item1_layout);
+            View fab_item2_layout = findViewById(R.id.fab_item2_layout);
+            View fab_item3_layout = findViewById(R.id.fab_item3_layout);
+            View fab_item4_layout = findViewById(R.id.fab_item4_layout);
+
+            boolean open = fab.getRotation() > 0;
+
+            if (!open) {
+                ViewCompat.animate(fab)
+                        .rotation(45.0F)
+                        .withLayer()
+                        .setDuration(300)
+                        .setInterpolator(new OvershootInterpolator(10.0F))
+                        .start();
+
+                Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_items_open);
+
+                fab_item1_layout.startAnimation(animation);
+                fab_item2_layout.startAnimation(animation);
+                fab_item3_layout.startAnimation(animation);
+                fab_item4_layout.startAnimation(animation);
+            } else {
+                ViewCompat.animate(fab)
+                        .rotation(0.0F)
+                        .withLayer()
+                        .setDuration(300)
+                        .setInterpolator(new OvershootInterpolator(10.0F))
+                        .start();
+
+                Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_items_close);
+
+                fab_item1_layout.startAnimation(animation);
+                fab_item2_layout.startAnimation(animation);
+                fab_item3_layout.startAnimation(animation);
+                fab_item4_layout.startAnimation(animation);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, e);
+        }
     }
 
     @Override

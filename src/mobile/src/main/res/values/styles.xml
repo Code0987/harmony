@@ -11,8 +11,8 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@color/translucent</item>
 
-        <item name="android:colorForeground">@color/primary_text</item>
-        <item name="android:colorBackground">@color/translucent</item>
+        <item name="android:colorForeground">@color/translucent_primary_light</item>
+        <item name="android:colorBackground">@color/translucent_primary_dark</item>
         <item name="android:colorBackgroundCacheHint">@color/translucent</item>
 
         <item name="android:textColorPrimary">@color/primary_text</item>

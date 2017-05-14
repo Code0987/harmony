@@ -7,12 +7,13 @@
     <color name="accent">#0091ea</color>
     <color name="primary_text">#bdbdbd</color>
     <color name="secondary_text">#9e9e9e</color>
-    <color name="icons">#bdbdbd</color>
+    <color name="icons">#eeeeee</color>
     <color name="divider">#BDBDBD</color>
 
     <color name="transparent">#00000000</color>
     <color name="translucent">#94000000</color>
     <color name="translucent_primary">#94616161</color>
+    <color name="translucent_primary_light">#94eeeeee</color>
     <color name="translucent_primary_dark">#94424242</color>
     <color name="translucent_accent">#940091ea</color>
 

@@ -42,8 +42,8 @@
             tools:listitem="@layout/browser_item"
             />
 
-     </android.support.v4.widget.SwipeRefreshLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
 
-
+    <include layout="@layout/fab_items_main"/>
 
 </android.support.constraint.ConstraintLayout>
