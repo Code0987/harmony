@@ -180,15 +180,6 @@ public class Music {
                 if (isCancelled())
                     throw new CancellationException();
 
-                try {
-                    // Try reading once more with full mode
-                    Music musicRefreshed = Music.decode(context, data.Path, false);
-                    result = musicRefreshed.getCover(context);
-
-                } catch (Exception e) {
-                    Log.w(TAG, e);
-                }
-
                 // Download and cache to folder then load
                 if (result == null) {
                     try {
@@ -321,17 +312,25 @@ public class Music {
                 if (!TextUtils.isEmpty(result))
                     return result;
 
-                try {
-                    // Try reading once more with full mode
-                    Music musicRefreshed = Music.decode(context, data.Path, false);
-                    result = musicRefreshed.getLyrics(context);
+                // Try file once more
+                if (data.Path.toLowerCase().endsWith(".mp3"))
+                    try {
+                        Mp3File mp3file = new Mp3File(data.Path);
 
-                    if (!TextUtils.isEmpty(result))
-                        return result;
+                        if (mp3file.hasId3v2Tag()) {
+                            ID3v2 tags = mp3file.getId3v2Tag();
 
-                } catch (Exception e) {
-                    Log.w(TAG, e);
-                }
+                            result = LyricsEx.getLyrics(tags);
+
+                            data.putLyrics(context, result);
+                        }
+
+                        if (!TextUtils.isEmpty(result))
+                            return result;
+
+                    } catch (Exception e) {
+                        Log.w(TAG, e);
+                    }
 
                 try {
                     if (isCancelled())
@@ -474,7 +473,6 @@ public class Music {
                     }
 
                     data.putLyrics(context, LyricsEx.getLyrics(tags));
-
                 }
 
                 if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
