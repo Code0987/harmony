@@ -19,6 +19,7 @@
     <color name="translucent_primary_light">#94eeeeee</color>
     <color name="translucent_primary_dark">#94424242</color>
     <color name="translucent_accent">#940091ea</color>
+    <color name="cover_background">#94a5a5a5</color>
 
     <color name="colorPrimary">@color/primary</color>
     <color name="colorPrimaryDark">@color/primary_dark</color>
