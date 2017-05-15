@@ -262,9 +262,16 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
     }
 
     @Override
+    public void OnMusicServiceLibraryUpdateBegins() {
+        swipeRefreshLayout.setRefreshing(true);
+    }
+
+    @Override
     public void OnMusicServiceLibraryUpdated() {
         if (adapter != null)
             adapter.setData(Music.load(LibraryUIDarkActivity.this));
+
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {

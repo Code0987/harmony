@@ -263,9 +263,16 @@ public class BrowserUILiteActivity extends BasePlaybackUIActivity {
     }
 
     @Override
+    public void OnMusicServiceLibraryUpdateBegins() {
+        swipeRefreshLayout.setRefreshing(true);
+    }
+
+    @Override
     public void OnMusicServiceLibraryUpdated() {
         if (adapter != null)
-            adapter.setData(Music.load(BrowserUILiteActivity.this));
+            adapter.setData(Music.load(this));
+
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {

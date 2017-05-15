@@ -223,7 +223,6 @@
                 app:layout_constraintTop_toBottomOf="@id/scan_interval_textView"
                 />
 
-
             <TextView
                 android:id="@+id/library_update_fastMode_textView"
                 style="@style/TextAppearance.AppCompat.Body1"
@@ -243,9 +242,24 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:gravity="center"
-                android:text="Fast mode"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_textView"
+                />
+
+            <TextView
+                android:id="@+id/library_update_fastMode_info_textView"
+                style="@style/TextAppearance.AppCompat.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:lines="3"
+                android:text="Fast mode wil ignore reading tags from file itself, and only use system provided data"
+                android:textSize="11sp"
+                android:textStyle="italic"
+                app:layout_constraintLeft_toRightOf="@id/library_update_fastMode_checkBox"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="@id/library_update_fastMode_checkBox"
                 />
 
         </android.support.constraint.ConstraintLayout>

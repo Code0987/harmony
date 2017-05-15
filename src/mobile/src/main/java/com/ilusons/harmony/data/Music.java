@@ -67,6 +67,19 @@ public class Music {
     public String Album = "";
     public String Path;
 
+    @Override
+    public boolean equals(Object obj) {
+        Music other = (Music) obj;
+
+        if (other == null)
+            return false;
+
+        if (Path.equals(other.Path))
+            return true;
+
+        return false;
+    }
+
     public String getText() {
         return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
     }
@@ -171,9 +184,8 @@ public class Music {
                 if (result == null) {
                     try {
                         URL url = new URL(String.format(
-                                "https://itunes.apple.com/search?term=%s+%s&entity=song&media=music",
-                                URLEncoder.encode(data.Artist, "UTF-8"),
-                                URLEncoder.encode(data.Title, "UTF-8")));
+                                "https://itunes.apple.com/search?term=%s&entity=song&media=music",
+                                URLEncoder.encode(data.getText(), "UTF-8")));
 
                         Connection connection = Jsoup.connect(url.toExternalForm())
                                 .timeout(0)
@@ -304,7 +316,7 @@ public class Music {
                     if (isCancelled())
                         throw new CancellationException();
 
-                    ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(data.Artist + " " + data.Title);
+                    ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(data.getText());
 
                     if (!(results == null || results.size() == 0))
                         result = results.get(0).Content;
@@ -338,8 +350,6 @@ public class Music {
 
     public static Music decode(Context context, String path, boolean fastMode) {
         Music data = new Music();
-
-        data.Path = path;
 
         // HACK: Calling the devil
         System.gc();
@@ -390,11 +400,11 @@ public class Music {
                         // Eat
                     }
 
-                    String uriPath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+                    path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
 
                     MediaMetadataRetriever mmr = new MediaMetadataRetriever();
                     try {
-                        mmr.setDataSource(uriPath);
+                        mmr.setDataSource(path);
 
                         byte[] cover = mmr.getEmbeddedPicture();
                         if (cover != null && cover.length > 0) {
@@ -407,9 +417,6 @@ public class Music {
                     } finally {
                         mmr.release();
                     }
-
-                    if (uriPath.toLowerCase().endsWith(".mp3"))
-                        path = Uri.parse(uriPath).getPath();
 
                 }
             } catch (Exception e) {
@@ -460,15 +467,15 @@ public class Music {
             } catch (Exception e) {
                 Log.w(TAG, "metadata from tags", e);
             }
-
-            if (TextUtils.isEmpty(data.Title)) {
-                data.Title = file.getName().replaceFirst("[.][^.]+$", "");
-            }
         }
 
         if (TextUtils.isEmpty(data.Title)) {
-            data.Title = path;
+            data.Title = (new File(path)).getName().replaceFirst("[.][^.]+$", "");
         }
+
+        data.Path = path;
+
+        Log.d(TAG, "added to library\n" + path);
 
         // HACK: Calling the devil
         System.gc();

@@ -84,6 +84,11 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
             }
 
             @Override
+            public void OnMusicServiceLibraryUpdateBegins() {
+                BasePlaybackUIActivity.this.OnMusicServiceLibraryUpdateBegins();
+            }
+
+            @Override
             public void OnMusicServiceLibraryUpdated() {
                 BasePlaybackUIActivity.this.OnMusicServiceLibraryUpdated();
             }
@@ -169,6 +174,10 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
     }
 
     public void OnMusicServiceOpen(String uri) {
+
+    }
+
+    public void OnMusicServiceLibraryUpdateBegins() {
 
     }
 

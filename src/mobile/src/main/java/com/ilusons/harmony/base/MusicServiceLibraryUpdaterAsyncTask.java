@@ -208,7 +208,16 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                     File file = new File(path);
 
-                    if (file.exists()){
+                    // Ignore if already present
+                    boolean ignore = false;
+                    for (Music item : data) {
+                        if ((item).Path.contains(path))
+                            ignore = true;
+                    }
+                    if (ignore)
+                        continue;
+
+                    if (file.exists()) {
                         Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
 
                         add(contentUri.toString(), data);
