@@ -32,6 +32,7 @@ import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.JavaEx;
+import com.ilusons.harmony.ref.SPrefEx;
 
 import java.util.ArrayList;
 
@@ -55,6 +56,8 @@ public class MusicService extends Service {
 
     public static final String ACTION_LIBRARY_UPDATE = TAG + ".library_update";
     public static final String KEY_LIBRARY_UPDATE_FORCE = "force";
+    public static final String KEY_LIBRARY_UPDATE_FASTMODE = "fast_mode";
+    public static final String TAG_SPREF_LIBRARY_UPDATE_FASTMODE = SPrefEx.TAG_SPREF + ".library_update_fast_mode";
     public static final String ACTION_LIBRARY_UPDATE_BEGINS = TAG + ".library_update_begins";
     public static final String ACTION_LIBRARY_UPDATED = TAG + ".library_updated";
     public static final String ACTION_LIBRARY_UPDATE_CANCEL = TAG + ".library_update_cancel";
@@ -727,8 +730,9 @@ public class MusicService extends Service {
 
         } else if (action.equals(ACTION_LIBRARY_UPDATE)) {
             Boolean force = intent.getBooleanExtra(KEY_LIBRARY_UPDATE_FORCE, false);
+            Boolean fastMode = intent.getBooleanExtra(KEY_LIBRARY_UPDATE_FASTMODE, SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_UPDATE_FASTMODE, true));
 
-            libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this, force) {
+            libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this, force, fastMode) {
                 @Override
                 protected void onPostExecute(Result result) {
                     super.onPostExecute(result);

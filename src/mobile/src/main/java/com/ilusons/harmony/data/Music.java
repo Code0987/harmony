@@ -1,9 +1,14 @@
 package com.ilusons.harmony.data;
 
 import android.content.Context;
+import android.content.CursorLoader;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -331,51 +336,143 @@ public class Music {
         }
     }
 
-    public static Music decodeFromFile(Context context, File file) {
+    public static Music decode(Context context, String path, boolean fastMode) {
         Music data = new Music();
 
-        data.Path = file.getAbsolutePath();
+        data.Path = path;
 
-        try {
-            Mp3File mp3file = new Mp3File(file.getAbsoluteFile());
+        // HACK: Calling the devil
+        System.gc();
+        Runtime.getRuntime().gc();
 
-            if (mp3file.hasId3v2Tag()) {
-                ID3v2 tags = mp3file.getId3v2Tag();
+        // Metadata from system
+        if (path.toLowerCase().startsWith("content")) {
+            Uri contentUri = Uri.parse(path);
+            Cursor cursor = null;
 
-                data.Title = tags.getTitle();
-                data.Artist = tags.getArtist();
-                data.Album = tags.getAlbum();
+            try {
+                String[] projection = {
+                        MediaStore.Audio.Media.DATA,
+                        MediaStore.Audio.Media.IS_MUSIC,
+                        MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media.ALBUM
+                };
 
-                // TODO: This tags decoder is inefficient for android, takes too much memory
-                if (data.getCover(context) == null) {
-                    byte[] cover = tags.getAlbumImage();
-                    if (cover != null && cover.length > 0) {
-                        Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
 
-                        if (bmp != null)
-                            putCover(context, data, bmp);
-                    }
+                cursor = loader.loadInBackground();
+
+                cursor.moveToFirst();
+
+                int isMusic = 1;
+                try {
+                    isMusic = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC));
+                } catch (Exception e) {
+                    // Eat
                 }
 
-                data.putLyrics(context, LyricsEx.getLyrics(tags));
+                if (isMusic != 0) {
 
+                    try {
+                        data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+                    } catch (Exception e) {
+                        // Eat
+                    }
+                    try {
+                        data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+                    } catch (Exception e) {
+                        // Eat
+                    }
+                    try {
+                        data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+                    } catch (Exception e) {
+                        // Eat
+                    }
+
+                    String uriPath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+
+                    MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                    try {
+                        mmr.setDataSource(uriPath);
+
+                        byte[] cover = mmr.getEmbeddedPicture();
+                        if (cover != null && cover.length > 0) {
+                            Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                            if (bmp != null)
+                                putCover(context, data, bmp);
+                        }
+                    } catch (Exception e) {
+                        Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+                    } finally {
+                        mmr.release();
+                    }
+
+                    if (uriPath.toLowerCase().endsWith(".mp3"))
+                        path = Uri.parse(uriPath).getPath();
+
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "metadata from system", e);
+            } finally {
+                if (cursor != null)
+                    cursor.close();
+            }
+        }
+
+        // Metadata from tags for mp3 only
+        if (!fastMode && !path.toLowerCase().startsWith("content") && path.toLowerCase().endsWith(".mp3")) {
+            File file = new File(path);
+
+            try {
+                Mp3File mp3file = new Mp3File(file.getAbsoluteFile());
+
+                if (mp3file.hasId3v2Tag()) {
+                    ID3v2 tags = mp3file.getId3v2Tag();
+
+                    data.Title = tags.getTitle();
+                    data.Artist = tags.getArtist();
+                    data.Album = tags.getAlbum();
+
+                    // TODO: This tags decoder is inefficient for android, takes too much memory
+                    if (data.getCover(context) == null) {
+                        byte[] cover = tags.getAlbumImage();
+                        if (cover != null && cover.length > 0) {
+                            Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+
+                            if (bmp != null)
+                                putCover(context, data, bmp);
+                        }
+                    }
+
+                    data.putLyrics(context, LyricsEx.getLyrics(tags));
+
+                }
+
+                if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
+                    ID3v1 tags = mp3file.getId3v1Tag();
+
+                    data.Title = tags.getTitle();
+                    data.Artist = tags.getArtist();
+                    data.Album = tags.getAlbum();
+                }
+
+            } catch (Exception e) {
+                Log.w(TAG, "metadata from tags", e);
             }
 
-            if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
-                ID3v1 tags = mp3file.getId3v1Tag();
-
-                data.Title = tags.getTitle();
-                data.Artist = tags.getArtist();
-                data.Album = tags.getAlbum();
+            if (TextUtils.isEmpty(data.Title)) {
+                data.Title = file.getName().replaceFirst("[.][^.]+$", "");
             }
-
-        } catch (Exception e) {
-            Log.w(TAG, "decode audio data tags", e);
         }
 
         if (TextUtils.isEmpty(data.Title)) {
-            data.Title = file.getName().replaceFirst("[.][^.]+$", "");
+            data.Title = path;
         }
+
+        // HACK: Calling the devil
+        System.gc();
+        Runtime.getRuntime().gc();
 
         return data;
     }
@@ -393,7 +490,7 @@ public class Music {
         }
 
         if (m == null)
-            m = decodeFromFile(context, new File(path));
+            m = decode(context, path, false);
 
         return m;
     }
@@ -424,7 +521,7 @@ public class Music {
     public static void save(Context context, ArrayList<Music> data) {
 
         // TODO: Sort playlist better
-        Collections.sort(data,new Comparator<Music>() {
+        Collections.sort(data, new Comparator<Music>() {
             @Override
             public int compare(Music x, Music y) {
                 return x.getText().compareTo(y.getText());

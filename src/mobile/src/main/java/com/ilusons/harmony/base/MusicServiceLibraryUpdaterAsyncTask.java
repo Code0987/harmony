@@ -4,12 +4,14 @@ import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -47,10 +49,12 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
     private Context context;
     private boolean force;
+    private boolean fastMode;
 
-    public MusicServiceLibraryUpdaterAsyncTask(Context c, boolean force) {
+    public MusicServiceLibraryUpdaterAsyncTask(Context c, boolean force, boolean fastMode) {
         context = c;
         this.force = force;
+        this.fastMode = fastMode;
     }
 
     protected Result doInBackground(Void... params) {
@@ -89,6 +93,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 try {
                     if (isCancelled())
                         throw new Exception("Canceled by user");
+
+                    Looper.prepare(); // HACK
 
                     ArrayList<Music> data = new ArrayList<>();
 
@@ -156,34 +162,29 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 if (file.isDirectory()) {
                     addFromDirectory(file, data);
                 } else if (filePath.endsWith(".mp3")) {
-                    add(file, data);
+                    add(file.getAbsolutePath(), data);
                 }
             }
         }
     }
 
-    private void add(final File path, final ArrayList<Music> data) {
+    private void add(final String path, final ArrayList<Music> data) {
 
-        updateNotification(path.getName());
+        updateNotification(path);
 
         if (isCancelled())
             return;
 
         // Ignore if already present
         for (Music item : data) {
-            if ((item).Path.equals(path.getAbsolutePath()))
+            if ((item).Path.equals(path))
                 return;
         }
 
         try {
-            Music m = Music.decodeFromFile(context, path);
+            Music m = Music.decode(context, path, fastMode);
 
             data.add(m);
-
-            // HACK: Calling the devil
-            System.gc();
-            Runtime.getRuntime().gc();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -196,26 +197,29 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
         String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
 
-        Cursor cur = cr.query(uri, null, selection, null, sortOrder);
+        Cursor cursor = cr.query(uri, null, selection, null, sortOrder);
         int count = 0;
-        if (cur != null) {
-            count = cur.getCount();
+        if (cursor != null) {
+            count = cursor.getCount();
 
             if (count > 0) {
-                while (cur.moveToNext()) {
-                    String path = cur.getString(cur.getColumnIndex(MediaStore.Audio.Media.DATA));
+                while (cursor.moveToNext()) {
+                    String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
                     File file = new File(path);
 
-                    if (file.exists())
-                        add(file, data);
+                    if (file.exists()){
+                        Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
+
+                        add(contentUri.toString(), data);
+                    }
                 }
 
             }
         }
 
-        if (cur != null)
-            cur.close();
+        if (cursor != null)
+            cursor.close();
     }
 
     private void scanStorage(final ArrayList<Music> data) {

@@ -1,10 +1,14 @@
 package com.ilusons.harmony.ref;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.support.annotation.RequiresApi;
 import android.support.v4.os.EnvironmentCompat;
 import android.util.Log;
 
@@ -167,5 +171,26 @@ public class IOEx {
             Log.e(TAG, "Error when saving image to cache. ", e);
         }
     }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private static boolean checkIfSDCardRoot(Uri uri) {
+        return isExternalStorageDocument(uri) && isRootUri(uri) && !isInternalStorage(uri);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private static boolean isRootUri(Uri uri) {
+        String docId = DocumentsContract.getTreeDocumentId(uri);
+        return docId.endsWith(":");
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static boolean isInternalStorage(Uri uri) {
+        return isExternalStorageDocument(uri) && DocumentsContract.getTreeDocumentId(uri).contains("primary");
+    }
+
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
 }
 
