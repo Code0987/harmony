@@ -2,7 +2,6 @@ package com.ilusons.harmony;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -131,9 +130,9 @@ public class SettingsActivity extends BaseActivity {
         });
 
         // Library update fast mode
-        CheckBox library_update_fastMode_checkBox = (CheckBox)findViewById(R.id.library_update_fastMode_checkBox);
+        CheckBox library_update_fastMode_checkBox = (CheckBox) findViewById(R.id.library_update_fastMode_checkBox);
 
-        boolean savedLibraryUpdateFastMode = SPrefEx.get(getApplicationContext()).getBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, true);
+        boolean savedLibraryUpdateFastMode = SPrefEx.get(getApplicationContext()).getBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, MusicService.LIBRARY_UPDATE_FASTMODE_DEFAULT);
 
         library_update_fastMode_checkBox.setChecked(savedLibraryUpdateFastMode);
 
