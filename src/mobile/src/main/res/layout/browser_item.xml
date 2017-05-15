@@ -24,7 +24,7 @@
             android:id="@+id/cover"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:background="@color/translucent_primary_light"
+            android:background="@color/cover_background"
             android:scaleType="fitXY"
             android:src="@drawable/logo"
             tools:ignore="ContentDescription"
