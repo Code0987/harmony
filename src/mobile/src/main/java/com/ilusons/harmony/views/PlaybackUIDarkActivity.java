@@ -24,6 +24,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BasePlaybackUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -243,7 +244,12 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                     public void execute(Bitmap bitmap) {
                         try {
                             if (bitmap == null)
+                                bitmap = CacheEx.getInstance().getBitmap(String.valueOf(R.drawable.logo));
+
+                            if (bitmap == null)
                                 bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
+
+                            CacheEx.getInstance().putBitmap(String.valueOf(R.drawable.logo), bitmap);
                         } catch (Exception e) {
                             // Eat!
                         }
