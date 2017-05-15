@@ -180,6 +180,15 @@ public class Music {
                 if (isCancelled())
                     throw new CancellationException();
 
+                try {
+                    // Try reading once more with full mode
+                    Music musicRefreshed = Music.decode(context, data.Path, false);
+                    result = musicRefreshed.getCover(context);
+
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
+
                 // Download and cache to folder then load
                 if (result == null) {
                     try {
@@ -311,6 +320,18 @@ public class Music {
 
                 if (!TextUtils.isEmpty(result))
                     return result;
+
+                try {
+                    // Try reading once more with full mode
+                    Music musicRefreshed = Music.decode(context, data.Path, false);
+                    result = musicRefreshed.getLyrics(context);
+
+                    if (!TextUtils.isEmpty(result))
+                        return result;
+
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
 
                 try {
                     if (isCancelled())

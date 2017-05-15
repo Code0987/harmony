@@ -58,6 +58,7 @@ public class MusicService extends Service {
     public static final String KEY_LIBRARY_UPDATE_FORCE = "force";
     public static final String KEY_LIBRARY_UPDATE_FASTMODE = "fast_mode";
     public static final String TAG_SPREF_LIBRARY_UPDATE_FASTMODE = SPrefEx.TAG_SPREF + ".library_update_fast_mode";
+    public static final boolean LIBRARY_UPDATE_FASTMODE_DEFAULT = true;
     public static final String ACTION_LIBRARY_UPDATE_BEGINS = TAG + ".library_update_begins";
     public static final String ACTION_LIBRARY_UPDATED = TAG + ".library_updated";
     public static final String ACTION_LIBRARY_UPDATE_CANCEL = TAG + ".library_update_cancel";
@@ -730,7 +731,7 @@ public class MusicService extends Service {
 
         } else if (action.equals(ACTION_LIBRARY_UPDATE)) {
             Boolean force = intent.getBooleanExtra(KEY_LIBRARY_UPDATE_FORCE, false);
-            Boolean fastMode = intent.getBooleanExtra(KEY_LIBRARY_UPDATE_FASTMODE, SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_UPDATE_FASTMODE, true));
+            Boolean fastMode = intent.getBooleanExtra(KEY_LIBRARY_UPDATE_FASTMODE, SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_UPDATE_FASTMODE, LIBRARY_UPDATE_FASTMODE_DEFAULT));
 
             libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this, force, fastMode) {
                 @Override
