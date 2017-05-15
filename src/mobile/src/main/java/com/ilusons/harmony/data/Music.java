@@ -180,6 +180,13 @@ public class Music {
                 if (isCancelled())
                     throw new CancellationException();
 
+                // Refresh once more
+                if (result == null) {
+                    data.refresh(context);
+
+                    result = data.getCover(context, size);
+                }
+
                 // Download and cache to folder then load
                 if (result == null) {
                     try {
@@ -312,25 +319,15 @@ public class Music {
                 if (!TextUtils.isEmpty(result))
                     return result;
 
-                // Try file once more
-                if (data.Path.toLowerCase().endsWith(".mp3"))
-                    try {
-                        Mp3File mp3file = new Mp3File(data.Path);
+                // Refresh once more
+                if (result == null) {
+                    data.refresh(context);
 
-                        if (mp3file.hasId3v2Tag()) {
-                            ID3v2 tags = mp3file.getId3v2Tag();
+                    result = data.getLyrics(context);
 
-                            result = LyricsEx.getLyrics(tags);
-
-                            data.putLyrics(context, result);
-                        }
-
-                        if (!TextUtils.isEmpty(result))
-                            return result;
-
-                    } catch (Exception e) {
-                        Log.w(TAG, e);
-                    }
+                    if (!TextUtils.isEmpty(result))
+                        return result;
+                }
 
                 try {
                     if (isCancelled())
@@ -368,8 +365,9 @@ public class Music {
         }
     }
 
-    public static Music decode(Context context, String path, boolean fastMode) {
-        Music data = new Music();
+    public static Music decode(Context context, String path, boolean fastMode, Music data) {
+        if (data == null)
+            data = new Music();
 
         // HACK: Calling the devil
         System.gc();
@@ -503,6 +501,10 @@ public class Music {
         return data;
     }
 
+    public void refresh(Context context) {
+        Music.decode(context, Path, true, this);
+    }
+
     public static Music load(Context context, String path) {
         ArrayList<Music> all = load(context);
 
@@ -516,7 +518,7 @@ public class Music {
         }
 
         if (m == null)
-            m = decode(context, path, false);
+            m = decode(context, path, false, null);
 
         return m;
     }
