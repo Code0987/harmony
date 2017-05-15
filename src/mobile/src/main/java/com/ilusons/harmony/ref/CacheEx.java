@@ -50,7 +50,11 @@ public class CacheEx {
             softMemoryCache.remove(key);
 
         if (value != null)
-            return value.get();
+            try {
+                return value.get();
+            } catch (Exception e) {
+                // Eat
+            }
 
         return null;
     }
@@ -66,9 +70,14 @@ public class CacheEx {
     }
 
     public Bitmap getBitmap(String key) {
-        Bitmap value = bitmapCache.get(key);
+        try {
+            Bitmap value = bitmapCache.get(key);
 
-        return value;
+            return value;
+        } catch (Exception e) {
+            // Eat
+        }
+        return null;
     }
 
     public void putBitmap(String key, Bitmap value) {
