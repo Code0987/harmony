@@ -74,7 +74,7 @@ public class LyricsEx {
             JsonArray hits = response.getAsJsonObject("response").getAsJsonArray("hits");
 
             int processed = 0;
-            while (processed < hits.size()) {
+            while (processed < 1 && processed < hits.size()) { // HACK: Check only first result
 
                 try {
 

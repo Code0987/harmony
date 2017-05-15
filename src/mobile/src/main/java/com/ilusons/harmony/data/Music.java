@@ -180,13 +180,6 @@ public class Music {
                 if (isCancelled())
                     throw new CancellationException();
 
-                // Refresh once more
-                if (result == null) {
-                    data.refresh(context);
-
-                    result = data.getCover(context, size);
-                }
-
                 // Download and cache to folder then load
                 if (result == null) {
                     try {
@@ -237,6 +230,13 @@ public class Music {
 
                     if (file.exists())
                         result = BitmapFactory.decodeFile(file.getAbsolutePath());
+
+                    // Refresh once more
+                    if (result == null) {
+                        data.refresh(context);
+
+                        result = data.getCover(context, size);
+                    }
 
                     // Resample
                     if (result != null) {
@@ -344,6 +344,10 @@ public class Music {
                     data.putLyrics(context, result);
                 } catch (Exception e) {
                     Log.w(TAG, e);
+                }
+
+                if (TextUtils.isEmpty(result)) {
+                    result = "";
 
                     data.putLyrics(context, "");
                 }

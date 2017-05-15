@@ -30,7 +30,6 @@ import com.ilusons.harmony.base.BasePlaybackUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.StorageEx;
-import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -255,6 +254,23 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
     }
 
     @Override
+    public void OnMusicServicePlay() {
+        super.OnMusicServicePlay();
+
+
+    }
+
+    @Override
+    public void OnMusicServicePause() {
+        super.OnMusicServicePlay();
+    }
+
+    @Override
+    public void OnMusicServiceStop() {
+        super.OnMusicServicePlay();
+    }
+
+    @Override
     public void OnMusicServiceOpen(String uri) {
         Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
@@ -298,10 +314,6 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
 
             // Bind data to view here!
 
-            final AVLoadingIndicatorView loadingView = (AVLoadingIndicatorView) v.findViewById(R.id.loadingView);
-
-            loadingView.smoothToShow();
-
             final ImageView cover = (ImageView) v.findViewById(R.id.cover);
             cover.setImageBitmap(null);
             // HACK: This animates aw well as reduces load on image view
@@ -338,8 +350,6 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    loadingView.smoothToShow();
-
                     Intent i = new Intent(LibraryUIDarkActivity.this, MusicService.class);
 
                     i.setAction(MusicService.ACTION_OPEN);
@@ -349,12 +359,6 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
                 }
             });
 
-            loadingView.smoothToHide();
-
-            MusicService musicService = getMusicService();
-            if (musicService != null && musicService.getCurrentPlaylistItem() != null)
-                if (musicService.getCurrentPlaylistItem().equalsIgnoreCase(item.Path))
-                    loadingView.smoothToShow();
         }
 
         @Override
