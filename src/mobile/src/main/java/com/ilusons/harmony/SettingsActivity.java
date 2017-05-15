@@ -6,12 +6,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.ilusons.harmony.base.BaseActivity;
+import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.ref.SPrefEx;
 
@@ -125,6 +127,28 @@ public class SettingsActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
                 finish();
+            }
+        });
+
+        // Library update fast mode
+        CheckBox library_update_fastMode_checkBox = (CheckBox)findViewById(R.id.library_update_fastMode_checkBox);
+
+        boolean savedLibraryUpdateFastMode = SPrefEx.get(getApplicationContext()).getBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, true);
+
+        library_update_fastMode_checkBox.setChecked(savedLibraryUpdateFastMode);
+
+        library_update_fastMode_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (!b)
+                    return;
+
+                SPrefEx.get(getApplicationContext())
+                        .edit()
+                        .putBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, compoundButton.isChecked())
+                        .apply();
+
+                info("Updated!");
             }
         });
     }

@@ -223,6 +223,31 @@
                 app:layout_constraintTop_toBottomOf="@id/scan_interval_textView"
                 />
 
+
+            <TextView
+                android:id="@+id/library_update_fastMode_textView"
+                style="@style/TextAppearance.AppCompat.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Library update fast mode"
+                android:textStyle="italic"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/scan_interval_editText"
+                />
+
+            <CheckBox
+                android:id="@+id/library_update_fastMode_checkBox"
+                style="@style/TextAppearance.AppCompat.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:text="Fast mode"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_textView"
+                />
+
         </android.support.constraint.ConstraintLayout>
 
     </android.support.v4.widget.NestedScrollView>
