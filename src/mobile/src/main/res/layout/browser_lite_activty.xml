@@ -7,7 +7,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary_light"
+    android:background="@color/lite_background"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:elevation="0dp"
