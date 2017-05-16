@@ -94,6 +94,8 @@ public class LyricsViewFragment extends Fragment {
             return;
         }
 
+        int lines = content.split(System.getProperty("line.separator")).length + 3;
+
         // Format content
         String nl = System.getProperty("line.separator");
 
@@ -123,9 +125,13 @@ public class LyricsViewFragment extends Fragment {
             }
 
             contentFormatted = music.getTextDetailed() + nl + nl + sb.toString();
+
+            lines = sb.toString().split(System.getProperty("line.separator")).length + 3;
         } else {
             contentFormatted = music.getTextDetailed() + nl + nl + content;
         }
+
+        scrollBy = ((float) textView.getLineHeight() * lines) / ((float) music.Length / 1000);
 
         textView.setText(contentFormatted);
 
@@ -134,12 +140,13 @@ public class LyricsViewFragment extends Fragment {
         isContentProcessed = true;
     }
 
+    private float scrollBy = 1;
+    private int lastPScroll;
     private int lastP;
-    private float lastV;
     private long lastTS;
     private int lastIndex;
 
-    public void updateScroll(float v, int p) {
+    public void updateScroll(int p) {
         if (!isContentProcessed)
             return;
 
@@ -148,7 +155,6 @@ public class LyricsViewFragment extends Fragment {
 
         // Reset if seek-ed back
         if (lastP > p) {
-            lastV = 0;
             lastTS = 0;
             lastIndex = -1;
         }
@@ -181,13 +187,9 @@ public class LyricsViewFragment extends Fragment {
         }
 
         // For un-synced (no else to show little scroll always)
-
-        float dv = Math.abs(v - lastV);
-        if (dv > 1.07 /* TODO: Magic! Make it better and real */) {
-            scrollView.smoothScrollBy(0, Math.round(dv));
-            lastV = v;
-        } else {
-            lastV += v;
+        if (p - lastPScroll > 999) { // Scroll every 1 sec
+            scrollView.smoothScrollBy(0, Math.round(scrollBy));
+            lastPScroll = p;
         }
 
     }
@@ -196,8 +198,8 @@ public class LyricsViewFragment extends Fragment {
         this.path = path;
         this.music = Music.load(getContext(), path);
 
+        lastPScroll = 0;
         lastP = 0;
-        lastV = 0;
         lastTS = 0;
         lastIndex = -1;
 
@@ -210,8 +212,8 @@ public class LyricsViewFragment extends Fragment {
         this.path = music.Path;
         this.music = music;
 
+        lastPScroll = 0;
         lastP = 0;
-        lastV = 0;
         lastTS = 0;
         lastIndex = -1;
 

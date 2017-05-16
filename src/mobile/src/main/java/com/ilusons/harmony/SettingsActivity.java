@@ -1,5 +1,6 @@
 package com.ilusons.harmony;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
@@ -14,6 +15,8 @@ import android.widget.RadioGroup;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
+import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
 
 public class SettingsActivity extends BaseActivity {
@@ -148,6 +151,23 @@ public class SettingsActivity extends BaseActivity {
                         .apply();
 
                 info("Updated!");
+            }
+        });
+
+        findViewById(R.id.reset_imageButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    info("Reset initiated! App will restart in a moment!");
+
+                    IOEx.deleteCache(getApplicationContext());
+
+                    ((ActivityManager) getSystemService(Context.ACTIVITY_SERVICE)).clearApplicationUserData();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    AndroidEx.restartApp(SettingsActivity.this);
+                }
             }
         });
     }

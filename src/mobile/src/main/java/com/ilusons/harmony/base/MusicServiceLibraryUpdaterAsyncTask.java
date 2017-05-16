@@ -182,7 +182,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         }
 
         try {
-            Music m = Music.decode(context, path, fastMode);
+            Music m = Music.decode(context, path, fastMode, null);
 
             data.add(m);
         } catch (Exception e) {

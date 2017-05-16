@@ -262,6 +262,35 @@
                 app:layout_constraintTop_toTopOf="@id/library_update_fastMode_checkBox"
                 />
 
+
+            <TextView
+                android:id="@+id/reset_textView"
+                style="@style/TextAppearance.AppCompat.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Reset everything"
+                android:textStyle="italic"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_checkBox"
+                />
+
+            <ImageButton
+                android:id="@+id/reset_imageButton"
+                style="@style/Widget.AppCompat.ImageButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="5dp"
+                android:background="@null"
+                android:padding="0dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_dialog_close_light"
+                android:tint="@android:color/holo_red_light"
+                android:tintMode="src_atop"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/reset_textView"
+                />
+
         </android.support.constraint.ConstraintLayout>
 
     </android.support.v4.widget.NestedScrollView>

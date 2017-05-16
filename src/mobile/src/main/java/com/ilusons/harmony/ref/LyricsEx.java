@@ -55,7 +55,7 @@ public class LyricsEx {
                 Connection connection = Jsoup.connect(url.toExternalForm())
                         .header("Authorization",
                                 "Bearer " + "ohI-oJ9_EL7bFnRO4ZyU5bNrNuPfHdEnNNHfagHIlq8kZulJOYTlW3tDqsVoXvwb")
-                        .timeout(7 * 1000)
+                        .timeout(3 * 1000)
                         .ignoreContentType(true);
 
                 Document document = connection.get();
@@ -74,7 +74,7 @@ public class LyricsEx {
             JsonArray hits = response.getAsJsonObject("response").getAsJsonArray("hits");
 
             int processed = 0;
-            while (processed < hits.size()) {
+            while (processed < 1 && processed < hits.size()) { // HACK: Check only first result
 
                 try {
 
@@ -90,7 +90,7 @@ public class LyricsEx {
                     String text;
                     try {
 
-                        lyricsPage = Jsoup.connect(lyrics.Url).timeout(7 * 1000).get();
+                        lyricsPage = Jsoup.connect(lyrics.Url).timeout(3 * 1000).get();
                         Elements lyricsDiv = lyricsPage.select(".lyrics");
                         if (lyricsDiv.isEmpty())
                             throw new StringIndexOutOfBoundsException();
