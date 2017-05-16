@@ -65,6 +65,7 @@ public class Music {
     public String Title = "";
     public String Artist = "";
     public String Album = "";
+    public Integer Length = -1;
     public String Path;
 
     @Override
@@ -231,6 +232,13 @@ public class Music {
                     if (file.exists())
                         result = BitmapFactory.decodeFile(file.getAbsolutePath());
 
+                    // Refresh once more
+                    if (result == null) {
+                        data.refresh(context);
+
+                        result = data.getCover(context, size);
+                    }
+
                     // Resample
                     if (result != null) {
                         try {
@@ -312,25 +320,15 @@ public class Music {
                 if (!TextUtils.isEmpty(result))
                     return result;
 
-                // Try file once more
-                if (data.Path.toLowerCase().endsWith(".mp3"))
-                    try {
-                        Mp3File mp3file = new Mp3File(data.Path);
+                // Refresh once more
+                if (result == null) {
+                    data.refresh(context);
 
-                        if (mp3file.hasId3v2Tag()) {
-                            ID3v2 tags = mp3file.getId3v2Tag();
+                    result = data.getLyrics(context);
 
-                            result = LyricsEx.getLyrics(tags);
-
-                            data.putLyrics(context, result);
-                        }
-
-                        if (!TextUtils.isEmpty(result))
-                            return result;
-
-                    } catch (Exception e) {
-                        Log.w(TAG, e);
-                    }
+                    if (!TextUtils.isEmpty(result))
+                        return result;
+                }
 
                 try {
                     if (isCancelled())
@@ -347,6 +345,10 @@ public class Music {
                     data.putLyrics(context, result);
                 } catch (Exception e) {
                     Log.w(TAG, e);
+                }
+
+                if (TextUtils.isEmpty(result)) {
+                    result = "";
 
                     data.putLyrics(context, "");
                 }
@@ -368,8 +370,9 @@ public class Music {
         }
     }
 
-    public static Music decode(Context context, String path, boolean fastMode) {
-        Music data = new Music();
+    public static Music decode(Context context, String path, boolean fastMode, Music data) {
+        if (data == null)
+            data = new Music();
 
         // HACK: Calling the devil
         System.gc();
@@ -386,7 +389,8 @@ public class Music {
                         MediaStore.Audio.Media.IS_MUSIC,
                         MediaStore.Audio.Media.TITLE,
                         MediaStore.Audio.Media.ARTIST,
-                        MediaStore.Audio.Media.ALBUM
+                        MediaStore.Audio.Media.ALBUM,
+                        MediaStore.Audio.Media.DURATION
                 };
 
                 CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
@@ -416,6 +420,11 @@ public class Music {
                     }
                     try {
                         data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+                    } catch (Exception e) {
+                        // Eat
+                    }
+                    try {
+                        data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
                     } catch (Exception e) {
                         // Eat
                     }
@@ -451,40 +460,44 @@ public class Music {
         if (!fastMode && !path.toLowerCase().startsWith("content") && path.toLowerCase().endsWith(".mp3")) {
             File file = new File(path);
 
-            try {
-                Mp3File mp3file = new Mp3File(file.getAbsoluteFile());
+            // HACK: Only scan for files < 42mb
+            // HACK: This tags decoder is inefficient for android, takes too much memory
+            if (file.length() <= 42 * 1024 * 1024) {
+                try {
+                    Mp3File mp3file = new Mp3File(file.getAbsoluteFile());
 
-                if (mp3file.hasId3v2Tag()) {
-                    ID3v2 tags = mp3file.getId3v2Tag();
+                    if (mp3file.hasId3v2Tag()) {
+                        ID3v2 tags = mp3file.getId3v2Tag();
 
-                    data.Title = tags.getTitle();
-                    data.Artist = tags.getArtist();
-                    data.Album = tags.getAlbum();
+                        data.Title = tags.getTitle();
+                        data.Artist = tags.getArtist();
+                        data.Album = tags.getAlbum();
+                        data.Length = tags.getLength();
 
-                    // TODO: This tags decoder is inefficient for android, takes too much memory
-                    if (data.getCover(context) == null) {
-                        byte[] cover = tags.getAlbumImage();
-                        if (cover != null && cover.length > 0) {
-                            Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                        if (data.getCover(context) == null) {
+                            byte[] cover = tags.getAlbumImage();
+                            if (cover != null && cover.length > 0) {
+                                Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
 
-                            if (bmp != null)
-                                putCover(context, data, bmp);
+                                if (bmp != null)
+                                    putCover(context, data, bmp);
+                            }
                         }
+
+                        data.putLyrics(context, LyricsEx.getLyrics(tags));
                     }
 
-                    data.putLyrics(context, LyricsEx.getLyrics(tags));
+                    if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
+                        ID3v1 tags = mp3file.getId3v1Tag();
+
+                        data.Title = tags.getTitle();
+                        data.Artist = tags.getArtist();
+                        data.Album = tags.getAlbum();
+                    }
+
+                } catch (Exception e) {
+                    Log.w(TAG, "metadata from tags", e);
                 }
-
-                if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
-                    ID3v1 tags = mp3file.getId3v1Tag();
-
-                    data.Title = tags.getTitle();
-                    data.Artist = tags.getArtist();
-                    data.Album = tags.getAlbum();
-                }
-
-            } catch (Exception e) {
-                Log.w(TAG, "metadata from tags", e);
             }
         }
 
@@ -503,6 +516,10 @@ public class Music {
         return data;
     }
 
+    public void refresh(Context context) {
+        Music.decode(context, Path, true, this);
+    }
+
     public static Music load(Context context, String path) {
         ArrayList<Music> all = load(context);
 
@@ -516,7 +533,7 @@ public class Music {
         }
 
         if (m == null)
-            m = decode(context, path, false);
+            m = decode(context, path, false, null);
 
         return m;
     }
@@ -592,6 +609,7 @@ public class Music {
             result.add("Title", new JsonPrimitive(data.Title));
             result.add("Artist", new JsonPrimitive(TextUtils.isEmpty(data.Artist) ? "" : data.Artist));
             result.add("Album", new JsonPrimitive(TextUtils.isEmpty(data.Album) ? "" : data.Album));
+            result.add("Length", new JsonPrimitive(data.Length));
             result.add("Path", new JsonPrimitive(data.Path));
 
             return result;
@@ -611,6 +629,7 @@ public class Music {
             result.Artist = data.get("Artist").getAsString();
             result.Album = data.get("Album").getAsString();
             result.Path = data.get("Path").getAsString();
+            result.Length = data.get("Length").getAsInt();
 
             return result;
         }

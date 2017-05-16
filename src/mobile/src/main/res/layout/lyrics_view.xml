@@ -35,14 +35,13 @@
 
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/loading_view"
-        style="@style/AVLoadingIndicatorView.Large"
+        style="@style/AVLoadingIndicatorView.Small"
         android:layout_width="96dp"
         android:layout_height="96dp"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_centerInParent="true"
-        android:layout_centerVertical="true"
         android:visibility="visible"
-        app:indicatorColor="@color/colorAccent"
+        app:indicatorColor="@color/translucent_primary_light"
         app:indicatorName="BallClipRotateMultipleIndicator"
         />
 

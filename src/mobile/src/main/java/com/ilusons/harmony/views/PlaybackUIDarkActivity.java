@@ -24,6 +24,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BasePlaybackUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -229,26 +230,31 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
         currentUri = uri;
 
-        loadingView.show();
+        loadingView.smoothToShow();
 
         try {
             final Music music = Music.load(this, uri);
 
             if (music != null) {
 
-                loadingView.show();
+                loadingView.smoothToShow();
 
                 Music.getCoverOrDownload(this, cover.getWidth(), music, new JavaEx.ActionT<Bitmap>() {
                     @Override
                     public void execute(Bitmap bitmap) {
                         try {
                             if (bitmap == null)
+                                bitmap = CacheEx.getInstance().getBitmap(String.valueOf(R.drawable.logo));
+
+                            if (bitmap == null)
                                 bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
+
+                            CacheEx.getInstance().putBitmap(String.valueOf(R.drawable.logo), bitmap);
                         } catch (Exception e) {
                             // Eat!
                         }
 
-                        loadingView.hide();
+                        loadingView.smoothToHide();
 
                         if (bitmap == null)
                             return;
@@ -279,7 +285,6 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                         root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
 
-                        seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         seekBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
                         fab.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
@@ -288,23 +293,23 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         fab_random.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         fab_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
-                        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.AVFX, color);
-                        }
+//                        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+//                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Horizon, color);
+//                        }
 
-                        loadingView.hide();
+                        loadingView.smoothToHide();
                     }
                 });
 
-                loadingView.show();
+                loadingView.smoothToShow();
 
-                if (!isFinishing()) {
-                    audioVFXViewFragment = AudioVFXViewFragment.create();
-                    getFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.avfx_layout, audioVFXViewFragment)
-                            .commit();
-                }
+//                if (!isFinishing()) {
+//                    audioVFXViewFragment = AudioVFXViewFragment.create();
+//                    getFragmentManager()
+//                            .beginTransaction()
+//                            .replace(R.id.avfx_layout, audioVFXViewFragment)
+//                            .commit();
+//                }
 
                 if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
                     lyricsViewFragment.reset(music);
@@ -347,10 +352,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                     seekBar.setProgress(getMusicService().getPosition());
 
-                    float v = (float) getMusicService().getPosition() / (float) getMusicService().getDuration();
-
                     if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
-                        lyricsViewFragment.updateScroll(v, getMusicService().getPosition());
+                        lyricsViewFragment.updateScroll(getMusicService().getPosition());
 
                 }
 
