@@ -460,41 +460,44 @@ public class Music {
         if (!fastMode && !path.toLowerCase().startsWith("content") && path.toLowerCase().endsWith(".mp3")) {
             File file = new File(path);
 
-            try {
-                Mp3File mp3file = new Mp3File(file.getAbsoluteFile());
+            // HACK: Only scan for files < 42mb
+            // HACK: This tags decoder is inefficient for android, takes too much memory
+            if (file.length() <= 42 * 1024 * 1024) {
+                try {
+                    Mp3File mp3file = new Mp3File(file.getAbsoluteFile());
 
-                if (mp3file.hasId3v2Tag()) {
-                    ID3v2 tags = mp3file.getId3v2Tag();
+                    if (mp3file.hasId3v2Tag()) {
+                        ID3v2 tags = mp3file.getId3v2Tag();
 
-                    data.Title = tags.getTitle();
-                    data.Artist = tags.getArtist();
-                    data.Album = tags.getAlbum();
-                    data.Length = tags.getLength();
+                        data.Title = tags.getTitle();
+                        data.Artist = tags.getArtist();
+                        data.Album = tags.getAlbum();
+                        data.Length = tags.getLength();
 
-                    // TODO: This tags decoder is inefficient for android, takes too much memory
-                    if (data.getCover(context) == null) {
-                        byte[] cover = tags.getAlbumImage();
-                        if (cover != null && cover.length > 0) {
-                            Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                        if (data.getCover(context) == null) {
+                            byte[] cover = tags.getAlbumImage();
+                            if (cover != null && cover.length > 0) {
+                                Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
 
-                            if (bmp != null)
-                                putCover(context, data, bmp);
+                                if (bmp != null)
+                                    putCover(context, data, bmp);
+                            }
                         }
+
+                        data.putLyrics(context, LyricsEx.getLyrics(tags));
                     }
 
-                    data.putLyrics(context, LyricsEx.getLyrics(tags));
+                    if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
+                        ID3v1 tags = mp3file.getId3v1Tag();
+
+                        data.Title = tags.getTitle();
+                        data.Artist = tags.getArtist();
+                        data.Album = tags.getAlbum();
+                    }
+
+                } catch (Exception e) {
+                    Log.w(TAG, "metadata from tags", e);
                 }
-
-                if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
-                    ID3v1 tags = mp3file.getId3v1Tag();
-
-                    data.Title = tags.getTitle();
-                    data.Artist = tags.getArtist();
-                    data.Album = tags.getAlbum();
-                }
-
-            } catch (Exception e) {
-                Log.w(TAG, "metadata from tags", e);
             }
         }
 
