@@ -65,6 +65,7 @@ public class Music {
     public String Title = "";
     public String Artist = "";
     public String Album = "";
+    public Integer Length = -1;
     public String Path;
 
     @Override
@@ -388,7 +389,8 @@ public class Music {
                         MediaStore.Audio.Media.IS_MUSIC,
                         MediaStore.Audio.Media.TITLE,
                         MediaStore.Audio.Media.ARTIST,
-                        MediaStore.Audio.Media.ALBUM
+                        MediaStore.Audio.Media.ALBUM,
+                        MediaStore.Audio.Media.DURATION
                 };
 
                 CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
@@ -418,6 +420,11 @@ public class Music {
                     }
                     try {
                         data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+                    } catch (Exception e) {
+                        // Eat
+                    }
+                    try {
+                        data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
                     } catch (Exception e) {
                         // Eat
                     }
@@ -462,6 +469,7 @@ public class Music {
                     data.Title = tags.getTitle();
                     data.Artist = tags.getArtist();
                     data.Album = tags.getAlbum();
+                    data.Length = tags.getLength();
 
                     // TODO: This tags decoder is inefficient for android, takes too much memory
                     if (data.getCover(context) == null) {
@@ -598,6 +606,7 @@ public class Music {
             result.add("Title", new JsonPrimitive(data.Title));
             result.add("Artist", new JsonPrimitive(TextUtils.isEmpty(data.Artist) ? "" : data.Artist));
             result.add("Album", new JsonPrimitive(TextUtils.isEmpty(data.Album) ? "" : data.Album));
+            result.add("Length", new JsonPrimitive(data.Length));
             result.add("Path", new JsonPrimitive(data.Path));
 
             return result;
@@ -617,6 +626,7 @@ public class Music {
             result.Artist = data.get("Artist").getAsString();
             result.Album = data.get("Album").getAsString();
             result.Path = data.get("Path").getAsString();
+            result.Length = data.get("Length").getAsInt();
 
             return result;
         }

@@ -293,9 +293,9 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         fab_random.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         fab_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
-                        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Horizon, color);
-                        }
+//                        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+//                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Horizon, color);
+//                        }
 
                         loadingView.smoothToHide();
                     }
@@ -303,13 +303,13 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                 loadingView.smoothToShow();
 
-                if (!isFinishing()) {
-                    audioVFXViewFragment = AudioVFXViewFragment.create();
-                    getFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.avfx_layout, audioVFXViewFragment)
-                            .commit();
-                }
+//                if (!isFinishing()) {
+//                    audioVFXViewFragment = AudioVFXViewFragment.create();
+//                    getFragmentManager()
+//                            .beginTransaction()
+//                            .replace(R.id.avfx_layout, audioVFXViewFragment)
+//                            .commit();
+//                }
 
                 if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
                     lyricsViewFragment.reset(music);
@@ -352,10 +352,8 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                     seekBar.setProgress(getMusicService().getPosition());
 
-                    float v = (float) getMusicService().getPosition() / (float) getMusicService().getDuration();
-
                     if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
-                        lyricsViewFragment.updateScroll(v, getMusicService().getPosition());
+                        lyricsViewFragment.updateScroll(getMusicService().getPosition());
 
                 }
 
