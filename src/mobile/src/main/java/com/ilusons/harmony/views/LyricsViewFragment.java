@@ -94,7 +94,7 @@ public class LyricsViewFragment extends Fragment {
             return;
         }
 
-        int lines = content.split(System.getProperty("line.separator")).length;
+        int lines = content.split(System.getProperty("line.separator")).length + 3;
 
         // Format content
         String nl = System.getProperty("line.separator");
@@ -126,7 +126,7 @@ public class LyricsViewFragment extends Fragment {
 
             contentFormatted = music.getTextDetailed() + nl + nl + sb.toString();
 
-            lines = sb.toString().split(System.getProperty("line.separator")).length;
+            lines = sb.toString().split(System.getProperty("line.separator")).length + 3;
         } else {
             contentFormatted = music.getTextDetailed() + nl + nl + content;
         }
