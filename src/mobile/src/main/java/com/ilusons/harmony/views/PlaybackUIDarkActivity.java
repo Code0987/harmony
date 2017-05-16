@@ -230,14 +230,14 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
         currentUri = uri;
 
-        loadingView.show();
+        loadingView.smoothToShow();
 
         try {
             final Music music = Music.load(this, uri);
 
             if (music != null) {
 
-                loadingView.show();
+                loadingView.smoothToShow();
 
                 Music.getCoverOrDownload(this, cover.getWidth(), music, new JavaEx.ActionT<Bitmap>() {
                     @Override
@@ -254,7 +254,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                             // Eat!
                         }
 
-                        loadingView.hide();
+                        loadingView.smoothToHide();
 
                         if (bitmap == null)
                             return;
@@ -285,7 +285,6 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                         root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
 
-                        seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         seekBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
                         fab.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
@@ -295,14 +294,14 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                         fab_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
                         if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.AVFX, color);
+                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Horizon, color);
                         }
 
-                        loadingView.hide();
+                        loadingView.smoothToHide();
                     }
                 });
 
-                loadingView.show();
+                loadingView.smoothToShow();
 
                 if (!isFinishing()) {
                     audioVFXViewFragment = AudioVFXViewFragment.create();

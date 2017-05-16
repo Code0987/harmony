@@ -80,7 +80,7 @@ public class AudioVFXViewFragment extends Fragment {
 
     private void setupFXHorizon(MusicService musicService, int color) {
         if (horizonView != null)
-            root.removeView(horizonView);
+            root.removeAllViews();
 
         horizonView = new GLSurfaceView(getContext());
 
@@ -105,7 +105,7 @@ public class AudioVFXViewFragment extends Fragment {
 
     private void setupAVFXView(MusicService musicService, int color) {
         if (avfxView != null)
-            root.removeView(avfxView);
+            root.removeAllViews();
 
         avfxView = new AVFXView(
                 getContext(),
