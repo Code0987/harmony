@@ -20,15 +20,16 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
+import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.base.BasePlaybackUIActivity;
+import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
-public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
+public class PlaybackUIDarkActivity extends BaseUIActivity {
 
     // Logger TAG
     private static final String TAG = PlaybackUIDarkActivity.class.getSimpleName();
@@ -173,6 +174,14 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        // TODO: Add settings option to do it or not
+        MainActivity.openLibraryUIActivity(this);
+
+        super.onBackPressed();
+    }
+
+    @Override
     protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
         super.OnMusicServiceChanged(className, musicService, isBound);
 
@@ -246,10 +255,11 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
                             if (bitmap == null)
                                 bitmap = CacheEx.getInstance().getBitmap(String.valueOf(R.drawable.logo));
 
-                            if (bitmap == null)
+                            if (bitmap == null) {
                                 bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
 
-                            CacheEx.getInstance().putBitmap(String.valueOf(R.drawable.logo), bitmap);
+                                CacheEx.getInstance().putBitmap(String.valueOf(R.drawable.logo), bitmap);
+                            }
                         } catch (Exception e) {
                             // Eat!
                         }
@@ -285,7 +295,7 @@ public class PlaybackUIDarkActivity extends BasePlaybackUIActivity {
 
                         root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
 
-                        seekBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                        seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
                         fab.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         fab_prev.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);

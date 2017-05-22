@@ -11,6 +11,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
@@ -42,6 +43,9 @@ public class SettingsActivity extends BaseActivity {
 
         // Set views
         root = findViewById(R.id.root);
+
+        // Set about section
+        ((TextView) findViewById(R.id.about_version)).setText(BuildConfig.VERSION_NAME);
 
         // UIStyle
         RadioGroup ui_style_radioGroup = (RadioGroup) findViewById(R.id.ui_style_radioGroup);

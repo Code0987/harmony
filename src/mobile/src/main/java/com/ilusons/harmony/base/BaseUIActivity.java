@@ -1,46 +1,15 @@
 package com.ilusons.harmony.base;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.v4.view.ViewCompat;
 import android.util.Log;
-import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.OvershootInterpolator;
 
-import com.ilusons.harmony.R;
-
-public abstract class BasePlaybackUIActivity extends BaseActivity {
+public abstract class BaseUIActivity extends BaseActivity {
 
     // Logger TAG
-    private static final String TAG = BasePlaybackUIActivity.class.getSimpleName();
-
-    // Services
-    MusicService musicService;
-    boolean isMusicServiceBound = false;
-    ServiceConnection musicServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            MusicService.ServiceBinder binder = (MusicService.ServiceBinder) service;
-            musicService = binder.getService();
-            isMusicServiceBound = true;
-
-            OnMusicServiceChanged(className, musicService, isMusicServiceBound);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName className) {
-            isMusicServiceBound = false;
-
-            OnMusicServiceChanged(className, musicService, isMusicServiceBound);
-        }
-    };
+    private static final String TAG = BaseUIActivity.class.getSimpleName();
 
     // Components
     PowerManager.WakeLock wakeLockForScreenOn;
@@ -57,40 +26,37 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
 
         super.onCreate(savedInstanceState);
 
-        // Start service
-        startService(new Intent(this, MusicService.class));
-
         // Broadcast receivers
         broadcastReceiver = new BaseMediaBroadcastReceiver(this) {
 
             @Override
             public void OnMusicServicePlay() {
-                BasePlaybackUIActivity.this.OnMusicServicePlay();
+                BaseUIActivity.this.OnMusicServicePlay();
             }
 
             @Override
             public void OnMusicServicePause() {
-                BasePlaybackUIActivity.this.OnMusicServicePause();
+                BaseUIActivity.this.OnMusicServicePause();
             }
 
             @Override
             public void OnMusicServiceStop() {
-                BasePlaybackUIActivity.this.OnMusicServiceStop();
+                BaseUIActivity.this.OnMusicServiceStop();
             }
 
             @Override
             public void OnMusicServiceOpen(String uri) {
-                BasePlaybackUIActivity.this.OnMusicServiceOpen(uri);
+                BaseUIActivity.this.OnMusicServiceOpen(uri);
             }
 
             @Override
             public void OnMusicServiceLibraryUpdateBegins() {
-                BasePlaybackUIActivity.this.OnMusicServiceLibraryUpdateBegins();
+                BaseUIActivity.this.OnMusicServiceLibraryUpdateBegins();
             }
 
             @Override
             public void OnMusicServiceLibraryUpdated() {
-                BasePlaybackUIActivity.this.OnMusicServiceLibraryUpdated();
+                BaseUIActivity.this.OnMusicServiceLibraryUpdated();
             }
 
         };
@@ -101,12 +67,6 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
     protected void onDestroy() {
 
         super.onDestroy();
-
-        // Unbind service
-        if (isMusicServiceBound) {
-            unbindService(musicServiceConnection);
-            isMusicServiceBound = false;
-        }
 
         // Release wake lock
         if (wakeLockForScreenOn.isHeld())
@@ -142,22 +102,8 @@ public abstract class BasePlaybackUIActivity extends BaseActivity {
 
         super.onStop();
 
-        // Unbind service
-        if (isMusicServiceBound) {
-            unbindService(musicServiceConnection);
-            isMusicServiceBound = false;
-        }
-
         // Release wake lock
         wakeLockForScreenOn.release();
-
-    }
-
-    protected MusicService getMusicService() {
-        return musicService;
-    }
-
-    protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
 
     }
 

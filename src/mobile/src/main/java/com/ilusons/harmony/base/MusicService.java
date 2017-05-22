@@ -14,7 +14,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.audiofx.AudioEffect;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -78,7 +77,8 @@ public class MusicService extends Service {
 
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_GAIN:
-                    play();
+                    // TODO: Check this
+                    // play();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS:
                     pause();
@@ -331,17 +331,16 @@ public class MusicService extends Service {
             });
 
             // Update media session
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.Title)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.Artist)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.Album)
-                        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
-                        .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, getPlaylistPosition() + 1)
-                        .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlaylist().size())
-                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this))
-                        .build());
-            }
+            mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.Title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.Artist)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.Album)
+                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
+                    .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, getPlaylistPosition() + 1)
+                    .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlaylist().size())
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this))
+                    .build());
+
         }
 
     }
@@ -494,7 +493,7 @@ public class MusicService extends Service {
     private RemoteViews customNotificationViewS;
 
     private void setupNotification() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
+        Intent notificationIntent = MainActivity.getPlaybackUIActivityIntent(this);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -638,21 +637,19 @@ public class MusicService extends Service {
 
     private void updateMediaSession() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
-                    .setState(isPlaying()
-                                    ? PlaybackStateCompat.STATE_PLAYING
-                                    : PlaybackStateCompat.STATE_PAUSED,
-                            getPosition(),
-                            1.0f)
-                    .setActions(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-                            | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
-                            | PlaybackStateCompat.ACTION_PLAY
-                            | PlaybackStateCompat.ACTION_PAUSE
-                            | PlaybackStateCompat.ACTION_STOP
-                            | PlaybackStateCompat.ACTION_PLAY_PAUSE)
-                    .build());
-        }
+        mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                .setState(isPlaying()
+                                ? PlaybackStateCompat.STATE_PLAYING
+                                : PlaybackStateCompat.STATE_PAUSED,
+                        getPosition(),
+                        1.0f)
+                .setActions(PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                        | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                        | PlaybackStateCompat.ACTION_PLAY
+                        | PlaybackStateCompat.ACTION_PAUSE
+                        | PlaybackStateCompat.ACTION_STOP
+                        | PlaybackStateCompat.ACTION_PLAY_PAUSE)
+                .build());
 
     }
 
