@@ -60,10 +60,9 @@ public class HeadsetMediaButtonIntentReceiver extends WakefulBroadcastReceiver {
 
                     if (!launched) {
                         final Context context = (Context) msg.obj;
-                        final Intent i = new Intent();
-                        i.setClass(context, MainActivity.class);
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        context.startActivity(i);
+
+                        MainActivity.openPlaybackUIActivity(context);
+
                         launched = true;
                     }
 

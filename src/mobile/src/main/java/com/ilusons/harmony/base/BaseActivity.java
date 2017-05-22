@@ -1,21 +1,19 @@
 package com.ilusons.harmony.base;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
+import android.os.IBinder;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.anthonycr.grant.PermissionsManager;
-import com.anthonycr.grant.PermissionsResultAction;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.ref.Permissions;
-
-import java.util.Iterator;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -25,9 +23,80 @@ public class BaseActivity extends AppCompatActivity {
     // Events
     protected Handler handler = new Handler();
 
+    // Services
+    private MusicService musicService;
+    private boolean isMusicServiceBound = false;
+    ServiceConnection musicServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            MusicService.ServiceBinder binder = (MusicService.ServiceBinder) service;
+            musicService = binder.getService();
+            isMusicServiceBound = true;
+
+            OnMusicServiceChanged(className, musicService, isMusicServiceBound);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName className) {
+            isMusicServiceBound = false;
+
+            OnMusicServiceChanged(className, musicService, isMusicServiceBound);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // Start service
+        startService(new Intent(this, MusicService.class));
+
         super.onCreate(savedInstanceState);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        super.onDestroy();
+
+        // Unbind service
+        if (isMusicServiceBound) {
+            unbindService(musicServiceConnection);
+            isMusicServiceBound = false;
+        }
+
+    }
+
+    @Override
+    protected void onStart() {
+
+        super.onStart();
+
+        // Bind service
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, musicServiceConnection, Context.BIND_AUTO_CREATE);
+
+    }
+
+    @Override
+    protected void onStop() {
+
+        super.onStop();
+
+        // Unbind service
+        if (isMusicServiceBound) {
+            unbindService(musicServiceConnection);
+            isMusicServiceBound = false;
+        }
+
+    }
+
+    public MusicService getMusicService() {
+        return musicService;
+    }
+
+    protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
+
     }
 
     /**

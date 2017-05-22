@@ -26,7 +26,7 @@ import android.widget.TextView;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
-import com.ilusons.harmony.base.BasePlaybackUIActivity;
+import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.StorageEx;
@@ -34,7 +34,7 @@ import com.ilusons.harmony.ref.StorageEx;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
+public class LibraryUIDarkActivity extends BaseUIActivity {
 
     // Logger TAG
     private static final String TAG = LibraryUIDarkActivity.class.getSimpleName();
@@ -118,13 +118,6 @@ public class LibraryUIDarkActivity extends BasePlaybackUIActivity {
 
         // Load data
         swipeRefreshLayoutOnRefreshListener.onRefresh();
-
-        // Load player ui
-        if (getMusicService() != null && getMusicService().isPlaying()) {
-            Intent intent = new Intent(this, PlaybackUIDarkActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-            startActivity(intent);
-        }
 
         findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override

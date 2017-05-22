@@ -1,6 +1,7 @@
 package com.ilusons.harmony;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.views.BrowserUILiteActivity;
 import com.ilusons.harmony.views.LibraryUIDarkActivity;
+import com.ilusons.harmony.views.PlaybackUIDarkActivity;
 
 public class MainActivity extends BaseActivity {
 
@@ -29,33 +31,17 @@ public class MainActivity extends BaseActivity {
         // Intent
         handleIntent(getIntent());
 
-        // UI
-        Intent intent;
-
-        switch (SettingsActivity.getUIStyle(getApplicationContext())) {
-            case LiteUI:
-                intent = new Intent(this, BrowserUILiteActivity.class);
-                break;
-
-            case DarkUI:
-            default:
-                intent = new Intent(this, LibraryUIDarkActivity.class);
-                break;
-        }
-
-        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-
-        startActivity(intent);
-
-        // Finish TODO: ? Think later ...
+        // Kill self
         finish();
     }
 
     private void handleIntent(final Intent intent) {
         Log.d(TAG, "handleIntent\n" + intent);
 
-        if (intent.getAction() == null)
+        if (intent.getAction() == null) {
+            openLibraryUIActivity(this);
             return;
+        }
 
         if (intent.getAction().equals(Intent.ACTION_VIEW)) {
             String scheme = intent.getScheme();
@@ -74,14 +60,55 @@ public class MainActivity extends BaseActivity {
                         i.putExtra(MusicService.KEY_URI, uri.toString());
 
                         startService(i);
+
+                        // TODO: Add settings option to launch playback ui on selecting file
+                        openPlaybackUIActivity(MainActivity.this);
                     }
                 }, 350);
 
             } else if (scheme.equals("http")) {
             } else if (scheme.equals("ftp")) {
+            } else {
+                openLibraryUIActivity(this);
+                return;
             }
 
         }
+    }
+
+    public static synchronized Intent getLibraryUIActivityIntent(final Context context) {
+        Intent intent = null;
+
+        switch (SettingsActivity.getUIStyle(context.getApplicationContext())) {
+            case LiteUI:
+                intent = new Intent(context, BrowserUILiteActivity.class);
+                break;
+
+            case DarkUI:
+            default:
+                intent = new Intent(context, LibraryUIDarkActivity.class);
+                break;
+        }
+
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        return intent;
+    }
+
+    public static synchronized void openLibraryUIActivity(final Context context) {
+        context.startActivity(getLibraryUIActivityIntent(context));
+    }
+
+    public static synchronized Intent getPlaybackUIActivityIntent(final Context context) {
+        Intent intent = new Intent(context, PlaybackUIDarkActivity.class);
+
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        return intent;
+    }
+
+    public static synchronized void openPlaybackUIActivity(final Context context) {
+        context.startActivity(getPlaybackUIActivityIntent(context));
     }
 
 }
