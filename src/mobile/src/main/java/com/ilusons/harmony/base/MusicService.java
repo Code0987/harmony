@@ -92,6 +92,7 @@ public class MusicService extends Service {
         }
     };
 
+    // TODO: Add opensl support, flac, m4a, mp3, scrobbler
     private MediaPlayer mediaPlayer;
     private MediaSessionCompat mediaSession;
 

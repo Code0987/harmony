@@ -3,8 +3,8 @@
     <item
         android:drawable="@color/splash_background"/>
     <item
-        android:left="128dp"
-        android:right="128dp">
+        android:left="512dp"
+        android:right="512dp">
         <bitmap
             android:gravity="center"
             android:src="@drawable/logo"/>

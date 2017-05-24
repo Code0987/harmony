@@ -1,7 +1,9 @@
 package com.ilusons.harmony;
 
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -20,12 +22,19 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.InputStream;
+
 public class SettingsActivity extends BaseActivity {
 
     // Logger TAG
     private static final String TAG = SettingsActivity.class.getSimpleName();
 
     public static final String TAG_SPREF_UISTYLE = SPrefEx.TAG_SPREF + ".uistyle";
+
+    public static final String TAG_SPREF_UIPLAYBACKAUTOOPEN = SPrefEx.TAG_SPREF + ".ui_playback_auto_open";
+    public static final boolean UIPLAYBACKAUTOOPEN_DEFAULT = true;
 
     // UI
     private View root;
@@ -44,8 +53,45 @@ public class SettingsActivity extends BaseActivity {
         // Set views
         root = findViewById(R.id.root);
 
+        // Set close
+        findViewById(R.id.close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
         // Set about section
         ((TextView) findViewById(R.id.about_version)).setText(BuildConfig.VERSION_NAME);
+
+        findViewById(R.id.about_license).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFinishing())
+                    return;
+
+                String content;
+                try (InputStream is = getResources().openRawResource(R.raw.licenses)) {
+                    content = IOUtils.toString(is, "UTF-8");
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    content = "Error loading data!";
+                }
+
+                (new AlertDialog.Builder(SettingsActivity.this)
+                        .setTitle("Licenses")
+                        .setMessage(content)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        }))
+                        .show();
+            }
+        });
 
         // UIStyle
         RadioGroup ui_style_radioGroup = (RadioGroup) findViewById(R.id.ui_style_radioGroup);
@@ -82,6 +128,26 @@ public class SettingsActivity extends BaseActivity {
 
             rb.setOnCheckedChangeListener(onCheckedChangeListener);
         }
+
+        // Playback UI auto open
+        CheckBox ui_playback_auto_open_checkBox = (CheckBox) findViewById(R.id.ui_playback_auto_open_checkBox);
+
+        ui_playback_auto_open_checkBox.setChecked(getUIPlaybackAutoOpen(this));
+
+        ui_playback_auto_open_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (!b)
+                    return;
+
+                SPrefEx.get(getApplicationContext())
+                        .edit()
+                        .putBoolean(TAG_SPREF_UIPLAYBACKAUTOOPEN, compoundButton.isChecked())
+                        .apply();
+
+                info("Updated!");
+            }
+        });
 
         // Scan interval
         final EditText scan_interval_editText = (EditText) findViewById(R.id.scan_interval_editText);
@@ -126,13 +192,6 @@ public class SettingsActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
                 scan_interval_editText.clearFocus();
-            }
-        });
-
-        findViewById(R.id.bottom_layout).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
             }
         });
 
@@ -189,6 +248,10 @@ public class SettingsActivity extends BaseActivity {
 
     public static UIStyle getUIStyle(Context context) {
         return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.DarkUI)));
+    }
+
+    public static boolean getUIPlaybackAutoOpen(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_UIPLAYBACKAUTOOPEN, UIPLAYBACKAUTOOPEN_DEFAULT);
     }
 
 }

@@ -52,10 +52,12 @@
         android:layout_width="0dp"
         android:layout_height="64dp"
         android:background="@drawable/gradient_top_down"
+        android:clickable="true"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:elevation="0dp"
         android:fitsSystemWindows="true"
+        android:foreground="?android:attr/selectableItemBackground"
         android:gravity="center_vertical"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -72,17 +74,24 @@
             android:text="@string/app_name"
             />
 
-        <com.wang.avi.AVLoadingIndicatorView
-            android:id="@+id/loadingView"
-            style="@style/AVLoadingIndicatorView.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageButton
+            android:id="@+id/close"
+            style="@style/Widget.AppCompat.ImageButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
+            android:layout_gravity="center"
             android:layout_marginEnd="16dp"
-            android:visibility="visible"
-            app:indicatorColor="@color/primary_light"
-            app:indicatorName="LineScalePulseOutRapidIndicator"
+            android:background="@null"
+            android:clickable="false"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:padding="0dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_check_black"
+            android:tint="@color/icons"
+            android:tintMode="src_atop"
             />
 
     </RelativeLayout>
@@ -92,53 +101,12 @@
         android:layout_width="0dp"
         android:layout_height="96dp"
         android:background="@drawable/gradient_bottom_up"
-        android:clickable="true"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:foreground="?android:attr/selectableItemBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         >
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="72dp"
-            android:layout_centerInParent="true"
-            android:clickable="false"
-            android:orientation="vertical"
-            >
-
-            <ImageButton
-                style="@style/Widget.AppCompat.ImageButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_gravity="center"
-                android:background="@null"
-                android:clickable="false"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:padding="0dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_check_black"
-                android:tint="@color/icons"
-                android:tintMode="src_atop"
-                />
-
-            <Button
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="3dp"
-                android:clickable="false"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:padding="0dp"
-                android:text="Close"
-                />
-
-        </LinearLayout>
 
     </RelativeLayout>
 
@@ -147,12 +115,11 @@
         android:layout_height="0dp"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
-        android:background="@color/translucent_primary_dark"
+        android:clipChildren="true"
+        android:clipToPadding="true"
         android:fadeScrollbars="true"
-        android:fadingEdgeLength="36dp"
-        android:requiresFadingEdge="vertical"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_layout"
+        app:layout_constraintBottom_toBottomOf="@+id/bottom_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top_layout"
@@ -196,6 +163,29 @@
                     />
 
                 <TextView
+                    android:id="@+id/ui_playback_auto_open_textView"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Playback UI auto open on music selection"
+                    android:textStyle="italic"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/ui_style_radioGroup"
+                    />
+
+                <CheckBox
+                    android:id="@+id/ui_playback_auto_open_checkBox"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/ui_playback_auto_open_textView"
+                    />
+
+                <TextView
                     android:id="@+id/scan_interval_textView"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="0dp"
@@ -204,7 +194,7 @@
                     android:text="Library update interval (in hours)"
                     android:textStyle="italic"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/ui_style_radioGroup"
+                    app:layout_constraintTop_toBottomOf="@id/ui_playback_auto_open_checkBox"
                     />
 
                 <EditText
@@ -292,6 +282,7 @@
                     style="@style/Widget.AppCompat.ImageButton"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:layout_marginStart="5dp"
                     android:layout_marginTop="5dp"
                     android:background="@null"
                     android:padding="0dp"
@@ -309,10 +300,10 @@
                 android:id="@+id/about_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginBottom="64dp"
+                android:layout_marginEnd="64dp"
+                android:layout_marginStart="64dp"
+                android:layout_marginTop="64dp"
                 >
 
                 <TextView

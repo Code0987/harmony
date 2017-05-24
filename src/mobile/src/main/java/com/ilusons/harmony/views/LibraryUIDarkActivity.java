@@ -24,6 +24,7 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
@@ -133,6 +134,8 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
                 i.setType("audio/*");
                 i.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(i, REQUEST_FILE_PICK);
+
+                toggleFabItems();
             }
         });
 
@@ -143,6 +146,8 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
                 musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
                 musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
                 startService(musicServiceIntent);
+
+                toggleFabItems();
             }
         });
 
@@ -152,6 +157,8 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
                 Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
+
+                toggleFabItems();
             }
         });
 
@@ -161,6 +168,8 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
                 Intent intent = new Intent(LibraryUIDarkActivity.this, SettingsActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
+
+                toggleFabItems();
             }
         });
     }
@@ -265,14 +274,15 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
 
     @Override
     public void OnMusicServiceOpen(String uri) {
-        Intent intent = new Intent(LibraryUIDarkActivity.this, PlaybackUIDarkActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        startActivity(intent);
+        if (SettingsActivity.getUIPlaybackAutoOpen(this))
+            MainActivity.openPlaybackUIActivity(this);
     }
 
     @Override
     public void OnMusicServiceLibraryUpdateBegins() {
         swipeRefreshLayout.setRefreshing(true);
+
+        info("Library update is on progress!");
     }
 
     @Override
@@ -281,6 +291,8 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
             adapter.setData(Music.load(LibraryUIDarkActivity.this));
 
         swipeRefreshLayout.setRefreshing(false);
+
+        info("Library updated!");
     }
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
