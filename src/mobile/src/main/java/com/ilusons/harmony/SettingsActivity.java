@@ -79,7 +79,7 @@ public class SettingsActivity extends BaseActivity {
                     content = "Error loading data!";
                 }
 
-                (new AlertDialog.Builder(SettingsActivity.this)
+                (new AlertDialog.Builder(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle)
                         .setTitle("Licenses")
                         .setMessage(content)
                         .setCancelable(false)
@@ -187,6 +187,7 @@ public class SettingsActivity extends BaseActivity {
 
         scan_interval_editText.setText("");
         scan_interval_editText.append(String.valueOf(savedScanInterval / MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_FACTOR));
+        scan_interval_editText.clearFocus();
 
         findViewById(R.id.scan_interval_imageButton).setOnClickListener(new View.OnClickListener() {
             @Override

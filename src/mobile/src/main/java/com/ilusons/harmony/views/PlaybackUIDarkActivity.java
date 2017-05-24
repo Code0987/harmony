@@ -204,7 +204,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         play_pause.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
 
-        resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+        if (getMusicService() != null)
+            resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
 
     @Override
@@ -213,7 +214,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         play_pause.setImageDrawable(getDrawable(R.drawable.ic_play_black));
 
-        resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+        if (getMusicService() != null)
+            resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
 
     @Override
@@ -339,7 +341,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                             .commit();
                 }
 
-                seekBar.setMax(getMusicService().getDuration());
+                if (getMusicService() != null)
+                    seekBar.setMax(getMusicService().getDuration());
 
                 setupProgressHandler();
             }
@@ -348,10 +351,12 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             Log.e(TAG, "open file", e);
         }
 
-        if (getMusicService().isPlaying())
-            OnMusicServicePlay();
-        else
-            OnMusicServicePause();
+        if (getMusicService() != null) {
+            if (getMusicService().isPlaying())
+                OnMusicServicePlay();
+            else
+                OnMusicServicePause();
+        }
 
     }
 
