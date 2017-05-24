@@ -61,8 +61,8 @@ public class MainActivity extends BaseActivity {
 
                         startService(i);
 
-                        // TODO: Add settings option to launch playback ui on selecting file
-                        openPlaybackUIActivity(MainActivity.this);
+                        if (SettingsActivity.getUIPlaybackAutoOpen(MainActivity.this))
+                            openPlaybackUIActivity(MainActivity.this);
                     }
                 }, 350);
 

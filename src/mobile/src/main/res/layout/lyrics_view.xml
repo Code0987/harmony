@@ -15,6 +15,7 @@
         android:fadingEdgeLength="24dp"
         android:orientation="vertical"
         android:requiresFadingEdge="vertical"
+        android:scrollbars="none"
         >
 
         <TextView

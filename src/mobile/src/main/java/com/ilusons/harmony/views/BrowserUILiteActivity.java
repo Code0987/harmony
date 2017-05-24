@@ -24,6 +24,7 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
@@ -248,9 +249,8 @@ public class BrowserUILiteActivity extends BaseUIActivity {
 
     @Override
     public void OnMusicServiceOpen(String uri) {
-        Intent intent = new Intent(BrowserUILiteActivity.this, PlaybackUIDarkActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        startActivity(intent);
+        if (SettingsActivity.getUIPlaybackAutoOpen(this))
+            MainActivity.openPlaybackUIActivity(this);
     }
 
     @Override

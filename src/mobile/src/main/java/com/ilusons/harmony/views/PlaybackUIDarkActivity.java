@@ -8,7 +8,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
@@ -17,11 +16,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
@@ -40,11 +41,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     // UI
     private View root;
 
-    private FloatingActionButton fab;
-    private FloatingActionButton fab_prev;
-    private FloatingActionButton fab_next;
-    private FloatingActionButton fab_random;
-    private FloatingActionButton fab_stop;
+    private ImageButton play_pause;
+    private ImageButton prev;
+    private ImageButton next;
+    private ImageButton random;
+    private ImageButton stop;
 
     private LyricsViewFragment lyricsViewFragment;
     private AudioVFXViewFragment audioVFXViewFragment;
@@ -97,13 +98,13 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab_prev = (FloatingActionButton) findViewById(R.id.fab_prev);
-        fab_next = (FloatingActionButton) findViewById(R.id.fab_next);
-        fab_random = (FloatingActionButton) findViewById(R.id.fab_random);
-        fab_stop = (FloatingActionButton) findViewById(R.id.fab_stop);
+        play_pause = (ImageButton) findViewById(R.id.play_pause);
+        prev = (ImageButton) findViewById(R.id.prev);
+        next = (ImageButton) findViewById(R.id.next);
+        random = (ImageButton) findViewById(R.id.random);
+        stop = (ImageButton) findViewById(R.id.stop);
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null && getMusicService().isPlaying()) {
@@ -114,7 +115,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        fab_prev.setOnClickListener(new View.OnClickListener() {
+        prev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null) {
@@ -123,7 +124,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        fab_next.setOnClickListener(new View.OnClickListener() {
+        next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null) {
@@ -132,7 +133,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        fab_random.setOnClickListener(new View.OnClickListener() {
+        random.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null) {
@@ -141,7 +142,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        fab_stop.setOnClickListener(new View.OnClickListener() {
+        stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null) {
@@ -175,8 +176,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
     @Override
     public void onBackPressed() {
-        // TODO: Add settings option to do it or not
-        MainActivity.openLibraryUIActivity(this);
+        if (SettingsActivity.getUIPlaybackAutoOpen(this))
+            MainActivity.openLibraryUIActivity(this);
 
         super.onBackPressed();
     }
@@ -201,7 +202,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     public void OnMusicServicePlay() {
         super.OnMusicServicePlay();
 
-        fab.setImageDrawable(getDrawable(android.R.drawable.ic_media_pause));
+        play_pause.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
 
         resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
@@ -210,7 +211,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     public void OnMusicServicePause() {
         super.OnMusicServicePlay();
 
-        fab.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
+        play_pause.setImageDrawable(getDrawable(R.drawable.ic_play_black));
 
         resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
     }
@@ -219,7 +220,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     public void OnMusicServiceStop() {
         super.OnMusicServicePlay();
 
-        fab.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
+        play_pause.setImageDrawable(getDrawable(R.drawable.ic_play_black));
     }
 
     @Override
@@ -293,15 +294,22 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         if (color == colorBackup)
                             color = palette.getDarkMutedColor(color);
 
+                        float[] hsl = new float[3];
+                        ColorUtils.colorToHSL(color, hsl);
+                        hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f); // lum +30%
+                        int colorLight = ColorUtils.HSLToColor(hsl);
+
                         root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
 
                         seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                        seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
-                        fab.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-                        fab_prev.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-                        fab_next.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-                        fab_random.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-                        fab_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                        play_pause.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        play_pause.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+                        prev.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        next.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        random.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
 //                        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
 //                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Horizon, color);

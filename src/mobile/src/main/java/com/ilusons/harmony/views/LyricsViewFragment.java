@@ -88,6 +88,9 @@ public class LyricsViewFragment extends Fragment {
             Music.getLyricsOrDownload(getContext(), music, new JavaEx.ActionT<String>() {
                 @Override
                 public void execute(String s) {
+                    if (getContext() == null)
+                        return;
+
                     processContent();
                 }
             });

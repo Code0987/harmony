@@ -164,6 +164,9 @@ public class Music {
         getCoverOrDownloadTask = (new AsyncTask<Object, Object, Bitmap>() {
             @Override
             protected void onPostExecute(Bitmap bitmap) {
+                if (context == null)
+                    return;
+
                 if (onResult != null)
                     onResult.execute(bitmap);
             }
@@ -189,7 +192,7 @@ public class Music {
                                 URLEncoder.encode(data.getText(), "UTF-8")));
 
                         Connection connection = Jsoup.connect(url.toExternalForm())
-                                .timeout(0)
+                                .timeout(3 * 1000)
                                 .ignoreContentType(true);
 
                         Document document = connection.get();
@@ -309,6 +312,9 @@ public class Music {
         getLyricsOrDownloadTask = (new AsyncTask<Void, Void, String>() {
             @Override
             protected void onPostExecute(String result) {
+                if (context == null)
+                    return;
+
                 if (onResult != null)
                     onResult.execute(result);
             }
