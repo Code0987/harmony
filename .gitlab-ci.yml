@@ -29,5 +29,4 @@ build:
     - ./src/gradlew build
   artifacts:
     paths:
-    - src/mobile/build/outputs/apk/
-    - src/wear/build/outputs/apk/
+    - ./src/mobile/build/outputs/
