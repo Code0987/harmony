@@ -161,7 +161,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 String filePath = file.getAbsolutePath();
                 if (file.isDirectory()) {
                     addFromDirectory(file, data);
-                } else if (filePath.endsWith(".mp3")) {
+                } else if (filePath.endsWith(".mp3") || filePath.endsWith(".m4a") || filePath.endsWith(".flac")) {
                     add(file.getAbsolutePath(), data);
                 }
             }
@@ -206,8 +206,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 while (cursor.moveToNext()) {
                     String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
-                    File file = new File(path);
-
                     // Ignore if already present
                     boolean ignore = false;
                     for (Music item : data) {
@@ -217,7 +215,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     if (ignore)
                         continue;
 
-                    if (file.exists()) {
+                    if ((new File(path)).exists()) {
                         Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
 
                         add(contentUri.toString(), data);
