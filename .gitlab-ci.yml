@@ -22,7 +22,6 @@ before_script:
 
 stages:
   - build
-  - test
 
 build:
   stage: build
@@ -30,10 +29,5 @@ build:
     - ./src/gradlew build
   artifacts:
     paths:
-    - src/mobile/build/outputs/
-    - src/wear/build/outputs/
-
-unitTests:
-  stage: test
-  script:
-    - ./src/gradlew test
+    - src/mobile/build/outputs/apk/
+    - src/wear/build/outputs/apk/
