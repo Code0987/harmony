@@ -71,7 +71,7 @@ public class SettingsActivity extends BaseActivity {
                     return;
 
                 String content;
-                try (InputStream is = getResources().openRawResource(R.raw.licenses)) {
+                try (InputStream is = getResources().openRawResource(R.raw.license)) {
                     content = IOUtils.toString(is, "UTF-8");
                 } catch (Exception e) {
                     e.printStackTrace();
