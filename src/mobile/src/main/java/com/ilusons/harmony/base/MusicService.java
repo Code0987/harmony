@@ -27,6 +27,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.h6ah4i.android.media.IBasicMediaPlayer;
+import com.h6ah4i.android.media.IMediaPlayerFactory;
+import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerFactory;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
@@ -62,6 +65,8 @@ public class MusicService extends Service {
     public static final String ACTION_LIBRARY_UPDATED = TAG + ".library_updated";
     public static final String ACTION_LIBRARY_UPDATE_CANCEL = TAG + ".library_update_cancel";
 
+    public static final String ACTION_REFRESH_SYSTEM_BINDINGS = TAG + ".refresh_system_bindings";
+
     // Threads
     private Handler handler = new Handler();
 
@@ -93,7 +98,8 @@ public class MusicService extends Service {
     };
 
     // TODO: Add opensl support, flac, m4a, mp3, scrobbler
-    private MediaPlayer mediaPlayer;
+    IMediaPlayerFactory mediaPlayerFactory;
+    IBasicMediaPlayer mediaPlayer;
     private MediaSessionCompat mediaSession;
 
     private BroadcastReceiver intentReceiver;
@@ -165,6 +171,11 @@ public class MusicService extends Service {
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
+        }
+
+        if (mediaPlayerFactory != null) {
+            mediaPlayerFactory.release();
+            mediaPlayerFactory = null;
         }
     }
 
@@ -239,7 +250,7 @@ public class MusicService extends Service {
         return playlist.get(playlistPosition);
     }
 
-    public MediaPlayer getMediaPlayer() {
+    public IBasicMediaPlayer getMediaPlayer() {
         return mediaPlayer;
     }
 
@@ -296,13 +307,14 @@ public class MusicService extends Service {
 
             // Setup player
             if (mediaPlayer == null)
-                mediaPlayer = new MediaPlayer();
+                mediaPlayerFactory = new OpenSLMediaPlayerFactory(getApplicationContext());
+            mediaPlayer = mediaPlayerFactory.createMediaPlayer();
             try {
                 mediaPlayer.reset();
                 if (onPrepare != null)
-                    mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    mediaPlayer.setOnPreparedListener(new IBasicMediaPlayer.OnPreparedListener() {
                         @Override
-                        public void onPrepared(MediaPlayer mediaPlayer) {
+                        public void onPrepared(IBasicMediaPlayer mediaPlayer) {
                             onPrepare.execute();
                         }
                     });
@@ -312,17 +324,17 @@ public class MusicService extends Service {
             } catch (Exception e) {
                 Log.w(TAG, "media init failed", e);
             }
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            mediaPlayer.setOnCompletionListener(new IBasicMediaPlayer.OnCompletionListener() {
                 @Override
-                public void onCompletion(MediaPlayer mediaPlayer) {
+                public void onCompletion(IBasicMediaPlayer mediaPlayer) {
                     Log.d(TAG, "onCompletion");
 
                     random();
                 }
             });
-            mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            mediaPlayer.setOnErrorListener(new IBasicMediaPlayer.OnErrorListener() {
                 @Override
-                public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+                public boolean onError(IBasicMediaPlayer mediaPlayer, int what, int extra) {
                     Log.w(TAG, "onError\nwhat = " + what + "\nextra = " + extra);
 
                     random();
@@ -767,6 +779,8 @@ public class MusicService extends Service {
                     break;
             }
 
+        } else if (action.equals(ACTION_REFRESH_SYSTEM_BINDINGS)) {
+            update();
         }
 
     }

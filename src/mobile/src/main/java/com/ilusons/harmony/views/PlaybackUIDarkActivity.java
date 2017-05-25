@@ -1,6 +1,7 @@
 package com.ilusons.harmony.views;
 
 import android.content.ComponentName;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
@@ -271,6 +272,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                         if (bitmap == null)
                             return;
+
+                        // Refresh system bindings
+                        Intent musicServiceIntent = new Intent(PlaybackUIDarkActivity.this, MusicService.class);
+                        musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
+                        startService(musicServiceIntent);
 
                         // Load cover
                         if (cover.getDrawable() != null) {
