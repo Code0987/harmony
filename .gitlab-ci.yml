@@ -27,7 +27,7 @@ stages:
 build:
   stage: build
   script:
-    - ./src/gradlew assembleMainDebug
+    - ./src/gradlew assembleDebug
   artifacts:
     paths:
     - src/mobile/build/outputs/

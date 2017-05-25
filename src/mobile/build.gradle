@@ -7,7 +7,7 @@ android {
         applicationId "com.ilusons.harmony"
         minSdkVersion 23
         targetSdkVersion 25
-        versionCode 010
+        versionCode 1
         versionName "0.1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
