@@ -137,9 +137,6 @@ public class SettingsActivity extends BaseActivity {
         ui_playback_auto_open_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (!b)
-                    return;
-
                 SPrefEx.get(getApplicationContext())
                         .edit()
                         .putBoolean(TAG_SPREF_UIPLAYBACKAUTOOPEN, compoundButton.isChecked())
@@ -206,9 +203,6 @@ public class SettingsActivity extends BaseActivity {
         library_update_fastMode_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (!b)
-                    return;
-
                 SPrefEx.get(getApplicationContext())
                         .edit()
                         .putBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, compoundButton.isChecked())
