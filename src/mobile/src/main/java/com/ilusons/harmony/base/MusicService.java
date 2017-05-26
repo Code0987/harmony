@@ -29,6 +29,8 @@ import android.widget.RemoteViews;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
+import com.h6ah4i.android.media.audiofx.IHQVisualizer;
+import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerFactory;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -173,6 +175,16 @@ public class MusicService extends Service {
             mediaPlayer = null;
         }
 
+        if (visualizer != null) {
+            visualizer.release();
+            visualizer = null;
+        }
+
+        if (visualizerHQ != null) {
+            visualizerHQ.release();
+            visualizerHQ = null;
+        }
+
         if (mediaPlayerFactory != null) {
             mediaPlayerFactory.release();
             mediaPlayerFactory = null;
@@ -197,6 +209,36 @@ public class MusicService extends Service {
         if (mediaPlayer == null)
             return 0;
         return mediaPlayer.getAudioSessionId();
+    }
+
+    private IVisualizer visualizer;
+
+    public IVisualizer getVisualizer() {
+        if (visualizer == null) {
+            try {
+                visualizer = mediaPlayerFactory.createVisualizer(getAudioSessionId());
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            } catch (IllegalArgumentException e) {
+            }
+        }
+
+        return visualizer;
+    }
+
+    private IHQVisualizer visualizerHQ;
+
+    public IHQVisualizer getVisualizerHQ() {
+        if (visualizerHQ == null) {
+            try {
+                visualizerHQ = mediaPlayerFactory.createHQVisualizer();
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            } catch (IllegalArgumentException e) {
+            }
+        }
+
+        return visualizerHQ;
     }
 
     private MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
@@ -339,7 +381,7 @@ public class MusicService extends Service {
 
                     random();
 
-                    return false;
+                    return true;
                 }
             });
 

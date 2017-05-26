@@ -38,6 +38,8 @@
         <item name="android:windowSharedElementExitTransition">@transition/shared_b</item>
         -->
 
+        <item name="android:statusBarColor">@color/translucent_primary_dark</item>
+
         <item name="android:alertDialogTheme">@style/AppTheme.AlertDialogStyle</item>
     </style>
 
