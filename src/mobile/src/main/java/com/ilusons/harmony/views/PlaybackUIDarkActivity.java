@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -36,9 +37,6 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     // Logger TAG
     private static final String TAG = PlaybackUIDarkActivity.class.getSimpleName();
 
-    // Request codes
-    private static final int REQUEST_FILE_PICK = 4684;
-
     // UI
     private View root;
 
@@ -54,6 +52,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     private AVLoadingIndicatorView loadingView;
 
     private ImageView cover;
+    private int color;
+    private int colorLight;
 
     private SeekBar seekBar;
 
@@ -62,8 +62,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         super.onCreate(savedInstanceState);
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         // Set view
         setContentView(R.layout.playback_ui_dark_activity);
@@ -73,7 +73,50 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         loadingView = (AVLoadingIndicatorView) findViewById(R.id.loadingView);
 
+        findViewById(R.id.cover_layout).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (audioVFXViewFragment != null) {
+                    getFragmentManager()
+                            .beginTransaction()
+                            .remove(audioVFXViewFragment)
+                            .commit();
+
+                    audioVFXViewFragment = null;
+
+                    findViewById(R.id.avfx_layout).setVisibility(View.INVISIBLE);
+                    cover.animate()
+                            .alpha(1.0f)
+                            .setDuration(270)
+                            .setInterpolator(new AnticipateOvershootInterpolator()).start();
+
+                    info("Visualizer/Video disabled!");
+                } else if (!isFinishing() && audioVFXViewFragment == null) {
+                    findViewById(R.id.avfx_layout).setVisibility(View.VISIBLE);
+                    cover.animate()
+                            .alpha(0.3f)
+                            .setDuration(270)
+                            .setInterpolator(new AnticipateOvershootInterpolator()).start();
+
+                    audioVFXViewFragment = AudioVFXViewFragment.create();
+                    getFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.avfx_layout, audioVFXViewFragment)
+                            .commit();
+
+                    info("Visualizer/Video enabled!");
+
+                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Waveform, colorLight);
+                }
+
+            }
+        });
+
         cover = (ImageView) findViewById(R.id.cover);
+
+        color = getApplicationContext().getColor(R.color.accent);
+        colorLight = getApplicationContext().getColor(R.color.accent);
 
         seekBar = (SeekBar) findViewById(R.id.seekBar);
 
@@ -294,7 +337,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         }
 
                         Palette palette = Palette.from(bitmap).generate();
-                        int color = getApplicationContext().getColor(R.color.accent);
+                        color = getApplicationContext().getColor(R.color.accent);
                         int colorBackup = color;
                         color = palette.getVibrantColor(color);
                         if (color == colorBackup)
@@ -305,7 +348,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         float[] hsl = new float[3];
                         ColorUtils.colorToHSL(color, hsl);
                         hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f); // lum +30%
-                        int colorLight = ColorUtils.HSLToColor(hsl);
+                        colorLight = ColorUtils.HSLToColor(hsl);
 
                         root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
 
@@ -319,23 +362,15 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         random.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
                         stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
-//                        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-//                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Horizon, color);
-//                        }
+                        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Waveform, colorLight);
+                        }
 
                         loadingView.smoothToHide();
                     }
                 });
 
                 loadingView.smoothToShow();
-
-//                if (!isFinishing()) {
-//                    audioVFXViewFragment = AudioVFXViewFragment.create();
-//                    getFragmentManager()
-//                            .beginTransaction()
-//                            .replace(R.id.avfx_layout, audioVFXViewFragment)
-//                            .commit();
-//                }
 
                 if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
                     lyricsViewFragment.reset(music);
