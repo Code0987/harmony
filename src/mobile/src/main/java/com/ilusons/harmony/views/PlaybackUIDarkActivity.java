@@ -107,9 +107,27 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                     info("Visualizer/Video enabled!");
 
-                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Waveform, colorLight);
+                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
                 }
 
+            }
+        });
+
+        findViewById(R.id.cover_layout).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+
+                if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waveform) {
+                    AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.FFT);
+                } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.FFT) {
+                    AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waveform);
+                }
+
+                if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+                }
+
+                return true;
             }
         });
 

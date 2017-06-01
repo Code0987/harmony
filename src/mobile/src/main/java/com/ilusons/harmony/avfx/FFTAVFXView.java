@@ -12,7 +12,8 @@ public class FFTAVFXView extends BaseAVFXView {
     float[] buffer;
     public FloatBuffer nativeBuffer;
 
-    FloatColor color;
+    FloatColor leftChannelColor;
+    FloatColor rightChannelColor;
 
     int lastCanvasWidth;
 
@@ -28,28 +29,32 @@ public class FFTAVFXView extends BaseAVFXView {
     public void setup() {
         super.setup();
 
-        color = new FloatColor(1.0f, 1.0f, 1.0f, 1.0f);
+        leftChannelColor = new FloatColor(1.0f, 1.0f, 1.0f, 1.0f);
+        rightChannelColor = new FloatColor(1.0f, 0.0f, 0.0f, 1.0f);
     }
 
-    public void setColor(FloatColor c) {
-        color = c;
+    public void setColor(FloatColor l, FloatColor r) {
+        leftChannelColor = l;
+        rightChannelColor = r;
     }
 
     @Override
     protected void onRenderAudioData(GL10 gl, int width, int height, Buffer data) {
-        final byte[] fft = data.bData;
+        final int canvasWidth = width;
+        final int canvasHeight = height;
+        final float[] fft = data.fData;
 
         // -2, +2: (DC + Fs/2), /2: (Re + Im)
-        final int N = (fft.length - 2) / 2 + 2;
+        final int N = ((fft.length / 2) - 2) / 2 + 2;
 
         // 2: (x, y)
-        final int bufferSize = N * 2;
+        final int workBufferSize = N * 2;
         boolean needToUpdateX = false;
 
         // prepare working buffer
-        if (buffer == null || buffer.length < bufferSize) {
-            buffer = new float[bufferSize];
-            nativeBuffer = allocateNativeFloatBuffer(bufferSize);
+        if (buffer == null || buffer.length < workBufferSize) {
+            buffer = new float[workBufferSize];
+            nativeBuffer = allocateNativeFloatBuffer(workBufferSize);
             needToUpdateX |= true;
         }
 
@@ -65,11 +70,18 @@ public class FFTAVFXView extends BaseAVFXView {
             makeXPointPositionData(N, points);
         }
 
-        final float yrange = 128.0f + 1.0f;
+        final int data_range = (N - 1) / 2;
+        final float yrange = data_range * 1.05f;
 
+        // Lch
         makeYPointPositionData(fft, N, 0, points);
         converToFloatBuffer(pointsBuffer, points, (2 * N));
-        drawFFT(gl, width, height, pointsBuffer, N, yrange, color);
+        drawFFT(gl, canvasWidth, canvasHeight, pointsBuffer, N, 0, yrange, leftChannelColor);
+
+        // Rch
+        makeYPointPositionData(fft, N, (N - 1) * 2, points);
+        converToFloatBuffer(pointsBuffer, points, (2 * N));
+        drawFFT(gl, canvasWidth, canvasHeight, pointsBuffer, N, 1, yrange, rightChannelColor);
     }
 
     private void makeXPointPositionData(int N, float[] points) {
@@ -79,21 +91,14 @@ public class FFTAVFXView extends BaseAVFXView {
         }
     }
 
-    private static void makeYPointPositionData(byte[] fft, int n, int offset, float[] points) {
-        // NOTE:
-        // mag = sqrt( (re / 128)^2 + (im / 128)^2 )
-        // = sqrt( (1 / 128)^2 * (re^2 + im^2) )
-        // = (1 / 128) * sqrt(re^2 + im^2)
-        //
-        // data range = [0:128] (NOTE: L + R mixed gain)
-
+    private static void makeYPointPositionData(float[] fft, int n, int offset, float[] points) {
         // DC
         points[2 * 0 + 1] = Math.abs(fft[offset + 0]);
 
         // f_1 .. f_(N-1)
         for (int i = 1; i < (n - 1); i++) {
-            final int re = fft[offset + 2 * i + 0];
-            final int im = fft[offset + 2 * i + 1];
+            final float re = fft[offset + 2 * i + 0];
+            final float im = fft[offset + 2 * i + 1];
             final float y = fastSqrt((re * re) + (im * im));
 
             points[2 * i + 1] = y;
@@ -103,14 +108,14 @@ public class FFTAVFXView extends BaseAVFXView {
         points[2 * (n - 1) + 1] = Math.abs(fft[offset + 1]);
     }
 
-    private static void drawFFT(GL10 gl, int width, int height, FloatBuffer vertices, int n, float yrange, FloatColor color) {
+    private static void drawFFT(GL10 gl, int width, int height, FloatBuffer vertices, int n, int vposition, float yrange, FloatColor color) {
 
         gl.glPushMatrix();
 
         // viewport
-        gl.glViewport(0, 0, width, height);
+        gl.glViewport(0, (height / 2) * (1 - vposition), width, (height / 2));
 
-        // X: [0:1], Y: [0:yrange]
+        // X: [0:1], Y: [0:1]
         gl.glOrthof(0.0f, 1.0f, 0.0f, yrange, -1.0f, 1.0f);
 
         gl.glColor4f(color.red, color.green, color.blue, color.alpha);
@@ -124,7 +129,8 @@ public class FFTAVFXView extends BaseAVFXView {
 
     // http://forum.processing.org/topic/super-fast-square-root
     private static final float fastSqrt(float x) {
-        return Float.intBitsToFloat(532483686 + (Float.floatToRawIntBits(x) >> 1));
+        return Float.intBitsToFloat(532483686 + (Float.floatToRawIntBits(x) >>
+                1));
     }
-    
+
 }
