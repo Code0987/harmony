@@ -11,7 +11,6 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.audiofx.AudioEffect;
 import android.os.Binder;
 import android.os.Handler;
@@ -26,6 +25,7 @@ import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
@@ -371,7 +371,7 @@ public class MusicService extends Service {
                 public void onCompletion(IBasicMediaPlayer mediaPlayer) {
                     Log.d(TAG, "onCompletion");
 
-                    random();
+                    next();
                 }
             });
             mediaPlayer.setOnErrorListener(new IBasicMediaPlayer.OnErrorListener() {
@@ -379,9 +379,11 @@ public class MusicService extends Service {
                 public boolean onError(IBasicMediaPlayer mediaPlayer, int what, int extra) {
                     Log.w(TAG, "onError\nwhat = " + what + "\nextra = " + extra);
 
+                    Toast.makeText(MusicService.this, "There was a problem while playing " + currentMusic.getText()+"!", Toast.LENGTH_LONG).show();
+
                     random();
 
-                    return true;
+                    return false;
                 }
             });
 

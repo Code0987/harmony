@@ -1,6 +1,7 @@
 package com.ilusons.harmony.views;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,6 +17,7 @@ import com.ilusons.harmony.avfx.FFTAVFXView;
 import com.ilusons.harmony.avfx.WaveformAVFXView;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.JavaEx;
+import com.ilusons.harmony.ref.SPrefEx;
 
 public class AudioVFXViewFragment extends Fragment {
 
@@ -207,9 +209,10 @@ public class AudioVFXViewFragment extends Fragment {
                     fftAVFXView = new FFTAVFXView(getContext());
 
                     fftAVFXView.setColor(
-                            new BaseAVFXView.FloatColor(r, g, b, a));
+                            new BaseAVFXView.FloatColor(r, g, b, a),
+                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a));
 
-                    root.addView(waveformAVFXView);
+                    root.addView(fftAVFXView);
                 default:
                     break;
             }
@@ -229,10 +232,27 @@ public class AudioVFXViewFragment extends Fragment {
     }
 
     public enum AVFXType {
-        Waveform,
-        FFT,
+        Waveform("Waveform"),
+        FFT("Bars / Lines");
 
-        Particles
+        private String friendlyName;
+
+        AVFXType(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+    }
+
+    public static final String TAG_SPREF_AVFXTYPE = SPrefEx.TAG_SPREF + ".avfx_type";
+
+    public static AVFXType getAVFXType(Context context) {
+        return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.Waveform)));
+    }
+
+    public static void setAVFXType(Context context, AVFXType value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_AVFXTYPE, String.valueOf(value))
+                .apply();
     }
 
 }
