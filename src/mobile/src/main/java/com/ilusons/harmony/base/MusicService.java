@@ -24,6 +24,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.MediaController;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -103,6 +104,7 @@ public class MusicService extends Service {
     IMediaPlayerFactory mediaPlayerFactory;
     IBasicMediaPlayer mediaPlayer;
     private MediaSessionCompat mediaSession;
+    private MediaController mediaController;
 
     private BroadcastReceiver intentReceiver;
     private ComponentName headsetMediaButtonIntentReceiverComponent;
