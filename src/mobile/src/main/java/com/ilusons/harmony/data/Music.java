@@ -385,7 +385,7 @@ public class Music {
         Runtime.getRuntime().gc();
 
         // Metadata from system
-        if (path.toLowerCase().startsWith("content")) {
+        if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("audio")) {
             Uri contentUri = Uri.parse(path);
             Cursor cursor = null;
 
@@ -454,6 +454,70 @@ public class Music {
                     }
 
                 }
+            } catch (Exception e) {
+                Log.w(TAG, "metadata from system", e);
+            } finally {
+                if (cursor != null)
+                    cursor.close();
+            }
+        }
+
+        if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("video")) {
+            Uri contentUri = Uri.parse(path);
+            Cursor cursor = null;
+
+            try {
+                String[] projection = {
+                        MediaStore.Video.Media.DATA,
+                        MediaStore.Video.Media.TITLE,
+                        MediaStore.Video.Media.ARTIST,
+                        MediaStore.Video.Media.ALBUM,
+                        MediaStore.Video.Media.DURATION
+                };
+
+                CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
+
+                cursor = loader.loadInBackground();
+
+                cursor.moveToFirst();
+
+                try {
+                    data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE));
+                } catch (Exception e) {
+                    // Eat
+                }
+                try {
+                    data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ARTIST));
+                } catch (Exception e) {
+                    // Eat
+                }
+                try {
+                    data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ALBUM));
+                } catch (Exception e) {
+                    // Eat
+                }
+                try {
+                    data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
+                } catch (Exception e) {
+                    // Eat
+                }
+
+                path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
+
+                MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                try {
+                    mmr.setDataSource(path);
+
+                    Bitmap bmp = mmr.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                    if (bmp != null)
+                        putCover(context, data, bmp);
+                } catch (Exception e) {
+                    Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+                } finally {
+                    mmr.release();
+                }
+
+
             } catch (Exception e) {
                 Log.w(TAG, "metadata from system", e);
             } finally {

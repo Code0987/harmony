@@ -108,7 +108,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     long time = System.currentTimeMillis();
 
                     // Scan media store
-                    scanMediaStore(data);
+                    scanMediaStoreAudio(data);
+                    scanMediaStoreVideo(data);
 
                     Log.d(TAG, "Library update from media store took " + (System.currentTimeMillis() - time) + "ms");
 
@@ -161,7 +162,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 String filePath = file.getAbsolutePath();
                 if (file.isDirectory()) {
                     addFromDirectory(file, data);
-                } else if (filePath.endsWith(".mp3") || filePath.endsWith(".m4a") || filePath.endsWith(".flac")) {
+                } else if (filePath.endsWith(".mp3") || filePath.endsWith(".m4a") || filePath.endsWith(".flac") || filePath.endsWith(".mp4")) {
                     add(file.getAbsolutePath(), data);
                 }
             }
@@ -190,7 +191,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         }
     }
 
-    private void scanMediaStore(final ArrayList<Music> data) {
+    private void scanMediaStoreAudio(final ArrayList<Music> data) {
         ContentResolver cr = context.getContentResolver();
 
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
@@ -217,6 +218,44 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                     if ((new File(path)).exists()) {
                         Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
+
+                        add(contentUri.toString(), data);
+                    }
+                }
+
+            }
+        }
+
+        if (cursor != null)
+            cursor.close();
+    }
+
+    private void scanMediaStoreVideo(final ArrayList<Music> data) {
+        ContentResolver cr = context.getContentResolver();
+
+        Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        String sortOrder = MediaStore.Video.Media.TITLE + " ASC";
+
+        Cursor cursor = cr.query(uri, null, null, null, sortOrder);
+        int count = 0;
+        if (cursor != null) {
+            count = cursor.getCount();
+
+            if (count > 0) {
+                while (cursor.moveToNext()) {
+                    String path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
+
+                    // Ignore if already present
+                    boolean ignore = false;
+                    for (Music item : data) {
+                        if ((item).Path.contains(path))
+                            ignore = true;
+                    }
+                    if (ignore)
+                        continue;
+
+                    if ((new File(path)).exists()) {
+                        Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
 
                         add(contentUri.toString(), data);
                     }
