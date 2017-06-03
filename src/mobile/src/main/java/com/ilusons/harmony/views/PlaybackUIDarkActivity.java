@@ -8,6 +8,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v7.graphics.Palette;
@@ -17,10 +18,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.VideoView;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -51,11 +52,27 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
     private AVLoadingIndicatorView loadingView;
 
+    private View av_layout;
     private ImageView cover;
+    private VideoView video;
+    private View avfx_layout;
+
     private int color;
     private int colorLight;
 
     private SeekBar seekBar;
+
+    private Runnable videoSyncTask = new Runnable() {
+        @Override
+        public void run() {
+
+            if (video.getVisibility() == View.VISIBLE)
+                video.seekTo(getMusicService().getPosition() + 500);
+
+            handler.removeCallbacks(videoSyncTask);
+            handler.postDelayed(videoSyncTask, 10 * 1000);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +90,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         loadingView = (AVLoadingIndicatorView) findViewById(R.id.loadingView);
 
+        av_layout = findViewById(R.id.av_layout);
+        cover = (ImageView) findViewById(R.id.cover);
+        video = (VideoView) findViewById(R.id.video);
+        avfx_layout = findViewById(R.id.avfx_layout);
+
         findViewById(R.id.cover_layout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -85,27 +107,16 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                     audioVFXViewFragment = null;
 
-                    findViewById(R.id.avfx_layout).setVisibility(View.INVISIBLE);
-                    cover.animate()
-                            .alpha(1.0f)
-                            .setDuration(270)
-                            .setInterpolator(new AnticipateOvershootInterpolator()).start();
+                    avfx_layout.setVisibility(View.INVISIBLE);
 
-                    info("Visualizer/Video disabled!");
                 } else if (!isFinishing() && audioVFXViewFragment == null) {
-                    findViewById(R.id.avfx_layout).setVisibility(View.VISIBLE);
-                    cover.animate()
-                            .alpha(0.3f)
-                            .setDuration(270)
-                            .setInterpolator(new AnticipateOvershootInterpolator()).start();
+                    avfx_layout.setVisibility(View.VISIBLE);
 
                     audioVFXViewFragment = AudioVFXViewFragment.create();
                     getFragmentManager()
                             .beginTransaction()
                             .replace(R.id.avfx_layout, audioVFXViewFragment)
                             .commit();
-
-                    info("Visualizer/Video enabled!");
 
                     audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
                 }
@@ -117,21 +128,52 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             @Override
             public boolean onLongClick(View view) {
 
-                if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waveform) {
-                    AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.FFT);
-                } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.FFT) {
-                    AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waveform);
-                }
-
                 if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+
+                    if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waveform) {
+                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.FFT);
+                    } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.FFT) {
+                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waveform);
+                    }
+
                     audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+
                 }
 
                 return true;
             }
         });
 
-        cover = (ImageView) findViewById(R.id.cover);
+        // Video, if loaded is on mute
+        video.setZOrderOnTop(true);
+        video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                mediaPlayer.setVolume(0, 0);
+
+                if (getMusicService() != null)
+                    getMusicService().play();
+
+                handler.post(videoSyncTask);
+            }
+        });
+        video.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                video.setVisibility(View.INVISIBLE);
+
+                handler.removeCallbacks(videoSyncTask);
+            }
+        });
+        video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+                video.setVisibility(View.INVISIBLE);
+
+                handler.removeCallbacks(videoSyncTask);
+
+                return false;
+            }
+        });
 
         color = getApplicationContext().getColor(R.color.accent);
         colorLight = getApplicationContext().getColor(R.color.accent);
@@ -145,6 +187,9 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                 if (getMusicService() != null) {
                     getMusicService().seek(i);
+
+                    if (video.getVisibility() == View.VISIBLE)
+                        video.seekTo(getMusicService().getPosition());
                 }
 
             }
@@ -268,6 +313,9 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         if (getMusicService() != null)
             resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+
+        if (video.getVisibility() == View.VISIBLE)
+            video.start();
     }
 
     @Override
@@ -278,6 +326,9 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         if (getMusicService() != null)
             resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+
+        if (video.getVisibility() == View.VISIBLE)
+            video.pause();
     }
 
     @Override
@@ -285,6 +336,9 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         super.OnMusicServicePlay();
 
         play_pause.setImageDrawable(getDrawable(R.drawable.ic_play_black));
+
+        if (video.getVisibility() == View.VISIBLE)
+            video.stopPlayback();
     }
 
     @Override
@@ -384,6 +438,14 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                             audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Waveform, colorLight);
                         }
 
+                        // Load video
+                        if (music.hasVideo()) {
+                            video.setVisibility(View.VISIBLE);
+                            video.setVideoPath(music.Path);
+                            video.requestFocus();
+                            video.start();
+                        }
+
                         loadingView.smoothToHide();
                     }
                 });
@@ -436,7 +498,6 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                     if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
                         lyricsViewFragment.updateScroll(getMusicService().getPosition());
-
                 }
 
                 handler.removeCallbacks(progressHandlerRunnable);

@@ -99,6 +99,10 @@ public class Music {
         return sb.toString();
     }
 
+    public boolean hasVideo() {
+        return !TextUtils.isEmpty(Path) && Path.toLowerCase().contains(".mp4");
+    }
+
     public Bitmap getCover(final Context context, int size) {
         Bitmap result;
 
