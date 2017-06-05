@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -384,149 +385,156 @@ public class Music {
         if (data == null)
             data = new Music();
 
+        data.Path = path;
+
         // HACK: Calling the devil
         System.gc();
         Runtime.getRuntime().gc();
 
         // Metadata from system
-        if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("audio")) {
-            Uri contentUri = Uri.parse(path);
-            Cursor cursor = null;
+        if (Looper.myLooper() != null) {
 
-            try {
-                String[] projection = {
-                        MediaStore.Audio.Media.DATA,
-                        MediaStore.Audio.Media.IS_MUSIC,
-                        MediaStore.Audio.Media.TITLE,
-                        MediaStore.Audio.Media.ARTIST,
-                        MediaStore.Audio.Media.ALBUM,
-                        MediaStore.Audio.Media.DURATION
-                };
+            if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("audio")) {
+                Uri contentUri = Uri.parse(path);
+                Cursor cursor = null;
 
-                CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
-
-                cursor = loader.loadInBackground();
-
-                cursor.moveToFirst();
-
-                int isMusic = 1;
                 try {
-                    isMusic = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC));
+                    String[] projection = {
+                            MediaStore.Audio.Media.DATA,
+                            MediaStore.Audio.Media.IS_MUSIC,
+                            MediaStore.Audio.Media.TITLE,
+                            MediaStore.Audio.Media.ARTIST,
+                            MediaStore.Audio.Media.ALBUM,
+                            MediaStore.Audio.Media.DURATION
+                    };
+
+                    CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
+
+                    cursor = loader.loadInBackground();
+
+                    cursor.moveToFirst();
+
+                    int isMusic = 1;
+                    try {
+                        isMusic = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC));
+                    } catch (Exception e) {
+                        // Eat
+                    }
+
+                    if (isMusic != 0) {
+
+                        try {
+                            data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+                        } catch (Exception e) {
+                            // Eat
+                        }
+                        try {
+                            data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+                        } catch (Exception e) {
+                            // Eat
+                        }
+                        try {
+                            data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+                        } catch (Exception e) {
+                            // Eat
+                        }
+                        try {
+                            data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
+                        } catch (Exception e) {
+                            // Eat
+                        }
+
+                        path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
+
+                        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                        try {
+                            mmr.setDataSource(path);
+
+                            byte[] cover = mmr.getEmbeddedPicture();
+                            if (cover != null && cover.length > 0) {
+                                Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                                if (bmp != null)
+                                    putCover(context, data, bmp);
+                            }
+                        } catch (Exception e) {
+                            Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+                        } finally {
+                            mmr.release();
+                        }
+
+                    }
                 } catch (Exception e) {
-                    // Eat
+                    Log.w(TAG, "metadata from system", e);
+                } finally {
+                    if (cursor != null)
+                        cursor.close();
                 }
+            }
 
-                if (isMusic != 0) {
+            if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("video")) {
+                Uri contentUri = Uri.parse(path);
+                Cursor cursor = null;
+
+                try {
+                    String[] projection = {
+                            MediaStore.Video.Media.DATA,
+                            MediaStore.Video.Media.TITLE,
+                            MediaStore.Video.Media.ARTIST,
+                            MediaStore.Video.Media.ALBUM,
+                            MediaStore.Video.Media.DURATION
+                    };
+
+                    CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
+
+                    cursor = loader.loadInBackground();
+
+                    cursor.moveToFirst();
 
                     try {
-                        data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+                        data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE));
                     } catch (Exception e) {
                         // Eat
                     }
                     try {
-                        data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+                        data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ARTIST));
                     } catch (Exception e) {
                         // Eat
                     }
                     try {
-                        data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+                        data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ALBUM));
                     } catch (Exception e) {
                         // Eat
                     }
                     try {
-                        data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
+                        data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
                     } catch (Exception e) {
                         // Eat
                     }
 
-                    path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
+                    path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
 
-                    MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                    try {
-                        mmr.setDataSource(path);
+                    if (!fastMode) {
+                        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                        try {
+                            mmr.setDataSource(path);
 
-                        byte[] cover = mmr.getEmbeddedPicture();
-                        if (cover != null && cover.length > 0) {
-                            Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                            Bitmap bmp = mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
                             if (bmp != null)
                                 putCover(context, data, bmp);
+                        } catch (Exception e) {
+                            Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+                        } finally {
+                            mmr.release();
                         }
-                    } catch (Exception e) {
-                        Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
-                    } finally {
-                        mmr.release();
                     }
 
-                }
-            } catch (Exception e) {
-                Log.w(TAG, "metadata from system", e);
-            } finally {
-                if (cursor != null)
-                    cursor.close();
-            }
-        }
 
-        if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("video")) {
-            Uri contentUri = Uri.parse(path);
-            Cursor cursor = null;
-
-            try {
-                String[] projection = {
-                        MediaStore.Video.Media.DATA,
-                        MediaStore.Video.Media.TITLE,
-                        MediaStore.Video.Media.ARTIST,
-                        MediaStore.Video.Media.ALBUM,
-                        MediaStore.Video.Media.DURATION
-                };
-
-                CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
-
-                cursor = loader.loadInBackground();
-
-                cursor.moveToFirst();
-
-                try {
-                    data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE));
                 } catch (Exception e) {
-                    // Eat
-                }
-                try {
-                    data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ARTIST));
-                } catch (Exception e) {
-                    // Eat
-                }
-                try {
-                    data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ALBUM));
-                } catch (Exception e) {
-                    // Eat
-                }
-                try {
-                    data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
-                } catch (Exception e) {
-                    // Eat
-                }
-
-                path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
-
-                MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                try {
-                    mmr.setDataSource(path);
-
-                    Bitmap bmp = mmr.getFrameAtTime(1000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-                    if (bmp != null)
-                        putCover(context, data, bmp);
-                } catch (Exception e) {
-                    Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+                    Log.w(TAG, "metadata from system", e);
                 } finally {
-                    mmr.release();
+                    if (cursor != null)
+                        cursor.close();
                 }
-
-
-            } catch (Exception e) {
-                Log.w(TAG, "metadata from system", e);
-            } finally {
-                if (cursor != null)
-                    cursor.close();
             }
         }
 
@@ -578,8 +586,6 @@ public class Music {
         if (TextUtils.isEmpty(data.Title)) {
             data.Title = (new File(path)).getName().replaceFirst("[.][^.]+$", "");
         }
-
-        data.Path = path;
 
         Log.d(TAG, "added to library\n" + path);
 
