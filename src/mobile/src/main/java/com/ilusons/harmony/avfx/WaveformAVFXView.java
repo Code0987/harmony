@@ -140,7 +140,8 @@ public class WaveformAVFXView extends BaseAVFXView {
         gl.glPushMatrix();
 
         // viewport
-        gl.glViewport(0, (height / 2) * (1 - vposition), width, (height / 2));
+        // gl.glViewport(0, (height / 2) * (1 - vposition), width, (height / 2));
+        gl.glViewport(0, 0, width, height);
 
         // X: [0:1], Y: [-1:+1] (scaled)
         gl.glOrthof(0.0f, 1.0f, -yrange, yrange, -1.0f, 1.0f);
@@ -154,10 +155,7 @@ public class WaveformAVFXView extends BaseAVFXView {
         gl.glPopMatrix();
     }
 
-    private static void makeYPointPositionData(
-            byte[] waveform,
-            int n, int skip, int offset,
-            float[] points) {
+    private static void makeYPointPositionData(byte[] waveform, int n, int skip, int offset, float[] points) {
         // NOTE: data range = [0:255]
         for (int i = 0; i < n; i++) {
             points[2 * i + 1] = waveform[(offset + i) * skip] & 0xff;

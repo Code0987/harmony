@@ -873,6 +873,10 @@ public class MusicService extends Service {
         PlayerType(String friendlyName) {
             this.friendlyName = friendlyName;
         }
+
+        public String getFriendlyName() {
+            return friendlyName;
+        }
     }
 
     public static final String TAG_SPREF_PLAYER_TYPE = SPrefEx.TAG_SPREF + ".player_type";
