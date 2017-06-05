@@ -33,7 +33,6 @@ import com.h6ah4i.android.media.IMediaPlayerFactory;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
-import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerContext;
 import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -353,9 +352,18 @@ public class MusicService extends Service {
 
             // Setup player
             if (mediaPlayerFactory == null)
-                mediaPlayerFactory = new StandardMediaPlayerFactory(getApplicationContext());
+                switch (getPlayerType(this)) {
+                    case OpenSL:
+                        mediaPlayerFactory = new HybridMediaPlayerFactory(getApplicationContext());
+                        break;
+                    case AndroidOS:
+                    default:
+                        mediaPlayerFactory = new StandardMediaPlayerFactory(getApplicationContext());
+                        break;
+                }
             if (mediaPlayer == null)
                 mediaPlayer = mediaPlayerFactory.createMediaPlayer();
+
             try {
                 mediaPlayer.reset();
                 if (onPrepare != null)
@@ -854,6 +862,30 @@ public class MusicService extends Service {
     private static PendingIntent createActionIntent(MusicService service, String action) {
         PendingIntent pendingIntent = createIntent(service, new Intent(action));
         return pendingIntent;
+    }
+
+    public enum PlayerType {
+        AndroidOS("Android OS / Device Default"),
+        OpenSL("Open SL based (experimental)");
+
+        private String friendlyName;
+
+        PlayerType(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+    }
+
+    public static final String TAG_SPREF_PLAYER_TYPE = SPrefEx.TAG_SPREF + ".player_type";
+
+    public static PlayerType getPlayerType(Context context) {
+        return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.AndroidOS)));
+    }
+
+    public static void setPlayerType(Context context, PlayerType value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_TYPE, String.valueOf(value))
+                .apply();
     }
 
 }

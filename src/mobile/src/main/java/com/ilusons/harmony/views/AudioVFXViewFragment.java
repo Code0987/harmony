@@ -3,6 +3,7 @@ package com.ilusons.harmony.views;
 import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
+import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.avfx.BaseAVFXView;
 import com.ilusons.harmony.avfx.FFTAVFXView;
@@ -24,7 +26,10 @@ public class AudioVFXViewFragment extends Fragment {
     // Logger TAG
     private static final String TAG = AudioVFXViewFragment.class.getSimpleName();
 
-    private IHQVisualizer visualizer;
+    private boolean isHQMode = false;
+
+    private IHQVisualizer visualizerHQ;
+    private IVisualizer visualizer;
 
     private WaveformAVFXView waveformAVFXView;
     private FFTAVFXView fftAVFXView;
@@ -48,6 +53,8 @@ public class AudioVFXViewFragment extends Fragment {
 
         if (pendingActionForView != null)
             pendingActionForView.execute();
+
+        isHQMode = MusicService.getPlayerType(getContext()) == MusicService.PlayerType.OpenSL;
     }
 
     @Override
@@ -96,10 +103,10 @@ public class AudioVFXViewFragment extends Fragment {
         cleanupVisualizer();
     }
 
-    private IHQVisualizer.OnDataCaptureListener onDataCaptureListener = new IHQVisualizer.OnDataCaptureListener() {
+    private IHQVisualizer.OnDataCaptureListener onDataCaptureListenerHQ = new IHQVisualizer.OnDataCaptureListener() {
 
         @Override
-        public void onWaveFormDataCapture(IHQVisualizer visualizer, float[] waveform, int numChannels, int samplingRate) {
+        public void onWaveFormDataCapture(IHQVisualizer visualizerHQ, float[] waveform, int numChannels, int samplingRate) {
             WaveformAVFXView view = waveformAVFXView;
 
             if (view != null) {
@@ -108,7 +115,7 @@ public class AudioVFXViewFragment extends Fragment {
         }
 
         @Override
-        public void onFftDataCapture(IHQVisualizer visualizer, float[] fft, int numChannels, int samplingRate) {
+        public void onFftDataCapture(IHQVisualizer visualizerHQ, float[] fft, int numChannels, int samplingRate) {
             FFTAVFXView view = fftAVFXView;
 
             if (view != null) {
@@ -118,36 +125,86 @@ public class AudioVFXViewFragment extends Fragment {
 
     };
 
+    private IVisualizer.OnDataCaptureListener onDataCaptureListener = new IVisualizer.OnDataCaptureListener() {
+
+        @Override
+        public void onWaveFormDataCapture(IVisualizer visualizerHQ, byte[] waveform, int samplingRate) {
+            WaveformAVFXView view = waveformAVFXView;
+
+            if (view != null) {
+                view.updateAudioData(waveform, samplingRate);
+            }
+        }
+
+        @Override
+        public void onFftDataCapture(IVisualizer visualizerHQ, byte[] fft, int samplingRate) {
+            FFTAVFXView view = fftAVFXView;
+
+            if (view != null) {
+                view.updateAudioData(fft, samplingRate);
+            }
+        }
+    };
+
     private void startVisualizer() {
         stopVisualizer();
 
-        if (visualizer != null) {
-            // stop visualizer
-            stopVisualizer();
+        if (isHQMode) {
+            if (visualizerHQ != null) {
+                // stop visualizerHQ
+                stopVisualizer();
 
-            // use maximum rate & size
-            int rate = visualizer.getMaxCaptureRate();
-            int size = 4096;
+                // use maximum rate & size
+                int rate = visualizerHQ.getMaxCaptureRate();
+                int size = 4096;
 
-            // NOTE: min = 128, max = 32768
-            size = Math.max(visualizer.getCaptureSizeRange()[0], size);
-            size = Math.min(visualizer.getCaptureSizeRange()[1], size);
+                // NOTE: min = 128, max = 32768
+                size = Math.max(visualizerHQ.getCaptureSizeRange()[0], size);
+                size = Math.min(visualizerHQ.getCaptureSizeRange()[1], size);
 
-            visualizer.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
-            visualizer.setCaptureSize(size);
-            visualizer.setDataCaptureListener(onDataCaptureListener, rate, waveformAVFXView != null, fftAVFXView != null);
+                visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
+                visualizerHQ.setCaptureSize(size);
+                visualizerHQ.setDataCaptureListener(onDataCaptureListenerHQ, rate, waveformAVFXView != null, fftAVFXView != null);
 
-            visualizer.setEnabled(true);
+                visualizerHQ.setEnabled(true);
+            }
+        } else {
+            if (visualizer != null) {
+                // stop visualizer
+                stopVisualizer();
+
+                // use maximum rate & size
+                int rate = visualizer.getMaxCaptureRate();
+                int size = visualizer.getCaptureSizeRange()[1];
+
+                visualizer.setCaptureSize(size);
+                visualizer.setScalingMode(Visualizer.SCALING_MODE_NORMALIZED);
+                visualizer.setDataCaptureListener(onDataCaptureListener, rate, waveformAVFXView != null, fftAVFXView != null);
+                visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
+
+                visualizer.setEnabled(true);
+            }
         }
+
     }
 
     private void stopVisualizer() {
+        if (visualizerHQ != null) {
+            visualizerHQ.setEnabled(false);
+        }
+
         if (visualizer != null) {
             visualizer.setEnabled(false);
         }
     }
 
     private void cleanupVisualizer() {
+        if (visualizerHQ != null) {
+            visualizerHQ.setEnabled(false);
+
+            visualizerHQ.setDataCaptureListener(null, 0, false, false);
+        }
+
         if (visualizer != null) {
             visualizer.setEnabled(false);
 
@@ -174,7 +231,10 @@ public class AudioVFXViewFragment extends Fragment {
             stopVisualizer();
             cleanupVisualizer();
 
-            visualizer = musicService.getVisualizerHQ();
+            if (isHQMode)
+                visualizerHQ = musicService.getVisualizerHQ();
+            else
+                visualizer = musicService.getVisualizer();
 
             if (isRemoving())
                 return;

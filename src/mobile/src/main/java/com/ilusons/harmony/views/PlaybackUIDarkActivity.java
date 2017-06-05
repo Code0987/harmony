@@ -74,7 +74,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 video.seekTo(getMusicService().getPosition());
 
             handler.removeCallbacks(videoSyncTask);
-            handler.postDelayed(videoSyncTask, 10 * 1000);
+            handler.postDelayed(videoSyncTask, 9 * 1000);
         }
     };
 
@@ -98,7 +98,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     private final Runnable hideUITask = new Runnable() {
         @Override
         public void run() {
-            if (video.getVisibility() == View.VISIBLE && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (video.getVisibility() == View.VISIBLE && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && getMusicService() != null && getMusicService().isPlaying()) {
                 controls_layout.animate().alpha(0).setDuration(500).start();
                 lyrics_layout.animate().alpha(0).setDuration(500).start();
                 seekBar.animate().alpha(0).setDuration(500).start();
@@ -179,6 +179,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         video = (VideoView) findViewById(R.id.video);
 
         // Video, if loaded is on mute
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            video.setZOrderOnTop(false);
+        } else {
+            video.setZOrderOnTop(true);
+        }
         video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             public void onPrepared(MediaPlayer mediaPlayer) {
                 mediaPlayer.setVolume(0, 0);
@@ -517,16 +522,6 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f); // lum +30%
                         colorLight = ColorUtils.HSLToColor(hsl);
 
-                        if (music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                            video.setZOrderOnTop(false);
-
-                            root.setBackground(null);
-                        } else {
-                            video.setZOrderOnTop(true);
-
-                            root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
-                        }
-
                         seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
@@ -549,6 +544,12 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                             video.setVideoPath(music.Path);
                             video.requestFocus();
                             video.start();
+                        }
+
+                        if (music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                            root.setBackground(null);
+                        } else {
+                            root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
                         }
 
                         loadingView.smoothToHide();
