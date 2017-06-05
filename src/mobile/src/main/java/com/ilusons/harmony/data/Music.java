@@ -385,8 +385,6 @@ public class Music {
         if (data == null)
             data = new Music();
 
-        data.Path = path;
-
         // HACK: Calling the devil
         System.gc();
         Runtime.getRuntime().gc();
@@ -445,6 +443,8 @@ public class Music {
                         }
 
                         path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
+
+                        data.Path = path;
 
                         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
                         try {
@@ -512,6 +512,8 @@ public class Music {
                     }
 
                     path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
+
+                    data.Path = path;
 
                     if (!fastMode) {
                         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
@@ -593,6 +595,8 @@ public class Music {
         System.gc();
         Runtime.getRuntime().gc();
 
+        data.Path = path;
+
         return data;
     }
 
@@ -661,6 +665,8 @@ public class Music {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Log.d(TAG, "data\n" + json);
     }
 
     public static void reset(Context context) {

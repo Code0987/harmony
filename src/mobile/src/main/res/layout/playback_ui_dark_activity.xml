@@ -10,7 +10,6 @@
     android:clipChildren="false"
     android:clipToPadding="false"
     android:elevation="0dp"
-    android:fitsSystemWindows="true"
     app:elevation="0dp"
     >
 
@@ -148,11 +147,27 @@
             >
 
             <ImageButton
+                android:id="@+id/avfx"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_margin="3dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_gradient_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
                 android:id="@+id/stop"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="3dp"
+                android:alpha="0.7"
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
@@ -167,6 +182,7 @@
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="3dp"
+                android:alpha="0.9"
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
@@ -194,6 +210,7 @@
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="3dp"
+                android:alpha="0.9"
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
@@ -208,10 +225,26 @@
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="3dp"
+                android:alpha="0.7"
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_fast_forward_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
+                android:id="@+id/tune"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_margin="3dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_tune_black"
                 android:tint="@color/translucent_icons"
                 android:tintMode="src_in"
                 />
