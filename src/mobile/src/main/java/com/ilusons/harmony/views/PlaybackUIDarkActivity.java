@@ -437,8 +437,10 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         play_pause.setImageDrawable(getDrawable(R.drawable.ic_play_black));
 
-        if (video.getVisibility() == View.VISIBLE)
+        if (video.getVisibility() == View.VISIBLE){
             video.stopPlayback();
+            video.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override
@@ -459,6 +461,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         currentUri = uri;
 
         loadingView.smoothToShow();
+
+        if (video.getVisibility() == View.VISIBLE){
+            video.stopPlayback();
+            video.setVisibility(View.INVISIBLE);
+        }
 
         try {
             final Music music = Music.load(this, uri);

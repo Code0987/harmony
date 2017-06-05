@@ -228,6 +228,38 @@ public class SettingsActivity extends BaseActivity {
                 }
             }
         });
+
+        // Player type
+        RadioGroup player_type_radioGroup = (RadioGroup) findViewById(R.id.player_type_radioGroup);
+
+        CompoundButton.OnCheckedChangeListener player_type_onCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (!b)
+                    return;
+
+                MusicService.setPlayerType(SettingsActivity.this, (MusicService.PlayerType) compoundButton.getTag());
+
+                info("Player type will be changed after restart!");
+            }
+        };
+
+        MusicService.PlayerType player_type = MusicService.getPlayerType(getApplicationContext());
+
+        for (MusicService.PlayerType value : MusicService.PlayerType.values()) {
+            RadioButton rb = new RadioButton(this);
+            rb.setText(value.getFriendlyName());
+            rb.setTag(value);
+            rb.setId(value.ordinal());
+            rb.setTextAppearance(android.R.style.TextAppearance_Material_Body1);
+            player_type_radioGroup.addView(rb);
+
+            if (player_type == value)
+                rb.setChecked(true);
+
+            rb.setOnCheckedChangeListener(player_type_onCheckedChangeListener);
+        }
+
     }
 
     public enum UIStyle {
