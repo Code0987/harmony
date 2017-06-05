@@ -47,16 +47,16 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     private ImageButton next;
     private ImageButton random;
     private ImageButton stop;
+    private ImageButton avfx;
+    private ImageButton tune;
 
     private LyricsViewFragment lyricsViewFragment;
     private AudioVFXViewFragment audioVFXViewFragment;
 
     private AVLoadingIndicatorView loadingView;
 
-    private View av_layout;
     private ImageView cover;
     private VideoView video;
-    private View avfx_layout;
 
     private int color;
     private int colorLight;
@@ -160,66 +160,23 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         loadingView = (AVLoadingIndicatorView) findViewById(R.id.loadingView);
 
-        av_layout = findViewById(R.id.av_layout);
-        cover = (ImageView) findViewById(R.id.cover);
-        video = (VideoView) findViewById(R.id.video);
-        avfx_layout = findViewById(R.id.avfx_layout);
-
-        av_layout.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.av_layout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                if (audioVFXViewFragment != null) {
-                    getFragmentManager()
-                            .beginTransaction()
-                            .remove(audioVFXViewFragment)
-                            .commit();
-
-                    audioVFXViewFragment = null;
-
-                    avfx_layout.setVisibility(View.INVISIBLE);
-
-                } else if (!isFinishing() && audioVFXViewFragment == null) {
-                    avfx_layout.setVisibility(View.VISIBLE);
-
-                    audioVFXViewFragment = AudioVFXViewFragment.create();
-                    getFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.avfx_layout, audioVFXViewFragment)
-                            .commit();
-
-                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-                }
-
                 if (video.getVisibility() == View.VISIBLE) {
                     handler.removeCallbacks(showUITask);
                     handler.post(showUITask);
                     handler.removeCallbacks(hideUITask);
                     handler.postDelayed(hideUITask, 2500);
                 }
-
             }
         });
 
-        av_layout.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
+        controls_layout = findViewById(R.id.controls_layout);
+        lyrics_layout = findViewById(R.id.lyrics_layout);
 
-                if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-
-                    if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waveform) {
-                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.FFT);
-                    } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.FFT) {
-                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waveform);
-                    }
-
-                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-
-                }
-
-                return true;
-            }
-        });
+        cover = (ImageView) findViewById(R.id.cover);
+        video = (VideoView) findViewById(R.id.video);
 
         // Video, if loaded is on mute
         video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -261,7 +218,6 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         colorLight = getApplicationContext().getColor(R.color.accent);
 
         seekBar = (SeekBar) findViewById(R.id.seekBar);
-
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -292,6 +248,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         next = (ImageButton) findViewById(R.id.next);
         random = (ImageButton) findViewById(R.id.random);
         stop = (ImageButton) findViewById(R.id.stop);
+        avfx = (ImageButton) findViewById(R.id.avfx);
+        tune = (ImageButton) findViewById(R.id.tune);
 
         play_pause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -340,8 +298,53 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        controls_layout = findViewById(R.id.controls_layout);
-        lyrics_layout = findViewById(R.id.lyrics_layout);
+        final View avfx_layout = findViewById(R.id.avfx_layout);
+        avfx.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (audioVFXViewFragment != null) {
+                    getFragmentManager()
+                            .beginTransaction()
+                            .remove(audioVFXViewFragment)
+                            .commit();
+
+                    audioVFXViewFragment = null;
+
+                    avfx_layout.setVisibility(View.INVISIBLE);
+
+                } else if (!isFinishing() && audioVFXViewFragment == null) {
+                    avfx_layout.setVisibility(View.VISIBLE);
+
+                    audioVFXViewFragment = AudioVFXViewFragment.create();
+                    getFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.avfx_layout, audioVFXViewFragment)
+                            .commit();
+
+                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+                }
+
+                info("Long press to change style!");
+            }
+        });
+        avfx.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+                    if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waveform) {
+                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.FFT);
+                    } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.FFT) {
+                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waveform);
+                    }
+
+                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+
+                    info("Now using " + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + " fx!");
+                }
+
+                return true;
+            }
+        });
 
     }
 
@@ -533,6 +536,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         next.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
                         random.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
                         stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
                         if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
                             audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Waveform, colorLight);

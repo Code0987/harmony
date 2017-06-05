@@ -32,7 +32,9 @@ import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
-import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerFactory;
+import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
+import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerContext;
+import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
@@ -350,9 +352,10 @@ public class MusicService extends Service {
                 return;
 
             // Setup player
+            if (mediaPlayerFactory == null)
+                mediaPlayerFactory = new StandardMediaPlayerFactory(getApplicationContext());
             if (mediaPlayer == null)
-                mediaPlayerFactory = new OpenSLMediaPlayerFactory(getApplicationContext());
-            mediaPlayer = mediaPlayerFactory.createMediaPlayer();
+                mediaPlayer = mediaPlayerFactory.createMediaPlayer();
             try {
                 mediaPlayer.reset();
                 if (onPrepare != null)
@@ -381,7 +384,7 @@ public class MusicService extends Service {
                 public boolean onError(IBasicMediaPlayer mediaPlayer, int what, int extra) {
                     Log.w(TAG, "onError\nwhat = " + what + "\nextra = " + extra);
 
-                    Toast.makeText(MusicService.this, "There was a problem while playing " + currentMusic.getText()+"!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MusicService.this, "There was a problem while playing " + currentMusic.getText() + "!", Toast.LENGTH_LONG).show();
 
                     random();
 
