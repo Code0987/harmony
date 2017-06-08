@@ -16,6 +16,8 @@
 #   public *;
 #}
 
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable
 -dontskipnonpubliclibraryclasses
 -forceprocessing
 -optimizationpasses 5
@@ -28,10 +30,11 @@
 
 -dontwarn javax.annotation.**
 
+-keep class com.h6ah4i.** { *; }
 
 -keep class com.wang.avi.** { *; }
 -keep class com.wang.avi.indicators.** { *; }
-
+-keep class org.jsoup.**
 
 # Facebook
 
