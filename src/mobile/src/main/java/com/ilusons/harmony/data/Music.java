@@ -178,94 +178,99 @@ public class Music {
 
             @Override
             protected Bitmap doInBackground(Object... objects) {
-                if (isCancelled())
-                    throw new CancellationException();
+                try {
+                    if (isCancelled())
+                        throw new CancellationException();
 
-                Bitmap result = data.getCover(context, size);
+                    Bitmap result = data.getCover(context, size);
 
-                // File
-                File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, data.Path);
+                    // File
+                    File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, data.Path);
 
-                if (isCancelled())
-                    throw new CancellationException();
+                    if (isCancelled())
+                        throw new CancellationException();
 
-                // Download and cache to folder then load
-                if (result == null) {
-                    try {
-                        URL url = new URL(String.format(
-                                "https://itunes.apple.com/search?term=%s&entity=song&media=music",
-                                URLEncoder.encode(data.getText(), "UTF-8")));
-
-                        Connection connection = Jsoup.connect(url.toExternalForm())
-                                .timeout(3 * 1000)
-                                .ignoreContentType(true);
-
-                        Document document = connection.get();
-
-                        JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
-
-                        JsonArray results = response.getAsJsonArray("results");
-
-                        String downloadUrl = results
-                                .get(0)
-                                .getAsJsonObject()
-                                .get("artworkUrl60")
-                                .getAsString()
-                                .replace("60x60bb.jpg", "1000x1000bb.jpg");
-
-                        BufferedInputStream in = null;
-                        FileOutputStream out = null;
-                        try {
-                            in = new BufferedInputStream(new URL(downloadUrl).openStream());
-                            out = new FileOutputStream(file.getAbsoluteFile());
-
-                            final byte data[] = new byte[1024];
-                            int count;
-                            while ((count = in.read(data, 0, 1024)) != -1) {
-                                out.write(data, 0, count);
-                            }
-                        } finally {
-                            if (in != null) {
-                                in.close();
-                            }
-                            if (out != null) {
-                                out.close();
-                            }
-                        }
-
-                    } catch (Exception e) {
-                        Log.w(TAG, e);
-                    }
-
-                    if (file.exists())
-                        result = BitmapFactory.decodeFile(file.getAbsolutePath());
-
-                    // Refresh once more
+                    // Download and cache to folder then load
                     if (result == null) {
-                        data.refresh(context);
-
-                        result = data.getCover(context, size);
-                    }
-
-                    // Resample
-                    if (result != null) {
                         try {
-                            Bitmap.Config config = result.getConfig();
-                            if (config == null) {
-                                config = Bitmap.Config.ARGB_8888;
+                            URL url = new URL(String.format(
+                                    "https://itunes.apple.com/search?term=%s&entity=song&media=music",
+                                    URLEncoder.encode(data.getText(), "UTF-8")));
+
+                            Connection connection = Jsoup.connect(url.toExternalForm())
+                                    .timeout(3 * 1000)
+                                    .ignoreContentType(true);
+
+                            Document document = connection.get();
+
+                            JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
+
+                            JsonArray results = response.getAsJsonArray("results");
+
+                            String downloadUrl = results
+                                    .get(0)
+                                    .getAsJsonObject()
+                                    .get("artworkUrl60")
+                                    .getAsString()
+                                    .replace("60x60bb.jpg", "1000x1000bb.jpg");
+
+                            BufferedInputStream in = null;
+                            FileOutputStream out = null;
+                            try {
+                                in = new BufferedInputStream(new URL(downloadUrl).openStream());
+                                out = new FileOutputStream(file.getAbsoluteFile());
+
+                                final byte data[] = new byte[1024];
+                                int count;
+                                while ((count = in.read(data, 0, 1024)) != -1) {
+                                    out.write(data, 0, count);
+                                }
+                            } finally {
+                                if (in != null) {
+                                    in.close();
+                                }
+                                if (out != null) {
+                                    out.close();
+                                }
                             }
-                            result = result.copy(config, false);
+
                         } catch (Exception e) {
                             Log.w(TAG, e);
                         }
 
-                        // Put in cache
-                        CacheEx.getInstance().putBitmap(data.Path, result);
+                        if (file.exists())
+                            result = BitmapFactory.decodeFile(file.getAbsolutePath());
+
+                        // Refresh once more
+                        if (result == null) {
+                            data.refresh(context);
+
+                            result = data.getCover(context, size);
+                        }
+
+                        // Resample
+                        if (result != null) {
+                            try {
+                                Bitmap.Config config = result.getConfig();
+                                if (config == null) {
+                                    config = Bitmap.Config.ARGB_8888;
+                                }
+                                result = result.copy(config, false);
+                            } catch (Exception e) {
+                                Log.w(TAG, e);
+                            }
+
+                            // Put in cache
+                            CacheEx.getInstance().putBitmap(data.Path, result);
+                        }
+
                     }
 
+                    return result;
+                } catch (Exception e) {
+                    Log.w(TAG, e);
                 }
-
-                return result;
+                return null;
             }
         });
         getCoverOrDownloadTask.execute();
@@ -326,45 +331,50 @@ public class Music {
 
             @Override
             protected String doInBackground(Void... Voids) {
-                String result = data.getLyrics(context);
-
-                if (!TextUtils.isEmpty(result))
-                    return result;
-
-                // Refresh once more
-                if (result == null) {
-                    data.refresh(context);
-
-                    result = data.getLyrics(context);
+                try {
+                    String result = data.getLyrics(context);
 
                     if (!TextUtils.isEmpty(result))
                         return result;
-                }
 
-                try {
-                    if (isCancelled())
-                        throw new CancellationException();
+                    // Refresh once more
+                    if (result == null) {
+                        data.refresh(context);
 
-                    ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(data.getText());
+                        result = data.getLyrics(context);
 
-                    if (!(results == null || results.size() == 0))
-                        result = results.get(0).Content;
+                        if (!TextUtils.isEmpty(result))
+                            return result;
+                    }
 
-                    if (isCancelled())
-                        throw new CancellationException();
+                    try {
+                        if (isCancelled())
+                            throw new CancellationException();
 
-                    data.putLyrics(context, result);
+                        ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(data.getText());
+
+                        if (!(results == null || results.size() == 0))
+                            result = results.get(0).Content;
+
+                        if (isCancelled())
+                            throw new CancellationException();
+
+                        data.putLyrics(context, result);
+                    } catch (Exception e) {
+                        Log.w(TAG, e);
+                    }
+
+                    if (TextUtils.isEmpty(result)) {
+                        result = "";
+
+                        data.putLyrics(context, "");
+                    }
+
+                    return result;
                 } catch (Exception e) {
                     Log.w(TAG, e);
                 }
-
-                if (TextUtils.isEmpty(result)) {
-                    result = "";
-
-                    data.putLyrics(context, "");
-                }
-
-                return result;
+                return null;
             }
         });
         getLyricsOrDownloadTask.execute();
