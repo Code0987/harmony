@@ -1,5 +1,23 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'org.moallemi.advanced-build-version'
+
+advancedVersioning {
+    nameOptions {
+        versionMajor 0
+        versionMinor 1
+        versionPatch 0
+        versionBuild versionCode
+    }
+    codeOptions {
+        versionCodeType org.moallemi.gradle.internal.VersionCodeType.AUTO_INCREMENT_DATE
+        dependsOnTasks 'release', 'releaseAlpha', 'releaseBeta'
+    }
+    outputOptions {
+        renameOutput true
+        nameFormat '${appName}-${projectName}-${flavorName}-${buildType}-${versionName}'
+    }
+}
 
 android {
     signingConfigs {
@@ -16,8 +34,8 @@ android {
         applicationId "com.ilusons.harmony"
         minSdkVersion 23
         targetSdkVersion 25
-        versionCode 1
-        versionName "0.1.0"
+        versionCode advancedVersioning.versionCode
+        versionName advancedVersioning.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled = true
@@ -99,6 +117,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }
+
 repositories {
     mavenCentral()
 }

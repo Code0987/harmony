@@ -17,7 +17,6 @@
 #}
 
 -dontskipnonpubliclibraryclasses
--obfuscate
 -forceprocessing
 -optimizationpasses 5
 
@@ -28,6 +27,10 @@
 }
 
 -dontwarn javax.annotation.**
+
+
+-keep class com.wang.avi.** { *; }
+-keep class com.wang.avi.indicators.** { *; }
 
 
 # Facebook
