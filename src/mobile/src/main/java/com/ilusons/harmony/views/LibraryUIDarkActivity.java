@@ -1,7 +1,9 @@
 package com.ilusons.harmony.views;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
@@ -11,17 +13,20 @@ import android.os.Bundle;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.ilusons.harmony.MainActivity;
@@ -30,6 +35,7 @@ import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 
 import java.util.ArrayList;
@@ -40,6 +46,15 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
     // Logger TAG
     private static final String TAG = LibraryUIDarkActivity.class.getSimpleName();
 
+    public static final String TAG_SPREF_LIBRARY_VIEW_mp3 = SPrefEx.TAG_SPREF + ".library_view_mp3";
+    public static boolean LIBRARY_VIEW_mp3_DEFAULT = true;
+    public static final String TAG_SPREF_LIBRARY_VIEW_m4a = SPrefEx.TAG_SPREF + ".library_view_m4a";
+    public static boolean LIBRARY_VIEW_m4a_DEFAULT = true;
+    public static final String TAG_SPREF_LIBRARY_VIEW_mp4 = SPrefEx.TAG_SPREF + ".library_view_mp4";
+    public static boolean LIBRARY_VIEW_mp4_DEFAULT = false;
+    public static final String TAG_SPREF_LIBRARY_VIEW_flac = SPrefEx.TAG_SPREF + ".library_view_flac";
+    public static boolean LIBRARY_VIEW_flac_DEFAULT = true;
+
     // Request codes
     private static final int REQUEST_FILE_PICK = 4684;
 
@@ -49,6 +64,9 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
     private View root;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
+
+    private View settings_layout;
+    private SearchView search_view;
 
     private AsyncTask<Void, Void, Collection<Music>> refreshTask = null;
 
@@ -158,16 +176,112 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
             }
         });
 
+        settings_layout = findViewById(R.id.settings_layout);
+
         findViewById(R.id.fab_item4).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                settings_layout.animate()
+                        .alpha(1)
+                        .setDuration(270)
+                        .start();
+                settings_layout.setVisibility(View.VISIBLE);
+
+                toggleFabItems();
+
+                info("Long press to open app settings!");
+            }
+        });
+
+        findViewById(R.id.fab_item4).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
                 Intent intent = new Intent(LibraryUIDarkActivity.this, SettingsActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
 
                 toggleFabItems();
+
+                return true;
             }
         });
+
+        Switch mp3_switch = (Switch) findViewById(R.id.mp3_switch);
+        mp3_switch.setChecked(SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT));
+        mp3_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                SPrefEx.get(LibraryUIDarkActivity.this)
+                        .edit()
+                        .putBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, b)
+                        .apply();
+
+                if (search_view != null)
+                    adapter.filter("" + search_view.getQuery());
+            }
+        });
+
+        Switch m4a_switch = (Switch) findViewById(R.id.m4a_switch);
+        m4a_switch.setChecked(SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT));
+        m4a_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                SPrefEx.get(LibraryUIDarkActivity.this)
+                        .edit()
+                        .putBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, b)
+                        .apply();
+
+                if (search_view != null)
+                    adapter.filter("" + search_view.getQuery());
+            }
+        });
+
+        Switch mp4_switch = (Switch) findViewById(R.id.mp4_switch);
+        mp4_switch.setChecked(SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT));
+        mp4_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                SPrefEx.get(LibraryUIDarkActivity.this)
+                        .edit()
+                        .putBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, b)
+                        .apply();
+
+                if (search_view != null)
+                    adapter.filter("" + search_view.getQuery());
+            }
+        });
+
+        Switch flac_switch = (Switch) findViewById(R.id.flac_switch);
+        flac_switch.setChecked(SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT));
+        flac_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                SPrefEx.get(LibraryUIDarkActivity.this)
+                        .edit()
+                        .putBoolean(TAG_SPREF_LIBRARY_VIEW_flac, b)
+                        .apply();
+
+                if (search_view != null)
+                    adapter.filter("" + search_view.getQuery());
+            }
+        });
+
+        search_view = (SearchView) findViewById(R.id.search_view);
+
+        search_view.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.filter(newText);
+
+                return false;
+            }
+        });
+
     }
 
     @Override
@@ -205,6 +319,34 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_UP) {
+
+            if (settings_layout != null && settings_layout.getVisibility() == View.VISIBLE) {
+                Rect r = new Rect(0, 0, 0, 0);
+                settings_layout.getHitRect(r);
+                if (!r.contains((int) ev.getX(), (int) ev.getY())) {
+                    settings_layout.animate()
+                            .alpha(0)
+                            .setDuration(220)
+                            .withEndAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    settings_layout.setVisibility(View.INVISIBLE);
+                                }
+                            })
+                            .start();
+
+                    return true;
+                }
+            }
+
+        }
+
+        return super.dispatchTouchEvent(ev);
     }
 
     public void toggleFabItems() {
@@ -254,18 +396,16 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
     @Override
     public void OnMusicServicePlay() {
         super.OnMusicServicePlay();
-
-
     }
 
     @Override
     public void OnMusicServicePause() {
-        super.OnMusicServicePlay();
+        super.OnMusicServicePause();
     }
 
     @Override
     public void OnMusicServiceStop() {
-        super.OnMusicServicePlay();
+        super.OnMusicServiceStop();
     }
 
     @Override
@@ -293,10 +433,11 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
 
-        private ArrayList<Music> data;
+        private ArrayList<Music> data, dataFiltered;
 
         public RecyclerViewAdapter() {
             data = new ArrayList<>();
+            dataFiltered = new ArrayList<>();
         }
 
         @Override
@@ -310,7 +451,7 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
-            final Music item = data.get(position);
+            final Music item = dataFiltered.get(position);
             final View v = holder.view;
 
             // Bind data to view here!
@@ -364,15 +505,48 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
 
         @Override
         public int getItemCount() {
-            return data.size();
+            return dataFiltered.size();
         }
 
         public void setData(Collection<Music> d) {
             data.clear();
             data.addAll(d);
-            notifyDataSetChanged();
+            dataFiltered.clear();
+            dataFiltered.addAll(data);
+            filter(null);
         }
 
+        public void filter(final String text) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dataFiltered.clear();
+
+                    for (Music item : data) {
+                        boolean f = false;
+
+                        SharedPreferences spref = SPrefEx.get(LibraryUIDarkActivity.this);
+
+                        f |= item.Path.toLowerCase().endsWith(".mp3") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT);
+                        f |= item.Path.toLowerCase().endsWith(".m4a") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT);
+                        f |= item.Path.toLowerCase().endsWith(".mp4") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT);
+                        f |= item.Path.toLowerCase().endsWith(".flac") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT);
+
+                        f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
+
+                        if (f)
+                            dataFiltered.add(item);
+                    }
+
+                    (LibraryUIDarkActivity.this).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            notifyDataSetChanged();
+                        }
+                    });
+                }
+            }).start();
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
