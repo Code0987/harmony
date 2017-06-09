@@ -351,6 +351,13 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
+        tune.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                info("Coming soon!"); // TODO: Add tune controls
+            }
+        });
+
     }
 
     @Override
