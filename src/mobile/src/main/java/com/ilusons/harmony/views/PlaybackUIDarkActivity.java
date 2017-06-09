@@ -354,7 +354,9 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         tune.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                info("Coming soon!"); // TODO: Add tune controls
+                Intent intent = new Intent(PlaybackUIDarkActivity.this, TuneActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
             }
         });
 

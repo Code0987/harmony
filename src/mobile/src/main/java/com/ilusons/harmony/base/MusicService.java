@@ -30,7 +30,9 @@ import android.widget.Toast;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
+import com.h6ah4i.android.media.audiofx.IEqualizer;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
+import com.h6ah4i.android.media.audiofx.IPreAmp;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
@@ -188,6 +190,16 @@ public class MusicService extends Service {
             visualizerHQ = null;
         }
 
+        if (equalizer != null) {
+            equalizer.release();
+            equalizer = null;
+        }
+
+        if (preAmp != null) {
+            preAmp.release();
+            preAmp = null;
+        }
+
         if (mediaPlayerFactory != null) {
             mediaPlayerFactory.release();
             mediaPlayerFactory = null;
@@ -242,6 +254,40 @@ public class MusicService extends Service {
         }
 
         return visualizerHQ;
+    }
+
+    private IEqualizer equalizer;
+
+    public IEqualizer getEqualizer() {
+        if (equalizer == null)
+            try {
+                switch (getPlayerType(this)) {
+                    case OpenSL:
+                        equalizer = mediaPlayerFactory.createHQEqualizer();
+                        break;
+                    case AndroidOS:
+                    default:
+                        equalizer = mediaPlayerFactory.createEqualizer(mediaPlayer);
+                        break;
+                }
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return equalizer;
+    }
+
+    private IPreAmp preAmp;
+
+    public IPreAmp getPreAmp() {
+        if (preAmp == null)
+            try {
+                preAmp = mediaPlayerFactory.createPreAmp();
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return preAmp;
     }
 
     private MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
@@ -370,6 +416,21 @@ public class MusicService extends Service {
                     mediaPlayer.setOnPreparedListener(new IBasicMediaPlayer.OnPreparedListener() {
                         @Override
                         public void onPrepared(IBasicMediaPlayer mediaPlayer) {
+                            // Enabled effects before playing, if any
+                            try {
+                                if (getPlayerEQEnabled(MusicService.this))
+                                    getEqualizer().setEnabled(true);
+                            } catch (Exception e) {
+                                Log.w(TAG, e);
+                            }
+
+                            try {
+                                if (getPlayerPreAmpEnabled(MusicService.this))
+                                    getPreAmp().setEnabled(true);
+                            } catch (Exception e) {
+                                Log.w(TAG, e);
+                            }
+
                             onPrepare.execute();
                         }
                     });
@@ -889,6 +950,32 @@ public class MusicService extends Service {
         SPrefEx.get(context)
                 .edit()
                 .putString(TAG_SPREF_PLAYER_TYPE, String.valueOf(value))
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_EQ_ENABLED = SPrefEx.TAG_SPREF + ".player_eq_enabled";
+
+    public static boolean getPlayerEQEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_EQ_ENABLED, false);
+    }
+
+    public static void setPlayerEQEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_EQ_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_PREAMP_ENABLED = SPrefEx.TAG_SPREF + ".player_preamp_enabled";
+
+    public static boolean getPlayerPreAmpEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_PREAMP_ENABLED, false);
+    }
+
+    public static void setPlayerPreAmpEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_PREAMP_ENABLED, value)
                 .apply();
     }
 

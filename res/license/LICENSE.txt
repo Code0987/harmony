@@ -8,7 +8,7 @@ Summary
     Attribution to software creator must be made
     Parts of the software are provided under separate licenses, as follows:
 
-        OpenSLMediaPlayer
+        OpenSLMediaPlayer, VerticalSeekBar
             http://www.apache.org/licenses/LICENSE-2.0
         cxxdasp
             http://www.apache.org/licenses/LICENSE-2.0
