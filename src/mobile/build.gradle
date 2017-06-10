@@ -15,7 +15,7 @@ advancedVersioning {
     }
     outputOptions {
         renameOutput true
-        nameFormat '${appName}-${projectName}-${flavorName}-${buildType}-${versionName}'
+        nameFormat '${appName}-${flavorName}-${buildType}-${versionName}'
     }
 }
 
@@ -52,18 +52,30 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             versionNameSuffix '-release'
             signingConfig signingConfigs.config
+            debuggable false
+            jniDebuggable false
+            renderscriptDebuggable false
+            zipAlignEnabled true
         }
         releaseAlpha {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             versionNameSuffix '-alpha'
             signingConfig signingConfigs.config
+            debuggable false
+            jniDebuggable false
+            renderscriptDebuggable false
+            zipAlignEnabled true
         }
         releaseBeta {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             versionNameSuffix '-beta'
             signingConfig signingConfigs.config
+            debuggable false
+            jniDebuggable false
+            renderscriptDebuggable false
+            zipAlignEnabled true
         }
     }
     productFlavors {
