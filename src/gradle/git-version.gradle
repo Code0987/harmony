@@ -7,8 +7,10 @@ buildscript {
     }
 }
 
+
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
@@ -66,14 +68,22 @@ ext.getGitVersionData = {
     }
 }
 
-ext.getAndTagCurrentRelease = { versionData ->
-    if (!versionData.clean) {
+ext.getAndTagCurrentRelease = { gitVersionData ->
+    if (!gitVersionData.clean) {
         throw new GradleException("State not clean, can't tag!")
     }
 
-    def versionName = "${gitVersionData.major}.${gitVersionData.minor}.${gitVersionData.patch}-${gitVersionData.build}"
+    def versionName = "${gitVersionData.major}.${gitVersionData.minor}.${gitVersionData.patch}"
 
-    def tag = git.tag().setName("v" + versionName).setAnnotated(true).call();
+    def Ref tag = null;
+    for (Ref item : git.tagList().call()) {
+        println item.getName()
+        if (item.getName().endsWith(versionName)) {
+            tag = item;
+            break;
+        }
+    }
 
-    return tag
+    if (tag == null)
+        git.tag().setName("v" + versionName).setAnnotated(true).call();
 }
