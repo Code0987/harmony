@@ -73,7 +73,7 @@ public class WaveformAVFXView extends BaseAVFXView {
                 makeXPointPositionData(N, points);
             }
 
-            final float yrange = 1.05f;
+            final float yrange = 1.25f;
 
             // Left channel
             makeYPointPositionData(waveform, N, SKIP, 0, points);

@@ -26,8 +26,6 @@ public class AudioVFXViewFragment extends Fragment {
     // Logger TAG
     private static final String TAG = AudioVFXViewFragment.class.getSimpleName();
 
-    private boolean isHQMode = false;
-
     private IHQVisualizer visualizerHQ;
     private IVisualizer visualizer;
 
@@ -53,8 +51,6 @@ public class AudioVFXViewFragment extends Fragment {
 
         if (pendingActionForView != null)
             pendingActionForView.execute();
-
-        isHQMode = MusicService.getPlayerType(getContext()) == MusicService.PlayerType.OpenSL;
     }
 
     @Override
@@ -149,7 +145,7 @@ public class AudioVFXViewFragment extends Fragment {
     private void startVisualizer() {
         stopVisualizer();
 
-        if (isHQMode) {
+        if (MusicService.getPlayerType(getContext()) == MusicService.PlayerType.OpenSL) {
             if (visualizerHQ != null) {
                 // stop visualizerHQ
                 stopVisualizer();
@@ -174,7 +170,7 @@ public class AudioVFXViewFragment extends Fragment {
                 stopVisualizer();
 
                 // use maximum rate & size
-                int rate = visualizer.getMaxCaptureRate();
+                int rate = visualizer.getMaxCaptureRate() / 2;
                 int size = visualizer.getCaptureSizeRange()[1];
 
                 visualizer.setCaptureSize(size);
@@ -231,7 +227,7 @@ public class AudioVFXViewFragment extends Fragment {
             stopVisualizer();
             cleanupVisualizer();
 
-            if (isHQMode)
+            if (MusicService.getPlayerType(getContext()) == MusicService.PlayerType.OpenSL)
                 visualizerHQ = musicService.getVisualizerHQ();
             else
                 visualizer = musicService.getVisualizer();

@@ -1,12 +1,32 @@
 ## harmony
 
-Music player
+A music player!
+
+### Release details
+
+- Version 0.1.0.*
+- Alpha
+- Highly unstable
+- Only for testing and feedback
 
 ### Features
 
-- EQ 7-10 bands (per song adjustable)
-- Bass, Pitch, Reverb (per song adjustable)
-- Lyrics (per song adjustable, in notifications, in navbar, float, in-app)
-- Scrobbler support
-- Auto metadata / details fetcher
-- Auto-organizer
+- Cover-art (metadata, online)
+- Lyrics (timestamped, scrolling) (.mp3 metadata, online)
+- Whole device library (.mp3, .m4a, .flac, .mp4)
+- Auto library management
+- Auto playback
+- Video playback support (landscape mode for better view)
+- Notification support
+- Lock-screen support
+- Headset/Media buttons support (auto pause/resume)
+- Adaptive player UI based on cover-art
+- Visualization
+- Equalizer 5-10 bands, Bass boost, Reverb
+- Android / OpenSL based player
+
+_Work in progress. So features mentioned might not work as mentioned!_
+
+### Contact
+
+Email us at harmony@ilusons.com !

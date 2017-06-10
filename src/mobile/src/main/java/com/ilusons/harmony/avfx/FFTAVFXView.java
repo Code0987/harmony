@@ -72,7 +72,7 @@ public class FFTAVFXView extends BaseAVFXView {
             }
 
             final int data_range = (N - 1) / 2;
-            final float yrange = data_range * 1.05f;
+            final float yrange = data_range * 1.25f;
 
             // Lch
             makeYPointPositionData(fft, N, 0, points);
@@ -139,7 +139,7 @@ public class FFTAVFXView extends BaseAVFXView {
             final float im = fft[offset + 2 * i + 1];
             final float y = fastSqrt((re * re) + (im * im));
 
-            points[2 * i + 1] = y;
+            points[2 * i + 1] = 7 * (float) (10 * Math.log10((re * re) + (im * im)));
         }
 
         // fs / 2
@@ -151,7 +151,8 @@ public class FFTAVFXView extends BaseAVFXView {
         gl.glPushMatrix();
 
         // viewport
-        gl.glViewport(0, (height / 2) * (1 - vposition), width, (height / 2));
+        // gl.glViewport(0, (height / 2) * (1 - vposition), width, (height / 2));
+        gl.glViewport(0, 0, width, height);
 
         // X: [0:1], Y: [0:1]
         gl.glOrthof(0.0f, 1.0f, 0.0f, yrange, -1.0f, 1.0f);
