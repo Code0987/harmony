@@ -1,0 +1,79 @@
+buildscript {
+    dependencies {
+        classpath "org.eclipse.jgit:org.eclipse.jgit:4.1.1.201511131810-r"
+    }
+    repositories {
+        jcenter()
+    }
+}
+
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+
+def git = Git.wrap(new FileRepositoryBuilder()
+        .readEnvironment()
+        .findGitDir()
+        .build())
+
+ext.getGitVersionData = {
+    def repo = git.getRepository()
+    def walk = new RevWalk(repo)
+    def count = git.log().call().size()
+    def sha = walk.parseCommit(repo.resolve(Constants.HEAD)).getId().abbreviate(7).name()
+    def describe = git.describe().setLong(true).call()
+    def clean = git.status().call().isClean()
+    def matcher = (describe =~ "(?:v([0-9]+?))\\.([0-9]+?)\\.([0-9]+?)(?:-([0-9A-Za-z]+))?-([0-9]+?)-g([a-zA-Z0-9]+)")
+    if (matcher.matches()) {
+        return [
+                majorLast: matcher.group(1),
+                minorLast: matcher.group(2),
+                patchLast: matcher.group(3),
+                buildLast: matcher.group(4),
+                countLast: matcher.group(5),
+                shaLast  : matcher.group(6),
+
+                major    : matcher.group(1),
+                minor    : matcher.group(2),
+                patch    : count - matcher.group(5).toInteger(),
+                build    : sha + (clean ? '' : '-dirty'),
+                code     : ((100000000 * matcher.group(1).toInteger()) + (100000 * matcher.group(2).toInteger()) + (count - matcher.group(5).toInteger())),
+
+                sha      : sha,
+                count    : count,
+                clean    : clean
+        ]
+    } else {
+        return [
+                majorLast: 0,
+                minorLast: 1,
+                patchLast: 0,
+                buildLast: 'initial',
+                countLast: count,
+                shaLast  : "initial",
+
+                major    : 0,
+                minor    : 1,
+                patch    : count,
+                build    : sha + (clean ? '' : '-dirty'),
+                code     : ((100000000 * 0) + (100000 * 1) + count),
+
+                sha      : sha,
+                count    : count,
+                clean    : clean
+        ]
+    }
+}
+
+ext.getAndTagCurrentRelease = { versionData ->
+    if (!versionData.clean) {
+        throw new GradleException("State not clean, can't tag!")
+    }
+
+    def versionName = "${gitVersionData.major}.${gitVersionData.minor}.${gitVersionData.patch}-${gitVersionData.build}"
+
+    def tag = git.tag().setName("v" + versionName).setAnnotated(true).call();
+
+    return tag
+}
