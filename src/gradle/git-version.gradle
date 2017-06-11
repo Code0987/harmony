@@ -77,7 +77,6 @@ ext.getAndTagCurrentRelease = { gitVersionData ->
 
     def Ref tag = null;
     for (Ref item : git.tagList().call()) {
-        println item.getName()
         if (item.getName().endsWith(versionName)) {
             tag = item;
             break;
