@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
@@ -29,12 +30,18 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.NativeExpressAdView;
+import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 
@@ -433,7 +440,11 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
 
-        private ArrayList<Music> data, dataFiltered;
+        private static final int ITEMS_PER_AD = 8;
+        private AdListener lastAdListener = null;
+
+        private ArrayList<Music> data;
+        private ArrayList<Object> dataFiltered;
 
         public RecyclerViewAdapter() {
             data = new ArrayList<>();
@@ -451,55 +462,103 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
-            final Music item = dataFiltered.get(position);
+            final Object d = dataFiltered.get(position);
             final View v = holder.view;
 
             // Bind data to view here!
 
-            final ImageView cover = (ImageView) v.findViewById(R.id.cover);
-            cover.setImageBitmap(null);
-            // HACK: This animates aw well as reduces load on image view
-            final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
-            (new AsyncTask<Void, Void, Bitmap>() {
-                @Override
-                protected Bitmap doInBackground(Void... voids) {
-                    return item.getCover(LibraryUIDarkActivity.this, coverSize);
+            if (d instanceof NativeExpressAdView && lastAdListener == null) {
+
+                CardView cv = (CardView) v.findViewById(R.id.cardView);
+
+                final NativeExpressAdView adView = (NativeExpressAdView) d;
+
+                adView.setAdSize(new AdSize((int) ((cv.getWidth() - cv.getPaddingLeft() - cv.getPaddingRight()) / getResources().getDisplayMetrics().density), 96));
+                adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
+
+                cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
+
+                lastAdListener = new AdListener() {
+                    @Override
+                    public void onAdLoaded() {
+                        super.onAdLoaded();
+
+                        lastAdListener = null;
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(int errorCode) {
+
+                        lastAdListener = null;
+                    }
+                };
+                adView.setAdListener(lastAdListener);
+
+                AdRequest adRequest;
+                if (BuildConfig.DEBUG) {
+                    adRequest = new AdRequest.Builder()
+                            .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                            .addTestDevice(AndroidEx.getDeviceIdHashed(LibraryUIDarkActivity.this))
+                            .build();
+                } else {
+                    adRequest = new AdRequest.Builder()
+                            .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                            .build();
                 }
 
-                @Override
-                protected void onPostExecute(Bitmap bitmap) {
-                    TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-                            cover.getDrawable(),
-                            new BitmapDrawable(getResources(), bitmap)
-                    });
+                adView.loadAd(adRequest);
 
-                    cover.setImageDrawable(d);
 
-                    d.setCrossFadeEnabled(true);
-                    d.startTransition(200);
-                }
-            }).execute();
+            } else if (d instanceof Music) {
 
-            TextView title = (TextView) v.findViewById(R.id.title);
-            title.setText(item.Title);
+                final Music item = (Music) dataFiltered.get(position);
 
-            TextView artist = (TextView) v.findViewById(R.id.artist);
-            artist.setText(item.Artist);
+                final ImageView cover = (ImageView) v.findViewById(R.id.cover);
+                cover.setImageBitmap(null);
+                // HACK: This animates aw well as reduces load on image view
+                final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
+                (new AsyncTask<Void, Void, Bitmap>() {
+                    @Override
+                    protected Bitmap doInBackground(Void... voids) {
+                        return item.getCover(LibraryUIDarkActivity.this, coverSize);
+                    }
 
-            TextView album = (TextView) v.findViewById(R.id.album);
-            album.setText(item.Album);
+                    @Override
+                    protected void onPostExecute(Bitmap bitmap) {
+                        TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+                                cover.getDrawable(),
+                                new BitmapDrawable(getResources(), bitmap)
+                        });
 
-            v.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent i = new Intent(LibraryUIDarkActivity.this, MusicService.class);
+                        cover.setImageDrawable(d);
 
-                    i.setAction(MusicService.ACTION_OPEN);
-                    i.putExtra(MusicService.KEY_URI, item.Path);
+                        d.setCrossFadeEnabled(true);
+                        d.startTransition(200);
+                    }
+                }).execute();
 
-                    startService(i);
-                }
-            });
+                TextView title = (TextView) v.findViewById(R.id.title);
+                title.setText(item.Title);
+
+                TextView artist = (TextView) v.findViewById(R.id.artist);
+                artist.setText(item.Artist);
+
+                TextView album = (TextView) v.findViewById(R.id.album);
+                album.setText(item.Album);
+
+                v.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent i = new Intent(LibraryUIDarkActivity.this, MusicService.class);
+
+                        i.setAction(MusicService.ACTION_OPEN);
+                        i.putExtra(MusicService.KEY_URI, item.Path);
+
+                        startService(i);
+                    }
+                });
+
+            }
 
         }
 
@@ -511,8 +570,7 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
         public void setData(Collection<Music> d) {
             data.clear();
             data.addAll(d);
-            dataFiltered.clear();
-            dataFiltered.addAll(data);
+
             filter(null);
         }
 
@@ -538,6 +596,13 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
                             dataFiltered.add(item);
                     }
 
+                    // Add ads
+                    final int n = dataFiltered.size();
+                    for (int i = 0; i <= n; i += ITEMS_PER_AD) {
+                        final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIDarkActivity.this);
+                        dataFiltered.add(i, adView);
+                    }
+
                     (LibraryUIDarkActivity.this).runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -547,6 +612,7 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
                 }
             }).start();
         }
+
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
