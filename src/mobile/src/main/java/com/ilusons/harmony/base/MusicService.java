@@ -30,9 +30,12 @@ import android.widget.Toast;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
+import com.h6ah4i.android.media.audiofx.IBassBoost;
 import com.h6ah4i.android.media.audiofx.IEqualizer;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
+import com.h6ah4i.android.media.audiofx.ILoudnessEnhancer;
 import com.h6ah4i.android.media.audiofx.IPreAmp;
+import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
@@ -200,6 +203,21 @@ public class MusicService extends Service {
             preAmp = null;
         }
 
+        if (bassBoost != null) {
+            bassBoost.release();
+            bassBoost = null;
+        }
+
+        if (loudnessEnhancer != null) {
+            loudnessEnhancer.release();
+            loudnessEnhancer = null;
+        }
+
+        if (virtualizer != null) {
+            virtualizer.release();
+            virtualizer = null;
+        }
+
         if (mediaPlayerFactory != null) {
             mediaPlayerFactory.release();
             mediaPlayerFactory = null;
@@ -288,6 +306,45 @@ public class MusicService extends Service {
             }
 
         return preAmp;
+    }
+
+    private IBassBoost bassBoost;
+
+    public IBassBoost getBassBoost() {
+        if (bassBoost == null)
+            try {
+                bassBoost = mediaPlayerFactory.createBassBoost(mediaPlayer);
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return bassBoost;
+    }
+
+    private ILoudnessEnhancer loudnessEnhancer;
+
+    public ILoudnessEnhancer getLoudnessEnhancer() {
+        if (loudnessEnhancer == null)
+            try {
+                loudnessEnhancer = mediaPlayerFactory.createLoudnessEnhancer(mediaPlayer);
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return loudnessEnhancer;
+    }
+
+    private IVirtualizer virtualizer;
+
+    public IVirtualizer getVirtualizer() {
+        if (virtualizer == null)
+            try {
+                virtualizer = mediaPlayerFactory.createVirtualizer(mediaPlayer);
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return virtualizer;
     }
 
     private MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
@@ -976,6 +1033,46 @@ public class MusicService extends Service {
         SPrefEx.get(context)
                 .edit()
                 .putBoolean(TAG_SPREF_PLAYER_PREAMP_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_BASSBOOST_ENABLED = SPrefEx.TAG_SPREF + ".player_bassboost_enabled";
+
+    public static boolean getPlayerBassBoostEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_BASSBOOST_ENABLED, false);
+    }
+
+    public static void setPlayerBassBoostEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_BASSBOOST_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_LOUDNESS_ENABLED = SPrefEx.TAG_SPREF + ".player_loudness_enabled";
+
+    public static boolean getPlayerLoudnessEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_LOUDNESS_ENABLED, false);
+    }
+
+    public static void setPlayerLoudnessEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_LOUDNESS_ENABLED, value)
+                .apply();
+    }
+
+
+    public static final String TAG_SPREF_PLAYER_VIRTUALIZER_ENABLED = SPrefEx.TAG_SPREF + ".player_virtualizer_enabled";
+
+    public static boolean getPlayerVirtualizerEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_VIRTUALIZER_ENABLED, false);
+    }
+
+    public static void setPlayerVirtualizerEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_VIRTUALIZER_ENABLED, value)
                 .apply();
     }
 

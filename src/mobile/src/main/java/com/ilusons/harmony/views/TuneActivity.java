@@ -13,8 +13,11 @@ import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.h6ah4i.android.media.audiofx.IBassBoost;
 import com.h6ah4i.android.media.audiofx.IEqualizer;
+import com.h6ah4i.android.media.audiofx.ILoudnessEnhancer;
 import com.h6ah4i.android.media.audiofx.IPreAmp;
+import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerContext;
 import com.h6ah4i.android.media.opensl.audiofx.OpenSLHQEqualizer;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
@@ -22,6 +25,8 @@ import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
+
+import me.tankery.lib.circularseekbar.CircularSeekBar;
 
 public class TuneActivity extends BaseActivity {
 
@@ -36,6 +41,9 @@ public class TuneActivity extends BaseActivity {
     private View[] band_layouts;
     private VerticalSeekBar[] bands;
     private TextView[] freqs;
+    private CircularSeekBar bassBoost_seekBar;
+    private CircularSeekBar loudness_seekBar;
+    private CircularSeekBar virtualizer_seekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,7 +121,6 @@ public class TuneActivity extends BaseActivity {
             }
         });
 
-
         CheckBox eq_checkBox = (CheckBox) findViewById(R.id.eq_checkBox);
         eq_checkBox.setChecked(MusicService.getPlayerEQEnabled(this));
         eq_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -172,8 +179,10 @@ public class TuneActivity extends BaseActivity {
                 (TextView) findViewById(R.id.band9_textView)
         };
 
-        for (int i = 0; i < bands.length; i++)
-            band_layouts[i].setVisibility((i < NUMBER_OF_BANDS) ? View.VISIBLE : View.GONE);
+        for (int i = 0; i < bands.length; i++) {
+            band_layouts[i].setVisibility((i < NUMBER_OF_BANDS) ? View.VISIBLE : View.INVISIBLE);
+            bands[i].setEnabled((i < NUMBER_OF_BANDS));
+        }
 
         for (int i = 0; i < NUMBER_OF_BANDS; i++) {
             freqs[i].setText(formatFrequencyText(CENTER_FREQUENCY[i]));
@@ -250,6 +259,162 @@ public class TuneActivity extends BaseActivity {
             bands[i].setOnSeekBarChangeListener(bands_OnSeekBarChangeListener);
         }
 
+        // Set bass boost
+        CheckBox bassboost_checkBox = (CheckBox) findViewById(R.id.bassboost_checkBox);
+        bassboost_checkBox.setChecked(MusicService.getPlayerBassBoostEnabled(this));
+        bassboost_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (getMusicService() == null)
+                    return;
+
+                IBassBoost bassBoost = getMusicService().getBassBoost();
+
+                if (bassBoost == null)
+                    return;
+
+                bassBoost.setEnabled(true);
+
+                MusicService.setPlayerBassBoostEnabled(TuneActivity.this, b);
+
+                info("Updated, requires restart for complete effect!");
+            }
+        });
+
+        bassBoost_seekBar = (CircularSeekBar) findViewById(R.id.bassboost_seekBar);
+        bassBoost_seekBar.setMax(SEEKBAR_MAX);
+        bassBoost_seekBar.setOnSeekBarChangeListener(new CircularSeekBar.OnCircularSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(CircularSeekBar circularSeekBar, float progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IBassBoost bassBoost = getMusicService().getBassBoost();
+
+                if (bassBoost == null)
+                    return;
+
+                bassBoost.setStrength(BassboostStrengthNormalizer.denormalize(progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStopTrackingTouch(CircularSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(CircularSeekBar seekBar) {
+
+            }
+        });
+
+        // Set loudness
+        CheckBox loudness_checkBox = (CheckBox) findViewById(R.id.loudness_checkBox);
+        loudness_checkBox.setChecked(MusicService.getPlayerLoudnessEnabled(this));
+        loudness_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (getMusicService() == null)
+                    return;
+
+                ILoudnessEnhancer loudnessEnhancer = getMusicService().getLoudnessEnhancer();
+
+                if (loudnessEnhancer == null)
+                    return;
+
+                loudnessEnhancer.setEnabled(true);
+
+                MusicService.setPlayerLoudnessEnabled(TuneActivity.this, b);
+
+                info("Updated, requires restart for complete effect!");
+            }
+        });
+
+        loudness_seekBar = (CircularSeekBar) findViewById(R.id.loudness_seekBar);
+        loudness_seekBar.setMax(SEEKBAR_MAX);
+        loudness_seekBar.setOnSeekBarChangeListener(new CircularSeekBar.OnCircularSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(CircularSeekBar circularSeekBar, float progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                ILoudnessEnhancer loudnessEnhancer = getMusicService().getLoudnessEnhancer();
+
+                if (loudnessEnhancer == null)
+                    return;
+
+                loudnessEnhancer.setTargetGain(LoudnessStrengthNormalizer.denormalize(progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStopTrackingTouch(CircularSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(CircularSeekBar seekBar) {
+
+            }
+        });
+
+        // Set virtualizer
+        CheckBox virtualizer_checkBox = (CheckBox) findViewById(R.id.virtualizer_checkBox);
+        virtualizer_checkBox.setChecked(MusicService.getPlayerVirtualizerEnabled(this));
+        virtualizer_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (getMusicService() == null)
+                    return;
+
+                IVirtualizer virtualizer = getMusicService().getVirtualizer();
+
+                if (virtualizer == null)
+                    return;
+
+                virtualizer.setEnabled(true);
+
+                MusicService.setPlayerVirtualizerEnabled(TuneActivity.this, b);
+
+                info("Updated, requires restart for complete effect!");
+            }
+        });
+
+        virtualizer_seekBar = (CircularSeekBar) findViewById(R.id.virtualizer_seekBar);
+        virtualizer_seekBar.setMax(SEEKBAR_MAX);
+        virtualizer_seekBar.setOnSeekBarChangeListener(new CircularSeekBar.OnCircularSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(CircularSeekBar circularSeekBar, float progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IVirtualizer virtualizer = getMusicService().getVirtualizer();
+
+                if (virtualizer == null)
+                    return;
+
+                virtualizer.setStrength(VirtualizerStrengthNormalizer.denormalize(progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStopTrackingTouch(CircularSeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(CircularSeekBar seekBar) {
+
+            }
+        });
+
     }
 
     @Override
@@ -265,6 +430,17 @@ public class TuneActivity extends BaseActivity {
             for (int i = 0; i < NUMBER_OF_BANDS; i++)
                 bands[i].setProgress((int) (SEEKBAR_MAX * BandLevelNormalizer.normalize(equalizer.getBandLevel((short) i))));
 
+        IBassBoost bassBoost = getMusicService().getBassBoost();
+        if (bassBoost != null)
+            bassBoost_seekBar.setProgress((int) (BassboostStrengthNormalizer.normalize(bassBoost.getRoundedStrength()) * SEEKBAR_MAX));
+
+        ILoudnessEnhancer loudnessEnhancer = getMusicService().getLoudnessEnhancer();
+        if (loudnessEnhancer != null)
+            loudness_seekBar.setProgress(LoudnessStrengthNormalizer.normalize((int) loudnessEnhancer.getTargetGain()) * SEEKBAR_MAX);
+
+        IVirtualizer virtualizer = getMusicService().getVirtualizer();
+        if (virtualizer != null)
+            virtualizer_seekBar.setProgress((int) (VirtualizerStrengthNormalizer.normalize(virtualizer.getRoundedStrength()) * SEEKBAR_MAX));
 
     }
 
@@ -321,6 +497,9 @@ public class TuneActivity extends BaseActivity {
     public static short BAND_LEVEL_MAX;
 
     private static ShortParameterNormalizer BandLevelNormalizer;
+    private static ShortParameterNormalizer BassboostStrengthNormalizer = new ShortParameterNormalizer((short) 0, (short) 1000);
+    private static IntParameterNormalizer LoudnessStrengthNormalizer = new IntParameterNormalizer(0, 1000);
+    private static ShortParameterNormalizer VirtualizerStrengthNormalizer = new ShortParameterNormalizer((short) 0, (short) 1000);
 
     public static class PresetInfo {
         public short index;

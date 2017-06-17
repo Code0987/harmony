@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.android.gms.ads.MobileAds;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.StorageEx;
@@ -27,6 +28,9 @@ public class MainActivity extends BaseActivity {
         Intent musicServiceIntent = new Intent(MainActivity.this, MusicService.class);
         musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
         startService(musicServiceIntent);
+
+        // Initialize
+        MobileAds.initialize(this, "ca-app-pub-4739450309172378~5670478444");
 
         // Intent
         handleIntent(getIntent());
