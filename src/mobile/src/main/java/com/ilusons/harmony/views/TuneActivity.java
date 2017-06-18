@@ -5,26 +5,39 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.h6ah4i.android.media.audiofx.IBassBoost;
+import com.h6ah4i.android.media.audiofx.IEnvironmentalReverb;
 import com.h6ah4i.android.media.audiofx.IEqualizer;
 import com.h6ah4i.android.media.audiofx.ILoudnessEnhancer;
 import com.h6ah4i.android.media.audiofx.IPreAmp;
+import com.h6ah4i.android.media.audiofx.IPresetReverb;
 import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerContext;
 import com.h6ah4i.android.media.opensl.audiofx.OpenSLHQEqualizer;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
+import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
+
+import org.apache.commons.lang3.reflect.FieldUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 
 import me.tankery.lib.circularseekbar.CircularSeekBar;
 
@@ -33,7 +46,7 @@ public class TuneActivity extends BaseActivity {
     // Logger TAG
     private static final String TAG = TuneActivity.class.getSimpleName();
 
-    private static final int SEEKBAR_MAX = 1000;
+    private static final int SEEKBAR_MAX = 10000;
 
     private View root;
 
@@ -44,6 +57,19 @@ public class TuneActivity extends BaseActivity {
     private CircularSeekBar bassBoost_seekBar;
     private CircularSeekBar loudness_seekBar;
     private CircularSeekBar virtualizer_seekBar;
+
+    private Spinner reverb_preset_spinner;
+    private Spinner reverb_env_preset_spinner;
+    private SeekBar reverb_env_decay_hf_ratio_seekBar;
+    private SeekBar reverb_env_decay_time_seekBar;
+    private SeekBar reverb_env_density_seekBar;
+    private SeekBar reverb_env_diffusion_seekBar;
+    private SeekBar reverb_env_reflections_delay_seekBar;
+    private SeekBar reverb_env_reflections_level_seekBar;
+    private SeekBar reverb_env_reverb_delay_seekBar;
+    private SeekBar reverb_env_reverb_level_seekBar;
+    private SeekBar reverb_env_room_hf_level_seekBar;
+    private SeekBar reverb_env_room_level_seekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,7 +160,7 @@ public class TuneActivity extends BaseActivity {
                 if (equalizer == null)
                     return;
 
-                equalizer.setEnabled(true);
+                equalizer.setEnabled(b);
 
                 MusicService.setPlayerEQEnabled(TuneActivity.this, b);
 
@@ -273,7 +299,7 @@ public class TuneActivity extends BaseActivity {
                 if (bassBoost == null)
                     return;
 
-                bassBoost.setEnabled(true);
+                bassBoost.setEnabled(b);
 
                 MusicService.setPlayerBassBoostEnabled(TuneActivity.this, b);
 
@@ -297,7 +323,7 @@ public class TuneActivity extends BaseActivity {
                 if (bassBoost == null)
                     return;
 
-                bassBoost.setStrength(BassboostStrengthNormalizer.denormalize(progress / SEEKBAR_MAX));
+                bassBoost.setStrength(BassboostNormalizer.denormalize(progress / SEEKBAR_MAX));
             }
 
             @Override
@@ -325,7 +351,7 @@ public class TuneActivity extends BaseActivity {
                 if (loudnessEnhancer == null)
                     return;
 
-                loudnessEnhancer.setEnabled(true);
+                loudnessEnhancer.setEnabled(b);
 
                 MusicService.setPlayerLoudnessEnabled(TuneActivity.this, b);
 
@@ -349,7 +375,7 @@ public class TuneActivity extends BaseActivity {
                 if (loudnessEnhancer == null)
                     return;
 
-                loudnessEnhancer.setTargetGain(LoudnessStrengthNormalizer.denormalize(progress / SEEKBAR_MAX));
+                loudnessEnhancer.setTargetGain(LoudnessNormalizer.denormalize(progress / SEEKBAR_MAX));
             }
 
             @Override
@@ -377,7 +403,7 @@ public class TuneActivity extends BaseActivity {
                 if (virtualizer == null)
                     return;
 
-                virtualizer.setEnabled(true);
+                virtualizer.setEnabled(b);
 
                 MusicService.setPlayerVirtualizerEnabled(TuneActivity.this, b);
 
@@ -401,7 +427,7 @@ public class TuneActivity extends BaseActivity {
                 if (virtualizer == null)
                     return;
 
-                virtualizer.setStrength(VirtualizerStrengthNormalizer.denormalize(progress / SEEKBAR_MAX));
+                virtualizer.setStrength(VirtualizerNormalizer.denormalize(progress / SEEKBAR_MAX));
             }
 
             @Override
@@ -415,6 +441,499 @@ public class TuneActivity extends BaseActivity {
             }
         });
 
+        // Set reverb
+        CheckBox reverb_checkBox = (CheckBox) findViewById(R.id.reverb_checkBox);
+        reverb_checkBox.setChecked(MusicService.getPlayerReverbPresetEnabled(this));
+        reverb_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (getMusicService() == null)
+                    return;
+
+                IPresetReverb presetReverb = getMusicService().getPresetReverb();
+
+                if (presetReverb == null)
+                    return;
+
+                presetReverb.setEnabled(b);
+
+                MusicService.setPlayerReverbPresetEnabled(TuneActivity.this, b);
+
+                info("Updated, requires restart for complete effect!");
+            }
+        });
+
+        reverb_preset_spinner = (Spinner) findViewById(R.id.reverb_preset_spinner);
+        final ArrayAdapter<CharSequence> reverb_preset_spinner_adapter = ArrayAdapter.createFromResource(this, R.array.aux_preset_reverb_preset_names, R.layout.spinner_layout);
+        reverb_preset_spinner_adapter.setDropDownViewResource(R.layout.spinner_layout);
+        reverb_preset_spinner.setAdapter(reverb_preset_spinner_adapter);
+        reverb_preset_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (getMusicService() == null)
+                    return;
+
+                IPresetReverb presetReverb = getMusicService().getPresetReverb();
+
+                if (presetReverb == null)
+                    return;
+
+                presetReverb.setPreset((short) i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        CheckBox reverb_env_checkBox = (CheckBox) findViewById(R.id.reverb_env_checkBox);
+        reverb_env_checkBox.setChecked(MusicService.getPlayerReverbEnvEnabled(this));
+        reverb_env_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                try {
+                    environmentalReverb.setEnabled(b);
+
+                    MusicService.setPlayerReverbEnvEnabled(TuneActivity.this, b);
+
+                    info("Updated, requires restart for complete effect!");
+                } catch (Exception e) {
+                    info("Update failed, try another preset or settings!");
+                }
+            }
+        });
+
+        reverb_env_preset_spinner = (Spinner) findViewById(R.id.reverb_env_preset_spinner);
+        ArrayList<String> reverb_env_presets = new ArrayList<>();
+        for (Field field : FieldUtils.getAllFields(EnvironmentalReverbPresets.class)) {
+            int modifiers = field.getModifiers();
+            if ((Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier
+                    .isFinal(modifiers))) {
+                reverb_env_presets.add(field.getName());
+            }
+        }
+        final ArrayAdapter<String> reverb_env_preset_spinner_adapter = new ArrayAdapter<String>(this, R.layout.spinner_layout, reverb_env_presets);
+        reverb_env_preset_spinner_adapter.setDropDownViewResource(R.layout.spinner_layout);
+        reverb_env_preset_spinner.setAdapter(reverb_env_preset_spinner_adapter);
+        reverb_env_preset_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                Field field = null;
+                for (Field f : FieldUtils.getAllFields(EnvironmentalReverbPresets.class)) {
+                    if (f.getName().equals((String) adapterView.getItemAtPosition(i))) {
+                        field = f;
+                        break;
+                    }
+                }
+
+                if (field == null)
+                    return;
+
+                try {
+                    IEnvironmentalReverb.Settings settings = (IEnvironmentalReverb.Settings) field.get(null);
+                    environmentalReverb.setProperties(settings);
+
+                    reverb_env_decay_hf_ratio_seekBar.setProgress((int) (DecayHFRatioNormalizer.normalize(settings.decayHFRatio) * SEEKBAR_MAX));
+                    reverb_env_decay_time_seekBar.setProgress((int) (DecayTimeNormalizer.normalize(settings.decayTime) * SEEKBAR_MAX));
+                    reverb_env_density_seekBar.setProgress((int) (DensityNormalizer.normalize(settings.density) * SEEKBAR_MAX));
+                    reverb_env_diffusion_seekBar.setProgress((int) (DiffusionNormalizer.normalize(settings.diffusion) * SEEKBAR_MAX));
+                    reverb_env_reflections_delay_seekBar.setProgress((int) (ReflectionsDelayNormalizer.normalize(settings.reflectionsDelay) * SEEKBAR_MAX));
+                    reverb_env_reflections_level_seekBar.setProgress((int) (ReflectionsLevelNormalizer.normalize(settings.reflectionsLevel) * SEEKBAR_MAX));
+                    reverb_env_reverb_delay_seekBar.setProgress((int) (ReverbDelayNormalizer.normalize(settings.reverbDelay) * SEEKBAR_MAX));
+                    reverb_env_reverb_level_seekBar.setProgress((int) (ReverbLevelNormalizer.normalize(settings.reverbLevel) * SEEKBAR_MAX));
+                    reverb_env_room_hf_level_seekBar.setProgress((int) (RoomHFLevelNormalizer.normalize(settings.roomHFLevel) * SEEKBAR_MAX));
+                    reverb_env_room_level_seekBar.setProgress((int) (RoomLevelNormalizer.normalize(settings.roomLevel) * SEEKBAR_MAX));
+
+                    info("Updated, requires restart for complete effect!");
+                } catch (Exception e) {
+                    info("Updated failed, try another preset or settings!");
+
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        reverb_env_decay_hf_ratio_seekBar = (SeekBar) findViewById(R.id.reverb_env_decay_hf_ratio_seekBar);
+        reverb_env_decay_hf_ratio_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_decay_hf_ratio_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setDecayHFRatio(DecayHFRatioNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_decay_time_seekBar = (SeekBar) findViewById(R.id.reverb_env_decay_time_seekBar);
+        reverb_env_decay_time_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_decay_time_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setDecayTime(DecayTimeNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_density_seekBar = (SeekBar) findViewById(R.id.reverb_env_density_seekBar);
+        reverb_env_density_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_density_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setDensity(DensityNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_diffusion_seekBar = (SeekBar) findViewById(R.id.reverb_env_diffusion_seekBar);
+        reverb_env_diffusion_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_diffusion_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setDiffusion(DiffusionNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_reflections_delay_seekBar = (SeekBar) findViewById(R.id.reverb_env_reflections_delay_seekBar);
+        reverb_env_reflections_delay_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_reflections_delay_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setReflectionsDelay(ReflectionsDelayNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_reflections_level_seekBar = (SeekBar) findViewById(R.id.reverb_env_reflections_level_seekBar);
+        reverb_env_reflections_level_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_reflections_level_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setReflectionsLevel(ReflectionsLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_reverb_delay_seekBar = (SeekBar) findViewById(R.id.reverb_env_reverb_delay_seekBar);
+        reverb_env_reverb_delay_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_reverb_delay_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setReverbDelay(ReverbDelayNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_reverb_level_seekBar = (SeekBar) findViewById(R.id.reverb_env_reverb_level_seekBar);
+        reverb_env_reverb_level_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_reverb_level_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setReverbLevel(ReverbLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_room_hf_level_seekBar = (SeekBar) findViewById(R.id.reverb_env_room_hf_level_seekBar);
+        reverb_env_room_hf_level_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_room_hf_level_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setRoomHFLevel(RoomHFLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        reverb_env_room_level_seekBar = (SeekBar) findViewById(R.id.reverb_env_room_level_seekBar);
+        reverb_env_room_level_seekBar.setMax(SEEKBAR_MAX);
+        reverb_env_room_level_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser)
+                    return;
+
+                if (getMusicService() == null)
+                    return;
+
+                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+
+                if (environmentalReverb == null)
+                    return;
+
+                environmentalReverb.setRoomLevel(RoomLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        MusicService musicService = getMusicService();
+        if (musicService != null) {
+
+            IPreAmp preAmp = musicService.getPreAmp();
+            if (preAmp != null) try {
+                MusicService.setPlayerPreAmp(TuneActivity.this, preAmp.getProperties());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            IEqualizer equalizer = musicService.getEqualizer();
+            if (equalizer != null) try {
+                MusicService.setPlayerEQ(TuneActivity.this, equalizer.getProperties());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            IBassBoost bassBoost = musicService.getBassBoost();
+            if (bassBoost != null) try {
+                MusicService.setPlayerBassBoost(TuneActivity.this, bassBoost.getProperties());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            ILoudnessEnhancer loudnessEnhancer = musicService.getLoudnessEnhancer();
+            if (loudnessEnhancer != null) try {
+                MusicService.setPlayerLoudness(TuneActivity.this, loudnessEnhancer.getProperties());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            IVirtualizer virtualizer = musicService.getVirtualizer();
+            if (virtualizer != null) try {
+                MusicService.setPlayerVirtualizer(TuneActivity.this, virtualizer.getProperties());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            IPresetReverb presetReverb = musicService.getPresetReverb();
+            if (presetReverb != null) try {
+                MusicService.setPlayerReverbPreset(TuneActivity.this, presetReverb.getProperties());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            IEnvironmentalReverb environmentalReverb = musicService.getEnvironmentalReverb();
+            if (environmentalReverb != null) try {
+                MusicService.setPlayerReverbEnv(TuneActivity.this, environmentalReverb.getProperties());
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+
+        }
     }
 
     @Override
@@ -422,25 +941,63 @@ public class TuneActivity extends BaseActivity {
         super.OnMusicServiceChanged(className, musicService, isBound);
 
         IPreAmp preAmp = musicService.getPreAmp();
-        if (preAmp != null)
+        if (preAmp != null) try {
             preamp_seekBar.setProgress((int) (SEEKBAR_MAX * getNormalizedPreAmpLevel(preAmp)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         IEqualizer equalizer = musicService.getEqualizer();
-        if (equalizer != null)
+        if (equalizer != null) try {
             for (int i = 0; i < NUMBER_OF_BANDS; i++)
                 bands[i].setProgress((int) (SEEKBAR_MAX * BandLevelNormalizer.normalize(equalizer.getBandLevel((short) i))));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        IBassBoost bassBoost = getMusicService().getBassBoost();
-        if (bassBoost != null)
-            bassBoost_seekBar.setProgress((int) (BassboostStrengthNormalizer.normalize(bassBoost.getRoundedStrength()) * SEEKBAR_MAX));
+        IBassBoost bassBoost = musicService.getBassBoost();
+        if (bassBoost != null) try {
+            bassBoost_seekBar.setProgress((int) (BassboostNormalizer.normalize(bassBoost.getRoundedStrength()) * SEEKBAR_MAX));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        ILoudnessEnhancer loudnessEnhancer = getMusicService().getLoudnessEnhancer();
-        if (loudnessEnhancer != null)
-            loudness_seekBar.setProgress(LoudnessStrengthNormalizer.normalize((int) loudnessEnhancer.getTargetGain()) * SEEKBAR_MAX);
+        ILoudnessEnhancer loudnessEnhancer = musicService.getLoudnessEnhancer();
+        if (loudnessEnhancer != null) try {
+            loudness_seekBar.setProgress(LoudnessNormalizer.normalize((int) loudnessEnhancer.getTargetGain()) * SEEKBAR_MAX);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        IVirtualizer virtualizer = getMusicService().getVirtualizer();
-        if (virtualizer != null)
-            virtualizer_seekBar.setProgress((int) (VirtualizerStrengthNormalizer.normalize(virtualizer.getRoundedStrength()) * SEEKBAR_MAX));
+        IVirtualizer virtualizer = musicService.getVirtualizer();
+        if (virtualizer != null) try {
+            virtualizer_seekBar.setProgress((int) (VirtualizerNormalizer.normalize(virtualizer.getRoundedStrength()) * SEEKBAR_MAX));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        IPresetReverb presetReverb = musicService.getPresetReverb();
+        if (presetReverb != null) try {
+            reverb_preset_spinner.setSelection(presetReverb.getPreset());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        IEnvironmentalReverb environmentalReverb = musicService.getEnvironmentalReverb();
+        if (environmentalReverb != null) try {
+            reverb_env_decay_hf_ratio_seekBar.setProgress((int) (DecayHFRatioNormalizer.normalize(environmentalReverb.getDecayHFRatio()) * SEEKBAR_MAX));
+            reverb_env_decay_time_seekBar.setProgress((int) (DecayTimeNormalizer.normalize(environmentalReverb.getDecayTime()) * SEEKBAR_MAX));
+            reverb_env_density_seekBar.setProgress((int) (DensityNormalizer.normalize(environmentalReverb.getDensity()) * SEEKBAR_MAX));
+            reverb_env_diffusion_seekBar.setProgress((int) (DiffusionNormalizer.normalize(environmentalReverb.getDiffusion()) * SEEKBAR_MAX));
+            reverb_env_reflections_delay_seekBar.setProgress((int) (ReflectionsDelayNormalizer.normalize(environmentalReverb.getReflectionsDelay()) * SEEKBAR_MAX));
+            reverb_env_reflections_level_seekBar.setProgress((int) (ReflectionsLevelNormalizer.normalize(environmentalReverb.getReflectionsLevel()) * SEEKBAR_MAX));
+            reverb_env_reverb_delay_seekBar.setProgress((int) (ReverbDelayNormalizer.normalize(environmentalReverb.getReverbDelay()) * SEEKBAR_MAX));
+            reverb_env_reverb_level_seekBar.setProgress((int) (ReverbLevelNormalizer.normalize(environmentalReverb.getReverbLevel()) * SEEKBAR_MAX));
+            reverb_env_room_hf_level_seekBar.setProgress((int) (RoomHFLevelNormalizer.normalize(environmentalReverb.getRoomHFLevel()) * SEEKBAR_MAX));
+            reverb_env_room_level_seekBar.setProgress((int) (RoomLevelNormalizer.normalize(environmentalReverb.getRoomLevel()) * SEEKBAR_MAX));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -497,9 +1054,20 @@ public class TuneActivity extends BaseActivity {
     public static short BAND_LEVEL_MAX;
 
     private static ShortParameterNormalizer BandLevelNormalizer;
-    private static ShortParameterNormalizer BassboostStrengthNormalizer = new ShortParameterNormalizer((short) 0, (short) 1000);
-    private static IntParameterNormalizer LoudnessStrengthNormalizer = new IntParameterNormalizer(0, 1000);
-    private static ShortParameterNormalizer VirtualizerStrengthNormalizer = new ShortParameterNormalizer((short) 0, (short) 1000);
+    private static ShortParameterNormalizer BassboostNormalizer = new ShortParameterNormalizer((short) 0, (short) 1000);
+    private static IntParameterNormalizer LoudnessNormalizer = new IntParameterNormalizer(0, 1000);
+    private static ShortParameterNormalizer VirtualizerNormalizer = new ShortParameterNormalizer((short) 0, (short) 1000);
+
+    private static final ShortParameterNormalizer DecayHFRatioNormalizer = new ShortParameterNormalizer((short) 100, (short) 2000);
+    private static final IntParameterNormalizer DecayTimeNormalizer = new IntParameterNormalizer(100, 7000);
+    private static final ShortParameterNormalizer DensityNormalizer = new ShortParameterNormalizer((short) 0, (short) 1000);
+    private static final ShortParameterNormalizer DiffusionNormalizer = new ShortParameterNormalizer((short) 0, (short) 1000);
+    private static final IntParameterNormalizer ReflectionsDelayNormalizer = new IntParameterNormalizer(0, 0);
+    private static final ShortParameterNormalizer ReflectionsLevelNormalizer = new ShortParameterNormalizer((short) 0, (short) 0);
+    private static final IntParameterNormalizer ReverbDelayNormalizer = new IntParameterNormalizer(0, 0);
+    private static final ShortParameterNormalizer ReverbLevelNormalizer = new ShortParameterNormalizer((short) -9000, (short) 2000);
+    private static final ShortParameterNormalizer RoomHFLevelNormalizer = new ShortParameterNormalizer((short) -9000, (short) 0);
+    private static final ShortParameterNormalizer RoomLevelNormalizer = new ShortParameterNormalizer((short) -9000, (short) 0);
 
     public static class PresetInfo {
         public short index;
