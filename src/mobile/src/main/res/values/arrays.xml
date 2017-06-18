@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <string-array name="aux_preset_reverb_preset_names">
+        <item>None</item>
+        <item>Small room</item>
+        <item>Medium room</item>
+        <item>Large room</item>
+        <item>Medium hall</item>
+        <item>Large hall</item>
+        <item>Plate</item>
+    </string-array>
+
+</resources>
