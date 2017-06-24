@@ -46,7 +46,7 @@ public class SettingsActivity extends BaseActivity {
     public static final boolean UIPLAYBACKAUTOOPEN_DEFAULT = true;
 
     // IAB
-    private static final int REQUEST_SKU_PREMIUM = 145001;
+    private static final int REQUEST_SKU_PREMIUM = 1401;
     private static final String SKU_PREMIUM = "premium";
 
     private IabHelper iabHelper;

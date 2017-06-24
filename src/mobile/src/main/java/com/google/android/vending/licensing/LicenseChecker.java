@@ -16,9 +16,6 @@
 
 package com.google.android.vending.licensing;
 
-import com.google.android.vending.licensing.util.Base64;
-import com.google.android.vending.licensing.util.Base64DecoderException;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +27,9 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.Settings.Secure;
 import android.util.Log;
+
+import com.google.android.vending.licensing.util.Base64;
+import com.google.android.vending.licensing.util.Base64DecoderException;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -81,8 +81,8 @@ public class LicenseChecker implements ServiceConnection {
     private final Queue<LicenseValidator> mPendingChecks = new LinkedList<LicenseValidator>();
 
     /**
-     * @param context a Context
-     * @param policy implementation of Policy
+     * @param context          a Context
+     * @param policy           implementation of Policy
      * @param encodedPublicKey Base64-encoded RSA public key
      * @throws IllegalArgumentException if encodedPublicKey is invalid
      */
@@ -100,7 +100,7 @@ public class LicenseChecker implements ServiceConnection {
     /**
      * Generates a PublicKey instance from a string containing the
      * Base64-encoded public key.
-     * 
+     *
      * @param encodedPublicKey Base64-encoded public key
      * @throws IllegalArgumentException if encodedPublicKey is invalid
      */
@@ -131,6 +131,7 @@ public class LicenseChecker implements ServiceConnection {
      * <p>
      * source string: "com.android.vending.licensing.ILicensingService"
      * <p>
+     *
      * @param callback
      */
     public synchronized void checkAccess(LicenseCheckerCallback callback) {
@@ -146,13 +147,12 @@ public class LicenseChecker implements ServiceConnection {
             if (mService == null) {
                 Log.i(TAG, "Binding to licensing service.");
                 try {
-                    boolean bindResult = mContext
-                            .bindService(
-                                    new Intent(
-                                            new String(
-                                                    Base64.decode("Y29tLmFuZHJvaWQudmVuZGluZy5saWNlbnNpbmcuSUxpY2Vuc2luZ1NlcnZpY2U="))),
-                                    this, // ServiceConnection.
-                                    Context.BIND_AUTO_CREATE);
+                    Intent serviceIntent = new Intent(new String(Base64.decode("Y29tLmFuZHJvaWQudmVuZGluZy5saWNlbnNpbmcuSUxpY2Vuc2luZ1NlcnZpY2U=")));
+                    serviceIntent.setPackage("com.android.vending");
+
+                    boolean bindResult = mContext.bindService(serviceIntent,
+                            this, // ServiceConnection.
+                            Context.BIND_AUTO_CREATE);
 
                     if (bindResult) {
                         mPendingChecks.offer(validator);
@@ -218,7 +218,7 @@ public class LicenseChecker implements ServiceConnection {
         // Runs in IPC thread pool. Post it to the Handler, so we can guarantee
         // either this or the timeout runs.
         public void verifyLicense(final int responseCode, final String signedData,
-                final String signature) {
+                                  final String signature) {
             mHandler.post(new Runnable() {
                 public void run() {
                     Log.i(TAG, "Received response.");
@@ -300,7 +300,9 @@ public class LicenseChecker implements ServiceConnection {
         }
     }
 
-    /** Unbinds service if necessary and removes reference to it. */
+    /**
+     * Unbinds service if necessary and removes reference to it.
+     */
     private void cleanupService() {
         if (mService != null) {
             try {
@@ -327,14 +329,16 @@ public class LicenseChecker implements ServiceConnection {
         mHandler.getLooper().quit();
     }
 
-    /** Generates a nonce (number used once). */
+    /**
+     * Generates a nonce (number used once).
+     */
     private int generateNonce() {
         return RANDOM.nextInt();
     }
 
     /**
      * Get version code for the application package name.
-     * 
+     *
      * @param context
      * @param packageName application package name
      * @return the version code or empty string if package not found
