@@ -473,8 +473,12 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
 
                 final NativeExpressAdView adView = (NativeExpressAdView) d;
 
-                adView.setAdSize(new AdSize((int) ((cv.getWidth() - cv.getPaddingLeft() - cv.getPaddingRight()) / getResources().getDisplayMetrics().density), 96));
-                adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
+                try {
+                    adView.setAdSize(new AdSize((int) ((cv.getWidth() - cv.getPaddingLeft() - cv.getPaddingRight()) / getResources().getDisplayMetrics().density), 96));
+                    adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
 
                 cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
 
