@@ -1,5 +1,7 @@
 package com.ilusons.harmony.base;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -16,6 +18,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaMetadataCompat;
@@ -28,6 +31,10 @@ import android.widget.MediaController;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import com.google.android.vending.licensing.AESObfuscator;
+import com.google.android.vending.licensing.LicenseChecker;
+import com.google.android.vending.licensing.LicenseCheckerCallback;
+import com.google.android.vending.licensing.ServerManagedPolicy;
 import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
 import com.h6ah4i.android.media.audiofx.IBassBoost;
@@ -42,13 +49,21 @@ import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
 import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
+import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
+import com.ilusons.harmony.ref.inappbilling.IabHelper;
+import com.ilusons.harmony.ref.inappbilling.IabResult;
+import com.ilusons.harmony.ref.inappbilling.Inventory;
+import com.ilusons.harmony.ref.inappbilling.Purchase;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MusicService extends Service {
 
@@ -120,12 +135,190 @@ public class MusicService extends Service {
 
     private PowerManager.WakeLock wakeLock;
 
+    //region LVL &amp; In-app
+    public static final String LICENSE_BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAl5y7IyWkGhHPEooAL/8dp/vTISO1cZtpZvga6LzLcUoF1TwOyEik0gOeXGwKk/2LrTtUt+3/mvnYUZCTBhkOazRkoLeobBI8Mk+CRjZqyeboIWCsP+KdyZEJy9L/08xCR0VYODwoqTscwVjX/T5JUeM7Z5UNf+frcu7mIQYvhJDbQRuXIyDquNz1PfOMImp3bKYJVH+/5LvqifrbrrhhYedQn1DH64frePPRR+AjM6J1yl229QxN2gQaGs2AcNJHLhaOqYJYWHdwn0d+2VVA4FUeLkaFq7uxmGED4C+5NeGd2nwUl07YOB/s6beWQP+aeiRBGTDhkWrP6HbQ2PJA9wIDAQAB";
+
+    // LVL
+    private static final byte[] SALT = new byte[]{
+            -46, 65, 30, -128, -103, -57, 74, -64, 51, 88, -95, -45, 77, -117, -36, -113, -11, 32, -64, 89
+    };
+    private LicenseCheckerCallback licenseCheckerCallback = new LicenseCheckerCallback() {
+        public void allow(int policyReason) {
+            Log.d(TAG, "LVL allow\n" + policyReason);
+
+        }
+
+        public void dontAllow(int policyReason) {
+            Log.d(TAG, "LVL do not allow\n" + policyReason);
+
+            Toast.makeText(MusicService.this, "This app is not licensed! Will close now!", Toast.LENGTH_LONG).show();
+
+            System.exit(0);
+        }
+
+        public void applicationError(int errorCode) {
+            Log.d(TAG, "LVL applicationError\n" + errorCode);
+
+            Toast.makeText(MusicService.this, "Some error occurred while doing something: " + errorCode + "!", Toast.LENGTH_LONG).show();
+        }
+    };
+    private LicenseChecker licenseChecker;
+
+    // IAB
+    public static boolean IsPremium = false;
+
+    private static final String SKU_PREMIUM = "premium";
+
+    public static final String TAG_SPREF_SKU_PREMIUM = SPrefEx.TAG_SPREF + ".sku_premium";
+
+    private IabHelper iabHelper;
+    private IabBroadcastReceiver iabBroadcastReceiver;
+    private IabBroadcastReceiver.IabBroadcastListener iabBroadcastListener = new IabBroadcastReceiver.IabBroadcastListener() {
+        @Override
+        public void receivedBroadcast() {
+            try {
+                iabHelper.queryInventoryAsync(gotInventoryListener);
+            } catch (IabHelper.IabAsyncInProgressException e) {
+                Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
+            }
+        }
+    };
+    private IabHelper.QueryInventoryFinishedListener gotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+            Log.d(TAG, "Query inventory finished.\n" + result);
+
+            if (iabHelper == null) return;
+
+            if (result.isFailure()) {
+                return;
+            }
+
+            Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
+
+            IsPremium = ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
+
+            SPrefEx.get(MusicService.this)
+                    .edit()
+                    .putBoolean(TAG_SPREF_SKU_PREMIUM, IsPremium)
+                    .apply();
+        }
+    };
+
+    private void initializeLicensing() {
+        // LVL
+        String deviceId =
+                Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        licenseChecker = new LicenseChecker(this, new ServerManagedPolicy(this, new AESObfuscator(SALT, getPackageName(), deviceId)), LICENSE_BASE64_PUBLIC_KEY);
+        licenseChecker.checkAccess(licenseCheckerCallback);
+
+        // IAB
+        IsPremium = SPrefEx.get(this).getBoolean(TAG_SPREF_SKU_PREMIUM, false);
+
+        iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);
+
+        iabHelper = new IabHelper(this, LICENSE_BASE64_PUBLIC_KEY);
+        if (BuildConfig.DEBUG)
+            iabHelper.enableDebugLogging(true, TAG);
+        iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                if (!result.isSuccess()) {
+                    Log.w(TAG, result.toString());
+
+                    return;
+                }
+
+                if (iabHelper == null) return;
+
+                // Important: Dynamically register for broadcast messages about updated purchases.
+                // We register the receiver he re instead of as a <receiver> in the Manifest
+                // because we always call getPurchases() at startup, so therefore we can ignore
+                // any broadcasts sent while the app isn't running.
+                // Note: registering this listener in an Activity is a bad idea, but is done here
+                // because this is a SAMPLE. Regardless, the receiver must be registered after
+                // IabHelper is setup, but before first call to getPurchases().
+                IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
+                registerReceiver(iabBroadcastReceiver, broadcastFilter);
+
+                try {
+                    iabHelper.queryInventoryAsync(gotInventoryListener);
+                } catch (IabHelper.IabAsyncInProgressException e) {
+                    Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
+                }
+            }
+        });
+    }
+
+    public static boolean verifyDeveloperPayload(Context context, Purchase p) {
+        String payload = p.getDeveloperPayload();
+
+        /*
+         * WARNING: Locally generating a random string when starting a purchase and
+         * verifying it here might seem like a good approach, but this will fail in the
+         * case where the user purchases an item on one device and then uses your app on
+         * a different device, because on the other device you will not have access to the
+         * random string you originally generated.
+         *
+         * So a good developer payload has these characteristics:
+         *
+         * 1. If two different users purchase an item, the payload is different between them,
+         *    so that one user's purchase can't be replayed to another user.
+         *
+         * 2. The payload must be such that you can verify it even when the app wasn't the
+         *    one who initiated the purchase flow (so that items purchased by the user on
+         *    one device work on other devices owned by the user).
+         *
+         * Using your own server to store and verify developer payloads across app
+         * installations is recommended.
+         */
+
+        String localPayload = getDeveloperPayload(context, SKU_PREMIUM);
+
+        if (!TextUtils.isEmpty(localPayload))
+            if (payload.toLowerCase().equals(localPayload.toLowerCase()))
+                return true;
+
+        return false;
+    }
+
+    public static String getDeveloperPayload(Context context, String sku) {
+        String payload = "";
+
+        AccountManager manager = AccountManager.get(context);
+        Account[] accounts = manager.getAccountsByType("com.google");
+        List<String> possibleEmails = new LinkedList<String>();
+
+        for (Account account : accounts) {
+            // TODO: Check possibleEmail against an email regex or treat
+            // account.name as an email address only for certain account.type values.
+            possibleEmails.add(account.name);
+        }
+
+        if (!possibleEmails.isEmpty() && possibleEmails.get(0) != null) {
+            String email = possibleEmails.get(0);
+            String[] parts = email.split("@");
+
+            if (parts.length > 1)
+                payload = parts[0];
+        }
+
+        if (TextUtils.isEmpty(payload))
+            return null;
+
+        payload = payload + ";" + sku;
+
+        return payload;
+    }
+//endregion
+
     public MusicService() {
     }
 
     @Override
     public void onCreate() {
         Log.d(TAG, "onCreate called");
+
+        initializeLicensing();
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         headsetMediaButtonIntentReceiverComponent = new ComponentName(getPackageName(), HeadsetMediaButtonIntentReceiver.class.getName());
@@ -180,6 +373,19 @@ public class MusicService extends Service {
         wakeLock.release();
 
         audioManager.abandonAudioFocus(audioManagerFocusListener);
+
+        if (licenseChecker != null) {
+            licenseChecker.onDestroy();
+        }
+
+        if (iabBroadcastReceiver != null) {
+            unregisterReceiver(iabBroadcastReceiver);
+        }
+
+        if (iabHelper != null) {
+            iabHelper.disposeWhenFinished();
+            iabHelper = null;
+        }
 
         if (mediaPlayer != null) {
             mediaPlayer.release();

@@ -598,10 +598,13 @@ public class LibraryUIDarkActivity extends BaseUIActivity {
 
                     // Add ads
                     final int n = dataFiltered.size();
-                    for (int i = 0; i <= n; i += ITEMS_PER_AD) {
-                        final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIDarkActivity.this);
-                        dataFiltered.add(i, adView);
-                    }
+                    for (int i = 0; i <= n; i += ITEMS_PER_AD)
+                        try {
+                            final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIDarkActivity.this);
+                            dataFiltered.add(i, adView);
+                        } catch (Exception e) {
+                            Log.w(TAG, e);
+                        }
 
                     (LibraryUIDarkActivity.this).runOnUiThread(new Runnable() {
                         @Override
