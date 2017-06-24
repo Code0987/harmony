@@ -4,7 +4,10 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -21,6 +24,12 @@ import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
+import com.ilusons.harmony.ref.inappbilling.IabHelper;
+import com.ilusons.harmony.ref.inappbilling.IabResult;
+import com.ilusons.harmony.ref.inappbilling.Inventory;
+import com.ilusons.harmony.ref.inappbilling.Purchase;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
 
@@ -36,8 +45,77 @@ public class SettingsActivity extends BaseActivity {
     public static final String TAG_SPREF_UIPLAYBACKAUTOOPEN = SPrefEx.TAG_SPREF + ".ui_playback_auto_open";
     public static final boolean UIPLAYBACKAUTOOPEN_DEFAULT = true;
 
+    // IAB
+    private static final int REQUEST_SKU_PREMIUM = 145001;
+    private static final String SKU_PREMIUM = "premium";
+
+    private IabHelper iabHelper;
+    private IabBroadcastReceiver iabBroadcastReceiver;
+    private IabBroadcastReceiver.IabBroadcastListener iabBroadcastListener = new IabBroadcastReceiver.IabBroadcastListener() {
+        @Override
+        public void receivedBroadcast() {
+            try {
+                iabHelper.queryInventoryAsync(gotInventoryListener);
+            } catch (IabHelper.IabAsyncInProgressException e) {
+                Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
+            }
+        }
+    };
+    private IabHelper.QueryInventoryFinishedListener gotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+            Log.d(TAG, "Query inventory finished.\n" + result);
+
+            if (iabHelper == null) return;
+
+            if (result.isFailure()) {
+                return;
+            }
+
+            Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
+
+            premiumChanged((premiumPurchase != null && MusicService.verifyDeveloperPayload(SettingsActivity.this, premiumPurchase)));
+
+            loading(false);
+        }
+    };
+
+    private IabHelper.OnIabPurchaseFinishedListener purchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+            Log.d(TAG, "Purchase finished\n" + result + "\n" + purchase);
+
+            if (iabHelper == null) return;
+
+            if (result.isFailure()) {
+                info("Error purchasing.");
+
+                loading(false);
+
+                return;
+            }
+
+            if (!MusicService.verifyDeveloperPayload(SettingsActivity.this, purchase)) {
+                info("Error purchasing. Authenticity verification failed.");
+
+                loading(false);
+
+                return;
+            }
+
+            Log.d(TAG, "Purchase successful.\n" + purchase);
+
+            if (purchase.getSku().equals(SKU_PREMIUM)) {
+                info("Thank you for upgrading to premium! All premium features will work correctly after restart!");
+
+                premiumChanged(true);
+
+                loading(false);
+            }
+        }
+    };
+
     // UI
     private View root;
+    private AVLoadingIndicatorView loading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,12 +130,68 @@ public class SettingsActivity extends BaseActivity {
 
         // Set views
         root = findViewById(R.id.root);
+        loading = (AVLoadingIndicatorView) findViewById(R.id.loading);
+
+        // IAB
+        iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);
+
+        iabHelper = new IabHelper(this, MusicService.LICENSE_BASE64_PUBLIC_KEY);
+        if (BuildConfig.DEBUG)
+            iabHelper.enableDebugLogging(true, TAG);
+        iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                if (!result.isSuccess()) {
+                    info("Problem setting up in-app billing!");
+
+                    Log.w(TAG, result.toString());
+
+                    return;
+                }
+
+                if (iabHelper == null) return;
+
+                // Important: Dynamically register for broadcast messages about updated purchases.
+                // We register the receiver he re instead of as a <receiver> in the Manifest
+                // because we always call getPurchases() at startup, so therefore we can ignore
+                // any broadcasts sent while the app isn't running.
+                // Note: registering this listener in an Activity is a bad idea, but is done here
+                // because this is a SAMPLE. Regardless, the receiver must be registered after
+                // IabHelper is setup, but before first call to getPurchases().
+                IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
+                registerReceiver(iabBroadcastReceiver, broadcastFilter);
+
+                try {
+                    iabHelper.queryInventoryAsync(gotInventoryListener);
+                } catch (IabHelper.IabAsyncInProgressException e) {
+                    Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
+                }
+            }
+        });
 
         // Set close
         findViewById(R.id.close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
+            }
+        });
+
+        // Set premium
+        findViewById(R.id.premium).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loading(true);
+
+                String payload = MusicService.getDeveloperPayload(SettingsActivity.this, SKU_PREMIUM);
+
+                try {
+                    iabHelper.launchPurchaseFlow(SettingsActivity.this, SKU_PREMIUM, REQUEST_SKU_PREMIUM, purchaseFinishedListener, payload);
+                } catch (IabHelper.IabAsyncInProgressException e) {
+                    info("Error launching purchase flow. Another async operation in progress.");
+
+                    loading(false);
+                }
+
             }
         });
 
@@ -260,6 +394,44 @@ public class SettingsActivity extends BaseActivity {
             rb.setOnCheckedChangeListener(player_type_onCheckedChangeListener);
         }
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (iabBroadcastReceiver != null) {
+            unregisterReceiver(iabBroadcastReceiver);
+        }
+
+        if (iabHelper != null) {
+            iabHelper.disposeWhenFinished();
+            iabHelper = null;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult::" + requestCode + "," + resultCode + "," + data);
+
+        if (iabHelper == null) return;
+
+        if (!iabHelper.handleActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void loading(boolean set) {
+        if (set) loading.smoothToShow();
+        else loading.smoothToHide();
+    }
+
+    private void premiumChanged(boolean isPremium) {
+        if (isPremium) {
+            findViewById(R.id.premium).setVisibility(View.GONE);
+        } else {
+            findViewById(R.id.premium).setVisibility(View.VISIBLE);
+        }
     }
 
     public enum UIStyle {
