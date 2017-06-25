@@ -102,7 +102,7 @@
             android:layout_alignEnd="@id/close"
             android:layout_centerVertical="true"
             android:layout_gravity="center"
-            android:layout_marginEnd="32dp"
+            android:layout_marginEnd="48dp"
             android:background="@null"
             android:clickable="false"
             android:minHeight="0dp"
