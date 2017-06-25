@@ -70,6 +70,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     // Request codes
     private static final int REQUEST_FILE_PICK = 4684;
 
+    // Data
     RecyclerViewAdapter adapter;
 
     // UI
@@ -91,18 +92,6 @@ public class LibraryUIActivity extends BaseUIActivity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         // Set view
-
-        // TODO: Integrate ui styles
-        switch (SettingsActivity.getUIStyle(getApplicationContext())) {
-            case LiteUI:
-                break;
-
-            case DarkUI:
-            default:
-                break;
-        }
-
-
         setContentView(R.layout.library_ui_activity);
 
         // Set bar
@@ -251,6 +240,13 @@ public class LibraryUIActivity extends BaseUIActivity {
                 startActivity(intent);
 
                 drawer_layout.closeDrawer(GravityCompat.START);
+            }
+        });
+
+        findViewById(R.id.exit).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                System.exit(0);
             }
         });
 
@@ -428,16 +424,32 @@ public class LibraryUIActivity extends BaseUIActivity {
         private ArrayList<Music> data;
         private ArrayList<Object> dataFiltered;
 
+        private SettingsActivity.UIStyle uiStyle;
+
         public RecyclerViewAdapter() {
             data = new ArrayList<>();
             dataFiltered = new ArrayList<>();
+
+            uiStyle = SettingsActivity.getUIStyle(getApplicationContext());
         }
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
-            View view = inflater.inflate(R.layout.library_ui_dark_item, parent, false);
+            int layoutId = -1;
+            switch (uiStyle) {
+                case LiteUI:
+                    layoutId = R.layout.library_ui_lite_item;
+                    break;
+
+                case DarkUI:
+                default:
+                    layoutId = R.layout.library_ui_dark_item;
+                    break;
+            }
+
+            View view = inflater.inflate(layoutId, parent, false);
 
             return new ViewHolder(view);
         }
