@@ -35,6 +35,8 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
 
+import static com.ilusons.harmony.base.MusicService.SKU_PREMIUM;
+
 public class SettingsActivity extends BaseActivity {
 
     // Logger TAG
@@ -47,7 +49,6 @@ public class SettingsActivity extends BaseActivity {
 
     // IAB
     private static final int REQUEST_SKU_PREMIUM = 1401;
-    private static final String SKU_PREMIUM = "premium";
 
     private IabHelper iabHelper;
     private IabBroadcastReceiver iabBroadcastReceiver;

@@ -167,7 +167,7 @@ public class MusicService extends Service {
     // IAB
     public static boolean IsPremium = false;
 
-    private static final String SKU_PREMIUM = "premium";
+    public static final String SKU_PREMIUM = "premium";
 
     public static final String TAG_SPREF_SKU_PREMIUM = SPrefEx.TAG_SPREF + ".sku_premium";
 
