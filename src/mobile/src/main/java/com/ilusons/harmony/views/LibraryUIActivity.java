@@ -421,10 +421,10 @@ public class LibraryUIActivity extends BaseUIActivity {
         private static final int ITEMS_PER_AD = 8;
         private AdListener lastAdListener = null;
 
-        private ArrayList<Music> data;
-        private ArrayList<Object> dataFiltered;
+        private final ArrayList<Music> data;
+        private final ArrayList<Object> dataFiltered;
 
-        private SettingsActivity.UIStyle uiStyle;
+        private final SettingsActivity.UIStyle uiStyle;
 
         public RecyclerViewAdapter() {
             data = new ArrayList<>();
@@ -578,20 +578,22 @@ public class LibraryUIActivity extends BaseUIActivity {
                 public void run() {
                     dataFiltered.clear();
 
-                    for (Music item : data) {
-                        boolean f = false;
+                    synchronized (data) {
+                        for (Music item : data) {
+                            boolean f = false;
 
-                        SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
+                            SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
 
-                        f |= item.Path.toLowerCase().endsWith(".mp3") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT);
-                        f |= item.Path.toLowerCase().endsWith(".m4a") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT);
-                        f |= item.Path.toLowerCase().endsWith(".mp4") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT);
-                        f |= item.Path.toLowerCase().endsWith(".flac") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT);
+                            f |= item.Path.toLowerCase().endsWith(".mp3") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT);
+                            f |= item.Path.toLowerCase().endsWith(".m4a") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT);
+                            f |= item.Path.toLowerCase().endsWith(".mp4") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT);
+                            f |= item.Path.toLowerCase().endsWith(".flac") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT);
 
-                        f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
+                            f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
 
-                        if (f)
-                            dataFiltered.add(item);
+                            if (f)
+                                dataFiltered.add(item);
+                        }
                     }
 
                     // Add ads
