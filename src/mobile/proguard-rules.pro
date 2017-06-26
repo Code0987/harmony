@@ -36,6 +36,10 @@
 -keep class com.wang.avi.indicators.** { *; }
 -keep class org.jsoup.**
 
+-dontwarn org.apache.commons.**
+-keep class org.apache.http.** { *; }
+-dontwarn org.apache.http.**
+
 # Facebook
 
 -keep class com.facebook.** { *; }
