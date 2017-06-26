@@ -7,11 +7,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.android.gms.ads.MobileAds;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.StorageEx;
-import com.ilusons.harmony.views.BrowserUILiteActivity;
-import com.ilusons.harmony.views.LibraryUIDarkActivity;
+import com.ilusons.harmony.views.LibraryUIActivity;
 import com.ilusons.harmony.views.PlaybackUIDarkActivity;
 
 public class MainActivity extends BaseActivity {
@@ -27,6 +27,9 @@ public class MainActivity extends BaseActivity {
         Intent musicServiceIntent = new Intent(MainActivity.this, MusicService.class);
         musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
         startService(musicServiceIntent);
+
+        // Initialize
+        MobileAds.initialize(this, "ca-app-pub-4739450309172378~5670478444");
 
         // Intent
         handleIntent(getIntent());
@@ -77,18 +80,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public static synchronized Intent getLibraryUIActivityIntent(final Context context) {
-        Intent intent = null;
-
-        switch (SettingsActivity.getUIStyle(context.getApplicationContext())) {
-            case LiteUI:
-                intent = new Intent(context, BrowserUILiteActivity.class);
-                break;
-
-            case DarkUI:
-            default:
-                intent = new Intent(context, LibraryUIDarkActivity.class);
-                break;
-        }
+        Intent intent = new Intent(context, LibraryUIActivity.class);
 
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 

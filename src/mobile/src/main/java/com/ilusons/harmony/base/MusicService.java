@@ -1,5 +1,7 @@
 package com.ilusons.harmony.base;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -16,6 +18,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaMetadataCompat;
@@ -28,21 +31,39 @@ import android.widget.MediaController;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import com.google.android.vending.licensing.AESObfuscator;
+import com.google.android.vending.licensing.LicenseChecker;
+import com.google.android.vending.licensing.LicenseCheckerCallback;
+import com.google.android.vending.licensing.ServerManagedPolicy;
 import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
+import com.h6ah4i.android.media.audiofx.IBassBoost;
+import com.h6ah4i.android.media.audiofx.IEnvironmentalReverb;
 import com.h6ah4i.android.media.audiofx.IEqualizer;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
+import com.h6ah4i.android.media.audiofx.ILoudnessEnhancer;
 import com.h6ah4i.android.media.audiofx.IPreAmp;
+import com.h6ah4i.android.media.audiofx.IPresetReverb;
+import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
+import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
+import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
+import com.ilusons.harmony.ref.inappbilling.IabHelper;
+import com.ilusons.harmony.ref.inappbilling.IabResult;
+import com.ilusons.harmony.ref.inappbilling.Inventory;
+import com.ilusons.harmony.ref.inappbilling.Purchase;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MusicService extends Service {
 
@@ -114,12 +135,190 @@ public class MusicService extends Service {
 
     private PowerManager.WakeLock wakeLock;
 
+    //region LVL &amp; In-app
+    public static final String LICENSE_BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAl5y7IyWkGhHPEooAL/8dp/vTISO1cZtpZvga6LzLcUoF1TwOyEik0gOeXGwKk/2LrTtUt+3/mvnYUZCTBhkOazRkoLeobBI8Mk+CRjZqyeboIWCsP+KdyZEJy9L/08xCR0VYODwoqTscwVjX/T5JUeM7Z5UNf+frcu7mIQYvhJDbQRuXIyDquNz1PfOMImp3bKYJVH+/5LvqifrbrrhhYedQn1DH64frePPRR+AjM6J1yl229QxN2gQaGs2AcNJHLhaOqYJYWHdwn0d+2VVA4FUeLkaFq7uxmGED4C+5NeGd2nwUl07YOB/s6beWQP+aeiRBGTDhkWrP6HbQ2PJA9wIDAQAB";
+
+    // LVL
+    private static final byte[] SALT = new byte[]{
+            -46, 65, 30, -128, -103, -57, 74, -64, 51, 88, -95, -45, 77, -117, -36, -113, -11, 32, -64, 89
+    };
+    private LicenseCheckerCallback licenseCheckerCallback = new LicenseCheckerCallback() {
+        public void allow(int policyReason) {
+            Log.d(TAG, "LVL allow\n" + policyReason);
+
+        }
+
+        public void dontAllow(int policyReason) {
+            Log.d(TAG, "LVL do not allow\n" + policyReason);
+
+            Toast.makeText(MusicService.this, "This app is not licensed! Will close now!", Toast.LENGTH_LONG).show();
+
+            System.exit(0);
+        }
+
+        public void applicationError(int errorCode) {
+            Log.d(TAG, "LVL applicationError\n" + errorCode);
+
+            Toast.makeText(MusicService.this, "Some error occurred while doing something: " + errorCode + "!", Toast.LENGTH_LONG).show();
+        }
+    };
+    private LicenseChecker licenseChecker;
+
+    // IAB
+    public static boolean IsPremium = false;
+
+    public static final String SKU_PREMIUM = "premium";
+
+    public static final String TAG_SPREF_SKU_PREMIUM = SPrefEx.TAG_SPREF + ".sku_premium";
+
+    private IabHelper iabHelper;
+    private IabBroadcastReceiver iabBroadcastReceiver;
+    private IabBroadcastReceiver.IabBroadcastListener iabBroadcastListener = new IabBroadcastReceiver.IabBroadcastListener() {
+        @Override
+        public void receivedBroadcast() {
+            try {
+                iabHelper.queryInventoryAsync(gotInventoryListener);
+            } catch (IabHelper.IabAsyncInProgressException e) {
+                Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
+            }
+        }
+    };
+    private IabHelper.QueryInventoryFinishedListener gotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+            Log.d(TAG, "Query inventory finished.\n" + result);
+
+            if (iabHelper == null) return;
+
+            if (result.isFailure()) {
+                return;
+            }
+
+            Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
+
+            IsPremium = ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
+
+            SPrefEx.get(MusicService.this)
+                    .edit()
+                    .putBoolean(TAG_SPREF_SKU_PREMIUM, IsPremium)
+                    .apply();
+        }
+    };
+
+    private void initializeLicensing() {
+        // LVL
+        String deviceId =
+                Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        licenseChecker = new LicenseChecker(this, new ServerManagedPolicy(this, new AESObfuscator(SALT, getPackageName(), deviceId)), LICENSE_BASE64_PUBLIC_KEY);
+        licenseChecker.checkAccess(licenseCheckerCallback);
+
+        // IAB
+        IsPremium = SPrefEx.get(this).getBoolean(TAG_SPREF_SKU_PREMIUM, false);
+
+        iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);
+
+        iabHelper = new IabHelper(this, LICENSE_BASE64_PUBLIC_KEY);
+        if (BuildConfig.DEBUG)
+            iabHelper.enableDebugLogging(true, TAG);
+        iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                if (!result.isSuccess()) {
+                    Log.w(TAG, result.toString());
+
+                    return;
+                }
+
+                if (iabHelper == null) return;
+
+                // Important: Dynamically register for broadcast messages about updated purchases.
+                // We register the receiver he re instead of as a <receiver> in the Manifest
+                // because we always call getPurchases() at startup, so therefore we can ignore
+                // any broadcasts sent while the app isn't running.
+                // Note: registering this listener in an Activity is a bad idea, but is done here
+                // because this is a SAMPLE. Regardless, the receiver must be registered after
+                // IabHelper is setup, but before first call to getPurchases().
+                IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
+                registerReceiver(iabBroadcastReceiver, broadcastFilter);
+
+                try {
+                    iabHelper.queryInventoryAsync(gotInventoryListener);
+                } catch (IabHelper.IabAsyncInProgressException e) {
+                    Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
+                }
+            }
+        });
+    }
+
+    public static boolean verifyDeveloperPayload(Context context, Purchase p) {
+        String payload = p.getDeveloperPayload();
+
+        /*
+         * WARNING: Locally generating a random string when starting a purchase and
+         * verifying it here might seem like a good approach, but this will fail in the
+         * case where the user purchases an item on one device and then uses your app on
+         * a different device, because on the other device you will not have access to the
+         * random string you originally generated.
+         *
+         * So a good developer payload has these characteristics:
+         *
+         * 1. If two different users purchase an item, the payload is different between them,
+         *    so that one user's purchase can't be replayed to another user.
+         *
+         * 2. The payload must be such that you can verify it even when the app wasn't the
+         *    one who initiated the purchase flow (so that items purchased by the user on
+         *    one device work on other devices owned by the user).
+         *
+         * Using your own server to store and verify developer payloads across app
+         * installations is recommended.
+         */
+
+        String localPayload = getDeveloperPayload(context, SKU_PREMIUM);
+
+        if (!TextUtils.isEmpty(localPayload))
+            if (payload.toLowerCase().equals(localPayload.toLowerCase()))
+                return true;
+
+        return false;
+    }
+
+    public static String getDeveloperPayload(Context context, String sku) {
+        String payload = "";
+
+        AccountManager manager = AccountManager.get(context);
+        Account[] accounts = manager.getAccountsByType("com.google");
+        List<String> possibleEmails = new LinkedList<String>();
+
+        for (Account account : accounts) {
+            // TODO: Check possibleEmail against an email regex or treat
+            // account.name as an email address only for certain account.type values.
+            possibleEmails.add(account.name);
+        }
+
+        if (!possibleEmails.isEmpty() && possibleEmails.get(0) != null) {
+            String email = possibleEmails.get(0);
+            String[] parts = email.split("@");
+
+            if (parts.length > 1)
+                payload = parts[0];
+        }
+
+        if (TextUtils.isEmpty(payload))
+            return null;
+
+        payload = payload + ";" + sku;
+
+        return payload;
+    }
+//endregion
+
     public MusicService() {
     }
 
     @Override
     public void onCreate() {
         Log.d(TAG, "onCreate called");
+
+        initializeLicensing();
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         headsetMediaButtonIntentReceiverComponent = new ComponentName(getPackageName(), HeadsetMediaButtonIntentReceiver.class.getName());
@@ -175,6 +374,19 @@ public class MusicService extends Service {
 
         audioManager.abandonAudioFocus(audioManagerFocusListener);
 
+        if (licenseChecker != null) {
+            licenseChecker.onDestroy();
+        }
+
+        if (iabBroadcastReceiver != null) {
+            unregisterReceiver(iabBroadcastReceiver);
+        }
+
+        if (iabHelper != null) {
+            iabHelper.disposeWhenFinished();
+            iabHelper = null;
+        }
+
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
@@ -198,6 +410,31 @@ public class MusicService extends Service {
         if (preAmp != null) {
             preAmp.release();
             preAmp = null;
+        }
+
+        if (bassBoost != null) {
+            bassBoost.release();
+            bassBoost = null;
+        }
+
+        if (loudnessEnhancer != null) {
+            loudnessEnhancer.release();
+            loudnessEnhancer = null;
+        }
+
+        if (virtualizer != null) {
+            virtualizer.release();
+            virtualizer = null;
+        }
+
+        if (environmentalReverb != null) {
+            environmentalReverb.release();
+            environmentalReverb = null;
+        }
+
+        if (presetReverb != null) {
+            presetReverb.release();
+            presetReverb = null;
         }
 
         if (mediaPlayerFactory != null) {
@@ -288,6 +525,71 @@ public class MusicService extends Service {
             }
 
         return preAmp;
+    }
+
+    private IBassBoost bassBoost;
+
+    public IBassBoost getBassBoost() {
+        if (bassBoost == null)
+            try {
+                bassBoost = mediaPlayerFactory.createBassBoost(mediaPlayer);
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return bassBoost;
+    }
+
+    private ILoudnessEnhancer loudnessEnhancer;
+
+    public ILoudnessEnhancer getLoudnessEnhancer() {
+        if (loudnessEnhancer == null)
+            try {
+                loudnessEnhancer = mediaPlayerFactory.createLoudnessEnhancer(mediaPlayer);
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return loudnessEnhancer;
+    }
+
+    private IVirtualizer virtualizer;
+
+    public IVirtualizer getVirtualizer() {
+        if (virtualizer == null)
+            try {
+                virtualizer = mediaPlayerFactory.createVirtualizer(mediaPlayer);
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return virtualizer;
+    }
+
+    private IEnvironmentalReverb environmentalReverb;
+
+    public IEnvironmentalReverb getEnvironmentalReverb() {
+        if (environmentalReverb == null)
+            try {
+                environmentalReverb = mediaPlayerFactory.createEnvironmentalReverb();
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return environmentalReverb;
+    }
+
+    private IPresetReverb presetReverb;
+
+    public IPresetReverb getPresetReverb() {
+        if (presetReverb == null)
+            try {
+                presetReverb = mediaPlayerFactory.createPresetReverb();
+            } catch (Exception e) {
+                // Eat?
+            }
+
+        return presetReverb;
     }
 
     private MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
@@ -471,6 +773,112 @@ public class MusicService extends Service {
                     .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlaylist().size())
                     .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this))
                     .build());
+
+            // Update effects
+            if (getPlayerPreAmpEnabled(this)) try {
+                IPreAmp preAmp = getPreAmp();
+                if (preAmp != null) {
+                    preAmp.setProperties(getPlayerPreAmp(this));
+                    preAmp.setEnabled(true);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            else if (preAmp != null) {
+                preAmp.setEnabled(false);
+                preAmp.release();
+                preAmp = null;
+            }
+
+            if (getPlayerEQEnabled(this)) try {
+                IEqualizer equalizer = getEqualizer();
+                if (equalizer != null) {
+                    equalizer.setProperties(getPlayerEQ(this));
+                    equalizer.setEnabled(true);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            else if (equalizer != null) {
+                equalizer.setEnabled(false);
+                equalizer.release();
+                equalizer = null;
+            }
+
+            if (getPlayerBassBoostEnabled(this)) try {
+                IBassBoost bassBoost = getBassBoost();
+                if (bassBoost != null) {
+                    bassBoost.setProperties(getPlayerBassBoost(this));
+                    bassBoost.setEnabled(true);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            else if (bassBoost != null) {
+                bassBoost.setEnabled(false);
+                bassBoost.release();
+                bassBoost = null;
+            }
+
+            if (getPlayerLoudnessEnabled(this)) try {
+                ILoudnessEnhancer loudnessEnhancer = getLoudnessEnhancer();
+                if (loudnessEnhancer != null) {
+                    loudnessEnhancer.setProperties(getPlayerLoudness(this));
+                    loudnessEnhancer.setEnabled(true);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            else if (loudnessEnhancer != null) {
+                loudnessEnhancer.setEnabled(false);
+                loudnessEnhancer.release();
+                loudnessEnhancer = null;
+            }
+
+            if (getPlayerVirtualizerEnabled(this)) try {
+                IVirtualizer virtualizer = getVirtualizer();
+                if (virtualizer != null) {
+                    virtualizer.setProperties(getPlayerVirtualizer(this));
+                    virtualizer.setEnabled(true);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            else if (virtualizer != null) {
+                virtualizer.setEnabled(false);
+                virtualizer.release();
+                virtualizer = null;
+            }
+
+            if (getPlayerReverbPresetEnabled(this)) try {
+                IPresetReverb presetReverb = getPresetReverb();
+                if (presetReverb != null) {
+                    presetReverb.setProperties(getPlayerReverbPreset(this));
+                    presetReverb.setEnabled(true);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            else if (presetReverb != null) {
+                presetReverb.setEnabled(false);
+                presetReverb.release();
+                presetReverb = null;
+            }
+
+            if (getPlayerReverbEnvEnabled(this)) try {
+                IEnvironmentalReverb environmentalReverb = getEnvironmentalReverb();
+                if (environmentalReverb != null) {
+                    environmentalReverb.setProperties(getPlayerReverbEnv(this));
+                    environmentalReverb.setEnabled(true);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            else if (environmentalReverb != null) {
+                environmentalReverb.setEnabled(false);
+                environmentalReverb.release();
+                environmentalReverb = null;
+            }
 
         }
 
@@ -966,6 +1374,27 @@ public class MusicService extends Service {
                 .apply();
     }
 
+    public static final String TAG_SPREF_PLAYER_EQ = SPrefEx.TAG_SPREF + ".player_eq";
+
+    public static IEqualizer.Settings getPlayerEQ(Context context) {
+        String valueString = SPrefEx.get(context).getString(TAG_SPREF_PLAYER_EQ, "");
+
+        if (!TextUtils.isEmpty(valueString)) try {
+            return new IEqualizer.Settings(valueString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new IEqualizer.Settings();
+    }
+
+    public static void setPlayerEQ(Context context, IEqualizer.Settings value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_EQ, value.toString())
+                .apply();
+    }
+
     public static final String TAG_SPREF_PLAYER_PREAMP_ENABLED = SPrefEx.TAG_SPREF + ".player_preamp_enabled";
 
     public static boolean getPlayerPreAmpEnabled(Context context) {
@@ -976,6 +1405,197 @@ public class MusicService extends Service {
         SPrefEx.get(context)
                 .edit()
                 .putBoolean(TAG_SPREF_PLAYER_PREAMP_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_PREAMP = SPrefEx.TAG_SPREF + ".player_preamp";
+
+    public static IPreAmp.Settings getPlayerPreAmp(Context context) {
+        String valueString = SPrefEx.get(context).getString(TAG_SPREF_PLAYER_PREAMP, "");
+
+        if (!TextUtils.isEmpty(valueString)) try {
+            return new IPreAmp.Settings(valueString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new IPreAmp.Settings();
+    }
+
+    public static void setPlayerPreAmp(Context context, IPreAmp.Settings value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_PREAMP, value.toString())
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_BASSBOOST_ENABLED = SPrefEx.TAG_SPREF + ".player_bassboost_enabled";
+
+    public static boolean getPlayerBassBoostEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_BASSBOOST_ENABLED, false);
+    }
+
+    public static void setPlayerBassBoostEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_BASSBOOST_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_BASSBOOST = SPrefEx.TAG_SPREF + ".player_bassboost";
+
+    public static IBassBoost.Settings getPlayerBassBoost(Context context) {
+        String valueString = SPrefEx.get(context).getString(TAG_SPREF_PLAYER_BASSBOOST, "");
+
+        if (!TextUtils.isEmpty(valueString)) try {
+            return new IBassBoost.Settings(valueString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new IBassBoost.Settings();
+    }
+
+    public static void setPlayerBassBoost(Context context, IBassBoost.Settings value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_BASSBOOST, value.toString())
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_LOUDNESS_ENABLED = SPrefEx.TAG_SPREF + ".player_loudness_enabled";
+
+    public static boolean getPlayerLoudnessEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_LOUDNESS_ENABLED, false);
+    }
+
+    public static void setPlayerLoudnessEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_LOUDNESS_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_LOUDNESS = SPrefEx.TAG_SPREF + ".player_loudness";
+
+    public static ILoudnessEnhancer.Settings getPlayerLoudness(Context context) {
+        String valueString = SPrefEx.get(context).getString(TAG_SPREF_PLAYER_LOUDNESS, "");
+
+        if (!TextUtils.isEmpty(valueString)) try {
+            return new ILoudnessEnhancer.Settings(valueString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new ILoudnessEnhancer.Settings();
+    }
+
+    public static void setPlayerLoudness(Context context, ILoudnessEnhancer.Settings value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_LOUDNESS, value.toString())
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_VIRTUALIZER_ENABLED = SPrefEx.TAG_SPREF + ".player_virtualizer_enabled";
+
+    public static boolean getPlayerVirtualizerEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_VIRTUALIZER_ENABLED, false);
+    }
+
+    public static void setPlayerVirtualizerEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_VIRTUALIZER_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_VIRTUALIZER = SPrefEx.TAG_SPREF + ".player_virtualizer";
+
+    public static IVirtualizer.Settings getPlayerVirtualizer(Context context) {
+        String valueString = SPrefEx.get(context).getString(TAG_SPREF_PLAYER_VIRTUALIZER, "");
+
+        if (!TextUtils.isEmpty(valueString)) try {
+            return new IVirtualizer.Settings(valueString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new IVirtualizer.Settings();
+    }
+
+    public static void setPlayerVirtualizer(Context context, IVirtualizer.Settings value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_VIRTUALIZER, value.toString())
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_REVERB_PRESET_ENABLED = SPrefEx.TAG_SPREF + ".player_reverb_preset_enabled";
+
+    public static boolean getPlayerReverbPresetEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_REVERB_PRESET_ENABLED, false);
+    }
+
+    public static void setPlayerReverbPresetEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_REVERB_PRESET_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_REVERB_PRESET = SPrefEx.TAG_SPREF + ".player_reverb_preset";
+
+    public static IPresetReverb.Settings getPlayerReverbPreset(Context context) {
+        String valueString = SPrefEx.get(context).getString(TAG_SPREF_PLAYER_REVERB_PRESET, "");
+
+        if (!TextUtils.isEmpty(valueString)) try {
+            return new IPresetReverb.Settings(valueString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new IPresetReverb.Settings();
+    }
+
+    public static void setPlayerReverbPreset(Context context, IPresetReverb.Settings value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_REVERB_PRESET, value.toString())
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_REVERB_ENV_ENABLED = SPrefEx.TAG_SPREF + ".player_reverb_env_enabled";
+
+    public static boolean getPlayerReverbEnvEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_REVERB_ENV_ENABLED, false);
+    }
+
+    public static void setPlayerReverbEnvEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_REVERB_ENV_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_REVERB_ENV = SPrefEx.TAG_SPREF + ".player_reverb_env";
+
+    public static IEnvironmentalReverb.Settings getPlayerReverbEnv(Context context) {
+        String valueString = SPrefEx.get(context).getString(TAG_SPREF_PLAYER_REVERB_ENV, "");
+
+        if (!TextUtils.isEmpty(valueString)) try {
+            return new IEnvironmentalReverb.Settings(valueString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return EnvironmentalReverbPresets.DEFAULT;
+    }
+
+    public static void setPlayerReverbEnv(Context context, IEnvironmentalReverb.Settings value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_REVERB_ENV, value.toString())
                 .apply();
     }
 
