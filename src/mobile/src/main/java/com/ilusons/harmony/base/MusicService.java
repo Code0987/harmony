@@ -1288,7 +1288,7 @@ public class MusicService extends Service {
                 getPlaylist().clear();
             }
 
-            for (Music music : Music.load(this))
+            for (Music music : MusicServiceLibraryUpdaterAsyncTask.loadIndexAll(this))
                 getPlaylist().add(music.Path);
 
         } else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {

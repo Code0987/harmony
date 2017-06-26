@@ -45,6 +45,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -169,7 +170,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                 refreshTask = (new AsyncTask<Void, Void, Collection<Music>>() {
                     @Override
                     protected Collection<Music> doInBackground(Void... voids) {
-                        return Music.load(LibraryUIActivity.this);
+                        return MusicServiceLibraryUpdaterAsyncTask.loadIndexAll(LibraryUIActivity.this);
                     }
 
                     @Override
@@ -409,7 +410,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     @Override
     public void OnMusicServiceLibraryUpdated() {
         if (adapter != null)
-            adapter.setData(Music.load(LibraryUIActivity.this));
+            adapter.setData(MusicServiceLibraryUpdaterAsyncTask.loadIndexAll(LibraryUIActivity.this));
 
         swipeRefreshLayout.setRefreshing(false);
 

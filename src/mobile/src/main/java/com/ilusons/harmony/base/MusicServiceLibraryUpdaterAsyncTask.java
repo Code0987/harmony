@@ -10,21 +10,28 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.ArraySet;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
 
 public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, MusicServiceLibraryUpdaterAsyncTask.Result> {
 
@@ -35,13 +42,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
     private static final String TAG_SPREF_SCAN_LAST_TS = SPrefEx.TAG_SPREF + ".scan_last_ts";
 
-    private static final String TAG_SPREF_SCAN_LAST_TS_STORAGE = SPrefEx.TAG_SPREF + ".scan_last_ts_storage";
-
     public static final String TAG_SPREF_SCAN_INTERVAL = SPrefEx.TAG_SPREF + ".scan_interval";
     public static final long SCAN_INTERVAL_DEFAULT = 3 * 60 * 60 * 1000;
-
-    private static final long SCAN_INTERVAL_STORAGE_DEFAULT = 12 * 60 * 60 * 1000;
-
 
     // For single task per session
     @SuppressLint("StaticFieldLeak")
@@ -98,28 +100,35 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                     ArrayList<Music> data = new ArrayList<>();
 
-                    // Load previous data
-                    data.addAll(Music.load(context));
-
-                    // Update
-                    update(data);
-
                     // Record time
                     long time = System.currentTimeMillis();
 
-                    // Scan media store
-                    scanMediaStoreAudio(data);
-                    scanMediaStoreVideo(data);
+                    final Set<String> scanLocations = getScanLocations(context);
 
-                    Log.d(TAG, "Library update from media store took " + (System.currentTimeMillis() - time) + "ms");
+                    // Scan media store
+                    if (getScanMediaStoreEnabled(context)) {
+
+                        // Load previous data
+                        data.clear();
+                        data.addAll(loadIndex(context, KEY_CACHE_KEY_LIBRARY_MEDIASTORE));
+                        scanMediaStoreAudio(data, scanLocations);
+                        scanMediaStoreVideo(data, scanLocations);
+                        // Save new data
+                        saveIndex(context, data, KEY_CACHE_KEY_LIBRARY_MEDIASTORE);
+
+                        Log.d(TAG, "Library update from media store took " + (System.currentTimeMillis() - time) + "ms");
+                    }
 
                     // Scan storage
-                    scanStorage(data);
+
+                    // Load previous data
+                    data.clear();
+                    data.addAll(loadIndex(context, KEY_CACHE_KEY_LIBRARY_STORAGE));
+                    scanStorage(data, scanLocations);
+                    // Save new data
+                    saveIndex(context, data, KEY_CACHE_KEY_LIBRARY_STORAGE);
 
                     Log.d(TAG, "Library update from storage took " + (System.currentTimeMillis() - time) + "ms");
-
-                    // Save new data
-                    Music.save(context, data);
 
                     Log.d(TAG, "Library update took " + (System.currentTimeMillis() - time) + "ms");
 
@@ -152,7 +161,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         }
     }
 
-    private void addFromDirectory(File path, ArrayList<Music> data) {
+    private void addFromDirectory(File path, ArrayList<Music> data, final Set<String> scanLocations) {
 
         if (isCancelled())
             return;
@@ -161,15 +170,15 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             if (file.canRead()) {
                 String filePath = file.getAbsolutePath();
                 if (file.isDirectory()) {
-                    addFromDirectory(file, data);
+                    addFromDirectory(file, data, scanLocations);
                 } else if (filePath.endsWith(".mp3") || filePath.endsWith(".m4a") || filePath.endsWith(".flac") || filePath.endsWith(".mp4")) {
-                    add(file.getAbsolutePath(), data);
+                    add(file.getAbsolutePath(), data, scanLocations);
                 }
             }
         }
     }
 
-    private void add(final String path, final ArrayList<Music> data) {
+    private void add(final String path, final ArrayList<Music> data, Set<String> scanLocations) {
 
         updateNotification(path);
 
@@ -191,7 +200,22 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         }
     }
 
-    private void scanMediaStoreAudio(final ArrayList<Music> data) {
+    private void scanMediaStoreAudio(final ArrayList<Music> data, final Set<String> scanLocations) {
+        if (isCancelled())
+            return;
+
+        ArrayList<Music> toRemove = new ArrayList<>();
+
+        for (Music music : data) {
+
+            File file = (new File(music.Path));
+
+            if (!file.exists())
+                toRemove.add(music);
+        }
+
+        data.removeAll(toRemove);
+
         ContentResolver cr = context.getContentResolver();
 
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
@@ -219,7 +243,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     if ((new File(path)).exists()) {
                         Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
 
-                        add(contentUri.toString(), data);
+                        add(contentUri.toString(), data, scanLocations);
                     }
                 }
 
@@ -230,7 +254,22 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             cursor.close();
     }
 
-    private void scanMediaStoreVideo(final ArrayList<Music> data) {
+    private void scanMediaStoreVideo(final ArrayList<Music> data, final Set<String> scanLocations) {
+        if (isCancelled())
+            return;
+
+        ArrayList<Music> toRemove = new ArrayList<>();
+
+        for (Music music : data) {
+
+            File file = (new File(music.Path));
+
+            if (!file.exists())
+                toRemove.add(music);
+        }
+
+        data.removeAll(toRemove);
+
         ContentResolver cr = context.getContentResolver();
 
         Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
@@ -257,7 +296,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     if ((new File(path)).exists()) {
                         Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
 
-                        add(contentUri.toString(), data);
+                        add(contentUri.toString(), data, scanLocations);
                     }
                 }
 
@@ -268,39 +307,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             cursor.close();
     }
 
-    private void scanStorage(final ArrayList<Music> data) {
-        {
-            long interval = SCAN_INTERVAL_STORAGE_DEFAULT;
-            long last = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_LAST_TS_STORAGE, 0);
-
-            long dt = System.currentTimeMillis() - (last + interval);
-
-            if (dt < 0) {
-                Log.d(TAG, "Storage scan skipped due to time constraints!");
-
-                return;
-            }
-
-            SPrefEx.get(context)
-                    .edit()
-                    .putLong(TAG_SPREF_SCAN_LAST_TS_STORAGE, System.currentTimeMillis())
-                    .apply();
-        }
-
-        String externalStorageState = Environment.getExternalStorageState();
-        if ("mounted".equals(externalStorageState) || "mounted_ro".equals(externalStorageState)) {
-            addFromDirectory(Environment.getExternalStorageDirectory(), data);
-        } else {
-            Log.d(TAG, "External/Internal storage is not available.");
-        }
-
-        for (String path : IOEx.getExternalStorageDirectories(context)) {
-            addFromDirectory(new File(path), data);
-        }
-    }
-
-    private void update(final ArrayList<Music> data) {
-
+    private void scanStorage(final ArrayList<Music> data, final Set<String> scanLocations) {
         if (isCancelled())
             return;
 
@@ -312,9 +319,24 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
             if (!file.exists())
                 toRemove.add(music);
+
+            boolean shouldRemove = true;
+            for (String scanLocation : scanLocations)
+                if (music.Path.contains(scanLocation)) {
+                    shouldRemove = false;
+                    break;
+                }
+            if (shouldRemove)
+                toRemove.add(music);
+
         }
 
         data.removeAll(toRemove);
+
+        for (String location : scanLocations) {
+            addFromDirectory(new File(location), data, scanLocations);
+        }
+
     }
 
     NotificationManager notificationManager = null;
@@ -386,5 +408,106 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
     public static class Result {
         public ArrayList<Music> Data = new ArrayList<>();
+    }
+
+    public static final String KEY_CACHE_KEY_LIBRARY_MEDIASTORE = "library_mediastore.index";
+    public static final String KEY_CACHE_KEY_LIBRARY_STORAGE = "library_storage.index";
+
+    public static ArrayList<Music> loadIndex(Context context, String path) {
+        ArrayList<Music> result = new ArrayList<>();
+
+        File cacheFile = IOEx.getDiskCacheFile(context, path);
+        if (!cacheFile.exists())
+            return result;
+
+        try {
+            String json;
+            json = FileUtils.readFileToString(cacheFile, "utf-8");
+
+            Gson serializer = Music.getSerializer();
+
+            result.addAll(Arrays.asList(serializer.fromJson(json, Music[].class)));
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return result;
+        }
+
+        return result;
+    }
+
+    public static void saveIndex(Context context, ArrayList<Music> data, String path) {
+
+        // TODO: Sort playlist better
+        Collections.sort(data, new Comparator<Music>() {
+            @Override
+            public int compare(Music x, Music y) {
+                return x.getText().compareTo(y.getText());
+            }
+        });
+
+        Gson serializer = Music.getSerializer();
+
+        String json = serializer.toJson(data.toArray(), Music[].class);
+
+        File cacheFile = IOEx.getDiskCacheFile(context, path);
+        try {
+            FileUtils.writeStringToFile(cacheFile, json, "utf-8", false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "data\n" + json);
+    }
+
+    public static void resetIndex(Context context, String path) {
+        File cacheFile = IOEx.getDiskCacheFile(context, path);
+        if (cacheFile.exists())
+            cacheFile.delete();
+    }
+
+    public static ArrayList<Music> loadIndexAll(Context context) {
+        ArrayList<Music> result = new ArrayList<>();
+
+        result.addAll(loadIndex(context, KEY_CACHE_KEY_LIBRARY_MEDIASTORE));
+        result.addAll(loadIndex(context, KEY_CACHE_KEY_LIBRARY_STORAGE));
+
+        return result;
+    }
+
+    public static void resetIndexAll(Context context) {
+        MusicServiceLibraryUpdaterAsyncTask.resetIndex(context, KEY_CACHE_KEY_LIBRARY_MEDIASTORE);
+        MusicServiceLibraryUpdaterAsyncTask.resetIndex(context, KEY_CACHE_KEY_LIBRARY_STORAGE);
+    }
+
+    public static final String TAG_SPREF_LIBRARY_SCAN_LOCATIONS = SPrefEx.TAG_SPREF + ".library_scan_locations";
+
+    public static Set<String> getScanLocations(Context context) {
+        Set<String> value = new ArraySet<>();
+
+        value = SPrefEx.get(context).getStringSet(TAG_SPREF_LIBRARY_SCAN_LOCATIONS, value);
+
+        return value;
+    }
+
+    public static void setScanLocations(Context context, Set<String> value) {
+        SPrefEx.get(context)
+                .edit()
+                .putStringSet(TAG_SPREF_LIBRARY_SCAN_LOCATIONS, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_LIBRARY_SCAN_MEDIASTORE_ENABLED = SPrefEx.TAG_SPREF + ".library_scan_mediastore_enabled";
+    private static final boolean LIBRARY_SCAN_MEDIASTORE_ENABLED_DEFAULT = true;
+
+    public static boolean getScanMediaStoreEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_LIBRARY_SCAN_MEDIASTORE_ENABLED, LIBRARY_SCAN_MEDIASTORE_ENABLED_DEFAULT);
+    }
+
+    public static void setScanMediaStoreEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_LIBRARY_SCAN_MEDIASTORE_ENABLED, value)
+                .apply();
     }
 }
