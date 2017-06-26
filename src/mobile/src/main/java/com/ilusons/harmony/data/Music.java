@@ -25,6 +25,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
@@ -615,7 +616,7 @@ public class Music {
     }
 
     public static Music load(Context context, String path) {
-        ArrayList<Music> all = load(context);
+        ArrayList<Music> all = MusicServiceLibraryUpdaterAsyncTask.loadIndexAll(context);
 
         Music m = null;
 
@@ -632,60 +633,7 @@ public class Music {
         return m;
     }
 
-    public static ArrayList<Music> load(Context context) {
-        ArrayList<Music> result = new ArrayList<>();
-
-        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
-        if (!cacheFile.exists())
-            return result;
-
-        try {
-            String json;
-            json = FileUtils.readFileToString(cacheFile, "utf-8");
-
-            Gson serializer = getSerializer();
-
-            result.addAll(Arrays.asList(serializer.fromJson(json, Music[].class)));
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            return result;
-        }
-
-        return result;
-    }
-
-    public static void save(Context context, ArrayList<Music> data) {
-
-        // TODO: Sort playlist better
-        Collections.sort(data, new Comparator<Music>() {
-            @Override
-            public int compare(Music x, Music y) {
-                return x.getText().compareTo(y.getText());
-            }
-        });
-
-        Gson serializer = getSerializer();
-
-        String json = serializer.toJson(data.toArray(), Music[].class);
-
-        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
-        try {
-            FileUtils.writeStringToFile(cacheFile, json, "utf-8", false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Log.d(TAG, "data\n" + json);
-    }
-
-    public static void reset(Context context) {
-        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
-        if (cacheFile.exists())
-            cacheFile.delete();
-    }
-
-    static Gson getSerializer() {
+    public static Gson getSerializer() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
         gsonBuilder.registerTypeAdapter(Music.class, new Serializer());
