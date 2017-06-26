@@ -10,6 +10,7 @@
 
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@color/translucent</item>
+        <item name="android:windowTranslucentStatus">true</item>
 
         <item name="android:colorForeground">@color/translucent_primary_light</item>
         <item name="android:colorBackground">@color/translucent_primary_dark</item>
@@ -41,6 +42,8 @@
         <item name="android:statusBarColor">@color/translucent_primary_dark</item>
 
         <item name="android:alertDialogTheme">@style/AppTheme.AlertDialogStyle</item>
+
+        <item name="searchViewStyle">@style/AppTheme.SearchView</item>
     </style>
 
     <style name="AppTheme.ActivityAnimationStyle" parent="@android:style/Animation.Activity">
@@ -55,6 +58,16 @@
         <item name="android:background">@color/primary_dark</item>
         <item name="android:windowTitleStyle">@color/primary_text</item>
         <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+
+    <style name="AppTheme.SearchView" parent="Widget.AppCompat.SearchView">
+        <item name="android:textColor">@color/primary_text</item>
+        <item name="android:editTextColor">@color/primary_text</item>
+        <item name="android:color">@color/primary_text</item>
     </style>
 
 </resources>

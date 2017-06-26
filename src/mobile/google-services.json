@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1020414112906",
+    "firebase_url": "https://harmony-c5fc3.firebaseio.com",
+    "project_id": "harmony-c5fc3",
+    "storage_bucket": "harmony-c5fc3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020414112906:android:7dcf323c7ddd6cb5",
+        "android_client_info": {
+          "package_name": "com.ilusons.harmony"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1020414112906-ucsv8661gkvreqvkue43i8e71a0k1grc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ilusons.harmony",
+            "certificate_hash": "742a8c11154220f178c928237adbc190eeb85622"
+          }
+        },
+        {
+          "client_id": "1020414112906-sfn042v7gd36oc1umirvrdcnu65ukebd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvlVOJBCbSjdjvzJl2Inr8PbZbUNc6YZk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1020414112906-sfn042v7gd36oc1umirvrdcnu65ukebd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
