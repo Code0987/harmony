@@ -18,19 +18,12 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.ArraySet;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
-
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Set;
 
 public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, MusicServiceLibraryUpdaterAsyncTask.Result> {
@@ -110,11 +103,11 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                         // Load previous data
                         data.clear();
-                        data.addAll(loadIndex(context, KEY_CACHE_KEY_LIBRARY_MEDIASTORE));
+                        data.addAll(Music.loadIndex(context, Music.KEY_CACHE_LIBRARY_MEDIASTORE));
                         scanMediaStoreAudio(data, scanLocations);
                         scanMediaStoreVideo(data, scanLocations);
                         // Save new data
-                        saveIndex(context, data, KEY_CACHE_KEY_LIBRARY_MEDIASTORE);
+                        Music.saveIndex(context, data, Music.KEY_CACHE_LIBRARY_MEDIASTORE);
 
                         Log.d(TAG, "Library update from media store took " + (System.currentTimeMillis() - time) + "ms");
                     }
@@ -123,12 +116,23 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                     // Load previous data
                     data.clear();
-                    data.addAll(loadIndex(context, KEY_CACHE_KEY_LIBRARY_STORAGE));
+                    data.addAll(Music.loadIndex(context, Music.KEY_CACHE_LIBRARY_STORAGE));
                     scanStorage(data, scanLocations);
                     // Save new data
-                    saveIndex(context, data, KEY_CACHE_KEY_LIBRARY_STORAGE);
+                    Music.saveIndex(context, data, Music.KEY_CACHE_LIBRARY_STORAGE);
 
                     Log.d(TAG, "Library update from storage took " + (System.currentTimeMillis() - time) + "ms");
+
+                    // Scan current
+
+                    // Load previous data
+                    data.clear();
+                    data.addAll(Music.loadCurrent(context));
+                    scanCurrent(data, scanLocations);
+                    // Save new data
+                    Music.saveCurrent(context, data, false);
+
+                    Log.d(TAG, "Library update from current took " + (System.currentTimeMillis() - time) + "ms");
 
                     Log.d(TAG, "Library update took " + (System.currentTimeMillis() - time) + "ms");
 
@@ -339,6 +343,34 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
     }
 
+    private void scanCurrent(final ArrayList<Music> data, final Set<String> scanLocations) {
+        if (isCancelled())
+            return;
+
+        ArrayList<Music> toRemove = new ArrayList<>();
+
+        for (Music music : data) {
+
+            File file = (new File(music.Path));
+
+            if (!file.exists())
+                toRemove.add(music);
+
+            boolean shouldRemove = true;
+            for (String scanLocation : scanLocations)
+                if (music.Path.contains(scanLocation)) {
+                    shouldRemove = false;
+                    break;
+                }
+            if (shouldRemove)
+                toRemove.add(music);
+
+        }
+
+        data.removeAll(toRemove);
+
+    }
+
     NotificationManager notificationManager = null;
     NotificationCompat.Builder notificationBuilder = null;
 
@@ -408,76 +440,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
     public static class Result {
         public ArrayList<Music> Data = new ArrayList<>();
-    }
-
-    public static final String KEY_CACHE_KEY_LIBRARY_MEDIASTORE = "library_mediastore.index";
-    public static final String KEY_CACHE_KEY_LIBRARY_STORAGE = "library_storage.index";
-
-    public static ArrayList<Music> loadIndex(Context context, String path) {
-        ArrayList<Music> result = new ArrayList<>();
-
-        File cacheFile = IOEx.getDiskCacheFile(context, path);
-        if (!cacheFile.exists())
-            return result;
-
-        try {
-            String json;
-            json = FileUtils.readFileToString(cacheFile, "utf-8");
-
-            Gson serializer = Music.getSerializer();
-
-            result.addAll(Arrays.asList(serializer.fromJson(json, Music[].class)));
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            return result;
-        }
-
-        return result;
-    }
-
-    public static void saveIndex(Context context, ArrayList<Music> data, String path) {
-
-        // TODO: Sort playlist better
-        Collections.sort(data, new Comparator<Music>() {
-            @Override
-            public int compare(Music x, Music y) {
-                return x.getText().compareTo(y.getText());
-            }
-        });
-
-        Gson serializer = Music.getSerializer();
-
-        String json = serializer.toJson(data.toArray(), Music[].class);
-
-        File cacheFile = IOEx.getDiskCacheFile(context, path);
-        try {
-            FileUtils.writeStringToFile(cacheFile, json, "utf-8", false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Log.d(TAG, "data\n" + json);
-    }
-
-    public static void resetIndex(Context context, String path) {
-        File cacheFile = IOEx.getDiskCacheFile(context, path);
-        if (cacheFile.exists())
-            cacheFile.delete();
-    }
-
-    public static ArrayList<Music> loadIndexAll(Context context) {
-        ArrayList<Music> result = new ArrayList<>();
-
-        result.addAll(loadIndex(context, KEY_CACHE_KEY_LIBRARY_MEDIASTORE));
-        result.addAll(loadIndex(context, KEY_CACHE_KEY_LIBRARY_STORAGE));
-
-        return result;
-    }
-
-    public static void resetIndexAll(Context context) {
-        MusicServiceLibraryUpdaterAsyncTask.resetIndex(context, KEY_CACHE_KEY_LIBRARY_MEDIASTORE);
-        MusicServiceLibraryUpdaterAsyncTask.resetIndex(context, KEY_CACHE_KEY_LIBRARY_STORAGE);
     }
 
     public static final String TAG_SPREF_LIBRARY_SCAN_LOCATIONS = SPrefEx.TAG_SPREF + ".library_scan_locations";

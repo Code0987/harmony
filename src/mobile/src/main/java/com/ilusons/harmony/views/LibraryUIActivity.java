@@ -1,7 +1,9 @@
 package com.ilusons.harmony.views;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -14,6 +16,7 @@ import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -25,6 +28,7 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,14 +49,15 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 public class LibraryUIActivity extends BaseUIActivity {
 
@@ -170,7 +175,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                 refreshTask = (new AsyncTask<Void, Void, Collection<Music>>() {
                     @Override
                     protected Collection<Music> doInBackground(Void... voids) {
-                        return MusicServiceLibraryUpdaterAsyncTask.loadIndexAll(LibraryUIActivity.this);
+                        return Music.loadCurrent(LibraryUIActivity.this);
                     }
 
                     @Override
@@ -326,6 +331,48 @@ public class LibraryUIActivity extends BaseUIActivity {
                 return false;
             }
         });
+
+        // Set right drawer
+        findViewById(R.id.load_library).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setFromLibrary();
+            }
+        });
+
+        findViewById(R.id.save_current).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ArrayList<Music> data = new ArrayList<Music>();
+
+                for (Object o : adapter.dataFiltered) {
+                    if (o instanceof Music)
+                        data.add((Music) o);
+                }
+
+                Music.saveCurrent(LibraryUIActivity.this, data, true);
+            }
+        });
+
+        // Set playlist(s)
+        RecyclerView playlist_recyclerView = (RecyclerView) findViewById(R.id.playlist_recyclerView);
+        playlist_recyclerView.setHasFixedSize(true);
+        playlist_recyclerView.setItemViewCacheSize(5);
+        playlist_recyclerView.setDrawingCacheEnabled(true);
+        playlist_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+
+        PlaylistRecyclerViewAdapter playlistRecyclerViewAdapter = new PlaylistRecyclerViewAdapter();
+        playlist_recyclerView.setAdapter(playlistRecyclerViewAdapter);
+
+        final ArrayList<Pair<Long, String>> playlists = new ArrayList<>();
+        Music.allPlaylist(getContentResolver(), new JavaEx.ActionTU<Long, String>() {
+            @Override
+            public void execute(Long id, String name) {
+                playlists.add(new Pair<Long, String>(id, name));
+            }
+        });
+        playlistRecyclerViewAdapter.setData(playlists);
+
     }
 
     @Override
@@ -410,11 +457,112 @@ public class LibraryUIActivity extends BaseUIActivity {
     @Override
     public void OnMusicServiceLibraryUpdated() {
         if (adapter != null)
-            adapter.setData(MusicServiceLibraryUpdaterAsyncTask.loadIndexAll(LibraryUIActivity.this));
+            adapter.setData(Music.loadCurrent(LibraryUIActivity.this));
 
         swipeRefreshLayout.setRefreshing(false);
 
         info("Library updated!");
+    }
+
+    private AsyncTask<Void, Void, Void> setFromTask = null;
+
+    private void setFromLibrary() {
+        if (setFromTask != null) {
+            try {
+                setFromTask.get(1, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            setFromTask = null;
+        }
+
+        swipeRefreshLayout.setRefreshing(true);
+
+        setFromTask = (new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected void onCancelled() {
+                super.onCancelled();
+
+                setFromTask = null;
+
+                swipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+
+                setFromTask = null;
+
+                swipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                adapter.setData(Music.loadAll(LibraryUIActivity.this));
+
+                return null;
+            }
+        });
+
+        setFromTask.execute();
+    }
+
+    private void setFromPlaylist(String playlistId) {
+        if (setFromTask != null) {
+            try {
+                setFromTask.get(1, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            setFromTask = null;
+        }
+
+        final Collection<String> audioIds = Music.getAllAudioIdsInPlaylist(getContentResolver(), Long.parseLong(playlistId));
+        final JavaEx.ActionT<Music> action = new JavaEx.ActionT<Music>() {
+            @Override
+            public void execute(final Music music) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.addData(music);
+                    }
+                });
+            }
+        };
+
+        if (audioIds.size() > 0) {
+            swipeRefreshLayout.setRefreshing(true);
+
+            setFromTask = (new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected void onCancelled() {
+                    super.onCancelled();
+
+                    setFromTask = null;
+
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+
+                    setFromTask = null;
+
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    Music.getAllMusicForIds(LibraryUIActivity.this, audioIds, action);
+
+                    return null;
+                }
+            });
+
+            setFromTask.execute();
+        }
     }
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
@@ -471,11 +619,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 try {
                     adView.setAdSize(new AdSize((int) ((cv.getWidth() - cv.getPaddingLeft() - cv.getPaddingRight()) / getResources().getDisplayMetrics().density), 96));
                     adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
+
+                    cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
                 } catch (Exception e) {
                     Log.w(TAG, e);
                 }
-
-                cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
 
                 lastAdListener = new AdListener() {
                     @Override
@@ -573,6 +721,14 @@ public class LibraryUIActivity extends BaseUIActivity {
             filter(null);
         }
 
+        public void addData(Music d) {
+            data.clear();
+            data.add(0, d);
+            dataFiltered.add(0, d);
+
+            notifyDataSetChanged();
+        }
+
         public void filter(final String text) {
             new Thread(new Runnable() {
                 @Override
@@ -650,6 +806,132 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             public float getPosition() {
                 return getProgress();
+            }
+        }
+
+    }
+
+    public class PlaylistRecyclerViewAdapter extends RecyclerView.Adapter<PlaylistRecyclerViewAdapter.ViewHolder> {
+
+        private final ArrayList<Pair<Long, String>> data;
+
+        public PlaylistRecyclerViewAdapter() {
+            data = new ArrayList<>();
+        }
+
+        @Override
+        public int getItemCount() {
+            return data.size();
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+            View view = inflater.inflate(R.layout.library_ui_playlist_item, parent, false);
+
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, int position) {
+            final Pair<Long, String> d = data.get(position);
+            final View v = holder.view;
+
+            TextView text = (TextView) v.findViewById(R.id.text);
+            text.setText(d.second);
+
+            v.setTag(d.first);
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+                    builder.setTitle("Are you sure?");
+                    builder.setMessage("This will replace current playlist with selected one.");
+                    builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            setFromPlaylist(Long.toString(d.first));
+
+                            dialog.dismiss();
+                        }
+                    });
+                    builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.dismiss();
+                        }
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                }
+            });
+            v.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+                    builder.setTitle("Select the action");
+                    builder.setItems(new CharSequence[]{
+                            "Delete"
+                    }, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int item) {
+                            switch (item) {
+                                case 0:
+                                    Music.deletePlaylist(getContentResolver(), d.first);
+                                    removeData(d.first);
+                                    break;
+                            }
+                        }
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+
+                    return true;
+                }
+            });
+
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            public View view;
+
+            public ViewHolder(View view) {
+                super(view);
+
+                this.view = view;
+            }
+
+        }
+
+        public void setData(Collection<Pair<Long, String>> d) {
+            data.clear();
+            data.addAll(d);
+            notifyDataSetChanged();
+        }
+
+        public void addData(Pair<Long, String> d) {
+            data.add(d);
+
+            notifyDataSetChanged();
+        }
+
+        public void removeData(Pair<Long, String> d) {
+            data.remove(d);
+
+            notifyDataSetChanged();
+        }
+
+        public void removeData(final Long id) {
+            Pair<Long, String> d = null;
+            for (Pair<Long, String> pair : data) {
+                if (pair.first.equals(id)) {
+                    d = pair;
+                    break;
+                }
+            }
+            if (d != null) {
+                data.remove(d);
+                notifyDataSetChanged();
             }
         }
 

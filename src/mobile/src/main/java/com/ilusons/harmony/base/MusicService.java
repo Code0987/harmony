@@ -633,6 +633,12 @@ public class MusicService extends Service {
         return playlistPosition;
     }
 
+    public void setPlaylistPosition(int position) {
+        playlistPosition = position;
+        if (playlistPosition < 0 || playlistPosition >= playlist.size())
+            playlistPosition = -1;
+    }
+
     public ArrayList<String> getPlaylist() {
         return playlist;
     }
@@ -1283,13 +1289,15 @@ public class MusicService extends Service {
             libraryUpdater.execute();
 
         } else if (action.equals(ACTION_LIBRARY_UPDATED)) {
+            // TODO: verify, test logic
             if (!isPlaying()) {
-                stop();
                 getPlaylist().clear();
             }
-
-            for (Music music : MusicServiceLibraryUpdaterAsyncTask.loadIndexAll(this))
+            if (currentMusic != null)
+                getPlaylist().add(currentMusic.Path);
+            for (Music music : Music.loadCurrent(this))
                 getPlaylist().add(music.Path);
+            setPlaylistPosition(0);
 
         } else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {
 
