@@ -1,7 +1,9 @@
 package com.ilusons.harmony.base;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -9,6 +11,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -109,7 +112,7 @@ public class BaseActivity extends AppCompatActivity {
         View view = findViewById(R.id.root);
 
         if (view != null) {
-            final Snackbar snackbar = Snackbar.make(view, s, Snackbar.LENGTH_LONG);
+            final Snackbar snackbar = Snackbar.make(view, s, Snackbar.LENGTH_INDEFINITE);
             View snackbarView = snackbar.getView();
             if (snackbarView.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
@@ -129,6 +132,28 @@ public class BaseActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, s, Toast.LENGTH_LONG).show();
         }
+    }
+
+    /**
+     * Shows alert dialog
+     */
+    public void infoDialog(String content, String title, final DialogInterface.OnClickListener onClickListener) {
+        (new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
+                .setTitle(title)
+                .setMessage(content)
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if (onClickListener != null)
+                            onClickListener.onClick(dialogInterface, i);
+                    }
+                }))
+                .show();
+    }
+
+    public void infoDialog(String content) {
+        infoDialog(content, "Information", null);
     }
 
 }

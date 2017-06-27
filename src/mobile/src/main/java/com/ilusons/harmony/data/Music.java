@@ -410,6 +410,13 @@ public class Music {
         Runtime.getRuntime().gc();
 
         // Metadata from system
+
+        if (Looper.myLooper() == null) try {
+            Looper.prepare(); // HACK
+        } catch (Exception e) {
+            Log.w(TAG, e);
+        }
+
         if (Looper.myLooper() != null) {
 
             if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("audio")) {
@@ -938,7 +945,9 @@ public class Music {
             return;
 
         for (String audioId : audioIds) {
-            Music m = load(context, ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId)).toString());
+            String path = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId)).toString();
+
+            Music m = decode(context, path, false, null);
 
             if (m != null)
                 action.execute(m);

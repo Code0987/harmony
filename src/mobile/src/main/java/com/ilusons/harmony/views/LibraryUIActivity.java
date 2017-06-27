@@ -143,6 +143,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
         drawer_layout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer_layout.closeDrawer(GravityCompat.START);
+        drawer_layout.closeDrawer(GravityCompat.END);
 
         // Set views
         root = findViewById(R.id.root);
@@ -214,6 +215,13 @@ public class LibraryUIActivity extends BaseUIActivity {
                 drawer_layout.closeDrawer(GravityCompat.START);
             }
         });
+        findViewById(R.id.open).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Select and play any support media from local storage.");
+                return true;
+            }
+        });
 
         findViewById(R.id.refresh).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -224,6 +232,13 @@ public class LibraryUIActivity extends BaseUIActivity {
                 startService(musicServiceIntent);
 
                 drawer_layout.closeDrawer(GravityCompat.START);
+            }
+        });
+        findViewById(R.id.refresh).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Re-loads all library media and also scan for new and changed.");
+                return true;
             }
         });
 
@@ -333,24 +348,37 @@ public class LibraryUIActivity extends BaseUIActivity {
         });
 
         // Set right drawer
+        drawer_layout.closeDrawer(GravityCompat.END);
+
         findViewById(R.id.load_library).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 setFromLibrary();
+
+                drawer_layout.closeDrawer(GravityCompat.END);
+            }
+        });
+        findViewById(R.id.load_library).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Loads all the library media into view playlist, view filters applied.");
+                return true;
             }
         });
 
         findViewById(R.id.save_current).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ArrayList<Music> data = new ArrayList<Music>();
+                setCurrent();
 
-                for (Object o : adapter.dataFiltered) {
-                    if (o instanceof Music)
-                        data.add((Music) o);
-                }
-
-                Music.saveCurrent(LibraryUIActivity.this, data, true);
+                drawer_layout.closeDrawer(GravityCompat.END);
+            }
+        });
+        findViewById(R.id.save_current).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Saves the current view playlist as current playlist, view filters ignored.");
+                return true;
             }
         });
 
@@ -380,8 +408,6 @@ public class LibraryUIActivity extends BaseUIActivity {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START);
         } else {
-            drawer_layout.openDrawer(GravityCompat.START);
-
             // super.onBackPressed();
         }
     }
@@ -464,6 +490,19 @@ public class LibraryUIActivity extends BaseUIActivity {
         info("Library updated!");
     }
 
+    private void setCurrent() {
+        ArrayList<Music> data = new ArrayList<Music>();
+
+        for (Object o : adapter.dataFiltered) {
+            if (o instanceof Music)
+                data.add((Music) o);
+        }
+
+        Music.saveCurrent(LibraryUIActivity.this, data, true);
+
+        info("Current playlist saved!");
+    }
+
     private AsyncTask<Void, Void, Void> setFromTask = null;
 
     private void setFromLibrary() {
@@ -495,6 +534,8 @@ public class LibraryUIActivity extends BaseUIActivity {
                 setFromTask = null;
 
                 swipeRefreshLayout.setRefreshing(false);
+
+                info("Loaded library!");
             }
 
             @Override
@@ -551,10 +592,16 @@ public class LibraryUIActivity extends BaseUIActivity {
                     setFromTask = null;
 
                     swipeRefreshLayout.setRefreshing(false);
+
+                    info("Loaded playlist!");
                 }
 
                 @Override
                 protected Void doInBackground(Void... voids) {
+                    info("Do not refresh until this playlist is fully loaded!");
+
+                    adapter.clearData();
+
                     Music.getAllMusicForIds(LibraryUIActivity.this, audioIds, action);
 
                     return null;
@@ -729,6 +776,12 @@ public class LibraryUIActivity extends BaseUIActivity {
             notifyDataSetChanged();
         }
 
+        public void clearData() {
+            data.clear();
+
+            filter(null);
+        }
+
         public void filter(final String text) {
             new Thread(new Runnable() {
                 @Override
@@ -853,11 +906,15 @@ public class LibraryUIActivity extends BaseUIActivity {
                             setFromPlaylist(Long.toString(d.first));
 
                             dialog.dismiss();
+
+                            drawer_layout.closeDrawer(GravityCompat.END);
                         }
                     });
                     builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             dialog.dismiss();
+
+                            drawer_layout.closeDrawer(GravityCompat.END);
                         }
                     });
                     AlertDialog dialog = builder.create();

@@ -107,6 +107,7 @@
                     android:layout_height="?attr/actionBarSize"
                     android:background="@color/translucent_primary_dark"
                     android:clickable="false"
+                    android:focusableInTouchMode="true"
                     app:layout_collapseMode="pin"
                     app:layout_scrollFlags="scroll|enterAlways"
                     >
@@ -115,6 +116,7 @@
                         android:id="@+id/search_view"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:focusableInTouchMode="true"
                         android:paddingEnd="-0dp"
                         android:paddingStart="-16dp"
                         app:iconifiedByDefault="false"

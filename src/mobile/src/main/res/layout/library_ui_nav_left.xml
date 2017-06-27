@@ -54,18 +54,17 @@
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_audiotrack_black"
-                android:tint="@color/icons"
+                android:tint="@android:color/holo_blue_bright"
                 android:tintMode="src_atop"
                 />
 
             <TextView
-                style="@style/TextAppearance.AppCompat.Title"
+                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:text="Now playing"
-                android:textSize="16sp"
                 />
 
         </LinearLayout>
@@ -86,18 +85,17 @@
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_play_for_work_black"
-                android:tint="@color/icons"
+                android:tint="@android:color/holo_green_light"
                 android:tintMode="src_atop"
                 />
 
             <TextView
-                style="@style/TextAppearance.AppCompat.Title"
+                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:text="Open"
-                android:textSize="16sp"
                 />
 
         </LinearLayout>
@@ -118,18 +116,17 @@
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_refresh_black"
-                android:tint="@color/icons"
+                android:tint="@android:color/holo_blue_dark"
                 android:tintMode="src_atop"
                 />
 
             <TextView
-                style="@style/TextAppearance.AppCompat.Title"
+                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:text="Refresh"
-                android:textSize="16sp"
                 />
 
         </LinearLayout>
@@ -150,18 +147,17 @@
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_settings_black"
-                android:tint="@color/icons"
+                android:tint="@android:color/holo_orange_light"
                 android:tintMode="src_atop"
                 />
 
             <TextView
-                style="@style/TextAppearance.AppCompat.Title"
+                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:text="Settings"
-                android:textSize="16sp"
                 />
 
         </LinearLayout>
@@ -182,18 +178,50 @@
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_dialog_close_dark"
-                android:tint="@color/icons"
+                android:tint="@android:color/holo_red_light"
                 android:tintMode="src_atop"
                 />
 
             <TextView
-                style="@style/TextAppearance.AppCompat.Title"
+                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:text="Exit"
-                android:textSize="16sp"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            >
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_live_help_black"
+                android:tint="@android:color/holo_blue_light"
+                android:tintMode="src_atop"
+                />
+
+            <TextView
+                style="@style/TextAppearance.AppCompat.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:lines="2"
+                android:text="Long press for information on above items!"
+                android:textSize="10sp"
+                android:textStyle="italic"
                 />
 
         </LinearLayout>

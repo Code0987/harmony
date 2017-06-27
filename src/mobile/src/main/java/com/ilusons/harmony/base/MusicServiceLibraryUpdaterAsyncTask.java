@@ -89,8 +89,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     if (isCancelled())
                         throw new Exception("Canceled by user");
 
-                    Looper.prepare(); // HACK
-
                     ArrayList<Music> data = new ArrayList<>();
 
                     // Record time
