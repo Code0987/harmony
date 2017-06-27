@@ -13,6 +13,7 @@ import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
 import android.util.ArraySet;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -233,7 +234,7 @@ public class SettingsActivity extends BaseActivity {
                     content = "Error loading data!";
                 }
 
-                (new AlertDialog.Builder(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle)
+                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
                         .setTitle("Licenses")
                         .setMessage(content)
                         .setCancelable(false)
