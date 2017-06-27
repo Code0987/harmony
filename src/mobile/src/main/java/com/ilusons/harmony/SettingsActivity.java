@@ -248,6 +248,35 @@ public class SettingsActivity extends BaseActivity {
             }
         });
 
+        findViewById(R.id.about_notes).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFinishing())
+                    return;
+
+                String content;
+                try (InputStream is = getResources().openRawResource(R.raw.notes)) {
+                    content = IOUtils.toString(is, "UTF-8");
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    content = "Error loading data!";
+                }
+
+                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
+                        .setTitle("Notes")
+                        .setMessage(content)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        }))
+                        .show();
+            }
+        });
+
         // Set scan locations
         RecyclerView scan_locations_recyclerView = (RecyclerView) findViewById(R.id.scan_locations_recyclerView);
         scan_locations_recyclerView.setHasFixedSize(true);

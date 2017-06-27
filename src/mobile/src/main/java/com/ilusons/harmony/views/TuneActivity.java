@@ -467,23 +467,27 @@ public class TuneActivity extends BaseActivity {
         final ArrayAdapter<CharSequence> reverb_preset_spinner_adapter = ArrayAdapter.createFromResource(this, R.array.aux_preset_reverb_preset_names, R.layout.spinner_layout);
         reverb_preset_spinner_adapter.setDropDownViewResource(R.layout.spinner_layout);
         reverb_preset_spinner.setAdapter(reverb_preset_spinner_adapter);
-        reverb_preset_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (getMusicService() == null)
-                    return;
+        reverb_preset_spinner.post(new Runnable() {
+            public void run() {
+                reverb_preset_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        if (getMusicService() == null)
+                            return;
 
-                IPresetReverb presetReverb = getMusicService().getPresetReverb();
+                        IPresetReverb presetReverb = getMusicService().getPresetReverb();
 
-                if (presetReverb == null)
-                    return;
+                        if (presetReverb == null)
+                            return;
 
-                presetReverb.setPreset((short) i);
-            }
+                        presetReverb.setPreset((short) i);
+                    }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
 
+                    }
+                });
             }
         });
 
@@ -514,6 +518,7 @@ public class TuneActivity extends BaseActivity {
 
         reverb_env_preset_spinner = (Spinner) findViewById(R.id.reverb_env_preset_spinner);
         ArrayList<String> reverb_env_presets = new ArrayList<>();
+        reverb_env_presets.add(0, "Custom");
         for (Field field : FieldUtils.getAllFields(EnvironmentalReverbPresets.class)) {
             int modifiers = field.getModifiers();
             if ((Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier
@@ -524,54 +529,62 @@ public class TuneActivity extends BaseActivity {
         final ArrayAdapter<String> reverb_env_preset_spinner_adapter = new ArrayAdapter<String>(this, R.layout.spinner_layout, reverb_env_presets);
         reverb_env_preset_spinner_adapter.setDropDownViewResource(R.layout.spinner_layout);
         reverb_env_preset_spinner.setAdapter(reverb_env_preset_spinner_adapter);
-        reverb_env_preset_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        reverb_env_preset_spinner.post(new Runnable() {
             @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (getMusicService() == null)
-                    return;
+            public void run() {
+                reverb_env_preset_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        if (getMusicService() == null)
+                            return;
 
-                IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
+                        if (((String) adapterView.getItemAtPosition(i)).equalsIgnoreCase("Custom"))
+                            return;
 
-                if (environmentalReverb == null)
-                    return;
+                        IEnvironmentalReverb environmentalReverb = getMusicService().getEnvironmentalReverb();
 
-                Field field = null;
-                for (Field f : FieldUtils.getAllFields(EnvironmentalReverbPresets.class)) {
-                    if (f.getName().equals((String) adapterView.getItemAtPosition(i))) {
-                        field = f;
-                        break;
+                        if (environmentalReverb == null)
+                            return;
+
+                        Field field = null;
+                        for (Field f : FieldUtils.getAllFields(EnvironmentalReverbPresets.class)) {
+                            if (f.getName().equals((String) adapterView.getItemAtPosition(i))) {
+                                field = f;
+                                break;
+                            }
+                        }
+
+                        if (field == null)
+                            return;
+
+                        try {
+                            IEnvironmentalReverb.Settings settings = (IEnvironmentalReverb.Settings) field.get(null);
+                            environmentalReverb.setProperties(settings);
+
+                            reverb_env_decay_hf_ratio_seekBar.setProgress((int) (DecayHFRatioNormalizer.normalize(settings.decayHFRatio) * SEEKBAR_MAX));
+                            reverb_env_decay_time_seekBar.setProgress((int) (DecayTimeNormalizer.normalize(settings.decayTime) * SEEKBAR_MAX));
+                            reverb_env_density_seekBar.setProgress((int) (DensityNormalizer.normalize(settings.density) * SEEKBAR_MAX));
+                            reverb_env_diffusion_seekBar.setProgress((int) (DiffusionNormalizer.normalize(settings.diffusion) * SEEKBAR_MAX));
+                            reverb_env_reflections_delay_seekBar.setProgress((int) (ReflectionsDelayNormalizer.normalize(settings.reflectionsDelay) * SEEKBAR_MAX));
+                            reverb_env_reflections_level_seekBar.setProgress((int) (ReflectionsLevelNormalizer.normalize(settings.reflectionsLevel) * SEEKBAR_MAX));
+                            reverb_env_reverb_delay_seekBar.setProgress((int) (ReverbDelayNormalizer.normalize(settings.reverbDelay) * SEEKBAR_MAX));
+                            reverb_env_reverb_level_seekBar.setProgress((int) (ReverbLevelNormalizer.normalize(settings.reverbLevel) * SEEKBAR_MAX));
+                            reverb_env_room_hf_level_seekBar.setProgress((int) (RoomHFLevelNormalizer.normalize(settings.roomHFLevel) * SEEKBAR_MAX));
+                            reverb_env_room_level_seekBar.setProgress((int) (RoomLevelNormalizer.normalize(settings.roomLevel) * SEEKBAR_MAX));
+
+                            info("Updated, requires restart for complete effect!");
+                        } catch (Exception e) {
+                            info("Updated failed, try another preset or settings!");
+
+                            e.printStackTrace();
+                        }
                     }
-                }
 
-                if (field == null)
-                    return;
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
 
-                try {
-                    IEnvironmentalReverb.Settings settings = (IEnvironmentalReverb.Settings) field.get(null);
-                    environmentalReverb.setProperties(settings);
-
-                    reverb_env_decay_hf_ratio_seekBar.setProgress((int) (DecayHFRatioNormalizer.normalize(settings.decayHFRatio) * SEEKBAR_MAX));
-                    reverb_env_decay_time_seekBar.setProgress((int) (DecayTimeNormalizer.normalize(settings.decayTime) * SEEKBAR_MAX));
-                    reverb_env_density_seekBar.setProgress((int) (DensityNormalizer.normalize(settings.density) * SEEKBAR_MAX));
-                    reverb_env_diffusion_seekBar.setProgress((int) (DiffusionNormalizer.normalize(settings.diffusion) * SEEKBAR_MAX));
-                    reverb_env_reflections_delay_seekBar.setProgress((int) (ReflectionsDelayNormalizer.normalize(settings.reflectionsDelay) * SEEKBAR_MAX));
-                    reverb_env_reflections_level_seekBar.setProgress((int) (ReflectionsLevelNormalizer.normalize(settings.reflectionsLevel) * SEEKBAR_MAX));
-                    reverb_env_reverb_delay_seekBar.setProgress((int) (ReverbDelayNormalizer.normalize(settings.reverbDelay) * SEEKBAR_MAX));
-                    reverb_env_reverb_level_seekBar.setProgress((int) (ReverbLevelNormalizer.normalize(settings.reverbLevel) * SEEKBAR_MAX));
-                    reverb_env_room_hf_level_seekBar.setProgress((int) (RoomHFLevelNormalizer.normalize(settings.roomHFLevel) * SEEKBAR_MAX));
-                    reverb_env_room_level_seekBar.setProgress((int) (RoomLevelNormalizer.normalize(settings.roomLevel) * SEEKBAR_MAX));
-
-                    info("Updated, requires restart for complete effect!");
-                } catch (Exception e) {
-                    info("Updated failed, try another preset or settings!");
-
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
+                    }
+                });
             }
         });
 

@@ -744,9 +744,10 @@ public class Music {
 
         try {
             String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString();
-            File file = new File(root + "/" + KEY_PLAYLIST_CURRENT_M3U);
+            File file = new File(root);
             //noinspection ResultOfMethodCallIgnored
             file.mkdirs();
+            file = new File(root + "/" + KEY_PLAYLIST_CURRENT_M3U);
 
             FileUtils.writeStringToFile(file, m3UFile.toString(), "utf-8", false);
 
@@ -947,7 +948,7 @@ public class Music {
         for (String audioId : audioIds) {
             String path = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId)).toString();
 
-            Music m = decode(context, path, false, null);
+            Music m = decode(context, path, true, null);
 
             if (m != null)
                 action.execute(m);
