@@ -135,6 +135,8 @@ public class LyricsViewFragment extends Fragment {
         }
 
         scrollBy = ((float) textView.getLineHeight() * lines) / ((float) music.Length / 1000);
+        if (scrollBy < 1)
+            scrollBy = 1;
 
         textView.setText(contentFormatted);
 

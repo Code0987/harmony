@@ -468,7 +468,7 @@ public class MusicService extends Service {
     public IVisualizer getVisualizer() {
         if (visualizer == null) {
             try {
-                visualizer = mediaPlayerFactory.createVisualizer(getAudioSessionId());
+                visualizer = mediaPlayerFactory.createVisualizer(getMediaPlayer());
             } catch (UnsupportedOperationException e) {
                 // the effect is not supported
             } catch (IllegalArgumentException e) {

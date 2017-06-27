@@ -336,14 +336,16 @@ public class LibraryUIActivity extends BaseUIActivity {
         search_view.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return false;
+                adapter.filter(query);
+
+                return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 adapter.filter(newText);
 
-                return false;
+                return true;
             }
         });
 
@@ -540,7 +542,15 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             @Override
             protected Void doInBackground(Void... voids) {
-                adapter.setData(Music.loadAll(LibraryUIActivity.this));
+                info("Do not refresh until library is fully loaded!");
+
+                final ArrayList<Music> data = Music.loadAll(LibraryUIActivity.this);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.setData(data);
+                    }
+                });
 
                 return null;
             }
@@ -560,17 +570,6 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
 
         final Collection<String> audioIds = Music.getAllAudioIdsInPlaylist(getContentResolver(), Long.parseLong(playlistId));
-        final JavaEx.ActionT<Music> action = new JavaEx.ActionT<Music>() {
-            @Override
-            public void execute(final Music music) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.addData(music);
-                    }
-                });
-            }
-        };
 
         if (audioIds.size() > 0) {
             swipeRefreshLayout.setRefreshing(true);
@@ -600,9 +599,20 @@ public class LibraryUIActivity extends BaseUIActivity {
                 protected Void doInBackground(Void... voids) {
                     info("Do not refresh until this playlist is fully loaded!");
 
-                    adapter.clearData();
-
+                    final ArrayList<Music> data = new ArrayList<>();
+                    final JavaEx.ActionT<Music> action = new JavaEx.ActionT<Music>() {
+                        @Override
+                        public void execute(final Music music) {
+                            data.add(music);
+                        }
+                    };
                     Music.getAllMusicForIds(LibraryUIActivity.this, audioIds, action);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.setData(data);
+                        }
+                    });
 
                     return null;
                 }
@@ -657,7 +667,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             // Bind data to view here!
 
-            if (d instanceof NativeExpressAdView && lastAdListener == null) {
+            // TODO: fix ads
+            if (false || d instanceof NativeExpressAdView && lastAdListener == null) {
 
                 CardView cv = (CardView) v.findViewById(R.id.cardView);
 
@@ -752,6 +763,31 @@ public class LibraryUIActivity extends BaseUIActivity {
                     }
                 });
 
+                v.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+                        builder.setTitle("Select the action");
+                        builder.setItems(new CharSequence[]{
+                                "Remove"
+                        }, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int itemIndex) {
+                                switch (itemIndex) {
+                                    case 0:
+                                        removeData(item);
+                                        break;
+                                }
+                            }
+                        });
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+
+                        return true;
+                    }
+                });
+
             }
 
         }
@@ -772,6 +808,14 @@ public class LibraryUIActivity extends BaseUIActivity {
             data.clear();
             data.add(0, d);
             dataFiltered.add(0, d);
+
+            notifyDataSetChanged();
+        }
+
+        public void removeData(Music d) {
+            data.clear();
+            data.remove(d);
+            dataFiltered.remove(d);
 
             notifyDataSetChanged();
         }
@@ -807,6 +851,8 @@ public class LibraryUIActivity extends BaseUIActivity {
                     }
 
                     // Add ads
+                    // TODO: fix ads
+                    /*
                     final int n = dataFiltered.size();
                     for (int i = 0; i <= n; i += ITEMS_PER_AD)
                         try {
@@ -815,6 +861,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                         } catch (Exception e) {
                             Log.w(TAG, e);
                         }
+                        */
 
                     (LibraryUIActivity.this).runOnUiThread(new Runnable() {
                         @Override
