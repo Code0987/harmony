@@ -43,7 +43,12 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
-                android:textSize="13sp"
+                android:shadowColor="@android:color/black"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:textColor="@color/secondary_text"
+                android:textSize="11sp"
                 tools:text="Test"
                 />
 
@@ -55,7 +60,8 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentEnd="true"
                 android:layout_marginTop="1dp"
-                android:textSize="11sp"
+                android:textColor="@color/secondary_text"
+                android:textSize="10sp"
                 android:textStyle="italic"
                 tools:text="Album"
                 />
@@ -68,7 +74,8 @@
                 android:layout_above="@id/album"
                 android:layout_alignParentEnd="true"
                 android:layout_marginTop="2dp"
-                android:textSize="12sp"
+                android:textColor="@color/secondary_text"
+                android:textSize="10sp"
                 tools:text="Artist"
                 />
 

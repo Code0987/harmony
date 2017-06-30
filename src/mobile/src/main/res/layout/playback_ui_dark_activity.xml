@@ -138,10 +138,11 @@
             />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
+            android:gravity="center"
             android:orientation="horizontal"
             >
 
@@ -150,7 +151,8 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_gravity="center_vertical"
-                android:layout_margin="3dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="3dp"
                 android:alpha="0.5"
                 android:background="@null"
                 android:padding="3dp"
@@ -161,16 +163,17 @@
                 />
 
             <ImageButton
-                android:id="@+id/stop"
+                android:id="@+id/shuffle"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
-                android:layout_margin="3dp"
-                android:alpha="0.7"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="3dp"
+                android:alpha="0.5"
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_stop_black"
+                android:src="@drawable/ic_shuffle_black"
                 android:tint="@color/translucent_icons"
                 android:tintMode="src_in"
                 />
@@ -180,7 +183,8 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
-                android:layout_margin="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
                 android:alpha="0.9"
                 android:background="@null"
                 android:padding="3dp"
@@ -191,10 +195,11 @@
                 />
 
             <ImageButton
-                android:id="@+id/play_pause"
+                android:id="@+id/play_pause_stop"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:layout_margin="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
                 android:background="@drawable/circle_outline"
                 android:padding="8dp"
                 android:scaleType="fitXY"
@@ -208,7 +213,8 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
-                android:layout_margin="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
                 android:alpha="0.9"
                 android:background="@null"
                 android:padding="3dp"
@@ -219,16 +225,17 @@
                 />
 
             <ImageButton
-                android:id="@+id/random"
+                android:id="@+id/repeat"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
-                android:layout_margin="3dp"
-                android:alpha="0.7"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="8dp"
+                android:alpha="0.5"
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_fast_forward_black"
+                android:src="@drawable/ic_repeat_black"
                 android:tint="@color/translucent_icons"
                 android:tintMode="src_in"
                 />
@@ -238,7 +245,8 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_gravity="center_vertical"
-                android:layout_margin="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="8dp"
                 android:alpha="0.5"
                 android:background="@null"
                 android:padding="3dp"

@@ -1,23 +1,35 @@
 package com.ilusons.harmony;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v7.widget.RecyclerView;
+import android.util.ArraySet;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.codetroopers.betterpickers.OnDialogDismissListener;
+import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
+import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
@@ -29,11 +41,18 @@ import com.ilusons.harmony.ref.inappbilling.IabHelper;
 import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
+import com.nononsenseapps.filepicker.FilePickerActivity;
+import com.nononsenseapps.filepicker.Utils;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
 
+import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import static com.ilusons.harmony.base.MusicService.SKU_PREMIUM;
 
@@ -46,6 +65,8 @@ public class SettingsActivity extends BaseActivity {
 
     public static final String TAG_SPREF_UIPLAYBACKAUTOOPEN = SPrefEx.TAG_SPREF + ".ui_playback_auto_open";
     public static final boolean UIPLAYBACKAUTOOPEN_DEFAULT = true;
+
+    private static final int REQUEST_SCAN_LOCATIONS_PICK = 11;
 
     // IAB
     private static final int REQUEST_SKU_PREMIUM = 1401;
@@ -117,6 +138,8 @@ public class SettingsActivity extends BaseActivity {
     // UI
     private View root;
     private AVLoadingIndicatorView loading;
+
+    private ScanLocationsRecyclerViewAdapter scanLocationsRecyclerViewAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -214,7 +237,7 @@ public class SettingsActivity extends BaseActivity {
                     content = "Error loading data!";
                 }
 
-                (new AlertDialog.Builder(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle)
+                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
                         .setTitle("Licenses")
                         .setMessage(content)
                         .setCancelable(false)
@@ -225,6 +248,115 @@ public class SettingsActivity extends BaseActivity {
                             }
                         }))
                         .show();
+            }
+        });
+
+        findViewById(R.id.about_notes).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFinishing())
+                    return;
+
+                String content;
+                try (InputStream is = getResources().openRawResource(R.raw.notes)) {
+                    content = IOUtils.toString(is, "UTF-8");
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    content = "Error loading data!";
+                }
+
+                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
+                        .setTitle("Notes")
+                        .setMessage(content)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        }))
+                        .show();
+            }
+        });
+
+        // Set scan locations
+        RecyclerView scan_locations_recyclerView = (RecyclerView) findViewById(R.id.scan_locations_recyclerView);
+        scan_locations_recyclerView.setHasFixedSize(true);
+        scan_locations_recyclerView.setItemViewCacheSize(3);
+        scan_locations_recyclerView.setDrawingCacheEnabled(true);
+        scan_locations_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+
+        scanLocationsRecyclerViewAdapter = new ScanLocationsRecyclerViewAdapter();
+        scan_locations_recyclerView.setAdapter(scanLocationsRecyclerViewAdapter);
+
+        scanLocationsRecyclerViewAdapter.setData(MusicServiceLibraryUpdaterAsyncTask.getScanLocations(this));
+
+        findViewById(R.id.scan_locations_imageButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // This always works
+                Intent i = new Intent(SettingsActivity.this, FilePickerActivity.class);
+                // This works if you defined the intent filter
+                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+
+                // Set these depending on your use case. These are the defaults.
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, true);
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
+                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
+
+                // Configure initial directory by specifying a String.
+                // You could specify a String like "/storage/emulated/0/", but that can
+                // dangerous. Always use Android's API calls to get paths to the SD-card or
+                // internal memory.
+                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+
+                startActivityForResult(i, REQUEST_SCAN_LOCATIONS_PICK);
+            }
+        });
+
+        // Set scan media store
+        CheckBox scan_mediastore_enabled_checkBox = (CheckBox) findViewById(R.id.scan_mediastore_enabled_checkBox);
+        scan_mediastore_enabled_checkBox.setChecked(MusicServiceLibraryUpdaterAsyncTask.getScanMediaStoreEnabled(this));
+        scan_mediastore_enabled_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                MusicServiceLibraryUpdaterAsyncTask.setScanMediaStoreEnabled(SettingsActivity.this, compoundButton.isChecked());
+
+                info("Updated!");
+            }
+        });
+
+        // Set scan constraint min duration
+        final EditText scan_constraint_min_duration_editView = (EditText) findViewById(R.id.scan_constraint_min_duration_editView);
+        scan_constraint_min_duration_editView.setText("");
+        scan_constraint_min_duration_editView.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this).toString());
+        scan_constraint_min_duration_editView.clearFocus();
+        findViewById(R.id.scan_constraint_min_duration_imageButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
+                    @Override
+                    public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
+                        MusicServiceLibraryUpdaterAsyncTask.setScanConstraintMinDuration(SettingsActivity.this, ((((hours * 60L) + minutes) * 60) + seconds) * 1000);
+
+                        scan_constraint_min_duration_editView.setText("");
+                        scan_constraint_min_duration_editView.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this).toString());
+                        scan_constraint_min_duration_editView.clearFocus();
+                    }
+                };
+                final HmsPickerBuilder hpb = new HmsPickerBuilder()
+                        .setFragmentManager(getSupportFragmentManager())
+                        .setStyleResId(R.style.BetterPickersDialogFragment);
+                hpb.addHmsPickerDialogHandler(handler);
+                hpb.setOnDismissListener(new OnDialogDismissListener() {
+                    @Override
+                    public void onDialogDismiss(DialogInterface dialoginterface) {
+                        hpb.removeHmsPickerDialogHandler(handler);
+                    }
+                });
+                hpb.setTimeInMilliseconds(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this));
+                hpb.show();
             }
         });
 
@@ -415,10 +547,23 @@ public class SettingsActivity extends BaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "onActivityResult::" + requestCode + "," + resultCode + "," + data);
 
-        if (iabHelper == null) return;
+        if (requestCode == REQUEST_SCAN_LOCATIONS_PICK && resultCode == Activity.RESULT_OK) {
 
-        if (!iabHelper.handleActivityResult(requestCode, resultCode, data)) {
-            super.onActivityResult(requestCode, resultCode, data);
+            List<Uri> files = Utils.getSelectedFilesFromResult(data);
+            for (Uri uri : files) {
+                File file = Utils.getFileForUri(uri);
+
+                scanLocationsRecyclerViewAdapter.addData(file.getAbsolutePath());
+            }
+
+        } else {
+
+            if (iabHelper == null) return;
+
+            if (!iabHelper.handleActivityResult(requestCode, resultCode, data)) {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
+
         }
     }
 
@@ -433,6 +578,87 @@ public class SettingsActivity extends BaseActivity {
         } else {
             findViewById(R.id.premium).setVisibility(View.VISIBLE);
         }
+    }
+
+    public class ScanLocationsRecyclerViewAdapter extends RecyclerView.Adapter<ScanLocationsRecyclerViewAdapter.ViewHolder> {
+
+        private final ArrayList<String> data;
+
+        public ScanLocationsRecyclerViewAdapter() {
+            data = new ArrayList<>();
+        }
+
+        @Override
+        public int getItemCount() {
+            return data.size();
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+            View view = inflater.inflate(R.layout.settings_scan_locations_item, parent, false);
+
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, int position) {
+            final String d = data.get(position);
+            final View v = holder.view;
+
+            TextView text = (TextView) v.findViewById(R.id.text);
+            text.setText(d);
+
+            ImageButton remove = (ImageButton) v.findViewById(R.id.remove);
+            remove.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    removeData(d);
+                }
+            });
+
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            public View view;
+
+            public ViewHolder(View view) {
+                super(view);
+
+                this.view = view;
+            }
+
+        }
+
+        public void setData(Collection<String> d) {
+            data.clear();
+            data.addAll(d);
+            notifyDataSetChanged();
+        }
+
+        public void addData(String d) {
+            data.add(d);
+
+            Set<String> locations = new ArraySet<String>();
+            locations.addAll(data);
+
+            MusicServiceLibraryUpdaterAsyncTask.setScanLocations(SettingsActivity.this, locations);
+
+            notifyDataSetChanged();
+        }
+
+        public void removeData(String d) {
+            data.remove(d);
+
+            Set<String> locations = new ArraySet<String>();
+            locations.addAll(data);
+
+            MusicServiceLibraryUpdaterAsyncTask.setScanLocations(SettingsActivity.this, locations);
+
+            notifyDataSetChanged();
+        }
+
     }
 
     public enum UIStyle {

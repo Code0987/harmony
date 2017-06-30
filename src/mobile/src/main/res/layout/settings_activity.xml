@@ -166,16 +166,123 @@
                 >
 
                 <TextView
-                    android:id="@+id/ui_style_textView"
+                    android:id="@+id/scan_locations_textView"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="UI Style"
+                    android:layout_marginTop="8dp"
+                    android:text="Library locations (scan locations)"
                     android:textStyle="italic"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
+                    />
 
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/scan_locations_recyclerView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:animateLayoutChanges="false"
+                    android:animationCache="true"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:scrollbars="vertical"
+                    app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_locations_textView"
+                    />
+
+                <ImageButton
+                    android:id="@+id/scan_locations_imageButton"
+                    style="@style/Widget.AppCompat.ImageButton"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:padding="0dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_playlist_add_black"
+                    android:tint="@android:color/holo_green_light"
+                    android:tintMode="src_atop"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_locations_recyclerView"
+                    />
+
+                <TextView
+                    android:id="@+id/scan_constraint_min_duration_textView"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Minimum length of media to include (seconds)"
+                    android:textStyle="italic"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_locations_imageButton"
+                    />
+
+                <EditText
+                    android:id="@+id/scan_constraint_min_duration_editView"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:minWidth="40dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_textView"
+                    />
+
+                <ImageButton
+                    android:id="@+id/scan_constraint_min_duration_imageButton"
+                    style="@style/Widget.AppCompat.ImageButton"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:padding="0dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_check_black"
+                    android:tint="@color/icons"
+                    android:tintMode="src_atop"
+                    app:layout_constraintBottom_toBottomOf="@+id/scan_constraint_min_duration_editView"
+                    app:layout_constraintLeft_toRightOf="@id/scan_constraint_min_duration_editView"
+                    app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_textView"
+                    />
+
+                <TextView
+                    android:id="@+id/scan_mediastore_enabled_textView"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Include Android media store in library"
+                    android:textStyle="italic"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_editView"
+                    />
+
+                <CheckBox
+                    android:id="@+id/scan_mediastore_enabled_checkBox"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_textView"
+                    />
+
+                <TextView
+                    android:id="@+id/ui_style_textView"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="UI Style"
+                    android:textStyle="italic"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"
                     />
 
                 <RadioGroup
@@ -238,8 +345,8 @@
                 <ImageButton
                     android:id="@+id/scan_interval_imageButton"
                     style="@style/Widget.AppCompat.ImageButton"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:layout_marginTop="5dp"
                     android:background="@null"
                     android:padding="0dp"
@@ -306,8 +413,8 @@
                 <ImageButton
                     android:id="@+id/reset_imageButton"
                     style="@style/Widget.AppCompat.ImageButton"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:layout_marginStart="5dp"
                     android:layout_marginTop="5dp"
                     android:background="@null"
@@ -423,6 +530,20 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/about_copyright"
+                    />
+
+                <Button
+                    android:id="@+id/about_notes"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:padding="5dp"
+                    android:text="Notes"
+                    android:textSize="12sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/about_license"
                     />
 
             </android.support.constraint.ConstraintLayout>

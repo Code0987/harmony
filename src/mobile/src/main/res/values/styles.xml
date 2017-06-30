@@ -55,9 +55,11 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:textColor">@color/primary_text</item>
         <item name="android:textColorPrimary">@color/primary_text</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
+        <item name="android:textColorAlertDialogListItem">@color/primary_text</item>
+        <item name="android:windowBackground">@color/primary_dark</item>
         <item name="android:background">@color/primary_dark</item>
         <item name="android:windowTitleStyle">@color/primary_text</item>
-        <item name="android:textSize">11sp</item>
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>

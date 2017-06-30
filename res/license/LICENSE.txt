@@ -34,6 +34,10 @@ Summary
             https://github.com/google/gson/blob/master/LICENSE
         AVLoadingIndicatorView
             http://www.apache.org/licenses/LICENSE-2.0
+        nononsenseapps-filepicker
+            http://www.apache.org/licenses/LICENSE-2.0
+        code-troopers-betterpickers
+            http://www.apache.org/licenses/LICENSE-2.0
 
 harmony - Terms and conditions
 

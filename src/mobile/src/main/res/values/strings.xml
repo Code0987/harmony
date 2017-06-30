@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">harmony</string>
-    <string name="app_website">http://harmony.ilusons.com</string>
+    <string name="app_name" translatable="false">harmony</string>
+    <string name="app_website" translatable="false">http://harmony.ilusons.com</string>
 </resources>

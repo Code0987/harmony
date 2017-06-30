@@ -24,6 +24,22 @@ public class IOEx {
     // Logger TAG
     private static final String TAG = IOEx.class.getSimpleName();
 
+    public static ArrayList<String> getAllStorageDirectories(Context context) {
+        ArrayList<String> paths = new ArrayList<>();
+
+        String externalStorageState = Environment.getExternalStorageState();
+        if ("mounted".equals(externalStorageState) || "mounted_ro".equals(externalStorageState)) {
+            paths.add(Environment.getExternalStorageDirectory().getAbsolutePath());
+        } else {
+            Log.d(TAG, "External/Internal storage is not available.");
+        }
+
+        for (String path : IOEx.getExternalStorageDirectories(context))
+            paths.add(path);
+
+        return paths;
+    }
+
     public static String[] getExternalStorageDirectories(Context context) {
 
         List<String> results = new ArrayList<>();
@@ -196,7 +212,8 @@ public class IOEx {
         try {
             File dir = context.getCacheDir();
             deleteDir(dir);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     public static boolean deleteDir(File dir) {
@@ -209,11 +226,35 @@ public class IOEx {
                 }
             }
             return dir.delete();
-        } else if(dir!= null && dir.isFile()) {
+        } else if (dir != null && dir.isFile()) {
             return dir.delete();
         } else {
             return false;
         }
+    }
+
+    public static String getRelativePath(String baseDir, String targetPath) {
+        String[] base = baseDir.replace('\\', '/').split("\\/");
+        targetPath = targetPath.replace('\\', '/');
+        String[] target = targetPath.split("\\/");
+
+        // Count common elements and their length.
+        int commonCount = 0, commonLength = 0, maxCount = Math.min(target.length, base.length);
+        while (commonCount < maxCount) {
+            String targetElement = target[commonCount];
+            if (!targetElement.equals(base[commonCount])) break;
+            commonCount++;
+            commonLength += targetElement.length() + 1; // Directory name length plus slash.
+        }
+        if (commonCount == 0) return targetPath; // No common path element.
+
+        int targetLength = targetPath.length();
+        int dirsUp = base.length - commonCount;
+        StringBuffer relative = new StringBuffer(dirsUp * 3 + targetLength - commonLength + 1);
+        for (int i = 0; i < dirsUp; i++)
+            relative.append("../");
+        if (commonLength < targetLength) relative.append(targetPath.substring(commonLength));
+        return relative.toString();
     }
 
 }
