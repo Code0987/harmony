@@ -109,10 +109,14 @@ public class BaseActivity extends AppCompatActivity {
      * @param s content to show
      */
     public void info(String s) {
+        info(s, true);
+    }
+
+    public void info(String s, boolean indefinite) {
         View view = findViewById(R.id.root);
 
         if (view != null) {
-            final Snackbar snackbar = Snackbar.make(view, s, Snackbar.LENGTH_INDEFINITE);
+            final Snackbar snackbar = Snackbar.make(view, s, indefinite ? Snackbar.LENGTH_INDEFINITE : Snackbar.LENGTH_LONG);
             View snackbarView = snackbar.getView();
             if (snackbarView.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
