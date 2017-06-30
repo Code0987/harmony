@@ -13,6 +13,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
@@ -51,10 +52,16 @@ import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +82,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
     // Request codes
     private static final int REQUEST_FILE_PICK = 4684;
+    private static final int REQUEST_EXPORT_LOCATION_PICK_SAF = 59;
 
     // Data
     RecyclerViewAdapter adapter;
@@ -384,6 +392,24 @@ public class LibraryUIActivity extends BaseUIActivity {
             }
         });
 
+        findViewById(R.id.export_playlist).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.putExtra(Intent.EXTRA_TITLE, "Playlist.m3u");
+                intent.setType("*/*");
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(intent, REQUEST_EXPORT_LOCATION_PICK_SAF);
+                } else {
+                    info("SAF not found!");
+                }
+
+                drawer_layout.closeDrawer(GravityCompat.END);
+            }
+        });
+
         // Set playlist(s)
         RecyclerView playlist_recyclerView = (RecyclerView) findViewById(R.id.playlist_recyclerView);
         playlist_recyclerView.setHasFixedSize(true);
@@ -449,6 +475,25 @@ public class LibraryUIActivity extends BaseUIActivity {
             i.putExtra(MusicService.KEY_URI, uri.toString());
 
             startService(i);
+        } else if (requestCode == REQUEST_EXPORT_LOCATION_PICK_SAF && resultCode == Activity.RESULT_OK) {
+            Uri uri = null;
+            if (data != null) {
+                uri = data.getData();
+
+                try {
+                    ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+                    FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+
+                    exportCurrent(fileOutputStream, uri);
+
+                    fileOutputStream.close();
+                    pfd.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+
         }
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -503,6 +548,39 @@ public class LibraryUIActivity extends BaseUIActivity {
         Music.saveCurrent(LibraryUIActivity.this, data, true);
 
         info("Current playlist saved!");
+    }
+
+    private void exportCurrent(OutputStream os, Uri uri) {
+        ArrayList<Music> data = new ArrayList<Music>();
+
+        for (Object o : adapter.dataFiltered) {
+            if (o instanceof Music)
+                data.add((Music) o);
+        }
+
+        boolean result = true;
+
+        //noinspection ConstantConditions
+        String base = (new File(StorageEx.getPath(this, uri))).getParent();
+        String nl = System.getProperty("line.separator");
+        StringBuilder sb = new StringBuilder();
+        for (Music music : data) {
+            String url = IOEx.getRelativePath(base, music.Path);
+            sb.append(url).append(nl);
+        }
+
+        try {
+            IOUtils.write(sb.toString(), os, "utf-8");
+        } catch (Exception e) {
+            result = false;
+
+            e.printStackTrace();
+        }
+
+        if (result)
+            info("Current playlist exported!");
+        else
+            info("Export failed!");
     }
 
     private AsyncTask<Void, Void, Void> setFromTask = null;

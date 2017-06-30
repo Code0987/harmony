@@ -233,5 +233,29 @@ public class IOEx {
         }
     }
 
+    public static String getRelativePath(String baseDir, String targetPath) {
+        String[] base = baseDir.replace('\\', '/').split("\\/");
+        targetPath = targetPath.replace('\\', '/');
+        String[] target = targetPath.split("\\/");
+
+        // Count common elements and their length.
+        int commonCount = 0, commonLength = 0, maxCount = Math.min(target.length, base.length);
+        while (commonCount < maxCount) {
+            String targetElement = target[commonCount];
+            if (!targetElement.equals(base[commonCount])) break;
+            commonCount++;
+            commonLength += targetElement.length() + 1; // Directory name length plus slash.
+        }
+        if (commonCount == 0) return targetPath; // No common path element.
+
+        int targetLength = targetPath.length();
+        int dirsUp = base.length - commonCount;
+        StringBuffer relative = new StringBuffer(dirsUp * 3 + targetLength - commonLength + 1);
+        for (int i = 0; i < dirsUp; i++)
+            relative.append("../");
+        if (commonLength < targetLength) relative.append(targetPath.substring(commonLength));
+        return relative.toString();
+    }
+
 }
 
