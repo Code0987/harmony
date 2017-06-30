@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -195,6 +194,10 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
         try {
             Music m = Music.decode(context, path, fastMode, null);
+
+            // Check constraints
+            if (getScanConstraintMinDuration(context) > m.Length)
+                return;
 
             data.add(m);
         } catch (Exception e) {
@@ -470,4 +473,19 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 .putBoolean(TAG_SPREF_LIBRARY_SCAN_MEDIASTORE_ENABLED, value)
                 .apply();
     }
+
+    public static final String TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MIN_DURATION = SPrefEx.TAG_SPREF + ".library_scan_constraint_min_duration";
+    private static final long LIBRARY_SCAN_CONSTRAINT_MIN_DURATION_DEFAULT = (long) (2.5 * 60 * 1000);
+
+    public static Long getScanConstraintMinDuration(Context context) {
+        return SPrefEx.get(context).getLong(TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MIN_DURATION, LIBRARY_SCAN_CONSTRAINT_MIN_DURATION_DEFAULT);
+    }
+
+    public static void setScanConstraintMinDuration(Context context, Long value) {
+        SPrefEx.get(context)
+                .edit()
+                .putLong(TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MIN_DURATION, value)
+                .apply();
+    }
+
 }

@@ -209,6 +209,46 @@
                     app:layout_constraintTop_toBottomOf="@id/scan_locations_recyclerView"
                     />
 
+                <TextView
+                    android:id="@+id/scan_constraint_min_duration_textView"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Minimum length of media to include (seconds)"
+                    android:textStyle="italic"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_locations_imageButton"
+                    />
+
+                <EditText
+                    android:id="@+id/scan_constraint_min_duration_editView"
+                    style="@style/TextAppearance.AppCompat.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:minWidth="40dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_textView"
+                    />
+
+                <ImageButton
+                    android:id="@+id/scan_constraint_min_duration_imageButton"
+                    style="@style/Widget.AppCompat.ImageButton"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:padding="0dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_check_black"
+                    android:tint="@color/icons"
+                    android:tintMode="src_atop"
+                    app:layout_constraintBottom_toBottomOf="@+id/scan_constraint_min_duration_editView"
+                    app:layout_constraintLeft_toRightOf="@id/scan_constraint_min_duration_editView"
+                    app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_textView"
+                    />
 
                 <TextView
                     android:id="@+id/scan_mediastore_enabled_textView"
@@ -219,7 +259,7 @@
                     android:text="Include Android media store in library"
                     android:textStyle="italic"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/scan_locations_imageButton"
+                    app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_editView"
                     />
 
                 <CheckBox
