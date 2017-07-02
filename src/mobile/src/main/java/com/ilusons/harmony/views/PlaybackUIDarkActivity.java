@@ -272,7 +272,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 if (getMusicService() != null) {
                     getMusicService().stop();
 
-                    info("Stopped!", false);
+                    info("Stopped!");
                 }
 
                 return true;

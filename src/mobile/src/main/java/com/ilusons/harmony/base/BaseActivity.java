@@ -109,7 +109,7 @@ public class BaseActivity extends AppCompatActivity {
      * @param s content to show
      */
     public void info(String s) {
-        info(s, true);
+        info(s, false);
     }
 
     public void info(String s, boolean indefinite) {

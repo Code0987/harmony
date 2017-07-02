@@ -530,7 +530,7 @@ public class MusicService extends Service {
     private IBassBoost bassBoost;
 
     public IBassBoost getBassBoost() {
-        if (bassBoost == null)
+        if (bassBoost == null && IsPremium)
             try {
                 bassBoost = mediaPlayerFactory.createBassBoost(mediaPlayer);
             } catch (Exception e) {
@@ -543,7 +543,7 @@ public class MusicService extends Service {
     private ILoudnessEnhancer loudnessEnhancer;
 
     public ILoudnessEnhancer getLoudnessEnhancer() {
-        if (loudnessEnhancer == null)
+        if (loudnessEnhancer == null && IsPremium)
             try {
                 loudnessEnhancer = mediaPlayerFactory.createLoudnessEnhancer(mediaPlayer);
             } catch (Exception e) {
@@ -569,7 +569,7 @@ public class MusicService extends Service {
     private IEnvironmentalReverb environmentalReverb;
 
     public IEnvironmentalReverb getEnvironmentalReverb() {
-        if (environmentalReverb == null)
+        if (environmentalReverb == null && IsPremium)
             try {
                 environmentalReverb = mediaPlayerFactory.createEnvironmentalReverb();
             } catch (Exception e) {

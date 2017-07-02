@@ -108,7 +108,7 @@ public class SettingsActivity extends BaseActivity {
             if (iabHelper == null) return;
 
             if (result.isFailure()) {
-                info("Error purchasing.");
+                info("Error purchasing.", true);
 
                 loading(false);
 
@@ -116,7 +116,7 @@ public class SettingsActivity extends BaseActivity {
             }
 
             if (!MusicService.verifyDeveloperPayload(SettingsActivity.this, purchase)) {
-                info("Error purchasing. Authenticity verification failed.");
+                info("Error purchasing. Authenticity verification failed.", true);
 
                 loading(false);
 
@@ -126,7 +126,7 @@ public class SettingsActivity extends BaseActivity {
             Log.d(TAG, "Purchase successful.\n" + purchase);
 
             if (purchase.getSku().equals(SKU_PREMIUM)) {
-                info("Thank you for upgrading to premium! All premium features will work correctly after restart!");
+                info("Thank you for upgrading to premium! All premium features will work correctly after restart!", true);
 
                 premiumChanged(true);
 
@@ -204,18 +204,50 @@ public class SettingsActivity extends BaseActivity {
         findViewById(R.id.premium).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                loading(true);
+                if (isFinishing())
+                    return;
 
-                String payload = MusicService.getDeveloperPayload(SettingsActivity.this, SKU_PREMIUM);
+                String content;
+                try (InputStream is = getResources().openRawResource(R.raw.notes)) {
+                    content = IOUtils.toString(is, "UTF-8");
+                    int start = content.indexOf("### Premium") + 4;
+                    int end = content.indexOf("###", start);
+                    content = content.substring(start, end);
+                } catch (Exception e) {
+                    e.printStackTrace();
 
-                try {
-                    iabHelper.launchPurchaseFlow(SettingsActivity.this, SKU_PREMIUM, REQUEST_SKU_PREMIUM, purchaseFinishedListener, payload);
-                } catch (IabHelper.IabAsyncInProgressException e) {
-                    info("Error launching purchase flow. Another async operation in progress.");
-
-                    loading(false);
+                    content = "Error loading data!";
                 }
 
+                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle));
+                builder.setTitle("Purchase premium?");
+                builder.setMessage(content);
+                builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        loading(true);
+
+                        dialog.dismiss();
+
+                        String payload = MusicService.getDeveloperPayload(SettingsActivity.this, SKU_PREMIUM);
+
+                        try {
+                            iabHelper.launchPurchaseFlow(SettingsActivity.this, SKU_PREMIUM, REQUEST_SKU_PREMIUM, purchaseFinishedListener, payload);
+                        } catch (IabHelper.IabAsyncInProgressException e) {
+                            info("Error launching purchase flow. Another async operation in progress.");
+
+                            loading(false);
+                        }
+                    }
+                });
+                builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+
+                        info(":(");
+                    }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
         });
 
@@ -425,7 +457,7 @@ public class SettingsActivity extends BaseActivity {
                     Long value = Long.parseLong(editText.getText().toString().trim());
 
                     if (!(value <= 7 * 24 && value >= 3)) {
-                        info("Enter value between [3, " + 7 * 24 + "]");
+                        info("Enter value between [3, " + 7 * 24 + "]", true);
 
                         long savedScanInterval = SPrefEx.get(getApplicationContext()).getLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_DEFAULT);
 

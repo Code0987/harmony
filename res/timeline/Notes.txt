@@ -10,22 +10,43 @@ A music player!
 
 ### Features
 
-- Cover-art (metadata, online)
-- Lyrics (timestamped, scrolling) (.mp3 metadata, online)
+Library
+- Android playlist support, basic management
 - Whole device library (.mp3, .m4a, .flac, .mp4)
 - Auto library management
+
+SFX
+- Equalizer 5-10 bands
+- Bassboost
+- Loudness
+- Virtualization
+- Reverb
+
+Playback
+- Android / OpenSL based player
 - Auto playback
+- Visualization
 - Video playback support (landscape mode for better view)
 - Notification support
 - Lock-screen support
 - Headset/Media buttons support (auto pause/resume)
-- Adaptive player UI based on cover-art
-- Visualization
-- Equalizer 5-10 bands, Bass boost, Reverb
-- Android / OpenSL based player
-- Android playlist support, basic management
 
-_Work in progress. So features mentioned might not work as mentioned!_
+UI
+- Cover-art (metadata, online)
+- Lyrics (timestamped, scrolling) (.mp3 metadata, online)
+- Adaptive player UI based on cover-art
+
+### Premium Features
+
+- SFX (Bassboost, Virtualizer, Env. reverb)
+- Lyrics (Edit)
+- UI Styles *
+- Playback statistics (Most played, Last played, Playback Score) *
+- Crossfade, Gapeless Playback *
+- Sleep timer
+
+NOTE: * Coming soon
+      _Work in progress. So features mentioned might not work as mentioned!_
 
 ### Permissions
 

@@ -1,5 +1,7 @@
 package com.ilusons.harmony.views;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -35,6 +37,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.OvershootInterpolator;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -524,7 +527,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     public void OnMusicServiceLibraryUpdateBegins() {
         swipeRefreshLayout.setRefreshing(true);
 
-        info("Library update is on progress!");
+        info("Library update is on progress!", true);
     }
 
     @Override
@@ -580,7 +583,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         if (result)
             info("Current playlist exported!");
         else
-            info("Export failed!");
+            info("Export failed!", true);
     }
 
     private AsyncTask<Void, Void, Void> setFromTask = null;
@@ -620,7 +623,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             @Override
             protected Void doInBackground(Void... voids) {
-                info("Do not refresh until library is fully loaded!");
+                info("Do not refresh until library is fully loaded!", true);
 
                 final ArrayList<Music> data = Music.loadAll(LibraryUIActivity.this);
                 runOnUiThread(new Runnable() {
@@ -675,7 +678,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    info("Do not refresh until this playlist is fully loaded!");
+                    info("Do not refresh until this playlist is fully loaded!", true);
 
                     final ArrayList<Music> data = new ArrayList<>();
                     final JavaEx.ActionT<Music> action = new JavaEx.ActionT<Music>() {
@@ -796,6 +799,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
                 final Music item = (Music) dataFiltered.get(position);
 
+                final View root = v.findViewById(R.id.root);
+
                 final ImageView cover = (ImageView) v.findViewById(R.id.cover);
                 cover.setImageBitmap(null);
                 // HACK: This animates aw well as reduces load on image view
@@ -838,6 +843,15 @@ public class LibraryUIActivity extends BaseUIActivity {
                         i.putExtra(MusicService.KEY_URI, item.Path);
 
                         startService(i);
+
+                        AnimatorSet as = new AnimatorSet();
+                        as.playSequentially(
+                                ObjectAnimator.ofArgb(root, "backgroundColor", getColor(R.color.accent), getColor(R.color.transparent))
+                        );
+                        as.setDuration(450);
+                        as.setInterpolator(new OvershootInterpolator());
+                        as.setTarget(root);
+                        as.start();
                     }
                 });
 
