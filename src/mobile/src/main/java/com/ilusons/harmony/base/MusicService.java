@@ -309,6 +309,10 @@ public class MusicService extends Service {
 
         return payload;
     }
+
+    public static void showPremiumFeatureMessage(Context context) {
+        Toast.makeText(context, "It's a premium feature!", Toast.LENGTH_SHORT).show();
+    }
 //endregion
 
     public MusicService() {
@@ -468,7 +472,7 @@ public class MusicService extends Service {
     public IVisualizer getVisualizer() {
         if (visualizer == null) {
             try {
-                visualizer = mediaPlayerFactory.createVisualizer(getAudioSessionId());
+                visualizer = mediaPlayerFactory.createVisualizer(getMediaPlayer());
             } catch (UnsupportedOperationException e) {
                 // the effect is not supported
             } catch (IllegalArgumentException e) {
@@ -530,7 +534,7 @@ public class MusicService extends Service {
     private IBassBoost bassBoost;
 
     public IBassBoost getBassBoost() {
-        if (bassBoost == null)
+        if (bassBoost == null && IsPremium)
             try {
                 bassBoost = mediaPlayerFactory.createBassBoost(mediaPlayer);
             } catch (Exception e) {
@@ -543,7 +547,7 @@ public class MusicService extends Service {
     private ILoudnessEnhancer loudnessEnhancer;
 
     public ILoudnessEnhancer getLoudnessEnhancer() {
-        if (loudnessEnhancer == null)
+        if (loudnessEnhancer == null && IsPremium)
             try {
                 loudnessEnhancer = mediaPlayerFactory.createLoudnessEnhancer(mediaPlayer);
             } catch (Exception e) {
@@ -569,7 +573,7 @@ public class MusicService extends Service {
     private IEnvironmentalReverb environmentalReverb;
 
     public IEnvironmentalReverb getEnvironmentalReverb() {
-        if (environmentalReverb == null)
+        if (environmentalReverb == null && IsPremium)
             try {
                 environmentalReverb = mediaPlayerFactory.createEnvironmentalReverb();
             } catch (Exception e) {
@@ -631,6 +635,12 @@ public class MusicService extends Service {
 
     public int getPlaylistPosition() {
         return playlistPosition;
+    }
+
+    public void setPlaylistPosition(int position) {
+        playlistPosition = position;
+        if (playlistPosition < 0 || playlistPosition >= playlist.size())
+            playlistPosition = -1;
     }
 
     public ArrayList<String> getPlaylist() {
@@ -747,7 +757,7 @@ public class MusicService extends Service {
                 public void onCompletion(IBasicMediaPlayer mediaPlayer) {
                     Log.d(TAG, "onCompletion");
 
-                    next();
+                    nextSmart(false);
                 }
             });
             mediaPlayer.setOnErrorListener(new IBasicMediaPlayer.OnErrorListener() {
@@ -757,7 +767,7 @@ public class MusicService extends Service {
 
                     Toast.makeText(MusicService.this, "There was a problem while playing " + currentMusic.getText() + "!", Toast.LENGTH_LONG).show();
 
-                    random();
+                    nextSmart(true);
 
                     return false;
                 }
@@ -993,6 +1003,10 @@ public class MusicService extends Service {
         });
     }
 
+    public void random() {
+        skip((int) Math.round(Math.random() * playlist.size()));
+    }
+
     public void next() {
         playlistPosition++;
 
@@ -1005,23 +1019,15 @@ public class MusicService extends Service {
         skip(playlistPosition);
     }
 
-    public void random() {
-        synchronized (this) {
-            if (playlist.size() <= 0)
-                return;
-
-            if (playlistPosition < 0 || playlistPosition >= playlist.size())
-                playlistPosition = 0;
+    private void nextSmart(boolean forceNext) {
+        if (!forceNext && getPlayerRepeatMusicEnabled(this)) {
+            play();
+        } else {
+            if (getPlayerShuffleMusicEnabled(this))
+                random();
             else
-                playlistPosition = (int) Math.round(Math.random() * playlist.size());
+                next();
         }
-
-        prepare(new JavaEx.Action() {
-            @Override
-            public void execute() {
-                play();
-            }
-        });
     }
 
     private static final int NOTIFICATION_ID = 4524;
@@ -1283,13 +1289,15 @@ public class MusicService extends Service {
             libraryUpdater.execute();
 
         } else if (action.equals(ACTION_LIBRARY_UPDATED)) {
+            // TODO: verify, test logic
             if (!isPlaying()) {
-                stop();
                 getPlaylist().clear();
             }
-
-            for (Music music : Music.load(this))
+            if (currentMusic != null)
+                getPlaylist().add(currentMusic.Path);
+            for (Music music : Music.loadCurrent(this))
                 getPlaylist().add(music.Path);
+            setPlaylistPosition(0);
 
         } else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {
 
@@ -1346,6 +1354,32 @@ public class MusicService extends Service {
         public String getFriendlyName() {
             return friendlyName;
         }
+    }
+
+    public static final String TAG_SPREF_PLAYER_REPEAT_MUSIC_ENABLED = SPrefEx.TAG_SPREF + ".player_repeat_music_enabled";
+
+    public static boolean getPlayerRepeatMusicEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_REPEAT_MUSIC_ENABLED, false);
+    }
+
+    public static void setPlayerRepeatMusicEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_REPEAT_MUSIC_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_PLAYER_SHUFFLE_MUSIC_ENABLED = SPrefEx.TAG_SPREF + ".player_shuffle_music_enabled";
+
+    public static boolean getPlayerShuffleMusicEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_SHUFFLE_MUSIC_ENABLED, false);
+    }
+
+    public static void setPlayerShuffleMusicEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_PLAYER_SHUFFLE_MUSIC_ENABLED, value)
+                .apply();
     }
 
     public static final String TAG_SPREF_PLAYER_TYPE = SPrefEx.TAG_SPREF + ".player_type";

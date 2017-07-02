@@ -1,15 +1,22 @@
 package com.ilusons.harmony.data;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -25,11 +32,15 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
+import com.ilusons.harmony.ref.m3u.M3UFile;
+import com.ilusons.harmony.ref.m3u.M3UItem;
+import com.ilusons.harmony.ref.m3u.M3UToolSet;
 import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
@@ -48,6 +59,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.CancellationException;
@@ -60,8 +72,6 @@ public class Music {
 
     public static final String KEY_CACHE_DIR_COVER = "covers";
     public static final String KEY_CACHE_DIR_LYRICS = "lyrics";
-
-    public static final String KEY_CACHE_KEY_LIBRARY = "library.index";
 
     public String Title = "";
     public String Artist = "";
@@ -307,6 +317,19 @@ public class Music {
         return result;
     }
 
+    public File getLyricsFile(final Context context) {
+        File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_LYRICS, Path);
+
+        // Load from cache folder
+        if (!file.exists()) try {
+            file.createNewFile();
+        } catch (Exception e) {
+            Log.w(TAG, e);
+        }
+
+        return file;
+    }
+
     private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
 
     public static void getLyricsOrDownload(final Context context, final Music data, final JavaEx.ActionT<String> onResult) {
@@ -400,6 +423,13 @@ public class Music {
         Runtime.getRuntime().gc();
 
         // Metadata from system
+
+        if (Looper.myLooper() == null) try {
+            Looper.prepare(); // HACK
+        } catch (Exception e) {
+            Log.w(TAG, e);
+        }
+
         if (Looper.myLooper() != null) {
 
             if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("audio")) {
@@ -614,28 +644,17 @@ public class Music {
         Music.decode(context, Path, true, this);
     }
 
-    public static Music load(Context context, String path) {
-        ArrayList<Music> all = load(context);
+    //region Playlist / Index
+    public static final String KEY_CACHE_LIBRARY_MEDIASTORE = "library_mediastore.index";
+    public static final String KEY_CACHE_LIBRARY_STORAGE = "library_storage.index";
+    public static final String KEY_CACHE_LIBRARY_CURRENT = "library_current.index";
+    public static final String KEY_PLAYLIST_CURRENT = "harmony";
+    public static final String KEY_PLAYLIST_CURRENT_M3U = "harmony.m3u";
 
-        Music m = null;
-
-        for (Music item : all) {
-            if (item.Path.equalsIgnoreCase(path)) {
-                m = item;
-                break;
-            }
-        }
-
-        if (m == null)
-            m = decode(context, path, false, null);
-
-        return m;
-    }
-
-    public static ArrayList<Music> load(Context context) {
+    public static ArrayList<Music> loadIndex(Context context, String path) {
         ArrayList<Music> result = new ArrayList<>();
 
-        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
+        File cacheFile = IOEx.getDiskCacheFile(context, path);
         if (!cacheFile.exists())
             return result;
 
@@ -655,9 +674,7 @@ public class Music {
         return result;
     }
 
-    public static void save(Context context, ArrayList<Music> data) {
-
-        // TODO: Sort playlist better
+    public static void saveIndex(Context context, ArrayList<Music> data, String path) {
         Collections.sort(data, new Comparator<Music>() {
             @Override
             public int compare(Music x, Music y) {
@@ -669,7 +686,7 @@ public class Music {
 
         String json = serializer.toJson(data.toArray(), Music[].class);
 
-        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
+        File cacheFile = IOEx.getDiskCacheFile(context, path);
         try {
             FileUtils.writeStringToFile(cacheFile, json, "utf-8", false);
         } catch (Exception e) {
@@ -679,13 +696,315 @@ public class Music {
         Log.d(TAG, "data\n" + json);
     }
 
-    public static void reset(Context context) {
-        File cacheFile = IOEx.getDiskCacheFile(context, KEY_CACHE_KEY_LIBRARY);
+    public static void resetIndex(Context context, String path) {
+        File cacheFile = IOEx.getDiskCacheFile(context, path);
         if (cacheFile.exists())
             cacheFile.delete();
     }
 
-    static Gson getSerializer() {
+    public static void resetIndexAll(Context context) {
+        resetIndex(context, KEY_CACHE_LIBRARY_MEDIASTORE);
+        resetIndex(context, KEY_CACHE_LIBRARY_STORAGE);
+    }
+
+    public static Music load(Context context, String path) {
+        ArrayList<Music> all = loadAll(context);
+
+        Music m = null;
+
+        for (Music item : all) {
+            if (item.Path.equalsIgnoreCase(path)) {
+                m = item;
+                break;
+            }
+        }
+
+        if (m == null)
+            m = decode(context, path, false, null);
+
+        return m;
+    }
+
+    public static ArrayList<Music> loadAll(Context context) {
+        ArrayList<Music> result = new ArrayList<>();
+
+        result.addAll(loadIndex(context, KEY_CACHE_LIBRARY_MEDIASTORE));
+        result.addAll(loadIndex(context, KEY_CACHE_LIBRARY_STORAGE));
+
+        return result;
+    }
+
+    public static ArrayList<Music> loadCurrent(Context context) {
+        ArrayList<Music> result = new ArrayList<>();
+
+        result.addAll(loadIndex(context, KEY_CACHE_LIBRARY_CURRENT));
+
+        if (result.size() == 0)
+            result.addAll(loadAll(context));
+
+        return result;
+    }
+
+    public static void saveCurrent(Context context, ArrayList<Music> data, boolean notify) {
+        saveIndex(context, data, KEY_CACHE_LIBRARY_CURRENT);
+
+        M3UFile m3UFile = M3UToolSet.create();
+        for (Music music : data) {
+            M3UItem m3UItem = new M3UItem();
+            m3UItem.setStreamURL(music.Path);
+            m3UFile.addItem(m3UItem);
+        }
+
+        try {
+            String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString();
+            File file = new File(root);
+            //noinspection ResultOfMethodCallIgnored
+            file.mkdirs();
+            file = new File(root + "/" + KEY_PLAYLIST_CURRENT_M3U);
+
+            FileUtils.writeStringToFile(file, m3UFile.toString(), "utf-8", false);
+
+            MediaScannerConnection.scanFile(context,
+                    new String[]{
+                            file.toString()
+                    },
+                    null,
+                    new MediaScannerConnection.OnScanCompletedListener() {
+                        public void onScanCompleted(String path, Uri uri) {
+                            Log.i(TAG, "Scanned " + path + ", uri=" + uri);
+                        }
+                    });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (notify) {
+            Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
+            LocalBroadcastManager
+                    .getInstance(context)
+                    .sendBroadcast(broadcastIntent);
+
+            Intent musicServiceIntent = new Intent(context, MusicService.class);
+            musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
+            context.startService(musicServiceIntent);
+        }
+    }
+
+    public static void allPlaylist(ContentResolver cr, final JavaEx.ActionTU<Long, String> action) {
+        if (action == null)
+            return;
+
+        Cursor cursor = cr.query(
+                MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                new String[]{
+                        MediaStore.Audio.Playlists._ID,
+                        MediaStore.Audio.Playlists.NAME
+                },
+                null,
+                null,
+                MediaStore.Audio.Playlists.NAME + " ASC");
+        if (cursor != null) {
+            int count = 0;
+            count = cursor.getCount();
+
+            if (count > 0) {
+                while (cursor.moveToNext()) {
+                    Long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
+                    String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME));
+
+                    action.execute(id, name);
+                }
+
+            }
+
+            cursor.close();
+        }
+    }
+
+    public static long createPlaylist(ContentResolver cr, String playlistName) {
+        long playlistId = -1;
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.Audio.Playlists.NAME, playlistName);
+        contentValues.put(MediaStore.Audio.Playlists.DATE_ADDED, System.currentTimeMillis());
+        contentValues.put(MediaStore.Audio.Playlists.DATE_MODIFIED, System.currentTimeMillis());
+
+        Uri uri = cr.insert(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, contentValues);
+
+        if (uri != null) {
+            Cursor cursor;
+            cursor = cr.query(
+                    uri,
+                    new String[]{
+                            MediaStore.Audio.Playlists._ID,
+                            MediaStore.Audio.Playlists.NAME
+                    },
+                    null,
+                    null,
+                    null);
+            if (cursor != null) {
+                playlistId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
+
+                cursor.close();
+
+                Log.d(TAG, "Created playlist [" + playlistName + "], [" + playlistId + "].");
+            } else {
+                Log.w(TAG, "Creating playlist failed [" + playlistName + "], [" + playlistId + "].");
+            }
+        }
+
+        return playlistId;
+    }
+
+    public static void deletePlaylist(ContentResolver cr, Long playlistId) {
+        cr.delete(
+                MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                MediaStore.Audio.Playlists._ID + "=?",
+                new String[]{
+                        Long.toString(playlistId)
+                });
+    }
+
+    public static void renamePlaylist(ContentResolver cr, Long playlistId, String playlistName) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.Audio.Playlists.NAME, playlistName);
+
+        cr.update(
+                MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                contentValues,
+                MediaStore.Audio.Playlists._ID + " =? ",
+                new String[]{
+                        Long.toString(playlistId)
+                });
+    }
+
+    public static long getPlaylistIdFor(ContentResolver cr, String playlistName, boolean autoCreate) {
+        long playlistId = -1;
+
+        Cursor cursor = cr.query(
+                MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                new String[]{
+                        MediaStore.Audio.Playlists._ID,
+                        MediaStore.Audio.Playlists.NAME
+                },
+                null,
+                null,
+                MediaStore.Audio.Playlists.NAME + " ASC");
+        int count = 0;
+        if (cursor != null) {
+            count = cursor.getCount();
+
+            if (count > 0) {
+                while (cursor.moveToNext()) {
+                    long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
+                    String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME));
+
+                    if (name.equalsIgnoreCase(playlistName)) {
+                        playlistId = id;
+
+                        break;
+                    }
+                }
+
+            }
+
+            cursor.close();
+        }
+
+        if (autoCreate && playlistId == -1) {
+            Log.d(TAG, "Creating playlist [" + playlistName + "], no previous record.");
+
+            playlistId = createPlaylist(cr, playlistName);
+        }
+
+        Log.d(TAG, "Playlist [" + playlistName + "], [" + playlistId + "].");
+
+
+        return playlistId;
+    }
+
+    public static Collection<String> getAllAudioIdsInPlaylist(ContentResolver cr, long playlistId) {
+        ArrayList<String> result = new ArrayList<>();
+
+        Cursor cursor = cr.query(
+                MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId),
+                new String[]{
+                        MediaStore.Audio.Playlists.Members.AUDIO_ID
+                },
+                MediaStore.Audio.Media.IS_MUSIC + " != 0 ",
+                null,
+                null,
+                null);
+        if (cursor != null) {
+            int count = 0;
+            count = cursor.getCount();
+
+            if (count > 0) {
+                while (cursor.moveToNext()) {
+                    String audio_id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.AUDIO_ID));
+
+                    result.add(audio_id);
+                }
+
+            }
+
+            cursor.close();
+        }
+
+        return result;
+    }
+
+    public static void getAllMusicForIds(Context context, Collection<String> audioIds, JavaEx.ActionT<Music> action) {
+        if (action == null)
+            return;
+
+        for (String audioId : audioIds) {
+            String path = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId)).toString();
+
+            Music m = decode(context, path, true, null);
+
+            if (m != null)
+                action.execute(m);
+        }
+    }
+
+    public static void addToPlaylist(ContentResolver cr, long playlistId, Collection<Integer> audioIds) {
+        Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
+        Cursor cursor = cr.query(
+                uri,
+                new String[]{
+                        MediaStore.Audio.Playlists.Members.PLAY_ORDER
+                },
+                null,
+                null,
+                null);
+        if (cursor != null) {
+            cursor.moveToLast();
+
+            final int base = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.PLAY_ORDER));
+
+            cursor.close();
+
+            int play_order = base;
+            for (int audioId : audioIds) {
+                ContentValues values = new ContentValues();
+                play_order++;
+                values.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, play_order);
+                values.put(MediaStore.Audio.Playlists.Members.AUDIO_ID, audioId);
+
+                cr.insert(uri, values);
+            }
+        }
+    }
+
+    public static void removeFromPlaylist(ContentResolver cr, long playlistId, Collection<Integer> audioIds) {
+        Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
+
+        for (int audioId : audioIds)
+            cr.delete(uri, MediaStore.Audio.Playlists.Members.AUDIO_ID + " = " + audioId, null);
+    }
+
+    public static Gson getSerializer() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
         gsonBuilder.registerTypeAdapter(Music.class, new Serializer());
@@ -730,5 +1049,6 @@ public class Music {
             return result;
         }
     }
+//endregion
 
 }

@@ -1,7 +1,11 @@
 package com.ilusons.harmony.views;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -11,9 +15,11 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -25,11 +31,13 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.OvershootInterpolator;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -47,11 +55,19 @@ import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.IOEx;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 public class LibraryUIActivity extends BaseUIActivity {
 
@@ -69,6 +85,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
     // Request codes
     private static final int REQUEST_FILE_PICK = 4684;
+    private static final int REQUEST_EXPORT_LOCATION_PICK_SAF = 59;
 
     // Data
     RecyclerViewAdapter adapter;
@@ -137,6 +154,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
         drawer_layout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer_layout.closeDrawer(GravityCompat.START);
+        drawer_layout.closeDrawer(GravityCompat.END);
 
         // Set views
         root = findViewById(R.id.root);
@@ -169,7 +187,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                 refreshTask = (new AsyncTask<Void, Void, Collection<Music>>() {
                     @Override
                     protected Collection<Music> doInBackground(Void... voids) {
-                        return Music.load(LibraryUIActivity.this);
+                        return Music.loadCurrent(LibraryUIActivity.this);
                     }
 
                     @Override
@@ -208,6 +226,13 @@ public class LibraryUIActivity extends BaseUIActivity {
                 drawer_layout.closeDrawer(GravityCompat.START);
             }
         });
+        findViewById(R.id.open).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Select and play any support media from local storage.");
+                return true;
+            }
+        });
 
         findViewById(R.id.refresh).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -220,6 +245,13 @@ public class LibraryUIActivity extends BaseUIActivity {
                 drawer_layout.closeDrawer(GravityCompat.START);
             }
         });
+        findViewById(R.id.refresh).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Re-loads all library media and also scan for new and changed.");
+                return true;
+            }
+        });
 
         findViewById(R.id.now_playing).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -227,6 +259,21 @@ public class LibraryUIActivity extends BaseUIActivity {
                 Intent intent = new Intent(LibraryUIActivity.this, PlaybackUIDarkActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
+
+                drawer_layout.closeDrawer(GravityCompat.START);
+            }
+        });
+
+        findViewById(R.id.sleep_timer).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (MusicService.IsPremium) {
+                    Intent intent = new Intent(LibraryUIActivity.this, SleepTimerActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    startActivity(intent);
+                } else {
+                    MusicService.showPremiumFeatureMessage(getApplicationContext());
+                }
 
                 drawer_layout.closeDrawer(GravityCompat.START);
             }
@@ -315,16 +362,91 @@ public class LibraryUIActivity extends BaseUIActivity {
         search_view.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return false;
+                adapter.filter(query);
+
+                return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 adapter.filter(newText);
 
-                return false;
+                return true;
             }
         });
+
+        // Set right drawer
+        drawer_layout.closeDrawer(GravityCompat.END);
+
+        findViewById(R.id.load_library).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setFromLibrary();
+
+                drawer_layout.closeDrawer(GravityCompat.END);
+            }
+        });
+        findViewById(R.id.load_library).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Loads all the library media into view playlist, view filters applied.");
+                return true;
+            }
+        });
+
+        findViewById(R.id.save_current).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setCurrent();
+
+                drawer_layout.closeDrawer(GravityCompat.END);
+            }
+        });
+        findViewById(R.id.save_current).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Saves the current view playlist as current playlist, view filters ignored.");
+                return true;
+            }
+        });
+
+        findViewById(R.id.export_playlist).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.putExtra(Intent.EXTRA_TITLE, "Playlist.m3u");
+                intent.setType("*/*");
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(intent, REQUEST_EXPORT_LOCATION_PICK_SAF);
+                } else {
+                    info("SAF not found!");
+                }
+
+                drawer_layout.closeDrawer(GravityCompat.END);
+            }
+        });
+
+        // Set playlist(s)
+        RecyclerView playlist_recyclerView = (RecyclerView) findViewById(R.id.playlist_recyclerView);
+        playlist_recyclerView.setHasFixedSize(true);
+        playlist_recyclerView.setItemViewCacheSize(5);
+        playlist_recyclerView.setDrawingCacheEnabled(true);
+        playlist_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+
+        PlaylistRecyclerViewAdapter playlistRecyclerViewAdapter = new PlaylistRecyclerViewAdapter();
+        playlist_recyclerView.setAdapter(playlistRecyclerViewAdapter);
+
+        final ArrayList<Pair<Long, String>> playlists = new ArrayList<>();
+        Music.allPlaylist(getContentResolver(), new JavaEx.ActionTU<Long, String>() {
+            @Override
+            public void execute(Long id, String name) {
+                playlists.add(new Pair<Long, String>(id, name));
+            }
+        });
+        playlistRecyclerViewAdapter.setData(playlists);
+
     }
 
     @Override
@@ -332,8 +454,6 @@ public class LibraryUIActivity extends BaseUIActivity {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START);
         } else {
-            drawer_layout.openDrawer(GravityCompat.START);
-
             // super.onBackPressed();
         }
     }
@@ -373,6 +493,25 @@ public class LibraryUIActivity extends BaseUIActivity {
             i.putExtra(MusicService.KEY_URI, uri.toString());
 
             startService(i);
+        } else if (requestCode == REQUEST_EXPORT_LOCATION_PICK_SAF && resultCode == Activity.RESULT_OK) {
+            Uri uri = null;
+            if (data != null) {
+                uri = data.getData();
+
+                try {
+                    ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+                    FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+
+                    exportCurrent(fileOutputStream, uri);
+
+                    fileOutputStream.close();
+                    pfd.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+
         }
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -403,17 +542,180 @@ public class LibraryUIActivity extends BaseUIActivity {
     public void OnMusicServiceLibraryUpdateBegins() {
         swipeRefreshLayout.setRefreshing(true);
 
-        info("Library update is on progress!");
+        info("Library update is on progress!", true);
     }
 
     @Override
     public void OnMusicServiceLibraryUpdated() {
         if (adapter != null)
-            adapter.setData(Music.load(LibraryUIActivity.this));
+            adapter.setData(Music.loadCurrent(LibraryUIActivity.this));
 
         swipeRefreshLayout.setRefreshing(false);
 
         info("Library updated!");
+    }
+
+    private void setCurrent() {
+        ArrayList<Music> data = new ArrayList<Music>();
+
+        for (Object o : adapter.dataFiltered) {
+            if (o instanceof Music)
+                data.add((Music) o);
+        }
+
+        Music.saveCurrent(LibraryUIActivity.this, data, true);
+
+        info("Current playlist saved!");
+    }
+
+    private void exportCurrent(OutputStream os, Uri uri) {
+        ArrayList<Music> data = new ArrayList<Music>();
+
+        for (Object o : adapter.dataFiltered) {
+            if (o instanceof Music)
+                data.add((Music) o);
+        }
+
+        boolean result = true;
+
+        //noinspection ConstantConditions
+        String base = (new File(StorageEx.getPath(this, uri))).getParent();
+        String nl = System.getProperty("line.separator");
+        StringBuilder sb = new StringBuilder();
+        for (Music music : data) {
+            String url = IOEx.getRelativePath(base, music.Path);
+            sb.append(url).append(nl);
+        }
+
+        try {
+            IOUtils.write(sb.toString(), os, "utf-8");
+        } catch (Exception e) {
+            result = false;
+
+            e.printStackTrace();
+        }
+
+        if (result)
+            info("Current playlist exported!");
+        else
+            info("Export failed!", true);
+    }
+
+    private AsyncTask<Void, Void, Void> setFromTask = null;
+
+    private void setFromLibrary() {
+        if (setFromTask != null) {
+            try {
+                setFromTask.get(1, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            setFromTask = null;
+        }
+
+        swipeRefreshLayout.setRefreshing(true);
+
+        setFromTask = (new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected void onCancelled() {
+                super.onCancelled();
+
+                setFromTask = null;
+
+                swipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+
+                setFromTask = null;
+
+                swipeRefreshLayout.setRefreshing(false);
+
+                info("Loaded library!");
+            }
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                info("Do not refresh until library is fully loaded!", true);
+
+                final ArrayList<Music> data = Music.loadAll(LibraryUIActivity.this);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.setData(data);
+                    }
+                });
+
+                return null;
+            }
+        });
+
+        setFromTask.execute();
+    }
+
+    private void setFromPlaylist(String playlistId) {
+        if (setFromTask != null) {
+            try {
+                setFromTask.get(1, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+            setFromTask = null;
+        }
+
+        final Collection<String> audioIds = Music.getAllAudioIdsInPlaylist(getContentResolver(), Long.parseLong(playlistId));
+
+        if (audioIds.size() > 0) {
+            swipeRefreshLayout.setRefreshing(true);
+
+            setFromTask = (new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected void onCancelled() {
+                    super.onCancelled();
+
+                    setFromTask = null;
+
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+
+                    setFromTask = null;
+
+                    swipeRefreshLayout.setRefreshing(false);
+
+                    info("Loaded playlist!");
+                }
+
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    info("Do not refresh until this playlist is fully loaded!", true);
+
+                    final ArrayList<Music> data = new ArrayList<>();
+                    final JavaEx.ActionT<Music> action = new JavaEx.ActionT<Music>() {
+                        @Override
+                        public void execute(final Music music) {
+                            data.add(music);
+                        }
+                    };
+                    Music.getAllMusicForIds(LibraryUIActivity.this, audioIds, action);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.setData(data);
+                        }
+                    });
+
+                    return null;
+                }
+            });
+
+            setFromTask.execute();
+        }
     }
 
     public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
@@ -421,10 +723,10 @@ public class LibraryUIActivity extends BaseUIActivity {
         private static final int ITEMS_PER_AD = 8;
         private AdListener lastAdListener = null;
 
-        private ArrayList<Music> data;
-        private ArrayList<Object> dataFiltered;
+        private final ArrayList<Music> data;
+        private final ArrayList<Object> dataFiltered;
 
-        private SettingsActivity.UIStyle uiStyle;
+        private final SettingsActivity.UIStyle uiStyle;
 
         public RecyclerViewAdapter() {
             data = new ArrayList<>();
@@ -461,7 +763,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             // Bind data to view here!
 
-            if (d instanceof NativeExpressAdView && lastAdListener == null) {
+            // TODO: fix ads
+            if (false || d instanceof NativeExpressAdView && lastAdListener == null) {
 
                 CardView cv = (CardView) v.findViewById(R.id.cardView);
 
@@ -470,11 +773,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 try {
                     adView.setAdSize(new AdSize((int) ((cv.getWidth() - cv.getPaddingLeft() - cv.getPaddingRight()) / getResources().getDisplayMetrics().density), 96));
                     adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
+
+                    cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
                 } catch (Exception e) {
                     Log.w(TAG, e);
                 }
-
-                cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
 
                 lastAdListener = new AdListener() {
                     @Override
@@ -510,6 +813,8 @@ public class LibraryUIActivity extends BaseUIActivity {
             } else if (d instanceof Music) {
 
                 final Music item = (Music) dataFiltered.get(position);
+
+                final View root = v.findViewById(R.id.root);
 
                 final ImageView cover = (ImageView) v.findViewById(R.id.cover);
                 cover.setImageBitmap(null);
@@ -553,6 +858,40 @@ public class LibraryUIActivity extends BaseUIActivity {
                         i.putExtra(MusicService.KEY_URI, item.Path);
 
                         startService(i);
+
+                        AnimatorSet as = new AnimatorSet();
+                        as.playSequentially(
+                                ObjectAnimator.ofArgb(root, "backgroundColor", getColor(R.color.accent), getColor(R.color.transparent))
+                        );
+                        as.setDuration(450);
+                        as.setInterpolator(new OvershootInterpolator());
+                        as.setTarget(root);
+                        as.start();
+                    }
+                });
+
+                v.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+                        builder.setTitle("Select the action");
+                        builder.setItems(new CharSequence[]{
+                                "Remove"
+                        }, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int itemIndex) {
+                                switch (itemIndex) {
+                                    case 0:
+                                        removeData(item);
+                                        break;
+                                }
+                            }
+                        });
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+
+                        return true;
                     }
                 });
 
@@ -572,29 +911,55 @@ public class LibraryUIActivity extends BaseUIActivity {
             filter(null);
         }
 
+        public void addData(Music d) {
+            data.clear();
+            data.add(0, d);
+            dataFiltered.add(0, d);
+
+            notifyDataSetChanged();
+        }
+
+        public void removeData(Music d) {
+            data.clear();
+            data.remove(d);
+            dataFiltered.remove(d);
+
+            notifyDataSetChanged();
+        }
+
+        public void clearData() {
+            data.clear();
+
+            filter(null);
+        }
+
         public void filter(final String text) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     dataFiltered.clear();
 
-                    for (Music item : data) {
-                        boolean f = false;
+                    synchronized (data) {
+                        for (Music item : data) {
+                            boolean f = false;
 
-                        SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
+                            SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
 
-                        f |= item.Path.toLowerCase().endsWith(".mp3") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT);
-                        f |= item.Path.toLowerCase().endsWith(".m4a") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT);
-                        f |= item.Path.toLowerCase().endsWith(".mp4") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT);
-                        f |= item.Path.toLowerCase().endsWith(".flac") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT);
+                            f |= item.Path.toLowerCase().endsWith(".mp3") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT);
+                            f |= item.Path.toLowerCase().endsWith(".m4a") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT);
+                            f |= item.Path.toLowerCase().endsWith(".mp4") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT);
+                            f |= item.Path.toLowerCase().endsWith(".flac") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT);
 
-                        f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
+                            f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
 
-                        if (f)
-                            dataFiltered.add(item);
+                            if (f)
+                                dataFiltered.add(item);
+                        }
                     }
 
                     // Add ads
+                    // TODO: fix ads
+                    /*
                     final int n = dataFiltered.size();
                     for (int i = 0; i <= n; i += ITEMS_PER_AD)
                         try {
@@ -603,6 +968,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                         } catch (Exception e) {
                             Log.w(TAG, e);
                         }
+                        */
 
                     (LibraryUIActivity.this).runOnUiThread(new Runnable() {
                         @Override
@@ -647,6 +1013,136 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             public float getPosition() {
                 return getProgress();
+            }
+        }
+
+    }
+
+    public class PlaylistRecyclerViewAdapter extends RecyclerView.Adapter<PlaylistRecyclerViewAdapter.ViewHolder> {
+
+        private final ArrayList<Pair<Long, String>> data;
+
+        public PlaylistRecyclerViewAdapter() {
+            data = new ArrayList<>();
+        }
+
+        @Override
+        public int getItemCount() {
+            return data.size();
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+            View view = inflater.inflate(R.layout.library_ui_playlist_item, parent, false);
+
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, int position) {
+            final Pair<Long, String> d = data.get(position);
+            final View v = holder.view;
+
+            TextView text = (TextView) v.findViewById(R.id.text);
+            text.setText(d.second);
+
+            v.setTag(d.first);
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+                    builder.setTitle("Are you sure?");
+                    builder.setMessage("This will replace current playlist with selected one.");
+                    builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            setFromPlaylist(Long.toString(d.first));
+
+                            dialog.dismiss();
+
+                            drawer_layout.closeDrawer(GravityCompat.END);
+                        }
+                    });
+                    builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.dismiss();
+
+                            drawer_layout.closeDrawer(GravityCompat.END);
+                        }
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                }
+            });
+            v.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+                    builder.setTitle("Select the action");
+                    builder.setItems(new CharSequence[]{
+                            "Delete"
+                    }, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int item) {
+                            switch (item) {
+                                case 0:
+                                    Music.deletePlaylist(getContentResolver(), d.first);
+                                    removeData(d.first);
+                                    break;
+                            }
+                        }
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+
+                    return true;
+                }
+            });
+
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            public View view;
+
+            public ViewHolder(View view) {
+                super(view);
+
+                this.view = view;
+            }
+
+        }
+
+        public void setData(Collection<Pair<Long, String>> d) {
+            data.clear();
+            data.addAll(d);
+            notifyDataSetChanged();
+        }
+
+        public void addData(Pair<Long, String> d) {
+            data.add(d);
+
+            notifyDataSetChanged();
+        }
+
+        public void removeData(Pair<Long, String> d) {
+            data.remove(d);
+
+            notifyDataSetChanged();
+        }
+
+        public void removeData(final Long id) {
+            Pair<Long, String> d = null;
+            for (Pair<Long, String> pair : data) {
+                if (pair.first.equals(id)) {
+                    d = pair;
+                    break;
+                }
+            }
+            if (d != null) {
+                data.remove(d);
+                notifyDataSetChanged();
             }
         }
 
