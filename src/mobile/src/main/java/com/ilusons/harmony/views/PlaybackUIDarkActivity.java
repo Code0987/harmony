@@ -42,11 +42,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     // UI
     private View root;
 
-    private ImageButton play_pause;
+    private ImageButton play_pause_stop;
     private ImageButton prev;
     private ImageButton next;
-    private ImageButton random;
-    private ImageButton stop;
+    private ImageButton shuffle;
+    private ImageButton repeat;
     private ImageButton avfx;
     private ImageButton tune;
 
@@ -248,15 +248,15 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        play_pause = (ImageButton) findViewById(R.id.play_pause);
+        play_pause_stop = (ImageButton) findViewById(R.id.play_pause_stop);
         prev = (ImageButton) findViewById(R.id.prev);
         next = (ImageButton) findViewById(R.id.next);
-        random = (ImageButton) findViewById(R.id.random);
-        stop = (ImageButton) findViewById(R.id.stop);
+        shuffle = (ImageButton) findViewById(R.id.shuffle);
+        repeat = (ImageButton) findViewById(R.id.repeat);
         avfx = (ImageButton) findViewById(R.id.avfx);
         tune = (ImageButton) findViewById(R.id.tune);
 
-        play_pause.setOnClickListener(new View.OnClickListener() {
+        play_pause_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null && getMusicService().isPlaying()) {
@@ -264,6 +264,18 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 } else {
                     getMusicService().play();
                 }
+            }
+        });
+        play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (getMusicService() != null) {
+                    getMusicService().stop();
+
+                    info("Stopped!");
+                }
+
+                return true;
             }
         });
 
@@ -275,6 +287,16 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 }
             }
         });
+        prev.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (getMusicService() != null) {
+                    getMusicService().random();
+                }
+
+                return true;
+            }
+        });
 
         next.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -284,21 +306,78 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 }
             }
         });
-
-        random.setOnClickListener(new View.OnClickListener() {
+        next.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
-            public void onClick(View view) {
+            public boolean onLongClick(View view) {
                 if (getMusicService() != null) {
                     getMusicService().random();
                 }
+
+                return true;
             }
         });
 
-        stop.setOnClickListener(new View.OnClickListener() {
+        if (MusicService.getPlayerShuffleMusicEnabled(PlaybackUIDarkActivity.this))
+            shuffle.setAlpha(0.9f);
+        else
+            shuffle.setAlpha(0.3f);
+        shuffle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null) {
-                    getMusicService().stop();
+                    boolean value = MusicService.getPlayerShuffleMusicEnabled(PlaybackUIDarkActivity.this);
+
+                    value = !value;
+
+                    MusicService.setPlayerShuffleMusicEnabled(PlaybackUIDarkActivity.this, value);
+
+                    if (value)
+                        info("Shuffle turned ON");
+                    else
+                        info("Shuffle turned OFF");
+
+
+                    if (value)
+                        shuffle.setAlpha(0.9f);
+                    else
+                        shuffle.setAlpha(0.3f);
+                }
+            }
+        });
+        shuffle.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (getMusicService() != null) {
+                    getMusicService().random();
+                }
+
+                return true;
+            }
+        });
+
+        if (MusicService.getPlayerRepeatMusicEnabled(PlaybackUIDarkActivity.this))
+            repeat.setAlpha(0.9f);
+        else
+            repeat.setAlpha(0.3f);
+        repeat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (getMusicService() != null) {
+                    boolean value = MusicService.getPlayerRepeatMusicEnabled(PlaybackUIDarkActivity.this);
+
+                    value = !value;
+
+                    MusicService.setPlayerRepeatMusicEnabled(PlaybackUIDarkActivity.this, value);
+
+                    if (value)
+                        info("Repeat turned ON");
+                    else
+                        info("Repeat turned OFF");
+
+                    if (value)
+                        repeat.setAlpha(0.9f);
+                    else
+                        repeat.setAlpha(0.3f);
                 }
             }
         });
@@ -418,7 +497,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     public void OnMusicServicePlay() {
         super.OnMusicServicePlay();
 
-        play_pause.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
+        play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
 
         if (getMusicService() != null)
             resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
@@ -431,7 +510,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     public void OnMusicServicePause() {
         super.OnMusicServicePlay();
 
-        play_pause.setImageDrawable(getDrawable(R.drawable.ic_play_black));
+        play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
 
         if (getMusicService() != null)
             resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
@@ -444,9 +523,9 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     public void OnMusicServiceStop() {
         super.OnMusicServicePlay();
 
-        play_pause.setImageDrawable(getDrawable(R.drawable.ic_play_black));
+        play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
 
-        if (video.getVisibility() == View.VISIBLE){
+        if (video.getVisibility() == View.VISIBLE) {
             video.stopPlayback();
             video.setVisibility(View.INVISIBLE);
         }
@@ -471,7 +550,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         loadingView.smoothToShow();
 
-        if (video.getVisibility() == View.VISIBLE){
+        if (video.getVisibility() == View.VISIBLE) {
             video.stopPlayback();
             video.setVisibility(View.INVISIBLE);
         }
@@ -541,12 +620,12 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
                         seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
-                        play_pause.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        play_pause.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+                        play_pause_stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        play_pause_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
                         prev.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
                         next.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        random.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        shuffle.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+                        repeat.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
                         avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
                         tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 

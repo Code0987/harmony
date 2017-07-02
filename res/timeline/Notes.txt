@@ -4,28 +4,62 @@ A music player!
 
 ### Release details
 
-- Version 0.1.0.*
-- Alpha
 - Highly unstable
 - Only for testing and feedback
+- Work in progress!
 
 ### Features
 
-- Cover-art (metadata, online)
-- Lyrics (timestamped, scrolling) (.mp3 metadata, online)
+Library
+- Android playlist support, basic management
 - Whole device library (.mp3, .m4a, .flac, .mp4)
 - Auto library management
+
+SFX
+- Equalizer 5-10 bands
+- Bassboost
+- Loudness
+- Virtualization
+- Reverb
+
+Playback
+- Android / OpenSL based player
 - Auto playback
+- Visualization
 - Video playback support (landscape mode for better view)
 - Notification support
 - Lock-screen support
 - Headset/Media buttons support (auto pause/resume)
-- Adaptive player UI based on cover-art
-- Visualization
-- Equalizer 5-10 bands, Bass boost, Reverb
-- Android / OpenSL based player
 
-_Work in progress. So features mentioned might not work as mentioned!_
+UI
+- Cover-art (metadata, online)
+- Lyrics (timestamped, scrolling) (.mp3 metadata, online)
+- Adaptive player UI based on cover-art
+
+### Premium Features
+
+- SFX (Bassboost, Virtualizer, Env. reverb)
+- Lyrics (Edit)
+- Sleep timer
+- Playback statistics (Most played, Last played, Playback Score) *
+- Crossfade, Gapeless Playback *
+- UI Styles *
+
+NOTE: * Coming soon
+      _Work in progress. So features mentioned might not work as mentioned!_
+
+### Permissions
+
+- Contacts: For current user identity, for in-app purchase, license validation. No user data is captured.
+- Microphone: It's weird but, audio effects require this. No recording is done.
+- Location: For geo based content, ads. No user data is captured.
+- Storage: For playing files stored in storage. No user data is captured.
+
+### Questions
+
+- Q. How to load and apply Android playlists?
+     On playlist/library view, swipe right to open right drawer, select the list you want to load, and confirm.
+     Now, make changes on playlist/library view, then go back to drawer, press `Save` to apply it.
 
 ### Contact
 

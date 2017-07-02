@@ -4,6 +4,7 @@
     package="com.ilusons.harmony"
     >
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
@@ -27,6 +28,7 @@
     <uses-feature android:name="android.software.live_wallpaper"/>
 
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
@@ -104,6 +106,17 @@
         </activity>
         <activity android:name=".ref.Permissions$PermissionRequestActivity"/>
 
+        <activity
+            android:name="com.nononsenseapps.filepicker.FilePickerActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.FilePickerTheme"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
         <receiver android:name=".base.HeadsetMediaButtonIntentReceiver">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -116,6 +129,31 @@
                 <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+
+        <activity android:name=".views.SleepTimerActivity"/>
+
+        <receiver android:name=".views.SleepTimerActivity$WakefulReceiver"/>
+        <receiver
+            android:name=".views.SleepTimerActivity$BootReceiver"
+            android:enabled="false"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:enabled="true"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/nnf_provider_paths"
+                />
+        </provider>
 
     </application>
 

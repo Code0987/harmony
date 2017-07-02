@@ -1,14 +1,18 @@
 package com.ilusons.harmony.views;
 
 import android.app.Fragment;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -59,6 +63,27 @@ public class LyricsViewFragment extends Fragment {
 
         textView = (TextView) v.findViewById(R.id.lyrics);
         scrollView = (ScrollView) v.findViewById(R.id.scrollView);
+
+        textView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (!MusicService.IsPremium){
+                    MusicService.showPremiumFeatureMessage(getContext());
+
+                    return false;
+                }
+
+                if (music == null)
+                    return false;
+
+                Intent intent = new Intent(Intent.ACTION_EDIT);
+                Uri uri = Uri.parse(music.getLyricsFile(getContext()).getAbsolutePath());
+                intent.setDataAndType(uri, "text/plain");
+                startActivity(intent);
+
+                return true;
+            }
+        });
 
         reset(path);
 
@@ -135,6 +160,8 @@ public class LyricsViewFragment extends Fragment {
         }
 
         scrollBy = ((float) textView.getLineHeight() * lines) / ((float) music.Length / 1000);
+        if (scrollBy < 1)
+            scrollBy = 1;
 
         textView.setText(contentFormatted);
 

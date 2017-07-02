@@ -1,0 +1,3 @@
+[submodule "res/web"]
+	path = res/web
+	url = git@gitlab.com:ilusons/harmony.git
