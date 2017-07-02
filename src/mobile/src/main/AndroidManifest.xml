@@ -130,11 +130,23 @@
             </intent-filter>
         </receiver>
 
+        <activity android:name=".views.SleepTimerActivity"/>
+
+        <receiver android:name=".views.SleepTimerActivity$WakefulReceiver"/>
+        <receiver
+            android:name=".views.SleepTimerActivity$BootReceiver"
+            android:enabled="false"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="${applicationId}.provider"
-            android:exported="false"
             android:enabled="true"
+            android:exported="false"
             android:grantUriPermissions="true"
             >
             <meta-data
