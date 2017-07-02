@@ -9,15 +9,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Chronometer;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.codetroopers.betterpickers.OnDialogDismissListener;
@@ -35,7 +36,8 @@ public class SleepTimerActivity extends BaseActivity {
 
     private View root;
 
-    private Chronometer chronometer;
+    private TextView text;
+    private CountDownTimer countDownTimer;
     private ImageButton set_timer;
 
     @Override
@@ -60,7 +62,7 @@ public class SleepTimerActivity extends BaseActivity {
         });
 
         // Set timer
-        chronometer = (Chronometer) findViewById(R.id.chronometer);
+        text = (TextView) findViewById(R.id.text);
 
         set_timer = (ImageButton) findViewById(R.id.set_timer);
 
@@ -77,6 +79,8 @@ public class SleepTimerActivity extends BaseActivity {
                         }
 
                         setTimer(SleepTimerActivity.this, time);
+
+                        updateUI();
                     }
                 };
                 final HmsPickerBuilder hpb = new HmsPickerBuilder()
@@ -101,31 +105,46 @@ public class SleepTimerActivity extends BaseActivity {
 
     private void updateUI() {
 
-        if (getSleepTimerTime(this) > 0) {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+            countDownTimer = null;
+        }
 
-            chronometer.stop();
-            chronometer.setBase(getSleepTimerTimeLeft(this));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                chronometer.setCountDown(true);
-            }
-            chronometer.start();
+        if (getSleepTimerTimeLeft(this) > 0) {
+
+            countDownTimer = new CountDownTimer(getSleepTimerTimeLeft(this), 1000) {
+                @Override
+                public void onTick(long time) {
+                    int h = (int) (time / 3600000);
+                    int m = (int) (time - h * 3600000) / 60000;
+                    int s = (int) (time - h * 3600000 - m * 60000) / 1000;
+                    String hh = h < 10 ? "0" + h : h + "";
+                    String mm = m < 10 ? "0" + m : m + "";
+                    String ss = s < 10 ? "0" + s : s + "";
+                    text.setText(hh + ":" + mm + ":" + ss);
+                }
+
+                @Override
+                public void onFinish() {
+                    updateUI();
+                }
+            };
+            countDownTimer.start();
+
+            text.setText("...");
 
             set_timer.setImageDrawable(getDrawable(R.drawable.ic_timer_black));
             set_timer.setColorFilter(getColor(android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
 
         } else {
 
-            chronometer.stop();
-            chronometer.setBase(getSleepTimerTimeLeft(this));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                chronometer.setCountDown(true);
-            }
-            chronometer.start();
+            text.setText(null);
 
             set_timer.setImageDrawable(getDrawable(R.drawable.ic_timer_off_black));
             set_timer.setColorFilter(getColor(android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
 
         }
+
 
     }
 
@@ -156,16 +175,16 @@ public class SleepTimerActivity extends BaseActivity {
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "WakefulReceiver::onReceive" + System.lineSeparator() + intent);
 
+            WakefulReceiver.completeWakefulIntent(intent);
+
             // Stop playback
             final Intent intentStop = new Intent(context, MusicService.class);
-            intent.setAction(MusicService.ACTION_STOP);
+            intentStop.setAction(MusicService.ACTION_STOP);
             startWakefulService(context, intentStop);
 
             Toast.makeText(context, "Sleep timer! Stopping playback now, if active!", Toast.LENGTH_LONG).show();
 
             cancelTimer(context);
-
-            WakefulReceiver.completeWakefulIntent(intent);
         }
 
     }
