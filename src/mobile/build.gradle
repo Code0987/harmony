@@ -160,6 +160,7 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'com.nononsenseapps:filepicker:4.1.0'
     compile 'com.code-troopers.betterpickers:library:3.1.0'
+    compile 'com.airbnb.android:lottie:2.0.0'
     testCompile 'junit:junit:4.12'
 }
 

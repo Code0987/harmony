@@ -46,7 +46,6 @@ import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -54,7 +53,6 @@ import org.jsoup.nodes.Document;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -317,6 +315,19 @@ public class Music {
         }
 
         return result;
+    }
+
+    public File getLyricsFile(final Context context) {
+        File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_LYRICS, Path);
+
+        // Load from cache folder
+        if (!file.exists()) try {
+            file.createNewFile();
+        } catch (Exception e) {
+            Log.w(TAG, e);
+        }
+
+        return file;
     }
 
     private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
