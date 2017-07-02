@@ -309,6 +309,10 @@ public class MusicService extends Service {
 
         return payload;
     }
+
+    public static void showPremiumFeatureMessage(Context context) {
+        Toast.makeText(context, "It's a premium feature!", Toast.LENGTH_SHORT).show();
+    }
 //endregion
 
     public MusicService() {

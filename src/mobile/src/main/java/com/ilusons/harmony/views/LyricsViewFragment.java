@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
@@ -66,8 +67,11 @@ public class LyricsViewFragment extends Fragment {
         textView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if (!MusicService.IsPremium)
+                if (!MusicService.IsPremium){
+                    MusicService.showPremiumFeatureMessage(getContext());
+
                     return false;
+                }
 
                 if (music == null)
                     return false;

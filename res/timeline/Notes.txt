@@ -40,10 +40,10 @@ UI
 
 - SFX (Bassboost, Virtualizer, Env. reverb)
 - Lyrics (Edit)
-- UI Styles *
+- Sleep timer
 - Playback statistics (Most played, Last played, Playback Score) *
 - Crossfade, Gapeless Playback *
-- Sleep timer
+- UI Styles *
 
 NOTE: * Coming soon
       _Work in progress. So features mentioned might not work as mentioned!_

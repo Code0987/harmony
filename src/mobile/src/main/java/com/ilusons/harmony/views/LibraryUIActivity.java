@@ -267,9 +267,13 @@ public class LibraryUIActivity extends BaseUIActivity {
         findViewById(R.id.sleep_timer).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(LibraryUIActivity.this, SleepTimerActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                startActivity(intent);
+                if (MusicService.IsPremium) {
+                    Intent intent = new Intent(LibraryUIActivity.this, SleepTimerActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    startActivity(intent);
+                } else {
+                    MusicService.showPremiumFeatureMessage(getApplicationContext());
+                }
 
                 drawer_layout.closeDrawer(GravityCompat.START);
             }
