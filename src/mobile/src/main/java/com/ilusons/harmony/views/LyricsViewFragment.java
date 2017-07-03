@@ -1,9 +1,13 @@
 package com.ilusons.harmony.views;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +21,8 @@ import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
+import java.io.File;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,7 +73,7 @@ public class LyricsViewFragment extends Fragment {
         textView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if (!MusicService.IsPremium){
+                if (!MusicService.IsPremium) {
                     MusicService.showPremiumFeatureMessage(getContext());
 
                     return false;
@@ -76,10 +82,28 @@ public class LyricsViewFragment extends Fragment {
                 if (music == null)
                     return false;
 
-                Intent intent = new Intent(Intent.ACTION_EDIT);
-                Uri uri = Uri.parse(music.getLyricsFile(getContext()).getAbsolutePath());
-                intent.setDataAndType(uri, "text/plain");
-                startActivity(intent);
+                try {
+                    Context context = getContext();
+
+                    File file = music.getLyricsFile(getContext());
+                    Uri contentUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
+
+                    Intent intent = new Intent(Intent.ACTION_EDIT);
+                    intent.setDataAndType(contentUri, "text/plain");
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+                    List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                    for (ResolveInfo resolveInfo : resInfoList) {
+                        String packageName = resolveInfo.activityInfo.packageName;
+                        context.grantUriPermission(packageName, contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    }
+
+                    context.startActivity(Intent.createChooser(intent, "Edit lyrics for " + music.getText()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    Toast.makeText(getContext(), "Please install a text editor first!", Toast.LENGTH_LONG).show();
+                }
 
                 return true;
             }

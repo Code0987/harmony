@@ -92,14 +92,17 @@
 
     </RelativeLayout>
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:clipChildren="true"
         android:clipToPadding="true"
         android:fadeScrollbars="true"
+        android:orientation="vertical"
         android:scrollbars="vertical"
         app:layout_constraintBottom_toTopOf="@+id/bottom_layout"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -107,28 +110,33 @@
         app:layout_constraintTop_toBottomOf="@+id/top_layout"
         >
 
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/content_layout"
+        <android.support.design.widget.TabLayout
+            xmlns:res="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/activity_vertical_margin"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginTop="@dimen/activity_vertical_margin"
+            res:tabGravity="fill"
+            res:tabMode="fixed"
+            />
+
+        <view
+            android:id="@+id/viewPager"
+            class="com.ilusons.harmony.ref.ViewEx$StaticViewPager"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:descendantFocusability="beforeDescendants"
             android:focusableInTouchMode="true"
+            android:gravity="center"
             >
 
             <LinearLayout
-                android:id="@+id/ctl1_layout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_margin="8dp"
                 android:gravity="center_horizontal|bottom"
                 android:orientation="horizontal"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                android:tag="Eq"
                 >
 
                 <LinearLayout
@@ -156,7 +164,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -173,7 +181,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="PreAmp"
-                        android:textSize="9sp"
+                        android:textSize="8sp"
                         />
 
                 </LinearLayout>
@@ -203,7 +211,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -237,7 +245,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -271,7 +279,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -305,7 +313,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -339,7 +347,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -373,7 +381,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -407,7 +415,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -441,7 +449,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -475,7 +483,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -509,7 +517,7 @@
 
                     <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="280dp"
                         >
 
                         <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
@@ -535,15 +543,13 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/ctl2_layout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_margin="6dp"
-                android:gravity="center_horizontal|bottom"
+                android:gravity="center_horizontal|center_vertical"
                 android:orientation="horizontal"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/ctl1_layout"
+                android:tag="SFX"
                 >
 
                 <LinearLayout
@@ -571,8 +577,8 @@
 
                     <me.tankery.lib.circularseekbar.CircularSeekBar
                         android:id="@+id/bassboost_seekBar"
-                        android:layout_width="92dp"
-                        android:layout_height="92dp"
+                        android:layout_width="110dp"
+                        android:layout_height="110dp"
                         app:cs_circle_color="@color/translucent_accent"
                         app:cs_circle_progress_color="@color/translucent_accent"
                         app:cs_circle_stroke_width="1dp"
@@ -590,7 +596,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bass boost"
+                        android:text="Bassboost"
                         android:textSize="12sp"
                         />
 
@@ -621,8 +627,8 @@
 
                     <me.tankery.lib.circularseekbar.CircularSeekBar
                         android:id="@+id/loudness_seekBar"
-                        android:layout_width="92dp"
-                        android:layout_height="92dp"
+                        android:layout_width="110dp"
+                        android:layout_height="110dp"
                         app:cs_circle_color="@color/translucent_accent"
                         app:cs_circle_progress_color="@color/translucent_accent"
                         app:cs_circle_stroke_width="1dp"
@@ -671,8 +677,8 @@
 
                     <me.tankery.lib.circularseekbar.CircularSeekBar
                         android:id="@+id/virtualizer_seekBar"
-                        android:layout_width="92dp"
-                        android:layout_height="92dp"
+                        android:layout_width="110dp"
+                        android:layout_height="110dp"
                         app:cs_circle_color="@color/translucent_accent"
                         app:cs_circle_progress_color="@color/translucent_accent"
                         app:cs_circle_stroke_width="1dp"
@@ -699,15 +705,12 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/ctl3_layout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                android:gravity="center_horizontal|bottom"
+                android:gravity="center_horizontal|center_vertical"
                 android:orientation="horizontal"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/ctl2_layout"
+                android:tag="Reverb 1"
                 >
 
                 <LinearLayout
@@ -764,15 +767,12 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/ctl4_layout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                android:gravity="center_horizontal|bottom"
+                android:gravity="center_horizontal|center_vertical"
                 android:orientation="horizontal"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/ctl3_layout"
+                android:tag="Reverb 2"
                 >
 
                 <LinearLayout
@@ -1076,43 +1076,8 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/ctl5_layout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:gravity="center_horizontal|bottom"
-                android:orientation="horizontal"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/ctl4_layout"
-                >
+        </view>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="5dp"
-                    android:background="@drawable/gradient_top_down_transparent"
-                    android:orientation="vertical"
-                    android:padding="8dp"
-                    >
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:background="#20ffffff"
-                        android:padding="8dp"
-                        android:text="NOTE: All effects might not work. They will work depending on your device, android version, selected player mode and other settings in the app!"
-                        android:textSize="12sp"
-                        />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </android.support.constraint.ConstraintLayout>
-
-    </ScrollView>
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

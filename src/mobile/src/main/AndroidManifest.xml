@@ -151,7 +151,7 @@
             >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/nnf_provider_paths"
+                android:resource="@xml/saf_file_paths"
                 />
         </provider>
 

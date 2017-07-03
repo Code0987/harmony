@@ -165,7 +165,7 @@ public class MusicService extends Service {
     private LicenseChecker licenseChecker;
 
     // IAB
-    public static boolean IsPremium = false;
+    public static boolean IsPremium = BuildConfig.DEBUG;
 
     public static final String SKU_PREMIUM = "premium";
 
@@ -195,7 +195,7 @@ public class MusicService extends Service {
 
             Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
 
-            IsPremium = ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
+            IsPremium = BuildConfig.DEBUG || ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
 
             SPrefEx.get(MusicService.this)
                     .edit()
@@ -213,7 +213,7 @@ public class MusicService extends Service {
         licenseChecker.checkAccess(licenseCheckerCallback);
 
         // IAB
-        IsPremium = SPrefEx.get(this).getBoolean(TAG_SPREF_SKU_PREMIUM, false);
+        IsPremium = SPrefEx.get(this).getBoolean(TAG_SPREF_SKU_PREMIUM, BuildConfig.DEBUG);
 
         iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);
 
@@ -547,7 +547,7 @@ public class MusicService extends Service {
     private ILoudnessEnhancer loudnessEnhancer;
 
     public ILoudnessEnhancer getLoudnessEnhancer() {
-        if (loudnessEnhancer == null && IsPremium)
+        if (loudnessEnhancer == null)
             try {
                 loudnessEnhancer = mediaPlayerFactory.createLoudnessEnhancer(mediaPlayer);
             } catch (Exception e) {
@@ -560,7 +560,7 @@ public class MusicService extends Service {
     private IVirtualizer virtualizer;
 
     public IVirtualizer getVirtualizer() {
-        if (virtualizer == null)
+        if (virtualizer == null && IsPremium)
             try {
                 virtualizer = mediaPlayerFactory.createVirtualizer(mediaPlayer);
             } catch (Exception e) {
@@ -728,21 +728,6 @@ public class MusicService extends Service {
                     mediaPlayer.setOnPreparedListener(new IBasicMediaPlayer.OnPreparedListener() {
                         @Override
                         public void onPrepared(IBasicMediaPlayer mediaPlayer) {
-                            // Enabled effects before playing, if any
-                            try {
-                                if (getPlayerEQEnabled(MusicService.this))
-                                    getEqualizer().setEnabled(true);
-                            } catch (Exception e) {
-                                Log.w(TAG, e);
-                            }
-
-                            try {
-                                if (getPlayerPreAmpEnabled(MusicService.this))
-                                    getPreAmp().setEnabled(true);
-                            } catch (Exception e) {
-                                Log.w(TAG, e);
-                            }
-
                             onPrepare.execute();
                         }
                     });
@@ -961,6 +946,8 @@ public class MusicService extends Service {
             LocalBroadcastManager
                     .getInstance(MusicService.this)
                     .sendBroadcast(new Intent(ACTION_PLAY));
+
+            setPlayerLastPlayed(this, getCurrentPlaylistItem());
         }
     }
 
@@ -1289,15 +1276,32 @@ public class MusicService extends Service {
             libraryUpdater.execute();
 
         } else if (action.equals(ACTION_LIBRARY_UPDATED)) {
-            // TODO: verify, test logic
-            if (!isPlaying()) {
-                getPlaylist().clear();
+
+            // Clear playlist
+            // also check if currently playing
+            // if so, then set current item to front
+            String c = getCurrentPlaylistItem();
+            getPlaylist().clear();
+            if (!TextUtils.isEmpty(c) && isPlaying()) {
+                getPlaylist().add(c);
+                setPlaylistPosition(0);
             }
-            if (currentMusic != null)
-                getPlaylist().add(currentMusic.Path);
+
+            // Load playlist
             for (Music music : Music.loadCurrent(this))
                 getPlaylist().add(music.Path);
-            setPlaylistPosition(0);
+
+            // Check last played
+            // play, if it's not currently playing
+            String lp = getPlayerLastPlayed(this);
+            if (!TextUtils.isEmpty(lp) && !(!TextUtils.isEmpty(c) && lp.equalsIgnoreCase(c))) {
+                int i = getPlaylist().indexOf(lp);
+                if (i >= 0) {
+                    setPlaylistPosition(i);
+                    prepare(null);
+                    update();
+                }
+            }
 
         } else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {
 
@@ -1354,6 +1358,19 @@ public class MusicService extends Service {
         public String getFriendlyName() {
             return friendlyName;
         }
+    }
+
+    public static final String TAG_SPREF_PLAYER_LAST_PLAYED = SPrefEx.TAG_SPREF + ".player_last_played";
+
+    public static String getPlayerLastPlayed(Context context) {
+        return SPrefEx.get(context).getString(TAG_SPREF_PLAYER_LAST_PLAYED, null);
+    }
+
+    public static void setPlayerLastPlayed(Context context, String value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYER_LAST_PLAYED, value)
+                .apply();
     }
 
     public static final String TAG_SPREF_PLAYER_REPEAT_MUSIC_ENABLED = SPrefEx.TAG_SPREF + ".player_repeat_music_enabled";
