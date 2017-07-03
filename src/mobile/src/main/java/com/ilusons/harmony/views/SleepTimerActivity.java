@@ -11,7 +11,7 @@ import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 import android.view.View;
@@ -134,14 +134,14 @@ public class SleepTimerActivity extends BaseActivity {
             text.setText("...");
 
             set_timer.setImageDrawable(getDrawable(R.drawable.ic_timer_black));
-            set_timer.setColorFilter(getColor(android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
+            set_timer.setColorFilter(ContextCompat.getColor(getApplicationContext(), android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
 
         } else {
 
             text.setText(null);
 
             set_timer.setImageDrawable(getDrawable(R.drawable.ic_timer_off_black));
-            set_timer.setColorFilter(getColor(android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
+            set_timer.setColorFilter(ContextCompat.getColor(getApplicationContext(), android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
 
         }
 

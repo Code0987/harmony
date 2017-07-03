@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
@@ -25,6 +26,10 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.VideoView;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
@@ -50,6 +55,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
     // UI
     private View root;
+
+    private InterstitialAd iad;
 
     private ImageButton play_pause_stop;
     private ImageButton prev;
@@ -228,8 +235,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        color = getApplicationContext().getColor(R.color.accent);
-        colorLight = getApplicationContext().getColor(R.color.accent);
+        color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
+        colorLight = ContextCompat.getColor(getApplicationContext(), R.color.accent);
 
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -448,6 +455,46 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
+        // Set ads
+        if (BuildConfig.DEBUG || !MusicService.IsPremium)
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            iad = new InterstitialAd(PlaybackUIDarkActivity.this);
+                            iad.setAdUnitId(BuildConfig.AD_UNIT_ID_I1);
+                            iad.setAdListener(new AdListener() {
+                                @Override
+                                public void onAdLoaded() {
+                                    super.onAdLoaded();
+
+                                    if (isFinishing())
+                                        return;
+
+                                    iad.show();
+                                }
+
+                                @Override
+                                public void onAdClosed() {
+                                    if (isFinishing())
+                                        return;
+
+                                    // iad.loadAd(new AdRequest.Builder().build());
+                                }
+
+                                @Override
+                                public void onAdFailedToLoad(int i) {
+                                    super.onAdFailedToLoad(i);
+                                }
+                            });
+                            iad.loadAd(new AdRequest.Builder().build());
+                        }
+                    });
+                }
+            }, 1 * 60 * 1000);
+
         // Guide
         root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
@@ -623,7 +670,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         }
 
                         Palette palette = Palette.from(bitmap).generate();
-                        color = getApplicationContext().getColor(R.color.accent);
+                        color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
                         int colorBackup = color;
                         color = palette.getVibrantColor(color);
                         if (color == colorBackup)
@@ -720,6 +767,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         lyricsViewFragment.updateScroll(getMusicService().getPosition());
                 }
 
+                if (isFinishing())
+                    return;
+                if (isDestroyed())
+                    return;
+
                 handler.removeCallbacks(progressHandlerRunnable);
                 handler.postDelayed(progressHandlerRunnable, dt);
             }
@@ -735,11 +787,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             return;
 
         final MaterialIntroView.Builder guide_play_pause_stop = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -750,11 +802,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_next = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -765,11 +817,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_avfx = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -780,11 +832,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_tune = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -795,11 +847,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_lyrics = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -810,11 +862,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_cover = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -825,11 +877,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
