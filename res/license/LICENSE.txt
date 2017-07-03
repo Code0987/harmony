@@ -38,6 +38,11 @@ Summary
             http://www.apache.org/licenses/LICENSE-2.0
         airbnb-lottie
             http://www.apache.org/licenses/LICENSE-2.0
+        MaterialIntroView
+            http://www.apache.org/licenses/LICENSE-2.0
+        Once
+            http://www.apache.org/licenses/LICENSE-2.0
+
 
 harmony - Terms and conditions
 

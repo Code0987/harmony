@@ -1,7 +1,13 @@
 package com.ilusons.harmony;
 
 import android.app.Application;
+import android.content.Intent;
 import android.content.res.Configuration;
+
+import com.google.android.gms.ads.MobileAds;
+import com.ilusons.harmony.base.MusicService;
+
+import jonathanfinerty.once.Once;
 
 public class App extends Application {
     // Called when the application is starting, before any other application objects have been created.
@@ -9,7 +15,17 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        // Required initialization logic here!
+
+        Once.initialise(this);
+
+        // Start scan
+        Intent musicServiceIntent = new Intent(this, MusicService.class);
+        musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+        startService(musicServiceIntent);
+
+        // Initialize
+        MobileAds.initialize(this, "ca-app-pub-4739450309172378~5670478444");
+
     }
 
     // Called by the system when the device configuration changes while your component is running.

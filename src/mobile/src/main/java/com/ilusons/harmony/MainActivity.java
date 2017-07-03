@@ -23,14 +23,6 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Start scan
-        Intent musicServiceIntent = new Intent(MainActivity.this, MusicService.class);
-        musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-        startService(musicServiceIntent);
-
-        // Initialize
-        MobileAds.initialize(this, "ca-app-pub-4739450309172378~5670478444");
-
         // Intent
         handleIntent(getIntent());
 
