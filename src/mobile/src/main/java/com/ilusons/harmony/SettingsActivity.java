@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
@@ -51,6 +52,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -419,7 +421,9 @@ public class SettingsActivity extends BaseActivity {
             rb.setText(value.friendlyName);
             rb.setTag(value);
             rb.setId(value.ordinal());
-            rb.setTextAppearance(android.R.style.TextAppearance_Material_Body1);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                rb.setTextAppearance(android.R.style.TextAppearance_Material_Body1);
+            }
             ui_style_radioGroup.addView(rb);
 
             if (savedUIStyle == value)
@@ -550,7 +554,9 @@ public class SettingsActivity extends BaseActivity {
             rb.setText(value.getFriendlyName());
             rb.setTag(value);
             rb.setId(value.ordinal());
-            rb.setTextAppearance(android.R.style.TextAppearance_Material_Body1);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                rb.setTextAppearance(android.R.style.TextAppearance_Material_Body1);
+            }
             player_type_radioGroup.addView(rb);
 
             if (player_type == value)
@@ -672,7 +678,10 @@ public class SettingsActivity extends BaseActivity {
         public void addData(String d) {
             data.add(d);
 
-            Set<String> locations = new ArraySet<String>();
+            Set<String> locations = new HashSet<>();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                locations = new ArraySet<>();
+            }
             locations.addAll(data);
 
             MusicServiceLibraryUpdaterAsyncTask.setScanLocations(SettingsActivity.this, locations);
@@ -683,7 +692,10 @@ public class SettingsActivity extends BaseActivity {
         public void removeData(String d) {
             data.remove(d);
 
-            Set<String> locations = new ArraySet<String>();
+            Set<String> locations = new HashSet<>();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                locations = new ArraySet<String>();
+            }
             locations.addAll(data);
 
             MusicServiceLibraryUpdaterAsyncTask.setScanLocations(SettingsActivity.this, locations);

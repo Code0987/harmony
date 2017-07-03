@@ -20,6 +20,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -1051,7 +1052,7 @@ public class MusicService extends Service {
         builder = new NotificationCompat.Builder(this)
                 .setContentIntent(contentIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setColor(getApplicationContext().getColor(R.color.primary))
+                .setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -1112,7 +1113,7 @@ public class MusicService extends Service {
                 .setContentText(currentMusic.Album)
                 .setSubText(currentMusic.Artist)
                 .setLargeIcon(cover)
-                .setColor(getApplicationContext().getColor(R.color.primary))
+                .setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
                 .setTicker(currentMusic.getText());
 
         // TODO: Review this, it's making whole android slow

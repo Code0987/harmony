@@ -22,7 +22,7 @@ android {
     buildToolsVersion "25.0.3"
     defaultConfig {
         applicationId "com.ilusons.harmony"
-        minSdkVersion 23
+        minSdkVersion 22
         targetSdkVersion 25
         versionCode gitVersionData.code
         versionName "${gitVersionData.major}.${gitVersionData.minor}.${gitVersionData.patch}-${gitVersionData.build}"
@@ -35,12 +35,16 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
+            buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
+            buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-3940256099942544/2177258514\""
+            buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
 
             versionNameSuffix '-debug'
         }
         release {
+            buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
             buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
+            buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -52,7 +56,9 @@ android {
             zipAlignEnabled true
         }
         releaseAlpha {
+            buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
             buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
+            buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -64,7 +70,9 @@ android {
             zipAlignEnabled true
         }
         releaseBeta {
+            buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
             buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
+            buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

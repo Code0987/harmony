@@ -24,7 +24,7 @@ public class App extends Application {
         startService(musicServiceIntent);
 
         // Initialize
-        MobileAds.initialize(this, "ca-app-pub-4739450309172378~5670478444");
+        MobileAds.initialize(this, BuildConfig.AD_PUB_ID);
 
     }
 

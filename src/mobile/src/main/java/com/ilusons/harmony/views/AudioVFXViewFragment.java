@@ -145,7 +145,7 @@ public class AudioVFXViewFragment extends Fragment {
     private void startVisualizer() {
         stopVisualizer();
 
-        if (MusicService.getPlayerType(getContext()) == MusicService.PlayerType.OpenSL) {
+        if (MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.OpenSL) {
             if (visualizerHQ != null) {
                 // stop visualizerHQ
                 stopVisualizer();
@@ -227,7 +227,7 @@ public class AudioVFXViewFragment extends Fragment {
             stopVisualizer();
             cleanupVisualizer();
 
-            if (MusicService.getPlayerType(getContext()) == MusicService.PlayerType.OpenSL)
+            if (MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.OpenSL)
                 visualizerHQ = musicService.getVisualizerHQ();
             else
                 visualizer = musicService.getVisualizer();
@@ -253,7 +253,7 @@ public class AudioVFXViewFragment extends Fragment {
 
             switch (avfxType) {
                 case Waveform:
-                    waveformAVFXView = new WaveformAVFXView(getContext());
+                    waveformAVFXView = new WaveformAVFXView(getActivity().getApplicationContext());
 
                     waveformAVFXView.setColor(
                             new BaseAVFXView.FloatColor(r, g, b, a),
@@ -262,7 +262,7 @@ public class AudioVFXViewFragment extends Fragment {
                     root.addView(waveformAVFXView);
                     break;
                 case FFT:
-                    fftAVFXView = new FFTAVFXView(getContext());
+                    fftAVFXView = new FFTAVFXView(getActivity().getApplicationContext());
 
                     fftAVFXView.setColor(
                             new BaseAVFXView.FloatColor(r, g, b, a),

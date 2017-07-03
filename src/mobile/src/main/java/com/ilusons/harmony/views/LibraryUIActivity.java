@@ -19,6 +19,7 @@ import android.os.ParcelFileDescriptor;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
@@ -466,6 +467,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                 showGuide();
             }
         });
+
     }
 
     @Override
@@ -581,11 +583,11 @@ public class LibraryUIActivity extends BaseUIActivity {
             return;
 
         final MaterialIntroView.Builder guide_start = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -596,11 +598,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_ldrawer = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -611,11 +613,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_rdrawer = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -626,11 +628,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_recycler = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -641,11 +643,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_search = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -656,11 +658,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
-                .setMaskColor(getColor(R.color.translucent_accent))
+                .setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
                 .setDelayMillis(500)
                 .enableFadeAnimation(true)
                 .enableDotAnimation(false)
-                .setFocusType(Focus.NORMAL)
+                .setFocusType(Focus.MINIMUM)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setTargetPadding(32)
                 .dismissOnTouch(true)
@@ -673,7 +675,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         guide_final.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                // Once.markDone(tag_guide);
+                Once.markDone(tag_guide);
             }
         });
         guide_search.setListener(new MaterialIntroListener() {
@@ -925,16 +927,15 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             // Bind data to view here!
 
-            // TODO: fix ads
-            if (false || d instanceof NativeExpressAdView && lastAdListener == null) {
+            if ((BuildConfig.DEBUG || !MusicService.IsPremium) && (d instanceof NativeExpressAdView && lastAdListener == null)) {
 
                 CardView cv = (CardView) v.findViewById(R.id.cardView);
 
                 final NativeExpressAdView adView = (NativeExpressAdView) d;
 
                 try {
-                    adView.setAdSize(new AdSize((int) ((cv.getWidth() - cv.getPaddingLeft() - cv.getPaddingRight()) / getResources().getDisplayMetrics().density), 96));
                     adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
+                    adView.setAdSize(new AdSize(300, 82));
 
                     cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
                 } catch (Exception e) {
@@ -1023,7 +1024,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
                         AnimatorSet as = new AnimatorSet();
                         as.playSequentially(
-                                ObjectAnimator.ofArgb(root, "backgroundColor", getColor(R.color.transparent), getColor(R.color.accent), getColor(R.color.transparent))
+                                ObjectAnimator.ofArgb(root, "backgroundColor", ContextCompat.getColor(getApplicationContext(), R.color.transparent), ContextCompat.getColor(getApplicationContext(), R.color.accent), ContextCompat.getColor(getApplicationContext(), R.color.transparent))
                         );
                         as.setDuration(450);
                         as.setInterpolator(new LinearInterpolator());
@@ -1120,17 +1121,16 @@ public class LibraryUIActivity extends BaseUIActivity {
                     }
 
                     // Add ads
-                    // TODO: fix ads
-                    /*
-                    final int n = dataFiltered.size();
-                    for (int i = 0; i <= n; i += ITEMS_PER_AD)
-                        try {
-                            final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIActivity.this);
-                            dataFiltered.add(i, adView);
-                        } catch (Exception e) {
-                            Log.w(TAG, e);
-                        }
-                        */
+                    if (BuildConfig.DEBUG || !MusicService.IsPremium) {
+                        final int n = Math.min(dataFiltered.size(), 7);
+                        for (int i = 0; i <= n; i += ITEMS_PER_AD)
+                            try {
+                                final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIActivity.this);
+                                dataFiltered.add(i, adView);
+                            } catch (Exception e) {
+                                Log.w(TAG, e);
+                            }
+                    }
 
                     (LibraryUIActivity.this).runOnUiThread(new Runnable() {
                         @Override

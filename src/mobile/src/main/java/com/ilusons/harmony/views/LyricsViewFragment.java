@@ -74,7 +74,7 @@ public class LyricsViewFragment extends Fragment {
             @Override
             public boolean onLongClick(View view) {
                 if (!MusicService.IsPremium) {
-                    MusicService.showPremiumFeatureMessage(getContext());
+                    MusicService.showPremiumFeatureMessage(getActivity().getApplicationContext());
 
                     return false;
                 }
@@ -83,9 +83,9 @@ public class LyricsViewFragment extends Fragment {
                     return false;
 
                 try {
-                    Context context = getContext();
+                    Context context = getActivity().getApplicationContext();
 
-                    File file = music.getLyricsFile(getContext());
+                    File file = music.getLyricsFile(getActivity().getApplicationContext());
                     Uri contentUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
 
                     Intent intent = new Intent(Intent.ACTION_EDIT);
@@ -102,7 +102,7 @@ public class LyricsViewFragment extends Fragment {
                 } catch (Exception e) {
                     e.printStackTrace();
 
-                    Toast.makeText(getContext(), "Please install a text editor first!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity().getApplicationContext(), "Please install a text editor first!", Toast.LENGTH_LONG).show();
                 }
 
                 return true;
@@ -130,14 +130,14 @@ public class LyricsViewFragment extends Fragment {
         textView.setText(music.getTextDetailed());
 
         // Load lyrics
-        String content = music.getLyrics(getContext());
+        String content = music.getLyrics(getActivity().getApplicationContext());
         // Check if need to download or not
         if (content == null) {
             // If download required, postpone function to later
-            Music.getLyricsOrDownload(getContext(), music, new JavaEx.ActionT<String>() {
+            Music.getLyricsOrDownload(getActivity().getApplicationContext(), music, new JavaEx.ActionT<String>() {
                 @Override
                 public void execute(String s) {
-                    if (getContext() == null)
+                    if (getActivity().getApplicationContext() == null)
                         return;
 
                     processContent();
@@ -250,7 +250,7 @@ public class LyricsViewFragment extends Fragment {
 
     public void reset(String path) {
         this.path = path;
-        this.music = Music.load(getContext(), path);
+        this.music = Music.load(getActivity().getApplicationContext(), path);
 
         lastPScroll = 0;
         lastP = 0;
