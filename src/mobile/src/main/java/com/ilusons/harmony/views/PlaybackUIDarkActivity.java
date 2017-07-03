@@ -17,6 +17,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -33,6 +34,14 @@ import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
+
+import java.util.UUID;
+
+import co.mobiwise.materialintro.animation.MaterialIntroListener;
+import co.mobiwise.materialintro.shape.Focus;
+import co.mobiwise.materialintro.shape.FocusGravity;
+import co.mobiwise.materialintro.view.MaterialIntroView;
+import jonathanfinerty.once.Once;
 
 public class PlaybackUIDarkActivity extends BaseUIActivity {
 
@@ -439,6 +448,16 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
+        // Guide
+        root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+            @Override
+            public void onGlobalLayout() {
+                root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                showGuide();
+            }
+        });
     }
 
     @Override
@@ -706,6 +725,163 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         };
         handler.postDelayed(progressHandlerRunnable, dt);
+
+    }
+
+    private void showGuide() {
+        final String tag_guide = TAG + ".guide";
+
+        if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))
+            return;
+
+        final MaterialIntroView.Builder guide_play_pause_stop = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Press to Play/Pause, and long press to Stop current item.")
+                .setTarget(play_pause_stop)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_next = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Press to skip to next item in playlist. Long press to skip to random item.")
+                .setTarget(next)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_avfx = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Press to enable visualizations. Long press to cycle between various styles.")
+                .setTarget(avfx)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_tune = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Press to open Tune view. You can fine tune your sound here!")
+                .setTarget(tune)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_lyrics = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to open editor.")
+                .setTarget(lyrics_layout)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_cover = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Cover art, video, visualizations will be here (in that order)!")
+                .setTarget(cover)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("That's all! Now go play something!")
+                .setTarget(play_pause_stop)
+                .setUsageId(UUID.randomUUID().toString());
+
+        guide_final.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                Once.markDone(tag_guide);
+            }
+        });
+        guide_cover.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                guide_final.show();
+            }
+        });
+        guide_lyrics.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                guide_cover.show();
+            }
+        });
+        guide_tune.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                guide_lyrics.show();
+            }
+        });
+        guide_avfx.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                guide_tune.show();
+            }
+        });
+        guide_next.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                guide_avfx.show();
+            }
+        });
+        guide_play_pause_stop.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                guide_next.show();
+            }
+        });
+        guide_play_pause_stop.show();
 
     }
 

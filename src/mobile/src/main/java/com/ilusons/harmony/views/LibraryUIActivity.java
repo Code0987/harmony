@@ -32,10 +32,12 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
 import android.widget.CompoundButton;
@@ -67,7 +69,14 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import co.mobiwise.materialintro.animation.MaterialIntroListener;
+import co.mobiwise.materialintro.shape.Focus;
+import co.mobiwise.materialintro.shape.FocusGravity;
+import co.mobiwise.materialintro.view.MaterialIntroView;
+import jonathanfinerty.once.Once;
 
 public class LibraryUIActivity extends BaseUIActivity {
 
@@ -447,6 +456,16 @@ public class LibraryUIActivity extends BaseUIActivity {
         });
         playlistRecyclerViewAdapter.setData(playlists);
 
+        // Guide
+        root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+            @Override
+            public void onGlobalLayout() {
+                root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                showGuide();
+            }
+        });
     }
 
     @Override
@@ -553,6 +572,149 @@ public class LibraryUIActivity extends BaseUIActivity {
         swipeRefreshLayout.setRefreshing(false);
 
         info("Library updated!");
+    }
+
+    private void showGuide() {
+        final String tag_guide = TAG + ".guide";
+
+        if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))
+            return;
+
+        final MaterialIntroView.Builder guide_start = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Welcome! \n\nNow, tap anywhere on blue screen!")
+                .setTarget(collapse_toolbar)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_ldrawer = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Left drawer.")
+                .setTarget(findViewById(R.id.nav_layout))
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_rdrawer = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Right drawer. Here library and playlist can be managed.")
+                .setTarget(findViewById(R.id.nav_layout_right))
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_recycler = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Playlist currently active.")
+                .setTarget(recyclerView)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_search = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("Here is little search bar, you can use it to find a library item. Also, swipe down for some more options!")
+                .setTarget(search_view)
+                .setUsageId(UUID.randomUUID().toString());
+
+        final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
+                .setMaskColor(getColor(R.color.translucent_accent))
+                .setDelayMillis(500)
+                .enableFadeAnimation(true)
+                .enableDotAnimation(false)
+                .setFocusType(Focus.NORMAL)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setTargetPadding(32)
+                .dismissOnTouch(true)
+                .enableIcon(true)
+                .performClick(true)
+                .setInfoText("That's all! Now go play something!")
+                .setTarget(collapse_toolbar)
+                .setUsageId(UUID.randomUUID().toString());
+
+        guide_final.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                // Once.markDone(tag_guide);
+            }
+        });
+        guide_search.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                guide_final.show();
+            }
+        });
+        guide_recycler.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                guide_search.show();
+            }
+        });
+        guide_rdrawer.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                drawer_layout.closeDrawer(Gravity.END);
+
+                guide_recycler.show();
+            }
+        });
+        guide_ldrawer.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                drawer_layout.closeDrawer(Gravity.START);
+                drawer_layout.openDrawer(Gravity.END);
+
+                guide_rdrawer.show();
+            }
+        });
+        guide_start.setListener(new MaterialIntroListener() {
+            @Override
+            public void onUserClicked(String usageId) {
+                drawer_layout.openDrawer(Gravity.START);
+
+                guide_ldrawer.show();
+            }
+        });
+        guide_start.show();
+
     }
 
     private void setCurrent() {

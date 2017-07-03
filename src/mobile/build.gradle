@@ -125,6 +125,13 @@ android {
     useLibrary 'org.apache.http.legacy'
 }
 
+repositories {
+    mavenCentral()
+    maven {
+        url "https://jitpack.io"
+    }
+}
+
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -161,11 +168,9 @@ dependencies {
     compile 'com.nononsenseapps:filepicker:4.1.0'
     compile 'com.code-troopers.betterpickers:library:3.1.0'
     compile 'com.airbnb.android:lottie:2.0.0'
+    compile 'com.github.iammert:MaterialIntroView:1.6.0'
+    compile 'com.jonathanfinerty.once:once:1.2.2'
     testCompile 'junit:junit:4.12'
-}
-
-repositories {
-    mavenCentral()
 }
 
 apply plugin: 'com.google.gms.google-services'
