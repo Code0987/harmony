@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.AttributeSet;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -199,6 +200,106 @@ public class ViewEx {
         DrawableCompat.setTint(wrapDrawable, context.getResources().getColor(color));
 
         item.setIcon(wrapDrawable);
+    }
+
+    /**
+     * Fragment adapter for view pager
+     */
+    public static class FragmentViewPagerAdapter extends FragmentPagerAdapter {
+
+        private final List<Fragment> fragmentList = new ArrayList<>();
+        private final List<String> titleList = new ArrayList<>();
+
+        public FragmentViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return fragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return fragmentList.size();
+        }
+
+        public void add(Fragment fragment, String title) {
+            fragmentList.add(fragment);
+            titleList.add(title);
+
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return titleList.get(position);
+        }
+    }
+
+    /**
+     * View pager used for a finite, low number of pages, where there is no need for
+     * optimization.
+     */
+    public static class StaticViewPager extends ViewPager {
+
+        /**
+         * Initialize the view.
+         *
+         * @param context The application context.
+         */
+        public StaticViewPager(final Context context) {
+            super(context);
+        }
+
+        /**
+         * Initialize the view.
+         *
+         * @param context The application context.
+         * @param attrs   The requested attributes.
+         */
+        public StaticViewPager(final Context context, final AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        @Override
+        protected void onAttachedToWindow() {
+            super.onAttachedToWindow();
+
+            // Make sure all are loaded at once
+            final int childrenCount = getChildCount();
+            setOffscreenPageLimit(childrenCount - 1);
+
+            // Attach the adapter
+            setAdapter(new PagerAdapter() {
+
+                @Override
+                public Object instantiateItem(final ViewGroup container, final int position) {
+                    return container.getChildAt(position);
+                }
+
+                @Override
+                public boolean isViewFromObject(final View arg0, final Object arg1) {
+                    return arg0 == arg1;
+
+                }
+
+                @Override
+                public int getCount() {
+                    return childrenCount;
+                }
+
+                @Override
+                public void destroyItem(final View container, final int position, final Object object) {
+                }
+
+                @Override
+                public CharSequence getPageTitle(int position) {
+                    return getChildAt(position).getTag().toString();
+                }
+            });
+        }
+
     }
 
 }

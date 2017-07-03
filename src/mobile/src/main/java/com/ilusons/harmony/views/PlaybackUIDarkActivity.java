@@ -630,7 +630,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                         tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
                         if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.AVFXType.Waveform, colorLight);
+                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
                         }
 
                         // Load video

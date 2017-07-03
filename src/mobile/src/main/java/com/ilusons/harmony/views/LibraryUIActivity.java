@@ -37,7 +37,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.animation.OvershootInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -861,10 +861,10 @@ public class LibraryUIActivity extends BaseUIActivity {
 
                         AnimatorSet as = new AnimatorSet();
                         as.playSequentially(
-                                ObjectAnimator.ofArgb(root, "backgroundColor", getColor(R.color.accent), getColor(R.color.transparent))
+                                ObjectAnimator.ofArgb(root, "backgroundColor", getColor(R.color.transparent), getColor(R.color.accent), getColor(R.color.transparent))
                         );
                         as.setDuration(450);
-                        as.setInterpolator(new OvershootInterpolator());
+                        as.setInterpolator(new LinearInterpolator());
                         as.setTarget(root);
                         as.start();
                     }

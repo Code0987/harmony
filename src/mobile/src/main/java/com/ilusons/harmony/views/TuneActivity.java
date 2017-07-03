@@ -5,6 +5,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -32,6 +33,7 @@ import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.ref.ViewEx;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 
@@ -94,6 +96,11 @@ public class TuneActivity extends BaseActivity {
                 finish();
             }
         });
+
+        // Set views and tabs
+        final ViewEx.StaticViewPager viewPager = (ViewEx.StaticViewPager) findViewById(R.id.viewPager);
+        TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
+        tabs.setupWithViewPager(viewPager);
 
         // Set eq
         CheckBox preamp_checkBox = (CheckBox) findViewById(R.id.preamp_checkBox);
@@ -206,7 +213,7 @@ public class TuneActivity extends BaseActivity {
         };
 
         for (int i = 0; i < bands.length; i++) {
-            band_layouts[i].setVisibility((i < NUMBER_OF_BANDS) ? View.VISIBLE : View.INVISIBLE);
+            band_layouts[i].setVisibility((i < NUMBER_OF_BANDS) ? View.VISIBLE : View.GONE);
             bands[i].setEnabled((i < NUMBER_OF_BANDS));
         }
 
@@ -956,44 +963,69 @@ public class TuneActivity extends BaseActivity {
         IPreAmp preAmp = musicService.getPreAmp();
         if (preAmp != null) try {
             preamp_seekBar.setProgress((int) (SEEKBAR_MAX * getNormalizedPreAmpLevel(preAmp)));
+
+            preamp_seekBar.setEnabled(true);
         } catch (Exception e) {
             e.printStackTrace();
+
+            preamp_seekBar.setEnabled(false);
         }
 
         IEqualizer equalizer = musicService.getEqualizer();
         if (equalizer != null) try {
             for (int i = 0; i < NUMBER_OF_BANDS; i++)
                 bands[i].setProgress((int) (SEEKBAR_MAX * BandLevelNormalizer.normalize(equalizer.getBandLevel((short) i))));
+
+            for (int i = 0; i < NUMBER_OF_BANDS; i++)
+                bands[i].setEnabled(true);
         } catch (Exception e) {
             e.printStackTrace();
+
+            for (int i = 0; i < NUMBER_OF_BANDS; i++)
+                bands[i].setEnabled(false);
         }
 
         IBassBoost bassBoost = musicService.getBassBoost();
         if (bassBoost != null) try {
             bassBoost_seekBar.setProgress((int) (BassboostNormalizer.normalize(bassBoost.getRoundedStrength()) * SEEKBAR_MAX));
+
+            bassBoost_seekBar.setEnabled(true);
         } catch (Exception e) {
             e.printStackTrace();
+
+            bassBoost_seekBar.setEnabled(false);
         }
 
         ILoudnessEnhancer loudnessEnhancer = musicService.getLoudnessEnhancer();
         if (loudnessEnhancer != null) try {
             loudness_seekBar.setProgress(LoudnessNormalizer.normalize((int) loudnessEnhancer.getTargetGain()) * SEEKBAR_MAX);
+
+            loudness_seekBar.setEnabled(true);
         } catch (Exception e) {
             e.printStackTrace();
+            loudness_seekBar.setEnabled(false);
         }
 
         IVirtualizer virtualizer = musicService.getVirtualizer();
         if (virtualizer != null) try {
             virtualizer_seekBar.setProgress((int) (VirtualizerNormalizer.normalize(virtualizer.getRoundedStrength()) * SEEKBAR_MAX));
+
+            virtualizer_seekBar.setEnabled(true);
         } catch (Exception e) {
             e.printStackTrace();
+
+            virtualizer_seekBar.setEnabled(false);
         }
 
         IPresetReverb presetReverb = musicService.getPresetReverb();
         if (presetReverb != null) try {
             reverb_preset_spinner.setSelection(presetReverb.getPreset());
+
+            reverb_preset_spinner.setEnabled(true);
         } catch (Exception e) {
             e.printStackTrace();
+
+            reverb_preset_spinner.setEnabled(false);
         }
 
         IEnvironmentalReverb environmentalReverb = musicService.getEnvironmentalReverb();
@@ -1008,8 +1040,32 @@ public class TuneActivity extends BaseActivity {
             reverb_env_reverb_level_seekBar.setProgress((int) (ReverbLevelNormalizer.normalize(environmentalReverb.getReverbLevel()) * SEEKBAR_MAX));
             reverb_env_room_hf_level_seekBar.setProgress((int) (RoomHFLevelNormalizer.normalize(environmentalReverb.getRoomHFLevel()) * SEEKBAR_MAX));
             reverb_env_room_level_seekBar.setProgress((int) (RoomLevelNormalizer.normalize(environmentalReverb.getRoomLevel()) * SEEKBAR_MAX));
+
+            reverb_env_preset_spinner.setEnabled(true);
+            reverb_env_decay_hf_ratio_seekBar.setEnabled(true);
+            reverb_env_decay_time_seekBar.setEnabled(true);
+            reverb_env_density_seekBar.setEnabled(true);
+            reverb_env_diffusion_seekBar.setEnabled(true);
+            reverb_env_reflections_delay_seekBar.setEnabled(true);
+            reverb_env_reflections_level_seekBar.setEnabled(true);
+            reverb_env_reverb_delay_seekBar.setEnabled(true);
+            reverb_env_reverb_level_seekBar.setEnabled(true);
+            reverb_env_room_hf_level_seekBar.setEnabled(true);
+            reverb_env_room_level_seekBar.setEnabled(true);
         } catch (Exception e) {
             e.printStackTrace();
+
+            reverb_env_preset_spinner.setEnabled(false);
+            reverb_env_decay_hf_ratio_seekBar.setEnabled(false);
+            reverb_env_decay_time_seekBar.setEnabled(false);
+            reverb_env_density_seekBar.setEnabled(false);
+            reverb_env_diffusion_seekBar.setEnabled(false);
+            reverb_env_reflections_delay_seekBar.setEnabled(false);
+            reverb_env_reflections_level_seekBar.setEnabled(false);
+            reverb_env_reverb_delay_seekBar.setEnabled(false);
+            reverb_env_reverb_level_seekBar.setEnabled(false);
+            reverb_env_room_hf_level_seekBar.setEnabled(false);
+            reverb_env_room_level_seekBar.setEnabled(false);
         }
 
     }
