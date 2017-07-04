@@ -678,19 +678,31 @@ public class LibraryUIActivity extends BaseUIActivity {
         guide_final.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                Once.markDone(tag_guide);
+                try {
+                    Once.markDone(tag_guide);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_search.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                guide_final.show();
+                try {
+                    guide_final.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_recycler.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                guide_search.show();
+                try {
+                    guide_search.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_rdrawer.setListener(new MaterialIntroListener() {
@@ -698,7 +710,11 @@ public class LibraryUIActivity extends BaseUIActivity {
             public void onUserClicked(String usageId) {
                 drawer_layout.closeDrawer(Gravity.END);
 
-                guide_recycler.show();
+                try {
+                    guide_recycler.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_ldrawer.setListener(new MaterialIntroListener() {
@@ -707,7 +723,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 drawer_layout.closeDrawer(Gravity.START);
                 drawer_layout.openDrawer(Gravity.END);
 
-                guide_rdrawer.show();
+                try {
+                    guide_rdrawer.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_start.setListener(new MaterialIntroListener() {
@@ -715,10 +735,18 @@ public class LibraryUIActivity extends BaseUIActivity {
             public void onUserClicked(String usageId) {
                 drawer_layout.openDrawer(Gravity.START);
 
-                guide_ldrawer.show();
+                try {
+                    guide_ldrawer.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
-        guide_start.show();
+        try {
+            guide_start.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
