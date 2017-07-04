@@ -24,7 +24,21 @@ public class SplashActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         // Check if all permissions are granted
-        PermissionsManager.getInstance().requestAllManifestPermissionsIfNecessary(this,
+        PermissionsManager.getInstance().requestPermissionsIfNecessaryForResult(
+                this,
+                new String[]{
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        android.Manifest.permission.MODIFY_AUDIO_SETTINGS,
+                        android.Manifest.permission.RECEIVE_BOOT_COMPLETED,
+                        android.Manifest.permission.WAKE_LOCK,
+                        android.Manifest.permission.INTERNET,
+                        android.Manifest.permission.ACCESS_NETWORK_STATE,
+                        android.Manifest.permission.SET_WALLPAPER,
+                        android.Manifest.permission.SET_WALLPAPER_HINTS,
+                        "com.android.vending.BILLING",
+                        "com.android.vending.CHECK_LICENSE"
+                },
                 new PermissionsResultAction() {
                     @Override
                     public void onGranted() {

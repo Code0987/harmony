@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.anthonycr.grant.PermissionsManager;
+import com.anthonycr.grant.PermissionsResultAction;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.ilusons.harmony.R;
@@ -49,8 +51,29 @@ public class AudioVFXViewFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (pendingActionForView != null)
-            pendingActionForView.execute();
+        PermissionsManager.getInstance().requestPermissionsIfNecessaryForResult(
+                getActivity(),
+                new String[]{
+                        android.Manifest.permission.RECORD_AUDIO
+                },
+                new PermissionsResultAction() {
+                    @Override
+                    public void onGranted() {
+
+                        if (pendingActionForView != null)
+                            pendingActionForView.execute();
+
+                    }
+
+                    @Override
+                    public void onDenied(String permission) {
+
+                        if (pendingActionForView != null)
+                            pendingActionForView.execute();
+
+                    }
+                });
+
     }
 
     @Override
