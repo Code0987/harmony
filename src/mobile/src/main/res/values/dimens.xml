@@ -3,10 +3,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="bubble_size">25dp</dimen>
-    <dimen name="wave_height">60dp</dimen>
-    <dimen name="footer_height">170dp</dimen>
-
     <!-- Layout -->
     <!-- Metrics & Keylines -->
     <!-- https://www.google.com/design/spec/layout/metrics-keylines.html#metrics-keylines-keylines-spacing -->

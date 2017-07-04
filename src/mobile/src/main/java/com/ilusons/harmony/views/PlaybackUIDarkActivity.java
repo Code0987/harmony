@@ -434,6 +434,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                     if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waveform) {
                         AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.FFT);
                     } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.FFT) {
+                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waves);
+                    } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waves) {
                         AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waveform);
                     }
 

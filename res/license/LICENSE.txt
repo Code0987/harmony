@@ -40,6 +40,8 @@ Summary
             http://www.apache.org/licenses/LICENSE-2.0
         Once
             http://www.apache.org/licenses/LICENSE-2.0
+        WaveInApp
+            MIT License (MIT)
         jaudiotagger
             jaudiotagger:audio tagging library Copyright (C) 2015 Paul Taylor
 

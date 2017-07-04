@@ -38,9 +38,9 @@ ext.getGitVersionData = {
 
                 major    : matcher.group(1),
                 minor    : matcher.group(2),
-                patch    : count - matcher.group(5).toInteger(),
-                build    : sha + (clean ? '' : '-dirty'),
-                code     : ((100000000 * matcher.group(1).toInteger()) + (100000 * matcher.group(2).toInteger()) + (count - matcher.group(5).toInteger())),
+                patch    : (count),
+                build    : (sha + (clean ? '' : '-dirty')),
+                code     : ((100000000 * matcher.group(1).toInteger()) + (100000 * matcher.group(2).toInteger()) + (count)),
 
                 sha      : sha,
                 count    : count,
@@ -58,7 +58,7 @@ ext.getGitVersionData = {
                 major    : 0,
                 minor    : 1,
                 patch    : count,
-                build    : sha + (clean ? '' : '-dirty'),
+                build    : (sha + (clean ? '' : '-dirty')),
                 code     : ((100000000 * 0) + (100000 * 1) + count),
 
                 sha      : sha,

@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,8 @@ import android.widget.FrameLayout;
 
 import com.anthonycr.grant.PermissionsManager;
 import com.anthonycr.grant.PermissionsResultAction;
+import com.cleveroad.audiovisualization.DbmHandler;
+import com.cleveroad.audiovisualization.GLAudioVisualizationView;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.ilusons.harmony.R;
@@ -33,6 +36,8 @@ public class AudioVFXViewFragment extends Fragment {
 
     private WaveformAVFXView waveformAVFXView;
     private FFTAVFXView fftAVFXView;
+    private GLAudioVisualizationView wavesView;
+    private WaveDbmHandler waveDbmHandler;
 
     private FrameLayout root;
 
@@ -82,6 +87,10 @@ public class AudioVFXViewFragment extends Fragment {
 
         waveformAVFXView = null;
         fftAVFXView = null;
+        if (wavesView != null)
+            wavesView.release();
+        wavesView = null;
+        waveDbmHandler = null;
     }
 
     @Override
@@ -104,6 +113,9 @@ public class AudioVFXViewFragment extends Fragment {
         if (fftAVFXView != null) {
             fftAVFXView.onResume();
         }
+        if (wavesView != null) {
+            wavesView.onResume();
+        }
 
         startVisualizer();
     }
@@ -117,6 +129,9 @@ public class AudioVFXViewFragment extends Fragment {
         }
         if (fftAVFXView != null) {
             fftAVFXView.onPause();
+        }
+        if (wavesView != null) {
+            wavesView.onPause();
         }
 
         cleanupVisualizer();
@@ -140,6 +155,16 @@ public class AudioVFXViewFragment extends Fragment {
             if (view != null) {
                 view.updateAudioData(fft, numChannels, samplingRate);
             }
+
+            if (waveDbmHandler != null) {
+                byte[] b = new byte[fft.length];
+                int n = fft.length / 2;
+                for (int i = 0; i < n; i++) {
+                    b[i + 0] = (byte) (fft[i + 0] * 128);
+                    b[i + 1] = (byte) (fft[i + 1] * 128);
+                }
+                waveDbmHandler.onDataReceived(b);
+            }
         }
 
     };
@@ -162,6 +187,10 @@ public class AudioVFXViewFragment extends Fragment {
             if (view != null) {
                 view.updateAudioData(fft, samplingRate);
             }
+
+            if (waveDbmHandler != null) {
+                waveDbmHandler.onDataReceived(fft);
+            }
         }
     };
 
@@ -183,7 +212,7 @@ public class AudioVFXViewFragment extends Fragment {
 
                 visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
                 visualizerHQ.setCaptureSize(size);
-                visualizerHQ.setDataCaptureListener(onDataCaptureListenerHQ, rate, waveformAVFXView != null, fftAVFXView != null);
+                visualizerHQ.setDataCaptureListener(onDataCaptureListenerHQ, rate, waveformAVFXView != null, fftAVFXView != null || waveDbmHandler != null);
 
                 visualizerHQ.setEnabled(true);
             }
@@ -198,12 +227,15 @@ public class AudioVFXViewFragment extends Fragment {
 
                 visualizer.setCaptureSize(size);
                 visualizer.setScalingMode(Visualizer.SCALING_MODE_NORMALIZED);
-                visualizer.setDataCaptureListener(onDataCaptureListener, rate, waveformAVFXView != null, fftAVFXView != null);
+                visualizer.setDataCaptureListener(onDataCaptureListener, rate, waveformAVFXView != null, fftAVFXView != null || waveDbmHandler != null);
                 visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
 
                 visualizer.setEnabled(true);
             }
         }
+
+        if (wavesView != null)
+            wavesView.startRendering();
 
     }
 
@@ -215,6 +247,10 @@ public class AudioVFXViewFragment extends Fragment {
         if (visualizer != null) {
             visualizer.setEnabled(false);
         }
+
+        if (wavesView != null)
+            wavesView.stopRendering();
+
     }
 
     private void cleanupVisualizer() {
@@ -266,6 +302,11 @@ public class AudioVFXViewFragment extends Fragment {
             if (fftAVFXView != null) {
                 fftAVFXView = null;
             }
+            if (wavesView != null) {
+                wavesView.release();
+                wavesView = null;
+                waveDbmHandler = null;
+            }
 
             float r = Color.red(color) / 255.0f;
             float g = Color.green(color) / 255.0f;
@@ -292,7 +333,39 @@ public class AudioVFXViewFragment extends Fragment {
                             new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a));
 
                     root.addView(fftAVFXView);
+                    break;
+                case Waves:
                 default:
+                    int layers = 5;
+                    int[] layerColors = new int[layers];
+                    float[] hsv = new float[3];
+                    Color.colorToHSV(color, hsv);
+                    float v = hsv[2];
+                    for (int i = layers / 2; i >= 0; i--) {
+                        hsv[2] = (float) (v * (1.0 / (i + 1)));
+                        layerColors[i] = Color.HSVToColor(hsv);
+                    }
+                    for (int i = layers / 2; i < layers; i++) {
+                        hsv[2] = (float) (v * (1.0 / (i + 1)));
+                        layerColors[i] = Color.HSVToColor(hsv);
+                    }
+
+                    wavesView = new GLAudioVisualizationView.Builder(getActivity())
+                            .setBubblesPerLayer(24)
+                            .setBubblesRandomizeSize(true)
+                            .setBubblesSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, getResources().getDisplayMetrics()))
+                            .setLayersCount(layers)
+                            .setLayerColors(layerColors)
+                            .setWavesCount(6)
+                            .setWavesHeight(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics()))
+                            .setWavesFooterHeight(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 120, getResources().getDisplayMetrics()))
+                            .setBackgroundColor(layerColors[layerColors.length - 1])
+                            .build();
+
+                    waveDbmHandler = new WaveDbmHandler();
+                    wavesView.linkTo(waveDbmHandler);
+
+                    root.addView(wavesView);
                     break;
             }
 
@@ -312,7 +385,8 @@ public class AudioVFXViewFragment extends Fragment {
 
     public enum AVFXType {
         Waveform("Waveform"),
-        FFT("Bars / Lines");
+        FFT("Bars / Lines"),
+        Waves("Waves"),;
 
         private String friendlyName;
 
@@ -324,7 +398,7 @@ public class AudioVFXViewFragment extends Fragment {
     public static final String TAG_SPREF_AVFXTYPE = SPrefEx.TAG_SPREF + ".avfx_type";
 
     public static AVFXType getAVFXType(Context context) {
-        return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.Waveform)));
+        return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.Waves)));
     }
 
     public static void setAVFXType(Context context, AVFXType value) {
@@ -333,6 +407,51 @@ public class AudioVFXViewFragment extends Fragment {
                 .putString(TAG_SPREF_AVFXTYPE, String.valueOf(value))
                 .apply();
     }
+
+    public class WaveDbmHandler extends DbmHandler<byte[]> {
+
+        private static final float MAX_DB_VALUE = 76;
+
+        private float[] dbs;
+        private float[] allAmps;
+        private final float[] coefficients = new float[]{
+                80 / 44100f,
+                350 / 44100f,
+                2500 / 44100f,
+                10000 / 44100f,
+        };
+
+        @Override
+        public void onDataReceivedImpl(byte[] fft, int layersCount, float[] dBmArray, float[] ampArray) {
+            // calculate dBs and amplitudes
+            int dataSize = fft.length / 2 - 1;
+            if (dbs == null || dbs.length != dataSize) {
+                dbs = new float[dataSize];
+            }
+            if (allAmps == null || allAmps.length != dataSize) {
+                allAmps = new float[dataSize];
+            }
+            for (int i = 0; i < dataSize; i++) {
+                float re = fft[2 * i];
+                float im = fft[2 * i + 1];
+                float sqMag = re * re + im * im;
+                dbs[i] = (float) (20 * Math.log10(0.000001f + sqMag));
+                float k = 1;
+                if (i == 0 || i == dataSize - 1) {
+                    k = 2;
+                }
+                allAmps[i] = (float) (k * Math.sqrt(sqMag) / dataSize);
+            }
+            for (int i = 0; i < layersCount; i++) {
+                int index = (int) (coefficients[i] * fft.length);
+                float db = dbs[index];
+                float amp = allAmps[index];
+                dBmArray[i] = db / MAX_DB_VALUE;
+                ampArray[i] = amp;
+            }
+        }
+    }
+
 
 }
 
