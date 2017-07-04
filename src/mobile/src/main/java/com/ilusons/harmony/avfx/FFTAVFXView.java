@@ -139,7 +139,7 @@ public class FFTAVFXView extends BaseAVFXView {
             final float im = fft[offset + 2 * i + 1];
             final float y = fastSqrt((re * re) + (im * im));
 
-            points[2 * i + 1] = 7 * (float) (10 * Math.log10((re * re) + (im * im)));
+            points[2 * i + 1] = y;
         }
 
         // fs / 2

@@ -303,6 +303,9 @@ public class LibraryUIActivity extends BaseUIActivity {
         findViewById(R.id.exit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (getMusicService() != null)
+                    getMusicService().stop();
+
                 System.exit(0);
             }
         });
@@ -399,7 +402,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         findViewById(R.id.load_library).setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                infoDialog("Loads all the library media into view playlist, view filters applied.");
+                infoDialog("Loads all the library media into view playlist.");
                 return true;
             }
         });
@@ -415,7 +418,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         findViewById(R.id.save_current).setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                infoDialog("Saves the current view playlist as current playlist, view filters ignored.");
+                infoDialog("Saves the current view playlist as current playlist.");
                 return true;
             }
         });
