@@ -51,9 +51,7 @@ NOTE: * Coming soon
 
 ### Permissions
 
-- Contacts: For current user identity, for in-app purchase, license validation. No user data is captured.
-- Microphone: It's weird but, audio effects require this. No recording is done.
-- Location: For geo based content, ads. No user data is captured.
+- Record Audio: It's weird but, audio effects require this. No recording is done.
 - Storage: For playing files stored in storage. No user data is captured.
 
 ### Questions
