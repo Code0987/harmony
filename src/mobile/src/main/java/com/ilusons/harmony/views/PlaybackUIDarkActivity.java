@@ -896,46 +896,78 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         guide_final.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                Once.markDone(tag_guide);
+                try {
+                    Once.markDone(tag_guide);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_cover.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                guide_final.show();
+                try {
+                    guide_final.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_lyrics.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                guide_cover.show();
+                try {
+                    guide_cover.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_tune.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                guide_lyrics.show();
+                try {
+                    guide_lyrics.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_avfx.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                guide_tune.show();
+                try {
+                    guide_tune.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_next.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                guide_avfx.show();
+                try {
+                    guide_avfx.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         guide_play_pause_stop.setListener(new MaterialIntroListener() {
             @Override
             public void onUserClicked(String usageId) {
-                guide_next.show();
+                try {
+                    guide_next.show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
-        guide_play_pause_stop.show();
+        try {
+            guide_play_pause_stop.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
