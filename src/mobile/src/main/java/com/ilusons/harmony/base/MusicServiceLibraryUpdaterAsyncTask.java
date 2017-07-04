@@ -173,7 +173,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 String filePath = file.getAbsolutePath();
                 if (file.isDirectory()) {
                     addFromDirectory(file, data, scanLocations);
-                } else if (filePath.endsWith(".mp3") || filePath.endsWith(".m4a") || filePath.endsWith(".flac") || filePath.endsWith(".mp4")) {
+                } else {
                     add(file.getAbsolutePath(), data, scanLocations);
                 }
             }
@@ -197,7 +197,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             Music m = Music.decode(context, path, fastMode, null);
 
             // Check constraints
-            if (getScanConstraintMinDuration(context) > m.Length)
+            if (m.Length > 0 && getScanConstraintMinDuration(context) > m.Length)
                 return;
 
             data.add(m);

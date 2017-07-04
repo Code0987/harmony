@@ -12,8 +12,9 @@ A music player!
 
 Library
 - Android playlist support, basic management
-- Whole device library (.mp3, .m4a, .flac, .mp4)
 - Auto library management
+- Audio
+- Video
 
 SFX
 - Equalizer 5-10 bands

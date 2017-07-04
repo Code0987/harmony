@@ -137,7 +137,7 @@ public class LyricsViewFragment extends Fragment {
             Music.getLyricsOrDownload(getActivity().getApplicationContext(), music, new JavaEx.ActionT<String>() {
                 @Override
                 public void execute(String s) {
-                    if (getActivity().getApplicationContext() == null)
+                    if (getActivity() == null || getActivity().getApplicationContext() == null)
                         return;
 
                     processContent();

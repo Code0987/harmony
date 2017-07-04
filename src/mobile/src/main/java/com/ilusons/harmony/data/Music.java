@@ -41,11 +41,13 @@ import com.ilusons.harmony.ref.LyricsEx;
 import com.ilusons.harmony.ref.m3u.M3UFile;
 import com.ilusons.harmony.ref.m3u.M3UItem;
 import com.ilusons.harmony.ref.m3u.M3UToolSet;
-import com.mpatric.mp3agic.ID3v1;
-import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.Mp3File;
 
 import org.apache.commons.io.FileUtils;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.images.Artwork;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -111,7 +113,7 @@ public class Music {
     }
 
     public boolean hasVideo() {
-        return !TextUtils.isEmpty(Path) && Path.toLowerCase().contains(".mp4");
+        return !TextUtils.isEmpty(Path) && (Path.toLowerCase().contains(".mp4") || Path.toLowerCase().contains(".m4v"));
     }
 
     public Bitmap getCover(final Context context, int size) {
@@ -580,48 +582,50 @@ public class Music {
             }
         }
 
-        // Metadata from tags for mp3 only
-        if (!fastMode && !path.toLowerCase().startsWith("content") && path.toLowerCase().endsWith(".mp3")) {
+        // Metadata from tags
+        if (!fastMode && !path.toLowerCase().startsWith("content")) {
             File file = new File(path);
+            try {
+                AudioFile audioFile = AudioFileIO.read(file);
 
-            // HACK: Only scan for files < 42mb
-            // HACK: This tags decoder is inefficient for android, takes too much memory
-            if (file.length() <= 42 * 1024 * 1024) {
+                Tag tag = audioFile.getTagAndConvertOrCreateAndSetDefault();
+
+                data.Title = tag.getFirst(FieldKey.TITLE);
+                data.Artist = tag.getFirst(FieldKey.ARTIST);
+                data.Album = tag.getFirst(FieldKey.ALBUM);
                 try {
-                    Mp3File mp3file = new Mp3File(file.getAbsoluteFile());
-
-                    if (mp3file.hasId3v2Tag()) {
-                        ID3v2 tags = mp3file.getId3v2Tag();
-
-                        data.Title = tags.getTitle();
-                        data.Artist = tags.getArtist();
-                        data.Album = tags.getAlbum();
-                        data.Length = tags.getLength();
-
-                        if (data.getCover(context) == null) {
-                            byte[] cover = tags.getAlbumImage();
-                            if (cover != null && cover.length > 0) {
-                                Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
-
-                                if (bmp != null)
-                                    putCover(context, data, bmp);
-                            }
-                        }
-
-                        data.putLyrics(context, LyricsEx.getLyrics(tags));
-                    }
-
-                    if (TextUtils.isEmpty(data.Title) && mp3file.hasId3v1Tag()) {
-                        ID3v1 tags = mp3file.getId3v1Tag();
-
-                        data.Title = tags.getTitle();
-                        data.Artist = tags.getArtist();
-                        data.Album = tags.getAlbum();
-                    }
-
+                    data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
                 } catch (Exception e) {
-                    Log.w(TAG, "metadata from tags", e);
+                    e.printStackTrace();
                 }
+
+                if (data.getCover(context) == null) {
+                    Artwork artwork = tag.getFirstArtwork();
+                    if (artwork != null) {
+                        byte[] cover = artwork.getBinaryData();
+                        if (cover != null && cover.length > 0) {
+                            Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+
+                            if (bmp != null)
+                                putCover(context, data, bmp);
+                        }
+                    }
+                }
+
+                // Lyrics
+                String lyrics;
+                lyrics = tag.getFirst(FieldKey.LYRICS);
+                if (!TextUtils.isEmpty(lyrics))
+                    data.putLyrics(context, lyrics);
+                lyrics = tag.getFirst(FieldKey.USER_UNSYNCED_LYRICS);
+                if (!TextUtils.isEmpty(lyrics))
+                    data.putLyrics(context, lyrics);
+                lyrics = tag.getFirst(FieldKey.USER_LYRICS);
+                if (!TextUtils.isEmpty(lyrics))
+                    data.putLyrics(context, lyrics);
+
+            } catch (Exception e) {
+                Log.w(TAG, "metadata from tags", e);
             }
         }
 
@@ -641,7 +645,7 @@ public class Music {
     }
 
     public void refresh(Context context) {
-        Music.decode(context, Path, true, this);
+        Music.decode(context, Path, false, this);
     }
 
     //region Playlist / Index
