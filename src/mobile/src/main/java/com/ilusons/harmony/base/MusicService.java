@@ -1,7 +1,5 @@
 package com.ilusons.harmony.base;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -18,7 +16,6 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.provider.Settings;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -63,8 +60,8 @@ import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+
+import static android.provider.Settings.Secure;
 
 public class MusicService extends Service {
 
@@ -208,7 +205,7 @@ public class MusicService extends Service {
     private void initializeLicensing() {
         // LVL
         String deviceId =
-                Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+                Secure.getString(getContentResolver(), Secure.ANDROID_ID);
 
         licenseChecker = new LicenseChecker(this, new ServerManagedPolicy(this, new AESObfuscator(SALT, getPackageName(), deviceId)), LICENSE_BASE64_PUBLIC_KEY);
         licenseChecker.checkAccess(licenseCheckerCallback);
@@ -285,28 +282,7 @@ public class MusicService extends Service {
     public static String getDeveloperPayload(Context context, String sku) {
         String payload = "";
 
-        AccountManager manager = AccountManager.get(context);
-        Account[] accounts = manager.getAccountsByType("com.google");
-        List<String> possibleEmails = new LinkedList<String>();
-
-        for (Account account : accounts) {
-            // TODO: Check possibleEmail against an email regex or treat
-            // account.name as an email address only for certain account.type values.
-            possibleEmails.add(account.name);
-        }
-
-        if (!possibleEmails.isEmpty() && possibleEmails.get(0) != null) {
-            String email = possibleEmails.get(0);
-            String[] parts = email.split("@");
-
-            if (parts.length > 1)
-                payload = parts[0];
-        }
-
-        if (TextUtils.isEmpty(payload))
-            return null;
-
-        payload = payload + ";" + sku;
+        payload = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID) + ";" + sku;
 
         return payload;
     }
