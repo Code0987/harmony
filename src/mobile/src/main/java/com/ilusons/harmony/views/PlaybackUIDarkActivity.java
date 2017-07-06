@@ -723,9 +723,9 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 loadingView.smoothToShow();
 
                 if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
-                    lyricsViewFragment.reset(music);
+                    lyricsViewFragment.reset(music, (long) Math.max(music.Length, getMusicService().getDuration()));
                 } else if (!isFinishing()) {
-                    lyricsViewFragment = LyricsViewFragment.create(music.Path);
+                    lyricsViewFragment = LyricsViewFragment.create(music.Path, (long) Math.max(music.Length, getMusicService().getDuration()));
                     getFragmentManager()
                             .beginTransaction()
                             .replace(R.id.lyrics_layout, lyricsViewFragment)

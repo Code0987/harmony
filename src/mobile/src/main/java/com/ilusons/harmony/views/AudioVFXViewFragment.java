@@ -342,11 +342,11 @@ public class AudioVFXViewFragment extends Fragment {
                     Color.colorToHSV(color, hsv);
                     float v = hsv[2];
                     for (int i = layers / 2; i >= 0; i--) {
-                        hsv[2] = (float) (v * (1.0 / (i + 1)));
+                        hsv[2] = (float) (v * (1.0 / (2 * (i + 1))));
                         layerColors[i] = Color.HSVToColor(hsv);
                     }
                     for (int i = layers / 2; i < layers; i++) {
-                        hsv[2] = (float) (v * (1.0 / (i + 1)));
+                        hsv[2] = (float) (v * (1.0 / (2 * (i + 1))));
                         layerColors[i] = Color.HSVToColor(hsv);
                     }
 

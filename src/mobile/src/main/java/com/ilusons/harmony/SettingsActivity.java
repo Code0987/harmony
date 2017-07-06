@@ -292,30 +292,7 @@ public class SettingsActivity extends BaseActivity {
                 if (isFinishing())
                     return;
 
-                String content;
-                try (InputStream is = getResources().openRawResource(R.raw.gps_listing)) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8"), Html.FROM_HTML_MODE_LEGACY).toString();
-                    } else {
-                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8")).toString();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    content = "Error loading data!";
-                }
-
-                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
-                        .setTitle("Notes")
-                        .setMessage(content)
-                        .setCancelable(false)
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-
-                            }
-                        }))
-                        .show();
+                showReleaseNotesDialog(SettingsActivity.this);
             }
         });
 
@@ -621,6 +598,33 @@ public class SettingsActivity extends BaseActivity {
         } else {
             findViewById(R.id.premium).setVisibility(View.VISIBLE);
         }
+    }
+
+    public static void showReleaseNotesDialog(Context context) {
+        String content;
+        try (InputStream is = context.getResources().openRawResource(R.raw.gps_listing)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>"), Html.FROM_HTML_MODE_LEGACY).toString();
+            } else {
+                content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>")).toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            content = "Error loading data!";
+        }
+
+        (new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.AppTheme_AlertDialogStyle))
+                .setTitle("Notes")
+                .setMessage(content)
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                }))
+                .show();
     }
 
     public class ScanLocationsRecyclerViewAdapter extends RecyclerView.Adapter<ScanLocationsRecyclerViewAdapter.ViewHolder> {
