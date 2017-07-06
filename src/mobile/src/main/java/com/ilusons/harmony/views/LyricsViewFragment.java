@@ -35,6 +35,8 @@ public class LyricsViewFragment extends Fragment {
     public static String KEY_PATH = "path";
     private String path = null;
     private Music music = null;
+    public static String KEY_LENGTH = "length";
+    private Long length = -1L;
 
     private boolean isContentProcessed = false;
 
@@ -46,6 +48,7 @@ public class LyricsViewFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putString(KEY_PATH, path);
+        savedInstanceState.putLong(KEY_LENGTH, length);
 
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -56,8 +59,10 @@ public class LyricsViewFragment extends Fragment {
 
         if (savedInstanceState != null) {
             path = (String) savedInstanceState.get(KEY_PATH);
+            length = (Long) savedInstanceState.get(KEY_LENGTH);
         } else {
             path = (String) getArguments().get(KEY_PATH);
+            length = (Long)  getArguments().get(KEY_LENGTH);
         }
     }
 
@@ -109,7 +114,7 @@ public class LyricsViewFragment extends Fragment {
             }
         });
 
-        reset(path);
+        reset(path, length);
 
         return v;
     }
@@ -183,7 +188,7 @@ public class LyricsViewFragment extends Fragment {
             contentFormatted = music.getTextDetailed() + nl + nl + content;
         }
 
-        scrollBy = ((float) textView.getLineHeight() * lines) / ((float) music.Length / 1000);
+        scrollBy = ((float) textView.getLineHeight() * lines) / ((float) length / 1000);
         if (scrollBy < 1)
             scrollBy = 1;
 
@@ -248,9 +253,10 @@ public class LyricsViewFragment extends Fragment {
 
     }
 
-    public void reset(String path) {
+    public void reset(String path, Long length) {
         this.path = path;
         this.music = Music.load(getActivity().getApplicationContext(), path);
+        this.length = length;
 
         lastPScroll = 0;
         lastP = 0;
@@ -262,9 +268,10 @@ public class LyricsViewFragment extends Fragment {
         processContent();
     }
 
-    public void reset(Music music) {
+    public void reset(Music music, Long length) {
         this.path = music.Path;
         this.music = music;
+        this.length = length;
 
         lastPScroll = 0;
         lastP = 0;
@@ -276,10 +283,11 @@ public class LyricsViewFragment extends Fragment {
         processContent();
     }
 
-    public static LyricsViewFragment create(String path) {
+    public static LyricsViewFragment create(String path, Long length) {
         LyricsViewFragment f = new LyricsViewFragment();
         Bundle b = new Bundle();
         b.putString(KEY_PATH, path);
+        b.putLong(KEY_LENGTH, length);
         f.setArguments(b);
         return f;
     }

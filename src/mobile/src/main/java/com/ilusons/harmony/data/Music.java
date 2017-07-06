@@ -596,7 +596,7 @@ public class Music {
                 try {
                     data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // Ignore
                 }
 
                 if (data.getCover(context) == null) {

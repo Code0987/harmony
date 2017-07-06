@@ -580,6 +580,14 @@ public class LibraryUIActivity extends BaseUIActivity {
     }
 
     private void showGuide() {
+        final String tag_release_notes = TAG + ".release_notes";
+
+        if (!Once.beenDone(Once.THIS_APP_VERSION, tag_release_notes)) {
+            SettingsActivity.showReleaseNotesDialog(this);
+
+            Once.markDone(tag_release_notes);
+        }
+
         final String tag_guide = TAG + ".guide";
 
         if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))
