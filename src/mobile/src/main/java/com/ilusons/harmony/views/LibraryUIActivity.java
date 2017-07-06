@@ -971,8 +971,8 @@ public class LibraryUIActivity extends BaseUIActivity {
                         int h = (int) ((cv.getHeight() - cv.getPaddingTop() - cv.getPaddingBottom()) / getResources().getDisplayMetrics().density);
 
                         if (w > 280 && h > 80) {
+                            adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
                             adView.setAdSize(new AdSize(w, h));
-                            adView.setAdSize(new AdSize(300, 82));
 
                             cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
 

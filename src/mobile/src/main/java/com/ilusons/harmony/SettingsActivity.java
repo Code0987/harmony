@@ -295,7 +295,7 @@ public class SettingsActivity extends BaseActivity {
                 String content;
                 try (InputStream is = getResources().openRawResource(R.raw.gps_listing)) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8"), Html.FROM_HTML_MODE_COMPACT).toString();
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8"), Html.FROM_HTML_MODE_LEGACY).toString();
                     } else {
                         content = Html.fromHtml(IOUtils.toString(is, "UTF-8")).toString();
                     }
