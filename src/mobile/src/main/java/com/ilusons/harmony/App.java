@@ -3,7 +3,10 @@ package com.ilusons.harmony;
 import android.app.Application;
 import android.content.Intent;
 import android.content.res.Configuration;
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 
+import com.crashlytics.android.core.CrashlyticsCore;
 import com.google.android.gms.ads.MobileAds;
 import com.ilusons.harmony.base.MusicService;
 
@@ -16,6 +19,17 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
+        // Fabric
+        final Crashlytics crashlyticsKit = new Crashlytics.Builder()
+                .core(new CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build())
+                .build();
+        final Fabric fabric = new Fabric.Builder(this)
+                .kits(crashlyticsKit)
+                .debuggable(BuildConfig.DEBUG)
+                .build();
+        Fabric.with(fabric);
+
+        // Tools
         Once.initialise(this);
 
         // Start scan
@@ -23,7 +37,7 @@ public class App extends Application {
         musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
         startService(musicServiceIntent);
 
-        // Initialize
+        // Ads
         MobileAds.initialize(this, BuildConfig.AD_PUB_ID);
 
     }
