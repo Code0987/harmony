@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.util.ArraySet;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -292,8 +293,12 @@ public class SettingsActivity extends BaseActivity {
                     return;
 
                 String content;
-                try (InputStream is = getResources().openRawResource(R.raw.notes)) {
-                    content = IOUtils.toString(is, "UTF-8");
+                try (InputStream is = getResources().openRawResource(R.raw.gps_listing)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8"), Html.FROM_HTML_MODE_COMPACT).toString();
+                    } else {
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8")).toString();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
 
