@@ -101,6 +101,7 @@ android {
     }
 
     applicationVariants.all { variant ->
+        /*
         variant.outputs.each { output ->
             def alignedOutputFile = output.outputFile
             def unalignedOutputFile = output.packageApplication.outputFile
@@ -114,6 +115,7 @@ android {
             // 'unaligned' APK
             output.packageApplication.outputFile = new File(unalignedOutputFile.parent, unalignedOutputFile.name.replace(".apk", "-" + outputNameExtra + ".apk"))
         }
+        */
 
         // Git tag
         if (variant.buildType.name == "release" || variant.buildType.name == "releaseAlpha" || variant.buildType.name == "releaseBeta") {
