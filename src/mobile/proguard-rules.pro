@@ -16,6 +16,7 @@
 #   public *;
 #}
 
+-keepattributes *Annotation*
 -renamesourcefileattribute SourceFile
 -keepattributes SourceFile,LineNumberTable
 -dontskipnonpubliclibraryclasses
@@ -28,7 +29,11 @@
     public static *** v(...);
 }
 
+-keep public class * extends java.lang.Exception
+
 -dontwarn javax.annotation.**
+
+-keep class org.jaudiotagger.** { *; }
 
 -keep class com.h6ah4i.** { *; }
 
@@ -133,3 +138,8 @@
 }
 # http://stackoverflow.com/questions/29679177/cardview-shadow-not-appearing-in-lollipop-after-obfuscate-with-proguard/29698051
 -keep class android.support.v7.widget.RoundRectDrawable { *; }
+
+## Crashlytics ##
+
+-keep class com.crashlytics.** { *; }
+-dontwarn com.crashlytics.**

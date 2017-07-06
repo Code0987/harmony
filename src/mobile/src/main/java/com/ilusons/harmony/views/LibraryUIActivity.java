@@ -967,10 +967,15 @@ public class LibraryUIActivity extends BaseUIActivity {
                 try {
                     if (adView.getParent() == null) {
 
-                        adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
-                        adView.setAdSize(new AdSize(300, 82));
+                        int w = (int) ((cv.getWidth() - cv.getPaddingLeft() - cv.getPaddingRight()) / getResources().getDisplayMetrics().density);
+                        int h = (int) ((cv.getHeight() - cv.getPaddingTop() - cv.getPaddingBottom()) / getResources().getDisplayMetrics().density);
 
-                        cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
+                        if (w > 280 && h > 80) {
+                            adView.setAdSize(new AdSize(w, h));
+                            adView.setAdSize(new AdSize(300, 82));
+
+                            cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
+                        }
                     }
                 } catch (Exception e) {
                     Log.w(TAG, e);

@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'io.fabric'
+
 apply from: '../gradle/git-version.gradle'
 
 def gitVersionData = getGitVersionData()
@@ -40,6 +42,9 @@ android {
             buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
 
             versionNameSuffix '-debug'
+
+            ext.alwaysUpdateBuildId = false
+            ext.enableCrashlytics = false
         }
         release {
             buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
@@ -135,9 +140,8 @@ android {
 
 repositories {
     mavenCentral()
-    maven {
-        url "https://jitpack.io"
-    }
+    maven { url "https://jitpack.io" }
+    maven { url 'https://maven.fabric.io/public' }
 }
 
 dependencies {
@@ -177,6 +181,9 @@ dependencies {
     compile 'com.github.iammert:MaterialIntroView:1.6.0'
     compile 'com.jonathanfinerty.once:once:1.2.2'
     compile 'com.cleveroad:audiovisualization:1.0.0'
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
+        transitive = true;
+    }
     testCompile 'junit:junit:4.12'
 }
 

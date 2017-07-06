@@ -28,6 +28,7 @@ public class MainActivity extends BaseActivity {
 
         // Kill self
         finish();
+
     }
 
     private void handleIntent(final Intent intent) {
