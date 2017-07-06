@@ -975,42 +975,42 @@ public class LibraryUIActivity extends BaseUIActivity {
                             adView.setAdSize(new AdSize(300, 82));
 
                             cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
+
+                            lastAdListener = new AdListener() {
+                                @Override
+                                public void onAdLoaded() {
+                                    super.onAdLoaded();
+
+                                    lastAdListener = null;
+                                }
+
+                                @Override
+                                public void onAdFailedToLoad(int errorCode) {
+
+                                    lastAdListener = null;
+                                }
+                            };
+                            adView.setAdListener(lastAdListener);
+
+                            AdRequest adRequest;
+                            if (BuildConfig.DEBUG) {
+                                adRequest = new AdRequest.Builder()
+                                        .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                                        .addTestDevice(AndroidEx.getDeviceIdHashed(LibraryUIActivity.this))
+                                        .build();
+                            } else {
+                                adRequest = new AdRequest.Builder()
+                                        .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                                        .build();
+                            }
+
+                            adView.loadAd(adRequest);
+
                         }
                     }
                 } catch (Exception e) {
                     Log.w(TAG, e);
                 }
-
-                lastAdListener = new AdListener() {
-                    @Override
-                    public void onAdLoaded() {
-                        super.onAdLoaded();
-
-                        lastAdListener = null;
-                    }
-
-                    @Override
-                    public void onAdFailedToLoad(int errorCode) {
-
-                        lastAdListener = null;
-                    }
-                };
-                adView.setAdListener(lastAdListener);
-
-                AdRequest adRequest;
-                if (BuildConfig.DEBUG) {
-                    adRequest = new AdRequest.Builder()
-                            .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                            .addTestDevice(AndroidEx.getDeviceIdHashed(LibraryUIActivity.this))
-                            .build();
-                } else {
-                    adRequest = new AdRequest.Builder()
-                            .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                            .build();
-                }
-
-                adView.loadAd(adRequest);
-
 
             } else if (d instanceof Music) {
 
