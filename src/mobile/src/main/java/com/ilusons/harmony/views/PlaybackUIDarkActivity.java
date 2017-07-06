@@ -179,11 +179,12 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         findViewById(R.id.av_layout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (video.getVisibility() == View.VISIBLE) {
+                if (video.getVisibility() != View.VISIBLE) {
                     handler.removeCallbacks(showUITask);
                     handler.post(showUITask);
+                } else {
                     handler.removeCallbacks(hideUITask);
-                    handler.postDelayed(hideUITask, 2500);
+                    handler.postDelayed(hideUITask, 500);
                 }
             }
         });

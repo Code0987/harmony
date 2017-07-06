@@ -3,21 +3,38 @@ package com.ilusons.harmony;
 import android.app.Application;
 import android.content.Intent;
 import android.content.res.Configuration;
-import com.crashlytics.android.Crashlytics;
-import io.fabric.sdk.android.Fabric;
+import android.util.Log;
+import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 import com.google.android.gms.ads.MobileAds;
 import com.ilusons.harmony.base.MusicService;
 
+import io.fabric.sdk.android.Fabric;
 import jonathanfinerty.once.Once;
 
 public class App extends Application {
+
+    // Logger TAG
+    private static final String TAG = App.class.getSimpleName();
+
     // Called when the application is starting, before any other application objects have been created.
     // Overriding this method is totally optional!
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable e) {
+                Toast.makeText(App.this, "Aw, snap!", Toast.LENGTH_LONG).show();
+
+                Log.wtf(TAG, e);
+
+                Crashlytics.logException(e);
+            }
+        });
 
         // Fabric
         final Crashlytics crashlyticsKit = new Crashlytics.Builder()

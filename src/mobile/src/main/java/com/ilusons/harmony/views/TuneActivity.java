@@ -17,6 +17,7 @@ import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.h6ah4i.android.media.audiofx.IBassBoost;
 import com.h6ah4i.android.media.audiofx.IEnvironmentalReverb;
@@ -1185,6 +1186,10 @@ public class TuneActivity extends BaseActivity {
                 }
 
                 bandLevelRange = eq.getBandLevelRange();
+            } catch (Exception e) {
+                Toast.makeText(context, "Tune might not work in your device!", Toast.LENGTH_LONG).show();
+
+                Log.w(TAG, e);
             } finally {
                 try {
                     if (eq != null) {
