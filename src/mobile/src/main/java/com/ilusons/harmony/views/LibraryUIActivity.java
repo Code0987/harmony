@@ -89,7 +89,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     public static final String TAG_SPREF_LIBRARY_VIEW_m4a = SPrefEx.TAG_SPREF + ".library_view_m4a";
     public static boolean LIBRARY_VIEW_m4a_DEFAULT = true;
     public static final String TAG_SPREF_LIBRARY_VIEW_mp4 = SPrefEx.TAG_SPREF + ".library_view_mp4";
-    public static boolean LIBRARY_VIEW_mp4_DEFAULT = false;
+    public static boolean LIBRARY_VIEW_mp4_DEFAULT = true;
     public static final String TAG_SPREF_LIBRARY_VIEW_flac = SPrefEx.TAG_SPREF + ".library_view_flac";
     public static boolean LIBRARY_VIEW_flac_DEFAULT = true;
 
