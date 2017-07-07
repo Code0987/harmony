@@ -445,8 +445,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        // Set ads
-        if (BuildConfig.DEBUG || !MusicService.IsPremium)
+        // Set ads TODO: enable ads in final release
+        if (false && (BuildConfig.DEBUG || !MusicService.IsPremium))
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
