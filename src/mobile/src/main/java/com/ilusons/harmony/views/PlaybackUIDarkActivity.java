@@ -111,28 +111,6 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         }
     };
 
-    private final Runnable hideUITask = new Runnable() {
-        @Override
-        public void run() {
-            if (video.getVisibility() == View.VISIBLE && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && getMusicService() != null && getMusicService().isPlaying()) {
-                controls_layout.animate().alpha(0).setDuration(500).start();
-                lyrics_layout.animate().alpha(0).setDuration(500).start();
-                seekBar.animate().alpha(0).setDuration(500).start();
-            }
-        }
-    };
-
-    private final Runnable showUITask = new Runnable() {
-        @Override
-        public void run() {
-            if (video.getVisibility() == View.VISIBLE) {
-                controls_layout.animate().alpha(1).setDuration(500).start();
-                lyrics_layout.animate().alpha(1).setDuration(500).start();
-                seekBar.animate().alpha(1).setDuration(500).start();
-            }
-        }
-    };
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -179,13 +157,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         findViewById(R.id.av_layout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (video.getVisibility() != View.VISIBLE) {
-                    handler.removeCallbacks(showUITask);
-                    handler.post(showUITask);
-                } else {
-                    handler.removeCallbacks(hideUITask);
-                    handler.postDelayed(hideUITask, 500);
-                }
+                toggleUI();
             }
         });
 
@@ -210,7 +182,12 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                 handler.postDelayed(videoSyncTask, 1000);
 
-                handler.postDelayed(hideUITask, 3500);
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        toggleUI(true);
+                    }
+                }, 3500);
             }
         });
         video.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -220,7 +197,12 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                 handler.removeCallbacks(videoSyncTask);
 
-                handler.post(showUITask);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        toggleUI(false);
+                    }
+                });
             }
         });
         video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
@@ -230,7 +212,12 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                 handler.removeCallbacks(videoSyncTask);
 
-                handler.post(showUITask);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        toggleUI(false);
+                    }
+                });
 
                 return false;
             }
@@ -605,6 +592,29 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         super.OnMusicServiceOpen(uri);
 
         resetForUriIfNeeded(uri);
+    }
+
+    private boolean isUIHidden = false;
+
+    private void toggleUI(boolean hide) {
+        if (hide) {
+            controls_layout.animate().alpha(0).setDuration(500).start();
+            lyrics_layout.animate().alpha(0).setDuration(500).start();
+            seekBar.animate().alpha(0).setDuration(500).start();
+
+            isUIHidden = true;
+        } else {
+            controls_layout.animate().alpha(1).setDuration(500).start();
+            lyrics_layout.animate().alpha(1).setDuration(500).start();
+            seekBar.animate().alpha(1).setDuration(500).start();
+
+            isUIHidden = false;
+        }
+
+    }
+
+    private void toggleUI() {
+        toggleUI(!isUIHidden);
     }
 
     private String currentUri;

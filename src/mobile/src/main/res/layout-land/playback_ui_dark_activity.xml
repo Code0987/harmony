@@ -208,7 +208,7 @@
 
     <FrameLayout
         android:id="@+id/lyrics_layout"
-        android:layout_width="256dp"
+        android:layout_width="216dp"
         android:layout_height="0dp"
         android:background="@drawable/gradient_right_left_transparent"
         android:clipChildren="false"
