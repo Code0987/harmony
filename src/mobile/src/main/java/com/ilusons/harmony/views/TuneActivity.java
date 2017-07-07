@@ -275,7 +275,11 @@ public class TuneActivity extends BaseActivity {
                         throw new IllegalArgumentException();
                 }
 
-                equalizer.setBandLevel(band, BandLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    equalizer.setBandLevel(band, BandLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    info("Update failed, try another preset or settings!");
+                }
             }
 
             @Override
@@ -331,7 +335,11 @@ public class TuneActivity extends BaseActivity {
                 if (bassBoost == null)
                     return;
 
-                bassBoost.setStrength(BassboostNormalizer.denormalize(progress / SEEKBAR_MAX));
+                try {
+                    bassBoost.setStrength(BassboostNormalizer.denormalize(progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    info("Update failed, try another preset or settings!");
+                }
             }
 
             @Override
@@ -383,7 +391,11 @@ public class TuneActivity extends BaseActivity {
                 if (loudnessEnhancer == null)
                     return;
 
-                loudnessEnhancer.setTargetGain(LoudnessNormalizer.denormalize(progress / SEEKBAR_MAX));
+                try {
+                    loudnessEnhancer.setTargetGain(LoudnessNormalizer.denormalize(progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    info("Update failed, try another preset or settings!");
+                }
             }
 
             @Override
@@ -435,7 +447,11 @@ public class TuneActivity extends BaseActivity {
                 if (virtualizer == null)
                     return;
 
-                virtualizer.setStrength(VirtualizerNormalizer.denormalize(progress / SEEKBAR_MAX));
+                try {
+                    virtualizer.setStrength(VirtualizerNormalizer.denormalize(progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    info("Update failed, try another preset or settings!");
+                }
             }
 
             @Override
@@ -488,7 +504,13 @@ public class TuneActivity extends BaseActivity {
                         if (presetReverb == null)
                             return;
 
-                        presetReverb.setPreset((short) i);
+                        try {
+                            presetReverb.setPreset((short) i);
+
+                            info("Updated!");
+                        } catch (Exception e) {
+                            info("Update failed, try another preset or settings!");
+                        }
                     }
 
                     @Override
