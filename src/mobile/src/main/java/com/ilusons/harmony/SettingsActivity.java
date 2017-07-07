@@ -500,17 +500,27 @@ public class SettingsActivity extends BaseActivity {
         findViewById(R.id.reset_imageButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    info("Reset initiated! App will restart in a moment!");
+                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
+                        .setTitle("Sure?")
+                        .setMessage("App will become like new, all your personalized content will be lost!")
+                        .setCancelable(false)
+                        .setPositiveButton("Sure", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                try {
+                                    info("Reset initiated! App will restart in a moment!");
 
-                    IOEx.deleteCache(getApplicationContext());
+                                    IOEx.deleteCache(getApplicationContext());
 
-                    ((ActivityManager) getSystemService(Context.ACTIVITY_SERVICE)).clearApplicationUserData();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    AndroidEx.restartApp(SettingsActivity.this);
-                }
+                                    ((ActivityManager) getSystemService(Context.ACTIVITY_SERVICE)).clearApplicationUserData();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    AndroidEx.restartApp(SettingsActivity.this);
+                                }
+                            }
+                        }))
+                        .show();
             }
         });
 

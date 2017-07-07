@@ -566,7 +566,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     public void OnMusicServiceLibraryUpdateBegins() {
         swipeRefreshLayout.setRefreshing(true);
 
-        info("Library update is on progress!", true);
+        info("Library update is in progress!", true);
     }
 
     @Override
@@ -966,7 +966,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             // Bind data to view here!
 
-            if ((BuildConfig.DEBUG || !MusicService.IsPremium) && (d instanceof NativeExpressAdView && lastAdListener == null)) {
+            // TODO: Fix ads later
+            if (false && ((BuildConfig.DEBUG || !MusicService.IsPremium) && (d instanceof NativeExpressAdView && lastAdListener == null))) {
 
                 CardView cv = (CardView) v.findViewById(R.id.cardView);
 
@@ -1168,7 +1169,8 @@ public class LibraryUIActivity extends BaseUIActivity {
                     }
 
                     // Add ads
-                    if (BuildConfig.DEBUG || !MusicService.IsPremium) {
+                    // TODO: Fix ads later
+                    if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
                         final int n = Math.min(dataFiltered.size(), 7);
                         for (int i = 0; i <= n; i += ITEMS_PER_AD)
                             try {
