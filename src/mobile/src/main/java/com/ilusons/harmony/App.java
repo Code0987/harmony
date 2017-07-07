@@ -74,3 +74,9 @@ public class App extends Application {
         super.onLowMemory();
     }
 }
+
+//TODO: Check below!
+
+// Hey, I'd love to try out the premium features! My play store email is xsvpollux@gmail.com, and just to let you know when you add a location to search for music the note that pops up says the library update is on progress, not in progress ??
+
+// Thanks in advance and I really like the player! Discord app got me way used to side bars like it's got so I really enjoy having access to those!

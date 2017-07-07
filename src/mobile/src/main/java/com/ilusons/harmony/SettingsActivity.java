@@ -203,7 +203,7 @@ public class SettingsActivity extends BaseActivity {
             }
         });
 
-        // Set premium
+        // Set premium        
         findViewById(R.id.premium).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
