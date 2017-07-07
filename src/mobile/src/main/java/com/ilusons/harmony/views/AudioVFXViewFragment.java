@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -195,48 +196,55 @@ public class AudioVFXViewFragment extends Fragment {
     };
 
     private void startVisualizer() {
-        stopVisualizer();
+        try {
+            stopVisualizer();
 
-        if (MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.OpenSL) {
-            if (visualizerHQ != null) {
-                // stop visualizerHQ
-                stopVisualizer();
+            if (MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.OpenSL) {
+                if (visualizerHQ != null) {
+                    // stop visualizerHQ
+                    stopVisualizer();
 
-                // use maximum rate & size
-                int rate = visualizerHQ.getMaxCaptureRate();
-                int size = 4096;
+                    visualizer.setEnabled(false);
 
-                // NOTE: min = 128, max = 32768
-                size = Math.max(visualizerHQ.getCaptureSizeRange()[0], size);
-                size = Math.min(visualizerHQ.getCaptureSizeRange()[1], size);
+                    // use maximum rate & size
+                    int rate = visualizerHQ.getMaxCaptureRate();
+                    int size = 4096;
 
-                visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
-                visualizerHQ.setCaptureSize(size);
-                visualizerHQ.setDataCaptureListener(onDataCaptureListenerHQ, rate, waveformAVFXView != null, fftAVFXView != null || waveDbmHandler != null);
+                    // NOTE: min = 128, max = 32768
+                    size = Math.max(visualizerHQ.getCaptureSizeRange()[0], size);
+                    size = Math.min(visualizerHQ.getCaptureSizeRange()[1], size);
 
-                visualizerHQ.setEnabled(true);
+                    visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
+                    visualizerHQ.setCaptureSize(size);
+                    visualizerHQ.setDataCaptureListener(onDataCaptureListenerHQ, rate, waveformAVFXView != null, fftAVFXView != null || waveDbmHandler != null);
+
+                    visualizerHQ.setEnabled(true);
+                }
+            } else {
+                if (visualizer != null) {
+                    // stop visualizer
+                    stopVisualizer();
+
+                    visualizer.setEnabled(false);
+
+                    // use maximum rate & size
+                    int rate = visualizer.getMaxCaptureRate();
+                    int size = visualizer.getCaptureSizeRange()[1];
+
+                    visualizer.setCaptureSize(size);
+                    visualizer.setScalingMode(Visualizer.SCALING_MODE_NORMALIZED);
+                    visualizer.setDataCaptureListener(onDataCaptureListener, rate, waveformAVFXView != null, fftAVFXView != null || waveDbmHandler != null);
+                    visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
+
+                    visualizer.setEnabled(true);
+                }
             }
-        } else {
-            if (visualizer != null) {
-                // stop visualizer
-                stopVisualizer();
 
-                // use maximum rate & size
-                int rate = visualizer.getMaxCaptureRate() / 2;
-                int size = visualizer.getCaptureSizeRange()[1];
-
-                visualizer.setCaptureSize(size);
-                visualizer.setScalingMode(Visualizer.SCALING_MODE_NORMALIZED);
-                visualizer.setDataCaptureListener(onDataCaptureListener, rate, waveformAVFXView != null, fftAVFXView != null || waveDbmHandler != null);
-                visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
-
-                visualizer.setEnabled(true);
-            }
+            if (wavesView != null)
+                wavesView.startRendering();
+        } catch (Exception e) {
+            Log.w(TAG, e);
         }
-
-        if (wavesView != null)
-            wavesView.startRendering();
-
     }
 
     private void stopVisualizer() {
