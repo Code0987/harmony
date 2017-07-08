@@ -1,0 +1,2 @@
+﻿✔️ Work in progress, only for testing and feedback.
+✔️ Bug fixes, some crashes fixed.

@@ -6,14 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.Build;
-import android.support.v4.BuildConfig;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.R;
 
 public class FCMService extends FirebaseMessagingService {
@@ -44,7 +43,10 @@ public class FCMService extends FirebaseMessagingService {
                 link = remoteMessage.getData().get("link");
             }
 
-            if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(content) && (BuildConfig.DEBUG || !title.trim().toLowerCase().equals("test")))
+            if (!BuildConfig.DEBUG && title.trim().equalsIgnoreCase("test"))
+                return;
+
+            if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(content))
                 sendNotification(getString(R.string.app_name) + ": " + title, content, link);
 
         } catch (Exception e) {
@@ -55,7 +57,7 @@ public class FCMService extends FirebaseMessagingService {
 
     private void sendNotification(String title, String content, String link) {
         PendingIntent pendingIntent = null;
-        if (TextUtils.isEmpty(link)) {
+        if (!TextUtils.isEmpty(link)) {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(Uri.parse(link));
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
