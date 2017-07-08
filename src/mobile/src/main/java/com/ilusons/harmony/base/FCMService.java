@@ -43,7 +43,7 @@ public class FCMService extends FirebaseMessagingService {
             }
 
             if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(content) && !title.trim().toLowerCase().equals("test"))
-                sendNotification(title, content, link);
+                sendNotification(getString(R.string.app_name) + ": " + title, content, link);
 
         } catch (Exception e) {
             Log.w(TAG, e);
@@ -61,10 +61,12 @@ public class FCMService extends FirebaseMessagingService {
         }
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_announcement)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setAutoCancel(true)
+                .setColor(getColor(R.color.accent))
+                .setPriority(android.support.v7.app.NotificationCompat.PRIORITY_HIGH)
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
 
         if (pendingIntent != null)
