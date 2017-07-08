@@ -32,6 +32,7 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -41,8 +42,12 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -390,6 +395,9 @@ public class LibraryUIActivity extends BaseUIActivity {
                 return true;
             }
         });
+
+        // Set collapse items
+        createUISortMode();
 
         // Set right drawer
         drawer_layout.closeDrawer(GravityCompat.END);
@@ -1367,5 +1375,85 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
 
     }
+
+    //region UI sort mode
+
+    public enum UISortMode {
+        Default("Default"),
+        Title("Title"),
+        Album("Album"),
+        Artist("Artist"),
+        Played("Times Played"),
+        Added("Added On"),;
+
+        private String friendlyName;
+
+        UISortMode(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+    }
+
+    public static final String TAG_SPREF_LIBRARY_UI_SORT_MODE = SPrefEx.TAG_SPREF + ".library_ui_sort_mode";
+
+    public static UISortMode getUIStyle(Context context) {
+        return UISortMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_SORT_MODE, String.valueOf(UISortMode.Default)));
+    }
+
+    public static void setUIStyle(Context context, UISortMode value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_LIBRARY_UI_SORT_MODE, String.valueOf(value))
+                .apply();
+    }
+
+    private Spinner uiSortMode_spinner;
+
+    private void createUISortMode() {
+        uiSortMode_spinner = (Spinner) findViewById(R.id.uiSortMode_spinner);
+
+        uiSortMode_spinner.setAdapter(new ArrayAdapter<UISortMode>(this, 0, UISortMode.values()) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+                text.setText("Sorting: " + text.getText());
+
+                return text;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) convertView;
+
+                if (text == null) {
+                    text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+                    text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                }
+
+                text.setText(getItem(position).friendlyName);
+
+                return text;
+            }
+        });
+
+        uiSortMode_spinner.post(new Runnable() {
+            public void run() {
+                uiSortMode_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                        setUIStyle(getApplicationContext(), (UISortMode) adapterView.getItemAtPosition(position));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                        setUIStyle(getApplicationContext(), UISortMode.Default);
+                    }
+                });
+            }
+        });
+    }
+
+    //endregion
 
 }

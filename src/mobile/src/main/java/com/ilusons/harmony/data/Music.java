@@ -67,6 +67,7 @@ import java.util.Comparator;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
+// TODO: Upgrade database to optimized ones
 public class Music {
 
     // Logger TAG
