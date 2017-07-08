@@ -10,6 +10,7 @@ buildscript {
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
@@ -69,8 +70,21 @@ ext.getGitVersionData = {
 }
 
 ext.getAndTagCurrentRelease = { gitVersionData ->
-    if (!gitVersionData.clean) {
-        throw new GradleException("State not clean, can't tag!")
+    if (!git.status().call().isClean()) {
+        Status status = git.status().call();
+        System.out.println("[git status]");
+        System.out.println("Added: " + status.getAdded());
+        System.out.println("Changed: " + status.getChanged());
+        System.out.println("Conflicting: " + status.getConflicting());
+        System.out.println("ConflictingStageState: " + status.getConflictingStageState());
+        System.out.println("IgnoredNotInIndex: " + status.getIgnoredNotInIndex());
+        System.out.println("Missing: " + status.getMissing());
+        System.out.println("Modified: " + status.getModified());
+        System.out.println("Removed: " + status.getRemoved());
+        System.out.println("Untracked: " + status.getUntracked());
+        System.out.println("UntrackedFolders: " + status.getUntrackedFolders());
+
+        throw new GradleException("State not clean, can't tag!");
     }
 
     def versionName = "${gitVersionData.major}.${gitVersionData.minor}.${gitVersionData.patch}"
