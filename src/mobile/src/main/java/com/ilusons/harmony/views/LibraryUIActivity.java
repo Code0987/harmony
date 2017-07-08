@@ -1167,6 +1167,9 @@ public class LibraryUIActivity extends BaseUIActivity {
                                         Stats xs = Stats.get(LibraryUIActivity.this, x.Path);
                                         Stats ys = Stats.get(LibraryUIActivity.this, y.Path);
 
+                                        if (xs == null || ys == null)
+                                            return 0;
+
                                         return xs.Played.compareTo(ys.Played);
                                     }
                                 });
@@ -1177,6 +1180,9 @@ public class LibraryUIActivity extends BaseUIActivity {
                                     public int compare(Music x, Music y) {
                                         Stats xs = Stats.get(LibraryUIActivity.this, x.Path);
                                         Stats ys = Stats.get(LibraryUIActivity.this, y.Path);
+
+                                        if (xs == null || ys == null)
+                                            return 0;
 
                                         return xs.TimeAdded.compareTo(ys.TimeAdded);
                                     }
@@ -1492,11 +1498,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                     v.addView(sv);
 
                     sv.setText(getItem(position).friendlyName);
+                    sv.setChecked(getUIFilters(getContext()).contains(getItem(position)));
                     sv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                             if (!compoundButton.isShown()) {
-                                compoundButton.setChecked(!b);
                                 return;
                             }
 
@@ -1626,6 +1632,9 @@ public class LibraryUIActivity extends BaseUIActivity {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                         setUISortMode(getApplicationContext(), (UISortMode) adapterView.getItemAtPosition(position));
+
+                        if (search_view != null)
+                            adapter.filter("" + search_view.getQuery());
                     }
 
                     @Override
