@@ -287,7 +287,40 @@ public class SettingsActivity extends BaseActivity {
             }
         });
 
-        findViewById(R.id.about_notes).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.about_info).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFinishing())
+                    return;
+
+                String content;
+                try (InputStream is = getResources().openRawResource(R.raw.gps_listing)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>"), Html.FROM_HTML_MODE_LEGACY).toString();
+                    } else {
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>")).toString();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    content = "Error loading data!";
+                }
+
+                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
+                        .setTitle("Information")
+                        .setMessage(content)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        }))
+                        .show();
+            }
+        });
+
+        findViewById(R.id.about_release_notes).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (isFinishing())
@@ -613,12 +646,8 @@ public class SettingsActivity extends BaseActivity {
 
     public static void showReleaseNotesDialog(Context context) {
         String content;
-        try (InputStream is = context.getResources().openRawResource(R.raw.gps_listing)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>"), Html.FROM_HTML_MODE_LEGACY).toString();
-            } else {
-                content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>")).toString();
-            }
+        try (InputStream is = context.getResources().openRawResource(R.raw.notes_release)) {
+            content = IOUtils.toString(is, "UTF-8");
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -626,7 +655,7 @@ public class SettingsActivity extends BaseActivity {
         }
 
         (new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.AppTheme_AlertDialogStyle))
-                .setTitle("Notes")
+                .setTitle("Release notes")
                 .setMessage(content)
                 .setCancelable(false)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
