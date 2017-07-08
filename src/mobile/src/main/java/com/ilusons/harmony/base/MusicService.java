@@ -122,7 +122,6 @@ public class MusicService extends Service {
         }
     };
 
-    // TODO: Add opensl support, flac, m4a, mp3, scrobbler
     IMediaPlayerFactory mediaPlayerFactory;
     IBasicMediaPlayer mediaPlayer;
     private MediaSessionCompat mediaSession;
@@ -193,7 +192,15 @@ public class MusicService extends Service {
 
             Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
 
-            IsPremium = BuildConfig.DEBUG || ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
+            boolean premium = ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
+
+            if (!IsPremium && premium) try {
+                Toast.makeText(MusicService.this, "Thank you for upgrading to premium! All premium features will work correctly after restart!", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+
+            IsPremium = BuildConfig.DEBUG || premium;
 
             SPrefEx.get(MusicService.this)
                     .edit()
@@ -324,21 +331,6 @@ public class MusicService extends Service {
         wakeLock.setReferenceCounted(false);
 
         setUpMediaSession();
-
-        // Init loop
-        /* TODO: Review this, it's making whole android slow
-        final int dt = 1500;
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-
-                updateNotification();
-
-                handler.removeCallbacks(this);
-                handler.postDelayed(this, dt);
-            }
-        }, dt);
-        */
 
         setupNotification();
     }
@@ -1091,9 +1083,6 @@ public class MusicService extends Service {
                 .setLargeIcon(cover)
                 .setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
                 .setTicker(currentMusic.getText());
-
-        // TODO: Review this, it's making whole android slow
-        // customNotificationView.setProgressBar(R.id.progress, getDuration(), getPosition(), !isPlaying());
 
         Notification currentNotification = builder.build();
 
