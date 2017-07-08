@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
+import android.support.v4.BuildConfig;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -42,7 +44,7 @@ public class FCMService extends FirebaseMessagingService {
                 link = remoteMessage.getData().get("link");
             }
 
-            if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(content) && !title.trim().toLowerCase().equals("test"))
+            if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(content) && (BuildConfig.DEBUG || !title.trim().toLowerCase().equals("test")))
                 sendNotification(getString(R.string.app_name) + ": " + title, content, link);
 
         } catch (Exception e) {
