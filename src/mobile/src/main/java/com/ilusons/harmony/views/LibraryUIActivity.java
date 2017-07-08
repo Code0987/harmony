@@ -79,6 +79,9 @@ import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 import jonathanfinerty.once.Once;
 
+// TODO: See below
+// https://www.reddit.com/r/androidapps/comments/6lxp6q/do_you_know_any_android_music_player_or_playlist/
+
 public class LibraryUIActivity extends BaseUIActivity {
 
     // Logger TAG
@@ -1148,45 +1151,51 @@ public class LibraryUIActivity extends BaseUIActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    dataFiltered.clear();
+                    try {
 
-                    synchronized (data) {
-                        for (Music item : data) {
-                            boolean f = false;
+                        dataFiltered.clear();
 
-                            SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
+                        synchronized (data) {
+                            for (Music item : data) {
+                                boolean f = false;
 
-                            f |= item.Path.toLowerCase().endsWith(".mp3") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT);
-                            f |= item.Path.toLowerCase().endsWith(".m4a") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT);
-                            f |= item.Path.toLowerCase().endsWith(".mp4") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT);
-                            f |= item.Path.toLowerCase().endsWith(".flac") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT);
+                                SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
 
-                            f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
+                                f |= item.Path.toLowerCase().endsWith(".mp3") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT);
+                                f |= item.Path.toLowerCase().endsWith(".m4a") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT);
+                                f |= item.Path.toLowerCase().endsWith(".mp4") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT);
+                                f |= item.Path.toLowerCase().endsWith(".flac") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT);
 
-                            if (f)
-                                dataFiltered.add(item);
-                        }
-                    }
+                                f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
 
-                    // Add ads
-                    // TODO: Fix ads later
-                    if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
-                        final int n = Math.min(dataFiltered.size(), 7);
-                        for (int i = 0; i <= n; i += ITEMS_PER_AD)
-                            try {
-                                final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIActivity.this);
-                                dataFiltered.add(i, adView);
-                            } catch (Exception e) {
-                                Log.w(TAG, e);
+                                if (f)
+                                    dataFiltered.add(item);
                             }
-                    }
-
-                    (LibraryUIActivity.this).runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            notifyDataSetChanged();
                         }
-                    });
+
+                        // Add ads
+                        // TODO: Fix ads later
+                        if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
+                            final int n = Math.min(dataFiltered.size(), 7);
+                            for (int i = 0; i <= n; i += ITEMS_PER_AD)
+                                try {
+                                    final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIActivity.this);
+                                    dataFiltered.add(i, adView);
+                                } catch (Exception e) {
+                                    Log.w(TAG, e);
+                                }
+                        }
+
+                        (LibraryUIActivity.this).runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                notifyDataSetChanged();
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        Log.w(TAG, e);
+                    }
                 }
             }).start();
         }

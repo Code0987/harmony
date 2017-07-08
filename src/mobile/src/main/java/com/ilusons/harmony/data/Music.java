@@ -585,47 +585,52 @@ public class Music {
         // Metadata from tags
         if (!fastMode && !path.toLowerCase().startsWith("content")) {
             File file = new File(path);
-            try {
-                AudioFile audioFile = AudioFileIO.read(file);
-
-                Tag tag = audioFile.getTagAndConvertOrCreateAndSetDefault();
-
-                data.Title = tag.getFirst(FieldKey.TITLE);
-                data.Artist = tag.getFirst(FieldKey.ARTIST);
-                data.Album = tag.getFirst(FieldKey.ALBUM);
+            if (file.length() < 124 * 1024 * 1024)
                 try {
-                    data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
-                } catch (Exception e) {
-                    // Ignore
-                }
+                    AudioFile audioFile = AudioFileIO.read(file);
 
-                if (data.getCover(context) == null) {
-                    Artwork artwork = tag.getFirstArtwork();
-                    if (artwork != null) {
-                        byte[] cover = artwork.getBinaryData();
-                        if (cover != null && cover.length > 0) {
-                            Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                    Tag tag = audioFile.getTagAndConvertOrCreateAndSetDefault();
 
-                            if (bmp != null)
-                                putCover(context, data, bmp);
+                    data.Title = tag.getFirst(FieldKey.TITLE);
+                    data.Artist = tag.getFirst(FieldKey.ARTIST);
+                    data.Album = tag.getFirst(FieldKey.ALBUM);
+                    try {
+                        data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+
+                    if (data.getCover(context) == null) {
+                        Artwork artwork = tag.getFirstArtwork();
+                        if (artwork != null) {
+                            byte[] cover = artwork.getBinaryData();
+                            if (cover != null && cover.length > 0) {
+                                Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+
+                                if (bmp != null)
+                                    putCover(context, data, bmp);
+                            }
                         }
                     }
+
+                    // Lyrics
+                    String lyrics;
+                    lyrics = tag.getFirst(FieldKey.LYRICS);
+                    if (!TextUtils.isEmpty(lyrics))
+                        data.putLyrics(context, lyrics);
+                    lyrics = tag.getFirst(FieldKey.USER_UNSYNCED_LYRICS);
+                    if (!TextUtils.isEmpty(lyrics))
+                        data.putLyrics(context, lyrics);
+                    lyrics = tag.getFirst(FieldKey.USER_LYRICS);
+                    if (!TextUtils.isEmpty(lyrics))
+                        data.putLyrics(context, lyrics);
+
+                } catch (Exception e) {
+                    Log.w(TAG, "metadata from tags", e);
+                    Log.w(TAG, "file\n" + file);
                 }
-
-                // Lyrics
-                String lyrics;
-                lyrics = tag.getFirst(FieldKey.LYRICS);
-                if (!TextUtils.isEmpty(lyrics))
-                    data.putLyrics(context, lyrics);
-                lyrics = tag.getFirst(FieldKey.USER_UNSYNCED_LYRICS);
-                if (!TextUtils.isEmpty(lyrics))
-                    data.putLyrics(context, lyrics);
-                lyrics = tag.getFirst(FieldKey.USER_LYRICS);
-                if (!TextUtils.isEmpty(lyrics))
-                    data.putLyrics(context, lyrics);
-
-            } catch (Exception e) {
-                Log.w(TAG, "metadata from tags", e);
+            else {
+                Log.w(TAG, "file\n" + file);
             }
         }
 
