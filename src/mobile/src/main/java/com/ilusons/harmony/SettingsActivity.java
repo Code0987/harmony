@@ -211,11 +211,12 @@ public class SettingsActivity extends BaseActivity {
                     return;
 
                 String content;
-                try (InputStream is = getResources().openRawResource(R.raw.notes)) {
-                    content = IOUtils.toString(is, "UTF-8");
-                    int start = content.indexOf("### Premium") + 4;
-                    int end = content.indexOf("###", start);
-                    content = content.substring(start, end);
+                try (InputStream is = getResources().openRawResource(R.raw.notes_premium)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>"), Html.FROM_HTML_MODE_LEGACY).toString();
+                    } else {
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>")).toString();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
 
