@@ -112,10 +112,6 @@ public class Music {
         return sb.toString();
     }
 
-    public boolean hasVideo() {
-        return !TextUtils.isEmpty(Path) && (Path.toLowerCase().contains(".mp4") || Path.toLowerCase().contains(".m4v"));
-    }
-
     public Bitmap getCover(final Context context, int size) {
         Bitmap result;
 
@@ -1059,5 +1055,67 @@ public class Music {
         }
     }
 //endregion
+
+    //region Extensions
+
+    private static String[] extensions_audio = new String[]{
+            ".mp3",
+            ".m4a",
+            ".wav",
+            ".flac",
+            ".ogg",
+            ".wma",
+            ".ape",
+            ".wv",
+            ".tta",
+            ".mpc",
+            ".aiff",
+            ".asf",
+    };
+
+    public static boolean isAudio(String extension) {
+        for (String ext : extensions_audio) {
+            if (extension.equalsIgnoreCase(ext))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean hasAudio() {
+        try {
+            return !TextUtils.isEmpty(Path) && isAudio(Path.substring(Path.lastIndexOf(".")));
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return false;
+        }
+    }
+
+    private static String[] extensions_video = new String[]{
+            ".mp4",
+            ".mkv",
+            ".avi",
+            ".webm",
+            ".flv",
+    };
+
+    public static boolean isVideo(String extension) {
+        for (String ext : extensions_video) {
+            if (extension.equalsIgnoreCase(ext))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean hasVideo() {
+        try {
+            return !TextUtils.isEmpty(Path) && isVideo(Path.substring(Path.lastIndexOf(".")));
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return false;
+        }
+    }
+    //endregion
 
 }

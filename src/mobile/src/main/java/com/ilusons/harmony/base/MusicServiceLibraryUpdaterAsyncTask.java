@@ -197,6 +197,9 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             Music m = Music.decode(context, path, fastMode, null);
 
             // Check constraints
+            if (!(m.hasAudio() || m.hasVideo()))
+                return;
+
             if (m.Length > 0 && getScanConstraintMinDuration(context) > m.Length)
                 return;
 
