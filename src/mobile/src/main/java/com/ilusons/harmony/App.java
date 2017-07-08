@@ -8,7 +8,6 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
-import com.google.android.gms.ads.MobileAds;
 import com.ilusons.harmony.base.MusicService;
 
 import io.fabric.sdk.android.Fabric;
@@ -37,14 +36,16 @@ public class App extends Application {
         });
 
         // Fabric
-        final Crashlytics crashlyticsKit = new Crashlytics.Builder()
-                .core(new CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build())
-                .build();
-        final Fabric fabric = new Fabric.Builder(this)
-                .kits(crashlyticsKit)
-                .debuggable(BuildConfig.DEBUG)
-                .build();
-        Fabric.with(fabric);
+        if (!BuildConfig.DEBUG) {
+            final Crashlytics crashlyticsKit = new Crashlytics.Builder()
+                    .core(new CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build())
+                    .build();
+            final Fabric fabric = new Fabric.Builder(this)
+                    .kits(crashlyticsKit)
+                    .debuggable(BuildConfig.DEBUG)
+                    .build();
+            Fabric.with(fabric);
+        }
 
         // Tools
         Once.initialise(this);
