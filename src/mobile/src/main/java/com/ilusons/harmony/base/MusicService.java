@@ -51,6 +51,7 @@ import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.data.Stats;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
@@ -917,6 +918,14 @@ public class MusicService extends Service {
                     .sendBroadcast(new Intent(ACTION_PLAY));
 
             setPlayerLastPlayed(this, getCurrentPlaylistItem());
+
+            Stats.updateOrCreateAsync(this, currentMusic.Path, new JavaEx.ActionT<Stats>() {
+                @Override
+                public void execute(Stats stats) {
+                    stats.Played++;
+                    stats.LastPlayed = System.currentTimeMillis();
+                }
+            });
         }
     }
 
@@ -950,6 +959,14 @@ public class MusicService extends Service {
             if (playlistPosition < 0 || playlistPosition >= playlist.size())
                 playlistPosition = 0;
         }
+
+        if (currentMusic != null)
+            Stats.updateOrCreateAsync(this, currentMusic.Path, new JavaEx.ActionT<Stats>() {
+                @Override
+                public void execute(Stats stats) {
+                    stats.Skipped++;
+                }
+            });
 
         prepare(new JavaEx.Action() {
             @Override

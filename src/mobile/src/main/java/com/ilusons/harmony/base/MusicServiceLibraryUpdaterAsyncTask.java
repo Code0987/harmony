@@ -19,6 +19,8 @@ import android.util.Log;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.data.Stats;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 
 import java.io.File;
@@ -188,9 +190,12 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             return;
 
         // Check if correct
-        String ext = path.substring(path.lastIndexOf("."));
-        if (!(Music.isAudio(ext) || Music.isVideo(ext)))
-            return;
+        int index = path.lastIndexOf(".");
+        if (index > 0) {
+            String ext = path.substring(index);
+            if (!(Music.isAudio(ext) || Music.isVideo(ext)))
+                return;
+        }
 
         // Ignore if already present
         for (Music item : data) {
@@ -210,6 +215,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 return;
 
             data.add(m);
+
+            Stats.updateOrCreateAsync(context, m.Path, new JavaEx.ActionT<Stats>() {
+                @Override
+                public void execute(Stats stats) {
+                    stats.TimeAdded = System.currentTimeMillis();
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }

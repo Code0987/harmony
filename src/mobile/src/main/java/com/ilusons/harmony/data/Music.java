@@ -67,6 +67,7 @@ import java.util.Comparator;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
+// TODO: Upgrade database to optimized ones
 public class Music {
 
     // Logger TAG
@@ -680,13 +681,6 @@ public class Music {
     }
 
     public static void saveIndex(Context context, ArrayList<Music> data, String path) {
-        Collections.sort(data, new Comparator<Music>() {
-            @Override
-            public int compare(Music x, Music y) {
-                return x.getText().compareTo(y.getText());
-            }
-        });
-
         Gson serializer = getSerializer();
 
         String json = serializer.toJson(data.toArray(), Music[].class);
@@ -1093,6 +1087,7 @@ public class Music {
 
     private static String[] extensions_video = new String[]{
             ".mp4",
+            ".m4v",
             ".mkv",
             ".avi",
             ".webm",
