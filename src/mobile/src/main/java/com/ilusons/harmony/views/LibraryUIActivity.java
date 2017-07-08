@@ -32,6 +32,7 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -41,8 +42,13 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -57,6 +63,7 @@ import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.data.Stats;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
@@ -70,6 +77,10 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -86,15 +97,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 
     // Logger TAG
     private static final String TAG = LibraryUIActivity.class.getSimpleName();
-
-    public static final String TAG_SPREF_LIBRARY_VIEW_mp3 = SPrefEx.TAG_SPREF + ".library_view_mp3";
-    public static boolean LIBRARY_VIEW_mp3_DEFAULT = true;
-    public static final String TAG_SPREF_LIBRARY_VIEW_m4a = SPrefEx.TAG_SPREF + ".library_view_m4a";
-    public static boolean LIBRARY_VIEW_m4a_DEFAULT = true;
-    public static final String TAG_SPREF_LIBRARY_VIEW_mp4 = SPrefEx.TAG_SPREF + ".library_view_mp4";
-    public static boolean LIBRARY_VIEW_mp4_DEFAULT = true;
-    public static final String TAG_SPREF_LIBRARY_VIEW_flac = SPrefEx.TAG_SPREF + ".library_view_flac";
-    public static boolean LIBRARY_VIEW_flac_DEFAULT = true;
 
     // Request codes
     private static final int REQUEST_FILE_PICK = 4684;
@@ -313,66 +315,6 @@ public class LibraryUIActivity extends BaseUIActivity {
             }
         });
 
-        Switch mp3_switch = (Switch) findViewById(R.id.mp3_switch);
-        mp3_switch.setChecked(SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT));
-        mp3_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SPrefEx.get(LibraryUIActivity.this)
-                        .edit()
-                        .putBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, b)
-                        .apply();
-
-                if (search_view != null)
-                    adapter.filter("" + search_view.getQuery());
-            }
-        });
-
-        Switch m4a_switch = (Switch) findViewById(R.id.m4a_switch);
-        m4a_switch.setChecked(SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT));
-        m4a_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SPrefEx.get(LibraryUIActivity.this)
-                        .edit()
-                        .putBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, b)
-                        .apply();
-
-                if (search_view != null)
-                    adapter.filter("" + search_view.getQuery());
-            }
-        });
-
-        Switch mp4_switch = (Switch) findViewById(R.id.mp4_switch);
-        mp4_switch.setChecked(SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT));
-        mp4_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SPrefEx.get(LibraryUIActivity.this)
-                        .edit()
-                        .putBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, b)
-                        .apply();
-
-                if (search_view != null)
-                    adapter.filter("" + search_view.getQuery());
-            }
-        });
-
-        Switch flac_switch = (Switch) findViewById(R.id.flac_switch);
-        flac_switch.setChecked(SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT));
-        flac_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SPrefEx.get(LibraryUIActivity.this)
-                        .edit()
-                        .putBoolean(TAG_SPREF_LIBRARY_VIEW_flac, b)
-                        .apply();
-
-                if (search_view != null)
-                    adapter.filter("" + search_view.getQuery());
-            }
-        });
-
         search_view = (SearchView) findViewById(R.id.search_view);
 
         search_view.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -390,6 +332,10 @@ public class LibraryUIActivity extends BaseUIActivity {
                 return true;
             }
         });
+
+        // Set collapse items
+        createUIFilters();
+        createUISortMode();
 
         // Set right drawer
         drawer_layout.closeDrawer(GravityCompat.END);
@@ -1153,25 +1099,104 @@ public class LibraryUIActivity extends BaseUIActivity {
                 public void run() {
                     try {
 
-                        dataFiltered.clear();
-
+                        // Filter
+                        ArrayList<Music> items = new ArrayList<>();
                         synchronized (data) {
                             for (Music item : data) {
-                                boolean f = false;
+                                boolean f = true;
 
                                 SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
 
-                                f |= item.Path.toLowerCase().endsWith(".mp3") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp3, LIBRARY_VIEW_mp3_DEFAULT);
-                                f |= item.Path.toLowerCase().endsWith(".m4a") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_m4a, LIBRARY_VIEW_m4a_DEFAULT);
-                                f |= item.Path.toLowerCase().endsWith(".mp4") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_mp4, LIBRARY_VIEW_mp4_DEFAULT);
-                                f |= item.Path.toLowerCase().endsWith(".flac") && spref.getBoolean(TAG_SPREF_LIBRARY_VIEW_flac, LIBRARY_VIEW_flac_DEFAULT);
+                                String ext = item.Path.substring(item.Path.lastIndexOf(".")).toLowerCase();
+                                for (UIFilters uiFilter : getUIFilters(LibraryUIActivity.this)) {
+                                    boolean uif = uiFilter == UIFilters.NoMP3 && ext.equals(".mp3")
+                                            || uiFilter == UIFilters.NoM4A && ext.equals(".m4a")
+                                            || uiFilter == UIFilters.NoFLAC && ext.equals(".flac")
+                                            || uiFilter == UIFilters.NoOGG && ext.equals(".ogg")
+                                            || uiFilter == UIFilters.NoWAV && ext.equals(".wav")
+                                            || uiFilter == UIFilters.NoMP4 && ext.equals(".mp4")
+                                            || uiFilter == UIFilters.NoMKV && ext.equals(".mkv")
+                                            || uiFilter == UIFilters.NoAVI && ext.equals(".avi")
+                                            || uiFilter == UIFilters.NoWEBM && ext.equals(".webm");
+
+                                    if (uif) {
+                                        f = false;
+                                        break;
+                                    }
+                                }
 
                                 f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
 
                                 if (f)
-                                    dataFiltered.add(item);
+                                    items.add(item);
                             }
                         }
+
+                        // Sort
+                        // TODO: This could be heavy on ui, analyze
+                        final UISortMode uiSortMode = getUISortMode(LibraryUIActivity.this);
+                        switch (uiSortMode) {
+                            case Title:
+                                Collections.sort(items, new Comparator<Music>() {
+                                    @Override
+                                    public int compare(Music x, Music y) {
+                                        return x.Title.compareToIgnoreCase(y.Title);
+                                    }
+                                });
+                                break;
+                            case Album:
+                                Collections.sort(items, new Comparator<Music>() {
+                                    @Override
+                                    public int compare(Music x, Music y) {
+                                        return x.Album.compareToIgnoreCase(y.Album);
+                                    }
+                                });
+                                break;
+                            case Artist:
+                                Collections.sort(items, new Comparator<Music>() {
+                                    @Override
+                                    public int compare(Music x, Music y) {
+                                        return x.Artist.compareToIgnoreCase(y.Artist);
+                                    }
+                                });
+                                break;
+                            case Played:
+                                Collections.sort(items, new Comparator<Music>() {
+                                    @Override
+                                    public int compare(Music x, Music y) {
+                                        Stats xs = Stats.get(LibraryUIActivity.this, x.Path);
+                                        Stats ys = Stats.get(LibraryUIActivity.this, y.Path);
+
+                                        if (xs == null || ys == null)
+                                            return 0;
+
+                                        return xs.Played.compareTo(ys.Played);
+                                    }
+                                });
+                                break;
+                            case Added:
+                                Collections.sort(items, new Comparator<Music>() {
+                                    @Override
+                                    public int compare(Music x, Music y) {
+                                        Stats xs = Stats.get(LibraryUIActivity.this, x.Path);
+                                        Stats ys = Stats.get(LibraryUIActivity.this, y.Path);
+
+                                        if (xs == null || ys == null)
+                                            return 0;
+
+                                        return xs.TimeAdded.compareTo(ys.TimeAdded);
+                                    }
+                                });
+                                break;
+
+                            case Default:
+                            default:
+                                break;
+                        }
+
+                        // Apply
+                        dataFiltered.clear();
+                        dataFiltered.addAll(items);
 
                         // Add ads
                         // TODO: Fix ads later
@@ -1367,5 +1392,259 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
 
     }
+
+
+    //region UI filters
+
+    public enum UIFilters {
+        NoMP3("No MP3"),
+        NoM4A("No M4A"),
+        NoFLAC("No FLAC"),
+        NoOGG("No OGG"),
+        NoWAV("No WAV"),
+        NoMP4("No MP4"),
+        NoM4V("No M4V"),
+        NoMKV("No MKV"),
+        NoAVI("No AVI"),
+        NoWEBM("No WEBM"),;
+
+        private String friendlyName;
+
+        UIFilters(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+    }
+
+    public static final String TAG_SPREF_LIBRARY_UI_FILTERS = SPrefEx.TAG_SPREF + ".library_ui_filters";
+
+    public static Set<UIFilters> getUIFilters(Context context) {
+        Set<UIFilters> value = new HashSet<>();
+
+        Set<String> values = new HashSet<>();
+        for (String item : SPrefEx.get(context).getStringSet(TAG_SPREF_LIBRARY_UI_FILTERS, values)) {
+            value.add(UIFilters.valueOf(item));
+        }
+
+        return value;
+    }
+
+    public static void setUIFilters(Context context, Set<UIFilters> value) {
+        Set<String> values = new HashSet<>();
+        for (UIFilters item : value) {
+            values.add(String.valueOf(item));
+        }
+
+        SPrefEx.get(context)
+                .edit()
+                .putStringSet(TAG_SPREF_LIBRARY_UI_FILTERS, values)
+                .apply();
+    }
+
+    private Spinner uiFilters_spinner;
+
+    private void createUIFilters() {
+        uiFilters_spinner = (Spinner) findViewById(R.id.uiFilters_spinner);
+
+        UIFilters[] items = UIFilters.values();
+
+        uiFilters_spinner.setAdapter(new ArrayAdapter<UIFilters>(this, 0, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView v = (CheckedTextView) convertView;
+
+                if (v == null) {
+                    v = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+                    v.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    v.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                    lp.setMargins(px, px, px, px);
+                    v.setLayoutParams(lp);
+                    v.setPadding(px, px, px, px);
+
+                    v.setText("Filters");
+                }
+
+                return v;
+            }
+
+            @Override
+            public View getDropDownView(final int position, View convertView, ViewGroup parent) {
+                RelativeLayout v = (RelativeLayout) convertView;
+
+                if (v == null) {
+                    v = new RelativeLayout(getContext());
+                    v.setLayoutParams(new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    ));
+
+                    Switch sv = new Switch(getContext());
+                    sv.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    sv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                    lp.setMargins(px, px, px, px);
+                    sv.setLayoutParams(lp);
+                    sv.setPadding(px, px, px, px);
+                    sv.setMinWidth((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 160, getResources().getDisplayMetrics()));
+
+                    v.addView(sv);
+
+                    sv.setText(getItem(position).friendlyName);
+                    sv.setChecked(getUIFilters(getContext()).contains(getItem(position)));
+                    sv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                            if (!compoundButton.isShown()) {
+                                return;
+                            }
+
+                            Set<UIFilters> value = getUIFilters(getContext());
+
+                            UIFilters item = getItem(position);
+                            try {
+                                if (b)
+                                    value.add(item);
+                                else
+                                    value.remove(item);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            setUIFilters(getContext(), value);
+
+                            if (search_view != null)
+                                adapter.filter("" + search_view.getQuery());
+                        }
+                    });
+                }
+
+                ((Switch) v.getChildAt(0)).setChecked(getUIFilters(getContext()).contains(getItem(position)));
+
+                return v;
+            }
+        });
+
+        uiFilters_spinner.post(new Runnable() {
+            public void run() {
+                uiFilters_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+            }
+        });
+    }
+
+    //endregion
+
+    //region UI sort mode
+
+    public enum UISortMode {
+        Default("Default"),
+        Title("Title"),
+        Album("Album"),
+        Artist("Artist"),
+        Played("Times Played"),
+        Added("Added On"),;
+
+        private String friendlyName;
+
+        UISortMode(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+    }
+
+    public static final String TAG_SPREF_LIBRARY_UI_SORT_MODE = SPrefEx.TAG_SPREF + ".library_ui_sort_mode";
+
+    public static UISortMode getUISortMode(Context context) {
+        return UISortMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_SORT_MODE, String.valueOf(UISortMode.Default)));
+    }
+
+    public static void setUISortMode(Context context, UISortMode value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_LIBRARY_UI_SORT_MODE, String.valueOf(value))
+                .apply();
+    }
+
+    private Spinner uiSortMode_spinner;
+
+    private void createUISortMode() {
+        uiSortMode_spinner = (Spinner) findViewById(R.id.uiSortMode_spinner);
+
+        UISortMode[] items = UISortMode.values();
+
+        uiSortMode_spinner.setAdapter(new ArrayAdapter<UISortMode>(this, 0, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+                text.setText("Sorting: " + text.getText());
+
+                return text;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) convertView;
+
+                if (text == null) {
+                    text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+                    text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                    lp.setMargins(px, px, px, px);
+                    text.setLayoutParams(lp);
+                    text.setPadding(px, px, px, px);
+                }
+
+                text.setText(getItem(position).friendlyName);
+
+                return text;
+            }
+        });
+
+        int i = 0;
+        UISortMode lastMode = getUISortMode(this);
+        for (; i < items.length; i++)
+            if (items[i] == lastMode)
+                break;
+        uiSortMode_spinner.setSelection(i, true);
+
+        uiSortMode_spinner.post(new Runnable() {
+            public void run() {
+                uiSortMode_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                        setUISortMode(getApplicationContext(), (UISortMode) adapterView.getItemAtPosition(position));
+
+                        if (search_view != null)
+                            adapter.filter("" + search_view.getQuery());
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+            }
+        });
+    }
+
+    //endregion
 
 }
