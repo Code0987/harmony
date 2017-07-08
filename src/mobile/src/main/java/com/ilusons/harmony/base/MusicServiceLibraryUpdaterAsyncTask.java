@@ -187,6 +187,11 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         if (isCancelled())
             return;
 
+        // Check if correct
+        String ext = path.substring(path.lastIndexOf("."));
+        if (!(Music.isAudio(ext) || Music.isVideo(ext)))
+            return;
+
         // Ignore if already present
         for (Music item : data) {
             if ((item).Path.equals(path))
@@ -200,6 +205,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             if (!(m.hasAudio() || m.hasVideo()))
                 return;
 
+            // Check constraints
             if (m.Length > 0 && getScanConstraintMinDuration(context) > m.Length)
                 return;
 
