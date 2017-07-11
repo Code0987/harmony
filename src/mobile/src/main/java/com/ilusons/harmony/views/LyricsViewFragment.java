@@ -22,6 +22,7 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -139,7 +140,7 @@ public class LyricsViewFragment extends Fragment {
         // Check if need to download or not
         if (content == null) {
             // If download required, postpone function to later
-            Music.getLyricsOrDownload(getActivity().getApplicationContext(), music, new JavaEx.ActionT<String>() {
+            Music.getLyricsOrDownload(new WeakReference<Context>(getActivity()), music, new JavaEx.ActionT<String>() {
                 @Override
                 public void execute(String s) {
                     if (getActivity() == null || getActivity().getApplicationContext() == null)

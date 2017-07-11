@@ -1099,6 +1099,13 @@ public class LibraryUIActivity extends BaseUIActivity {
                 public void run() {
                     try {
 
+                        (LibraryUIActivity.this).runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                swipeRefreshLayout.setRefreshing(true);
+                            }
+                        });
+
                         // Filter
                         ArrayList<Music> items = new ArrayList<>();
                         synchronized (data) {
@@ -1167,12 +1174,17 @@ public class LibraryUIActivity extends BaseUIActivity {
                                         Stats xs = Stats.get(LibraryUIActivity.this, x.Path);
                                         Stats ys = Stats.get(LibraryUIActivity.this, y.Path);
 
-                                        if (xs == null || ys == null)
+                                        if (xs == null && ys == null)
                                             return 0;
+                                        if (xs == null)
+                                            return -1;
+                                        if (ys == null)
+                                            return 1;
 
                                         return xs.Played.compareTo(ys.Played);
                                     }
                                 });
+                                Collections.reverse(items);
                                 break;
                             case Added:
                                 Collections.sort(items, new Comparator<Music>() {
@@ -1181,12 +1193,17 @@ public class LibraryUIActivity extends BaseUIActivity {
                                         Stats xs = Stats.get(LibraryUIActivity.this, x.Path);
                                         Stats ys = Stats.get(LibraryUIActivity.this, y.Path);
 
-                                        if (xs == null || ys == null)
+                                        if (xs == null && ys == null)
                                             return 0;
+                                        if (xs == null)
+                                            return -1;
+                                        if (ys == null)
+                                            return 1;
 
                                         return xs.TimeAdded.compareTo(ys.TimeAdded);
                                     }
                                 });
+                                Collections.reverse(items);
                                 break;
 
                             case Default:
@@ -1214,6 +1231,8 @@ public class LibraryUIActivity extends BaseUIActivity {
                         (LibraryUIActivity.this).runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                swipeRefreshLayout.setRefreshing(false);
+
                                 notifyDataSetChanged();
                             }
                         });

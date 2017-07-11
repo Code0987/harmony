@@ -9,8 +9,11 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 import com.ilusons.harmony.base.MusicService;
+import com.squareup.leakcanary.LeakCanary;
 
 import io.fabric.sdk.android.Fabric;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import jonathanfinerty.once.Once;
 
 public class App extends Application {
@@ -24,6 +27,15 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
+        // Memory leak
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            // This process is dedicated to LeakCanary for heap analysis.
+            // You should not init your app in this process.
+            return;
+        }
+        LeakCanary.install(this);
+
+        // WTFs
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread thread, Throwable e) {
@@ -47,7 +59,9 @@ public class App extends Application {
             Fabric.with(fabric);
         }
 
-        // Tools
+        // DB
+        Realm.init(this);
+
         Once.initialise(this);
 
         // Start scan

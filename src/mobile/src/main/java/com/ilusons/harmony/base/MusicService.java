@@ -670,6 +670,14 @@ public class MusicService extends Service {
         if (!canPlay())
             return;
 
+        try {
+            // HACK: Calling the devil
+            System.gc();
+            Runtime.getRuntime().gc();
+        } catch (Exception e) {
+            Log.wtf(TAG, e);
+        }
+
         synchronized (this) {
             String path = playlist.get(playlistPosition);
 
@@ -720,7 +728,11 @@ public class MusicService extends Service {
                 public boolean onError(IBasicMediaPlayer mediaPlayer, int what, int extra) {
                     Log.w(TAG, "onError\nwhat = " + what + "\nextra = " + extra);
 
-                    Toast.makeText(MusicService.this, "There was a problem while playing " + currentMusic.getText() + "!", Toast.LENGTH_LONG).show();
+                    try {
+                        Toast.makeText(MusicService.this, "There was a problem while playing [" + getCurrentPlaylistItem() + "]!", Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
                     nextSmart(true);
 
@@ -1066,47 +1078,51 @@ public class MusicService extends Service {
     }
 
     private void updateNotification() {
-        if (builder == null)
-            return;
+        try {
+            if (builder == null)
+                return;
 
-        if (currentMusic == null)
-            return;
+            if (currentMusic == null)
+                return;
 
-        Bitmap cover = currentMusic.getCover(this, 128);
-        if (cover == null)
-            cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+            Bitmap cover = currentMusic.getCover(this, 128);
+            if (cover == null)
+                cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 
-        customNotificationView.setImageViewBitmap(R.id.cover, cover);
-        customNotificationView.setTextViewText(R.id.title, currentMusic.Title);
-        customNotificationView.setTextViewText(R.id.album, currentMusic.Album);
-        customNotificationView.setTextViewText(R.id.artist, currentMusic.Artist);
-        customNotificationView.setTextViewText(R.id.info, (getPlaylistPosition() + 1) + "/" + getPlaylist().size());
-        customNotificationView.setImageViewResource(R.id.play_pause, isPlaying()
-                ? android.R.drawable.ic_media_pause
-                : android.R.drawable.ic_media_play);
+            customNotificationView.setImageViewBitmap(R.id.cover, cover);
+            customNotificationView.setTextViewText(R.id.title, currentMusic.Title);
+            customNotificationView.setTextViewText(R.id.album, currentMusic.Album);
+            customNotificationView.setTextViewText(R.id.artist, currentMusic.Artist);
+            customNotificationView.setTextViewText(R.id.info, (getPlaylistPosition() + 1) + "/" + getPlaylist().size());
+            customNotificationView.setImageViewResource(R.id.play_pause, isPlaying()
+                    ? android.R.drawable.ic_media_pause
+                    : android.R.drawable.ic_media_play);
 
-        customNotificationViewS.setImageViewBitmap(R.id.cover, cover);
-        customNotificationViewS.setTextViewText(R.id.title, currentMusic.Title);
-        customNotificationViewS.setTextViewText(R.id.album, currentMusic.Album);
-        customNotificationViewS.setTextViewText(R.id.artist, currentMusic.Artist);
-        customNotificationViewS.setImageViewResource(R.id.play_pause, isPlaying()
-                ? android.R.drawable.ic_media_pause
-                : android.R.drawable.ic_media_play);
+            customNotificationViewS.setImageViewBitmap(R.id.cover, cover);
+            customNotificationViewS.setTextViewText(R.id.title, currentMusic.Title);
+            customNotificationViewS.setTextViewText(R.id.album, currentMusic.Album);
+            customNotificationViewS.setTextViewText(R.id.artist, currentMusic.Artist);
+            customNotificationViewS.setImageViewResource(R.id.play_pause, isPlaying()
+                    ? android.R.drawable.ic_media_pause
+                    : android.R.drawable.ic_media_play);
 
 
-        builder.setContentTitle(currentMusic.Title)
-                .setContentText(currentMusic.Album)
-                .setSubText(currentMusic.Artist)
-                .setLargeIcon(cover)
-                .setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
-                .setTicker(currentMusic.getText());
+            builder.setContentTitle(currentMusic.Title)
+                    .setContentText(currentMusic.Album)
+                    .setSubText(currentMusic.Artist)
+                    .setLargeIcon(cover)
+                    .setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
+                    .setTicker(currentMusic.getText());
 
-        Notification currentNotification = builder.build();
+            Notification currentNotification = builder.build();
 
-        if (isPlaying()) {
-            startForeground(NOTIFICATION_ID, currentNotification);
-        } else {
-            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, currentNotification);
+            if (isPlaying()) {
+                startForeground(NOTIFICATION_ID, currentNotification);
+            } else {
+                NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, currentNotification);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, e);
         }
     }
 
@@ -1179,9 +1195,6 @@ public class MusicService extends Service {
         // Update notification
         updateNotification();
 
-        // HACK: Calling the devil
-        System.gc();
-        Runtime.getRuntime().gc();
     }
 
     private IntentFilter getIntentFilter() {

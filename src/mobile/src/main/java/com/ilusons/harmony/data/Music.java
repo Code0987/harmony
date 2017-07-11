@@ -55,6 +55,7 @@ import org.jsoup.nodes.Document;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -62,10 +63,15 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
+
+import io.realm.DynamicRealm;
+import io.realm.FieldAttribute;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
+import io.realm.RealmSchema;
 
 // TODO: Upgrade database to optimized ones
 public class Music {
@@ -165,7 +171,7 @@ public class Music {
 
     private static AsyncTask<Object, Object, Bitmap> getCoverOrDownloadTask = null;
 
-    public static void getCoverOrDownload(final Context context, final int size, final Music data, final JavaEx.ActionT<Bitmap> onResult) {
+    public static void getCoverOrDownload(final WeakReference<Context> contextRef, final int size, final Music data, final JavaEx.ActionT<Bitmap> onResult) {
         if (getCoverOrDownloadTask != null) {
             getCoverOrDownloadTask.cancel(true);
             try {
@@ -178,7 +184,7 @@ public class Music {
         getCoverOrDownloadTask = (new AsyncTask<Object, Object, Bitmap>() {
             @Override
             protected void onPostExecute(Bitmap bitmap) {
-                if (context == null)
+                if (contextRef.get() == null)
                     return;
 
                 if (onResult != null)
@@ -188,13 +194,13 @@ public class Music {
             @Override
             protected Bitmap doInBackground(Object... objects) {
                 try {
-                    if (isCancelled())
+                    if (isCancelled() || contextRef.get() == null)
                         throw new CancellationException();
 
-                    Bitmap result = data.getCover(context, size);
+                    Bitmap result = data.getCover(contextRef.get(), size);
 
                     // File
-                    File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, data.Path);
+                    File file = IOEx.getDiskCacheFile(contextRef.get(), KEY_CACHE_DIR_COVER, data.Path);
 
                     if (isCancelled())
                         throw new CancellationException();
@@ -251,10 +257,10 @@ public class Music {
                             result = BitmapFactory.decodeFile(file.getAbsolutePath());
 
                         // Refresh once more
-                        if (result == null) {
-                            data.refresh(context);
+                        if (result == null && contextRef.get() != null) {
+                            data.refresh(contextRef.get());
 
-                            result = data.getCover(context, size);
+                            result = data.getCover(contextRef.get(), size);
                         }
 
                         // Resample
@@ -331,7 +337,7 @@ public class Music {
 
     private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
 
-    public static void getLyricsOrDownload(final Context context, final Music data, final JavaEx.ActionT<String> onResult) {
+    public static void getLyricsOrDownload(final WeakReference<Context> contextRef, final Music data, final JavaEx.ActionT<String> onResult) {
         if (getLyricsOrDownloadTask != null) {
             getLyricsOrDownloadTask.cancel(true);
             try {
@@ -344,7 +350,7 @@ public class Music {
         getLyricsOrDownloadTask = (new AsyncTask<Void, Void, String>() {
             @Override
             protected void onPostExecute(String result) {
-                if (context == null)
+                if (contextRef.get() == null)
                     return;
 
                 if (onResult != null)
@@ -354,16 +360,16 @@ public class Music {
             @Override
             protected String doInBackground(Void... Voids) {
                 try {
-                    String result = data.getLyrics(context);
+                    String result = data.getLyrics(contextRef.get());
 
                     if (!TextUtils.isEmpty(result))
                         return result;
 
                     // Refresh once more
                     if (result == null) {
-                        data.refresh(context);
+                        data.refresh(contextRef.get());
 
-                        result = data.getLyrics(context);
+                        result = data.getLyrics(contextRef.get());
 
                         if (!TextUtils.isEmpty(result))
                             return result;
@@ -381,7 +387,7 @@ public class Music {
                         if (isCancelled())
                             throw new CancellationException();
 
-                        data.putLyrics(context, result);
+                        data.putLyrics(contextRef.get(), result);
                     } catch (Exception e) {
                         Log.w(TAG, e);
                     }
@@ -389,7 +395,7 @@ public class Music {
                     if (TextUtils.isEmpty(result)) {
                         result = "";
 
-                        data.putLyrics(context, "");
+                        data.putLyrics(contextRef.get(), "");
                     }
 
                     return result;
@@ -582,7 +588,7 @@ public class Music {
         // Metadata from tags
         if (!fastMode && !path.toLowerCase().startsWith("content")) {
             File file = new File(path);
-            if (file.length() < 124 * 1024 * 1024)
+            if (file.length() < 100 * 1024 * 1024)
                 try {
                     AudioFile audioFile = AudioFileIO.read(file);
 
@@ -622,6 +628,8 @@ public class Music {
                     if (!TextUtils.isEmpty(lyrics))
                         data.putLyrics(context, lyrics);
 
+                } catch (OutOfMemoryError e) {
+                    Log.wtf(TAG, "OOM", e);
                 } catch (Exception e) {
                     Log.w(TAG, "metadata from tags", e);
                     Log.w(TAG, "file\n" + file);
@@ -1111,6 +1119,25 @@ public class Music {
             return false;
         }
     }
+    //endregion
+
+    //region DB
+
+    public static Realm getData() {
+        try {
+            RealmConfiguration config = new RealmConfiguration.Builder()
+                    .name("music.realm")
+                    .deleteRealmIfMigrationNeeded()
+                    .build();
+
+            return Realm.getInstance(config);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     //endregion
 
 }
