@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.anthonycr.grant.PermissionsManager;
@@ -12,6 +13,9 @@ import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 
 public class SplashActivity extends Activity {
+
+    // Logger TAG
+    private static final String TAG = SplashActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +56,11 @@ public class SplashActivity extends Activity {
 
                     @Override
                     public void onDenied(String permission) {
-                        Toast.makeText(SplashActivity.this, "Please grant all the required permissions :(", Toast.LENGTH_LONG).show();
+                        try {
+                            Toast.makeText(SplashActivity.this, "Please grant all the required permissions :(", Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                            Log.wtf(TAG, e);
+                        }
                     }
                 });
     }

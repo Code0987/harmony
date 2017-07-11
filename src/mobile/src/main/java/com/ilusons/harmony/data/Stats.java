@@ -34,7 +34,7 @@ public class Stats {
     public Long LastPlayed = -1L;
     public Integer Skipped = 0;
     public Long TimeAdded = -1L;
-    public String Mood = null;
+    public String Mood = "";
 
     //region IO
 
@@ -98,12 +98,15 @@ public class Stats {
         ArrayList<Stats> data = loadAll(context);
         Stats current = null;
         for (Stats stats : data) {
-            if (stats.Path.equalsIgnoreCase(path))
+            if (stats.Path.equalsIgnoreCase(path)) {
                 current = stats;
+                break;
+            }
         }
         if (current == null) {
             current = new Stats();
             current.Path = path;
+            data.add(current);
         }
         action.execute(current);
         saveAll(context, data);
@@ -126,8 +129,10 @@ public class Stats {
         ArrayList<Stats> data = loadAll(context);
         Stats current = null;
         for (Stats stats : data) {
-            if (stats.Path.equalsIgnoreCase(path))
+            if (stats.Path.equalsIgnoreCase(path)) {
                 current = stats;
+                break;
+            }
         }
         return current;
     }

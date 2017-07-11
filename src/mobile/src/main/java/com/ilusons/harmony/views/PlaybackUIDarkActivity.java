@@ -1,6 +1,7 @@
 package com.ilusons.harmony.views;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -40,6 +41,7 @@ import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
+import java.lang.ref.WeakReference;
 import java.util.UUID;
 
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
@@ -591,13 +593,15 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     public void OnMusicServiceOpen(String uri) {
         super.OnMusicServiceOpen(uri);
 
+        toggleUI(false);
+
         resetForUriIfNeeded(uri);
     }
 
     private boolean isUIHidden = false;
 
     private void toggleUI(boolean hide) {
-        if (hide) {
+        if (hide && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             controls_layout.animate().alpha(0).setDuration(500).start();
             lyrics_layout.animate().alpha(0).setDuration(500).start();
             seekBar.animate().alpha(0).setDuration(500).start();
@@ -641,7 +645,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                 loadingView.smoothToShow();
 
-                Music.getCoverOrDownload(this, cover.getWidth(), music, new JavaEx.ActionT<Bitmap>() {
+                Music.getCoverOrDownload(new WeakReference<Context>(this), cover.getWidth(), music, new JavaEx.ActionT<Bitmap>() {
                     @Override
                     public void execute(Bitmap bitmap) {
                         try {

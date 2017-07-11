@@ -44,6 +44,8 @@ public class AudioVFXViewFragment extends Fragment {
 
     private JavaEx.Action pendingActionForView = null;
 
+    private boolean hasPermissions = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.audio_vfx_view, container, false);
@@ -65,6 +67,7 @@ public class AudioVFXViewFragment extends Fragment {
                 new PermissionsResultAction() {
                     @Override
                     public void onGranted() {
+                        hasPermissions = true;
 
                         if (pendingActionForView != null)
                             pendingActionForView.execute();
@@ -73,10 +76,7 @@ public class AudioVFXViewFragment extends Fragment {
 
                     @Override
                     public void onDenied(String permission) {
-
-                        if (pendingActionForView != null)
-                            pendingActionForView.execute();
-
+                        hasPermissions = false;
                     }
                 });
 
@@ -279,7 +279,7 @@ public class AudioVFXViewFragment extends Fragment {
         if (musicService == null)
             return;
 
-        if (!isAdded() || !isVisible() || root == null) {
+        if (!isAdded() || !isVisible() || root == null || !hasPermissions) {
             pendingActionForView = new JavaEx.Action() {
                 @Override
                 public void execute() {

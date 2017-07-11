@@ -1,7 +1,4 @@
 ﻿✔️ Work in progress, only for testing and feedback.
-✔ Added support for more audio and video formats
-✔️ Added new filters
-✔️ Added new sorting functions
-✔️ Added playback stats support 📈
-✔️ Fixed major bugs
 ✔️ No more ads 🎉
+✔️ Fixed bugs
+✔️ Updated playback stats 📈
