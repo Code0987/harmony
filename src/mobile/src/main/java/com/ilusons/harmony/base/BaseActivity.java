@@ -94,7 +94,9 @@ public class BaseActivity extends AppCompatActivity {
 
     }
 
-    public MusicService getMusicService() {
+    public MusicService getMusicService() throws NullPointerException {
+        if (musicService == null)
+            throw new NullPointerException();
         return musicService;
     }
 

@@ -4,6 +4,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,6 +28,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -63,7 +65,6 @@ import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.data.Stats;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
@@ -88,6 +89,7 @@ import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
+import io.realm.Realm;
 import jonathanfinerty.once.Once;
 
 // TODO: See below
@@ -113,6 +115,57 @@ public class LibraryUIActivity extends BaseUIActivity {
     private View root;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private final SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+        @Override
+        public void onRefresh() {
+            if (refreshTask != null && !refreshTask.isCancelled()) {
+                refreshTask.cancel(true);
+
+                try {
+                    refreshTask.get();
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
+            }
+
+            refreshTask = (new AsyncTask<Void, Void, Collection<Music>>() {
+                @Override
+                protected Collection<Music> doInBackground(Void... voids) {
+                    if (getMusicService() == null)
+                        return null;
+
+                    return Music.loadCurrent();
+                }
+
+                @Override
+                protected void onPreExecute() {
+                    swipeRefreshLayout.setRefreshing(true);
+                }
+
+                @Override
+                protected void onPostExecute(Collection<Music> data) {
+                    if (data != null)
+                        adapter.setData(data);
+
+                    swipeRefreshLayout.setRefreshing(false);
+
+                    refreshTask = null;
+                }
+
+                @Override
+                protected void onCancelled() {
+                    super.onCancelled();
+
+                    swipeRefreshLayout.setRefreshing(false);
+
+                    refreshTask = null;
+                }
+            });
+
+            refreshTask.execute();
+        }
+    };
+
     private SearchView search_view;
 
     private AsyncTask<Void, Void, Collection<Music>> refreshTask = null;
@@ -180,53 +233,23 @@ public class LibraryUIActivity extends BaseUIActivity {
         recyclerView.setItemViewCacheSize(11);
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this) {
+            @Override
+            public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+                try {
+                    super.onLayoutChildren(recycler, state);
+                } catch (IndexOutOfBoundsException e) {
+                    Log.w(TAG, e);
+                }
+            }
+        });
 
         adapter = new RecyclerViewAdapter();
         recyclerView.setAdapter(adapter);
 
         // Set swipe to refresh
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-        final SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                if (refreshTask != null && !refreshTask.isCancelled()) {
-                    refreshTask.cancel(true);
-
-                    try {
-                        refreshTask.get();
-                    } catch (Exception e) {
-                        Log.w(TAG, e);
-                    }
-                }
-
-                refreshTask = (new AsyncTask<Void, Void, Collection<Music>>() {
-                    @Override
-                    protected Collection<Music> doInBackground(Void... voids) {
-                        return Music.loadCurrent(LibraryUIActivity.this);
-                    }
-
-                    @Override
-                    protected void onPreExecute() {
-                        swipeRefreshLayout.setRefreshing(true);
-                    }
-
-                    @Override
-                    protected void onPostExecute(Collection<Music> data) {
-                        adapter.setData(data);
-
-                        swipeRefreshLayout.setRefreshing(false);
-
-                        refreshTask = null;
-                    }
-                });
-
-                refreshTask.execute();
-            }
-        };
         swipeRefreshLayout.setOnRefreshListener(swipeRefreshLayoutOnRefreshListener);
-
-        // Load data
-        swipeRefreshLayoutOnRefreshListener.onRefresh();
 
         // Set search
 
@@ -423,6 +446,11 @@ public class LibraryUIActivity extends BaseUIActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
     public void onBackPressed() {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START);
@@ -491,6 +519,13 @@ public class LibraryUIActivity extends BaseUIActivity {
     }
 
     @Override
+    protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
+        super.OnMusicServiceChanged(className, musicService, isBound);
+
+        swipeRefreshLayoutOnRefreshListener.onRefresh();
+    }
+
+    @Override
     public void OnMusicServicePlay() {
         super.OnMusicServicePlay();
     }
@@ -521,7 +556,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     @Override
     public void OnMusicServiceLibraryUpdated() {
         if (adapter != null)
-            adapter.setData(Music.loadCurrent(LibraryUIActivity.this));
+            adapter.setData(Music.loadCurrent());
 
         swipeRefreshLayout.setRefreshing(false);
 
@@ -708,6 +743,9 @@ public class LibraryUIActivity extends BaseUIActivity {
     }
 
     private void setCurrent() {
+        if (getMusicService() == null)
+            return;
+
         ArrayList<Music> data = new ArrayList<Music>();
 
         for (Object o : adapter.dataFiltered) {
@@ -792,13 +830,15 @@ public class LibraryUIActivity extends BaseUIActivity {
             protected Void doInBackground(Void... voids) {
                 info("Do not refresh until library is fully loaded!", true);
 
-                final ArrayList<Music> data = Music.loadAll(LibraryUIActivity.this);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.setData(data);
-                    }
-                });
+                if (getMusicService() != null) {
+                    final ArrayList<Music> data = Music.loadAll();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.setData(data);
+                        }
+                    });
+                }
 
                 return null;
             }
@@ -845,23 +885,26 @@ public class LibraryUIActivity extends BaseUIActivity {
 
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    info("Do not refresh until this playlist is fully loaded!", true);
+                    if (getMusicService() != null) {
+                        info("Do not refresh until this playlist is fully loaded!", true);
 
-                    final ArrayList<Music> data = new ArrayList<>();
-                    final JavaEx.ActionT<Music> action = new JavaEx.ActionT<Music>() {
-                        @Override
-                        public void execute(final Music music) {
-                            data.add(music);
+                        final ArrayList<Music> data = new ArrayList<>();
+                        final JavaEx.ActionT<Music> action = new JavaEx.ActionT<Music>() {
+                            @Override
+                            public void execute(final Music music) {
+                                data.add(music);
+                            }
+                        };
+                        try (Realm musicRealm = Music.getDB()) {
+                            Music.getAllMusicForIds(musicRealm, LibraryUIActivity.this, audioIds, action);
                         }
-                    };
-                    Music.getAllMusicForIds(LibraryUIActivity.this, audioIds, action);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.setData(data);
-                        }
-                    });
-
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.setData(data);
+                            }
+                        });
+                    }
                     return null;
                 }
             });
@@ -1171,17 +1214,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                                 Collections.sort(items, new Comparator<Music>() {
                                     @Override
                                     public int compare(Music x, Music y) {
-                                        Stats xs = Stats.get(LibraryUIActivity.this, x.Path);
-                                        Stats ys = Stats.get(LibraryUIActivity.this, y.Path);
-
-                                        if (xs == null && ys == null)
-                                            return 0;
-                                        if (xs == null)
-                                            return -1;
-                                        if (ys == null)
-                                            return 1;
-
-                                        return xs.Played.compareTo(ys.Played);
+                                        return x.Played.compareTo(y.Played);
                                     }
                                 });
                                 Collections.reverse(items);
@@ -1190,17 +1223,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                                 Collections.sort(items, new Comparator<Music>() {
                                     @Override
                                     public int compare(Music x, Music y) {
-                                        Stats xs = Stats.get(LibraryUIActivity.this, x.Path);
-                                        Stats ys = Stats.get(LibraryUIActivity.this, y.Path);
-
-                                        if (xs == null && ys == null)
-                                            return 0;
-                                        if (xs == null)
-                                            return -1;
-                                        if (ys == null)
-                                            return 1;
-
-                                        return xs.TimeAdded.compareTo(ys.TimeAdded);
+                                        return x.TimeAdded.compareTo(y.TimeAdded);
                                     }
                                 });
                                 Collections.reverse(items);

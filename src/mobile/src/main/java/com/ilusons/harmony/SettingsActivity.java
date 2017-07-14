@@ -597,13 +597,17 @@ public class SettingsActivity extends BaseActivity {
     public void onDestroy() {
         super.onDestroy();
 
-        if (iabBroadcastReceiver != null) {
-            unregisterReceiver(iabBroadcastReceiver);
-        }
+        try {
+            if (iabBroadcastReceiver != null) {
+                unregisterReceiver(iabBroadcastReceiver);
+            }
 
-        if (iabHelper != null) {
-            iabHelper.disposeWhenFinished();
-            iabHelper = null;
+            if (iabHelper != null) {
+                iabHelper.disposeWhenFinished();
+                iabHelper = null;
+            }
+        } catch (Exception e) {
+            Log.w(TAG, e);
         }
     }
 

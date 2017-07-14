@@ -746,8 +746,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                             .commit();
                 }
 
-                if (getMusicService() != null)
-                    seekBar.setMax(getMusicService().getDuration());
+                seekBar.setMax(getMusicService().getDuration());
 
                 setupProgressHandler();
             }
@@ -756,12 +755,10 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             Log.e(TAG, "open file", e);
         }
 
-        if (getMusicService() != null) {
-            if (getMusicService().isPlaying())
-                OnMusicServicePlay();
-            else
-                OnMusicServicePause();
-        }
+        if (getMusicService().isPlaying())
+            OnMusicServicePlay();
+        else
+            OnMusicServicePause();
 
     }
 

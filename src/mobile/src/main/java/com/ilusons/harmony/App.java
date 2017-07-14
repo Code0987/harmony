@@ -9,6 +9,7 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.ref.RealmEx;
 import com.squareup.leakcanary.LeakCanary;
 
 import io.fabric.sdk.android.Fabric;
@@ -60,7 +61,7 @@ public class App extends Application {
         }
 
         // DB
-        Realm.init(this);
+        RealmEx.init(this);
 
         Once.initialise(this);
 

@@ -20,27 +20,15 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
-import com.ilusons.harmony.ref.m3u.M3UFile;
-import com.ilusons.harmony.ref.m3u.M3UItem;
-import com.ilusons.harmony.ref.m3u.M3UToolSet;
 
 import org.apache.commons.io.FileUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -56,25 +44,23 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.DynamicRealm;
-import io.realm.FieldAttribute;
+import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmMigration;
-import io.realm.RealmSchema;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.PrimaryKey;
 
 // TODO: Upgrade database to optimized ones
-public class Music {
+public class Music extends RealmObject {
 
     // Logger TAG
     private static final String TAG = Music.class.getSimpleName();
@@ -82,11 +68,21 @@ public class Music {
     public static final String KEY_CACHE_DIR_COVER = "covers";
     public static final String KEY_CACHE_DIR_LYRICS = "lyrics";
 
+    // Basic
     public String Title = "";
     public String Artist = "";
     public String Album = "";
     public Integer Length = -1;
+    @PrimaryKey
     public String Path;
+    public String Playlists = "";
+
+    // Stats
+    public Integer Played = 0;
+    public Long LastPlayed = -1L;
+    public Integer Skipped = 0;
+    public Long TimeAdded = -1L;
+    public String Mood = "";
 
     @Override
     public boolean equals(Object obj) {
@@ -99,6 +95,20 @@ public class Music {
             return true;
 
         return false;
+    }
+
+    public void addPlaylist(String playlist) {
+        if (!Playlists.contains(playlist))
+            Playlists += playlist;
+    }
+
+    public void removePlaylist(String playlist) {
+        if (Playlists.contains(playlist))
+            Playlists = Playlists.replace(playlist, "");
+    }
+
+    public boolean isInPlaylist(String playlist) {
+        return Playlists.contains(playlist);
     }
 
     public String getText() {
@@ -419,383 +429,348 @@ public class Music {
         }
     }
 
-    public static Music decode(Context context, String path, boolean fastMode, Music data) {
-        if (data == null)
-            data = new Music();
+    //region Decoding
 
-        // HACK: Calling the devil
-        System.gc();
-        Runtime.getRuntime().gc();
+    public static Music decode(Realm realm, Context context, String path, boolean fastMode, Music oldData) {
+        Music data = oldData;
 
-        // Metadata from system
+        realm.beginTransaction();
+        try {
+            // Get data
+            if (data == null) {
+                RealmResults<Music> realmResults = get(realm, path);
+                if (!(realmResults == null || realmResults.size() == 0))
+                    data = realmResults.get(0);
+                else
+                    data = new Music();
 
-        if (Looper.myLooper() == null) try {
-            Looper.prepare(); // HACK
-        } catch (Exception e) {
-            Log.w(TAG, e);
-        }
+                data.TimeAdded = System.currentTimeMillis();
+            }
 
-        if (Looper.myLooper() != null) {
+            // HACK: Calling the devil
+            System.gc();
+            Runtime.getRuntime().gc();
 
-            if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("audio")) {
-                Uri contentUri = Uri.parse(path);
-                Cursor cursor = null;
+            // Metadata from system
 
-                try {
-                    String[] projection = {
-                            MediaStore.Audio.Media.DATA,
-                            MediaStore.Audio.Media.IS_MUSIC,
-                            MediaStore.Audio.Media.TITLE,
-                            MediaStore.Audio.Media.ARTIST,
-                            MediaStore.Audio.Media.ALBUM,
-                            MediaStore.Audio.Media.DURATION
-                    };
+            if (Looper.myLooper() == null) try {
+                Looper.prepare(); // HACK
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
 
-                    CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
+            if (Looper.myLooper() != null) {
 
-                    cursor = loader.loadInBackground();
+                if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("audio")) {
+                    Uri contentUri = Uri.parse(path);
+                    Cursor cursor = null;
 
-                    cursor.moveToFirst();
-
-                    int isMusic = 1;
                     try {
-                        isMusic = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC));
+                        String[] projection = {
+                                MediaStore.Audio.Media.DATA,
+                                MediaStore.Audio.Media.IS_MUSIC,
+                                MediaStore.Audio.Media.TITLE,
+                                MediaStore.Audio.Media.ARTIST,
+                                MediaStore.Audio.Media.ALBUM,
+                                MediaStore.Audio.Media.DURATION
+                        };
+
+                        CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
+
+                        cursor = loader.loadInBackground();
+
+                        cursor.moveToFirst();
+
+                        int isMusic = 1;
+                        try {
+                            isMusic = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC));
+                        } catch (Exception e) {
+                            // Eat
+                        }
+
+                        if (isMusic != 0) {
+
+                            try {
+                                data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+                            } catch (Exception e) {
+                                // Eat
+                            }
+                            try {
+                                data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+                            } catch (Exception e) {
+                                // Eat
+                            }
+                            try {
+                                data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+                            } catch (Exception e) {
+                                // Eat
+                            }
+                            try {
+                                data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
+                            } catch (Exception e) {
+                                // Eat
+                            }
+
+                            path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
+
+                            data.Path = path;
+
+                            MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                            try {
+                                mmr.setDataSource(path);
+
+                                byte[] cover = mmr.getEmbeddedPicture();
+                                if (cover != null && cover.length > 0) {
+                                    Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                                    if (bmp != null)
+                                        putCover(context, data, bmp);
+                                }
+                            } catch (Exception e) {
+                                Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+                            } finally {
+                                mmr.release();
+                            }
+
+                        }
                     } catch (Exception e) {
-                        // Eat
+                        Log.w(TAG, "metadata from system", e);
+                    } finally {
+                        if (cursor != null)
+                            cursor.close();
                     }
+                }
 
-                    if (isMusic != 0) {
+                if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("video")) {
+                    Uri contentUri = Uri.parse(path);
+                    Cursor cursor = null;
+
+                    try {
+                        String[] projection = {
+                                MediaStore.Video.Media.DATA,
+                                MediaStore.Video.Media.TITLE,
+                                MediaStore.Video.Media.ARTIST,
+                                MediaStore.Video.Media.ALBUM,
+                                MediaStore.Video.Media.DURATION
+                        };
+
+                        CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
+
+                        cursor = loader.loadInBackground();
+
+                        cursor.moveToFirst();
 
                         try {
-                            data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+                            data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE));
                         } catch (Exception e) {
                             // Eat
                         }
                         try {
-                            data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+                            data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ARTIST));
                         } catch (Exception e) {
                             // Eat
                         }
                         try {
-                            data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+                            data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ALBUM));
                         } catch (Exception e) {
                             // Eat
                         }
                         try {
-                            data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
+                            data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
                         } catch (Exception e) {
                             // Eat
                         }
 
-                        path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
+                        path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
 
                         data.Path = path;
 
-                        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                        try {
-                            mmr.setDataSource(path);
+                        if (!fastMode) {
+                            MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                            try {
+                                mmr.setDataSource(path);
 
-                            byte[] cover = mmr.getEmbeddedPicture();
-                            if (cover != null && cover.length > 0) {
-                                Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+                                Bitmap bmp = mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
                                 if (bmp != null)
                                     putCover(context, data, bmp);
+                            } catch (Exception e) {
+                                Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+                            } finally {
+                                mmr.release();
                             }
-                        } catch (Exception e) {
-                            Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
-                        } finally {
-                            mmr.release();
                         }
 
+
+                    } catch (Exception e) {
+                        Log.w(TAG, "metadata from system", e);
+                    } finally {
+                        if (cursor != null)
+                            cursor.close();
                     }
-                } catch (Exception e) {
-                    Log.w(TAG, "metadata from system", e);
-                } finally {
-                    if (cursor != null)
-                        cursor.close();
                 }
             }
 
-            if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("video")) {
-                Uri contentUri = Uri.parse(path);
-                Cursor cursor = null;
-
-                try {
-                    String[] projection = {
-                            MediaStore.Video.Media.DATA,
-                            MediaStore.Video.Media.TITLE,
-                            MediaStore.Video.Media.ARTIST,
-                            MediaStore.Video.Media.ALBUM,
-                            MediaStore.Video.Media.DURATION
-                    };
-
-                    CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
-
-                    cursor = loader.loadInBackground();
-
-                    cursor.moveToFirst();
-
+            // Metadata from tags
+            if (!fastMode && !path.toLowerCase().startsWith("content")) {
+                File file = new File(path);
+                if (file.length() < 100 * 1024 * 1024)
                     try {
-                        data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE));
-                    } catch (Exception e) {
-                        // Eat
-                    }
-                    try {
-                        data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ARTIST));
-                    } catch (Exception e) {
-                        // Eat
-                    }
-                    try {
-                        data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ALBUM));
-                    } catch (Exception e) {
-                        // Eat
-                    }
-                    try {
-                        data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
-                    } catch (Exception e) {
-                        // Eat
-                    }
+                        AudioFile audioFile = AudioFileIO.read(file);
 
-                    path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
+                        Tag tag = audioFile.getTagAndConvertOrCreateAndSetDefault();
 
-                    data.Path = path;
-
-                    if (!fastMode) {
-                        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                        data.Title = tag.getFirst(FieldKey.TITLE);
+                        data.Artist = tag.getFirst(FieldKey.ARTIST);
+                        data.Album = tag.getFirst(FieldKey.ALBUM);
                         try {
-                            mmr.setDataSource(path);
-
-                            Bitmap bmp = mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-                            if (bmp != null)
-                                putCover(context, data, bmp);
+                            data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
                         } catch (Exception e) {
-                            Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
-                        } finally {
-                            mmr.release();
+                            // Ignore
                         }
-                    }
 
+                        if (data.getCover(context) == null) {
+                            Artwork artwork = tag.getFirstArtwork();
+                            if (artwork != null) {
+                                byte[] cover = artwork.getBinaryData();
+                                if (cover != null && cover.length > 0) {
+                                    Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
 
-                } catch (Exception e) {
-                    Log.w(TAG, "metadata from system", e);
-                } finally {
-                    if (cursor != null)
-                        cursor.close();
-                }
-            }
-        }
-
-        // Metadata from tags
-        if (!fastMode && !path.toLowerCase().startsWith("content")) {
-            File file = new File(path);
-            if (file.length() < 100 * 1024 * 1024)
-                try {
-                    AudioFile audioFile = AudioFileIO.read(file);
-
-                    Tag tag = audioFile.getTagAndConvertOrCreateAndSetDefault();
-
-                    data.Title = tag.getFirst(FieldKey.TITLE);
-                    data.Artist = tag.getFirst(FieldKey.ARTIST);
-                    data.Album = tag.getFirst(FieldKey.ALBUM);
-                    try {
-                        data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
-                    } catch (Exception e) {
-                        // Ignore
-                    }
-
-                    if (data.getCover(context) == null) {
-                        Artwork artwork = tag.getFirstArtwork();
-                        if (artwork != null) {
-                            byte[] cover = artwork.getBinaryData();
-                            if (cover != null && cover.length > 0) {
-                                Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
-
-                                if (bmp != null)
-                                    putCover(context, data, bmp);
+                                    if (bmp != null)
+                                        putCover(context, data, bmp);
+                                }
                             }
                         }
+
+                        // Lyrics
+                        String lyrics;
+                        lyrics = tag.getFirst(FieldKey.LYRICS);
+                        if (!TextUtils.isEmpty(lyrics))
+                            data.putLyrics(context, lyrics);
+                        lyrics = tag.getFirst(FieldKey.USER_UNSYNCED_LYRICS);
+                        if (!TextUtils.isEmpty(lyrics))
+                            data.putLyrics(context, lyrics);
+                        lyrics = tag.getFirst(FieldKey.USER_LYRICS);
+                        if (!TextUtils.isEmpty(lyrics))
+                            data.putLyrics(context, lyrics);
+
+                    } catch (OutOfMemoryError e) {
+                        Log.wtf(TAG, "OOM", e);
+                    } catch (Exception e) {
+                        Log.w(TAG, "metadata from tags", e);
+                        Log.w(TAG, "file\n" + file);
                     }
-
-                    // Lyrics
-                    String lyrics;
-                    lyrics = tag.getFirst(FieldKey.LYRICS);
-                    if (!TextUtils.isEmpty(lyrics))
-                        data.putLyrics(context, lyrics);
-                    lyrics = tag.getFirst(FieldKey.USER_UNSYNCED_LYRICS);
-                    if (!TextUtils.isEmpty(lyrics))
-                        data.putLyrics(context, lyrics);
-                    lyrics = tag.getFirst(FieldKey.USER_LYRICS);
-                    if (!TextUtils.isEmpty(lyrics))
-                        data.putLyrics(context, lyrics);
-
-                } catch (OutOfMemoryError e) {
-                    Log.wtf(TAG, "OOM", e);
-                } catch (Exception e) {
-                    Log.w(TAG, "metadata from tags", e);
+                else {
                     Log.w(TAG, "file\n" + file);
                 }
-            else {
-                Log.w(TAG, "file\n" + file);
             }
+
+            if (TextUtils.isEmpty(data.Title)) {
+                data.Title = (new File(path)).getName().replaceFirst("[.][^.]+$", "");
+            }
+
+            Log.d(TAG, "added to library\n" + path);
+
+            // HACK: Calling the devil
+            System.gc();
+            Runtime.getRuntime().gc();
+
+            data.Path = path;
+
+            realm.copyToRealmOrUpdate(data);
+
+            // Check constraints
+            if (!(data.hasAudio() || data.hasVideo())) {
+                data.deleteFromRealm();
+
+                data = null;
+            }
+
+            realm.commitTransaction();
+
+            data = realm.copyFromRealm(data);
+        } catch (Throwable e) {
+            if (realm.isInTransaction()) {
+                realm.cancelTransaction();
+            } else {
+                Log.w(TAG, "Could not cancel transaction, not currently in a transaction.");
+            }
+            throw e;
         }
-
-        if (TextUtils.isEmpty(data.Title)) {
-            data.Title = (new File(path)).getName().replaceFirst("[.][^.]+$", "");
-        }
-
-        Log.d(TAG, "added to library\n" + path);
-
-        // HACK: Calling the devil
-        System.gc();
-        Runtime.getRuntime().gc();
-
-        data.Path = path;
 
         return data;
     }
 
     public void refresh(Context context) {
-        Music.decode(context, Path, false, this);
+        try (Realm realm = getDB()) {
+            Music.decode(realm, context, Path, false, this);
+        }
     }
 
-    //region Playlist / Index
-    public static final String KEY_CACHE_LIBRARY_MEDIASTORE = "library_mediastore.index";
-    public static final String KEY_CACHE_LIBRARY_STORAGE = "library_storage.index";
-    public static final String KEY_CACHE_LIBRARY_CURRENT = "library_current.index";
-    public static final String KEY_PLAYLIST_CURRENT = "harmony";
-    public static final String KEY_PLAYLIST_CURRENT_M3U = "harmony.m3u";
+    //endregion
 
-    public static ArrayList<Music> loadIndex(Context context, String path) {
-        ArrayList<Music> result = new ArrayList<>();
+    //region Extensions
 
-        File cacheFile = IOEx.getDiskCacheFile(context, path);
-        if (!cacheFile.exists())
-            return result;
+    private static String[] extensions_audio = new String[]{
+            ".mp3",
+            ".m4a",
+            ".wav",
+            ".flac",
+            ".ogg",
+            ".wma",
+            ".ape",
+            ".wv",
+            ".tta",
+            ".mpc",
+            ".aiff",
+            ".asf",
+    };
 
+    public static boolean isAudio(String extension) {
+        for (String ext : extensions_audio) {
+            if (extension.equalsIgnoreCase(ext))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean hasAudio() {
         try {
-            String json;
-            json = FileUtils.readFileToString(cacheFile, "utf-8");
-
-            Gson serializer = getSerializer();
-
-            result.addAll(Arrays.asList(serializer.fromJson(json, Music[].class)));
+            return !TextUtils.isEmpty(Path) && isAudio(Path.substring(Path.lastIndexOf(".")));
         } catch (Exception e) {
             e.printStackTrace();
 
-            return result;
+            return false;
         }
-
-        return result;
     }
 
-    public static void saveIndex(Context context, ArrayList<Music> data, String path) {
-        Gson serializer = getSerializer();
+    private static String[] extensions_video = new String[]{
+            ".mp4",
+            ".m4v",
+            ".mkv",
+            ".avi",
+            ".webm",
+            ".flv",
+    };
 
-        String json = serializer.toJson(data.toArray(), Music[].class);
+    public static boolean isVideo(String extension) {
+        for (String ext : extensions_video) {
+            if (extension.equalsIgnoreCase(ext))
+                return true;
+        }
+        return false;
+    }
 
-        File cacheFile = IOEx.getDiskCacheFile(context, path);
+    public boolean hasVideo() {
         try {
-            FileUtils.writeStringToFile(cacheFile, json, "utf-8", false);
+            return !TextUtils.isEmpty(Path) && isVideo(Path.substring(Path.lastIndexOf(".")));
         } catch (Exception e) {
             e.printStackTrace();
-        }
 
-        Log.d(TAG, "data\n" + json);
-    }
-
-    public static void resetIndex(Context context, String path) {
-        File cacheFile = IOEx.getDiskCacheFile(context, path);
-        if (cacheFile.exists())
-            cacheFile.delete();
-    }
-
-    public static void resetIndexAll(Context context) {
-        resetIndex(context, KEY_CACHE_LIBRARY_MEDIASTORE);
-        resetIndex(context, KEY_CACHE_LIBRARY_STORAGE);
-    }
-
-    public static Music load(Context context, String path) {
-        ArrayList<Music> all = loadAll(context);
-
-        Music m = null;
-
-        for (Music item : all) {
-            if (item.Path.equalsIgnoreCase(path)) {
-                m = item;
-                break;
-            }
-        }
-
-        if (m == null)
-            m = decode(context, path, false, null);
-
-        return m;
-    }
-
-    public static ArrayList<Music> loadAll(Context context) {
-        ArrayList<Music> result = new ArrayList<>();
-
-        result.addAll(loadIndex(context, KEY_CACHE_LIBRARY_MEDIASTORE));
-        result.addAll(loadIndex(context, KEY_CACHE_LIBRARY_STORAGE));
-
-        return result;
-    }
-
-    public static ArrayList<Music> loadCurrent(Context context) {
-        ArrayList<Music> result = new ArrayList<>();
-
-        result.addAll(loadIndex(context, KEY_CACHE_LIBRARY_CURRENT));
-
-        if (result.size() == 0)
-            result.addAll(loadAll(context));
-
-        return result;
-    }
-
-    public static void saveCurrent(Context context, ArrayList<Music> data, boolean notify) {
-        saveIndex(context, data, KEY_CACHE_LIBRARY_CURRENT);
-
-        M3UFile m3UFile = M3UToolSet.create();
-        for (Music music : data) {
-            M3UItem m3UItem = new M3UItem();
-            m3UItem.setStreamURL(music.Path);
-            m3UFile.addItem(m3UItem);
-        }
-
-        try {
-            String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString();
-            File file = new File(root);
-            //noinspection ResultOfMethodCallIgnored
-            file.mkdirs();
-            file = new File(root + "/" + KEY_PLAYLIST_CURRENT_M3U);
-
-            FileUtils.writeStringToFile(file, m3UFile.toString(), "utf-8", false);
-
-            MediaScannerConnection.scanFile(context,
-                    new String[]{
-                            file.toString()
-                    },
-                    null,
-                    new MediaScannerConnection.OnScanCompletedListener() {
-                        public void onScanCompleted(String path, Uri uri) {
-                            Log.i(TAG, "Scanned " + path + ", uri=" + uri);
-                        }
-                    });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (notify) {
-            Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
-            LocalBroadcastManager
-                    .getInstance(context)
-                    .sendBroadcast(broadcastIntent);
-
-            Intent musicServiceIntent = new Intent(context, MusicService.class);
-            musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
-            context.startService(musicServiceIntent);
+            return false;
         }
     }
+    //endregion
+
+    //region Playlist
 
     public static void allPlaylist(ContentResolver cr, final JavaEx.ActionTU<Long, String> action) {
         if (action == null)
@@ -961,14 +936,14 @@ public class Music {
         return result;
     }
 
-    public static void getAllMusicForIds(Context context, Collection<String> audioIds, JavaEx.ActionT<Music> action) {
+    public static void getAllMusicForIds(Realm realm, Context context, Collection<String> audioIds, JavaEx.ActionT<Music> action) {
         if (action == null)
             return;
 
         for (String audioId : audioIds) {
             String path = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId)).toString();
 
-            Music m = decode(context, path, true, null);
+            Music m = decode(realm, context, path, true, null);
 
             if (m != null)
                 action.execute(m);
@@ -1011,119 +986,11 @@ public class Music {
             cr.delete(uri, MediaStore.Audio.Playlists.Members.AUDIO_ID + " = " + audioId, null);
     }
 
-    public static Gson getSerializer() {
-        GsonBuilder gsonBuilder = new GsonBuilder();
-
-        gsonBuilder.registerTypeAdapter(Music.class, new Serializer());
-        gsonBuilder.registerTypeAdapter(Music.class, new Deserializer());
-
-        Gson gson = gsonBuilder.create();
-
-        return gson;
-    }
-
-    static class Serializer implements JsonSerializer<Music> {
-
-        @Override
-        public JsonElement serialize(final Music data, final Type type, final JsonSerializationContext context) {
-            JsonObject result = new JsonObject();
-
-            result.add("Title", new JsonPrimitive(data.Title));
-            result.add("Artist", new JsonPrimitive(TextUtils.isEmpty(data.Artist) ? "" : data.Artist));
-            result.add("Album", new JsonPrimitive(TextUtils.isEmpty(data.Album) ? "" : data.Album));
-            result.add("Length", new JsonPrimitive(data.Length));
-            result.add("Path", new JsonPrimitive(data.Path));
-
-            return result;
-        }
-
-    }
-
-    static class Deserializer implements JsonDeserializer<Music> {
-
-        @Override
-        public Music deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            Music result = new Music();
-
-            JsonObject data = json.getAsJsonObject();
-
-            result.Title = data.get("Title").getAsString();
-            result.Artist = data.get("Artist").getAsString();
-            result.Album = data.get("Album").getAsString();
-            result.Path = data.get("Path").getAsString();
-            result.Length = data.get("Length").getAsInt();
-
-            return result;
-        }
-    }
 //endregion
-
-    //region Extensions
-
-    private static String[] extensions_audio = new String[]{
-            ".mp3",
-            ".m4a",
-            ".wav",
-            ".flac",
-            ".ogg",
-            ".wma",
-            ".ape",
-            ".wv",
-            ".tta",
-            ".mpc",
-            ".aiff",
-            ".asf",
-    };
-
-    public static boolean isAudio(String extension) {
-        for (String ext : extensions_audio) {
-            if (extension.equalsIgnoreCase(ext))
-                return true;
-        }
-        return false;
-    }
-
-    public boolean hasAudio() {
-        try {
-            return !TextUtils.isEmpty(Path) && isAudio(Path.substring(Path.lastIndexOf(".")));
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            return false;
-        }
-    }
-
-    private static String[] extensions_video = new String[]{
-            ".mp4",
-            ".m4v",
-            ".mkv",
-            ".avi",
-            ".webm",
-            ".flv",
-    };
-
-    public static boolean isVideo(String extension) {
-        for (String ext : extensions_video) {
-            if (extension.equalsIgnoreCase(ext))
-                return true;
-        }
-        return false;
-    }
-
-    public boolean hasVideo() {
-        try {
-            return !TextUtils.isEmpty(Path) && isVideo(Path.substring(Path.lastIndexOf(".")));
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            return false;
-        }
-    }
-    //endregion
 
     //region DB
 
-    public static Realm getData() {
+    public static Realm getDB() {
         try {
             RealmConfiguration config = new RealmConfiguration.Builder()
                     .name("music.realm")
@@ -1136,6 +1003,146 @@ public class Music {
         }
 
         return null;
+    }
+
+    public static RealmResults<Music> getAll(Realm realm) {
+        RealmResults<Music> result = realm.where(Music.class).findAll();
+
+        return result;
+    }
+
+    public static RealmResults<Music> get(Realm realm, String path) {
+        RealmResults<Music> result = realm.where(Music.class).equalTo("Path", path).findAll();
+
+        return result;
+    }
+
+    public static final String KEY_PLAYLIST_MEDIASTORE = "mediastore";
+    public static final String KEY_PLAYLIST_STORAGE = "storage";
+    public static final String KEY_PLAYLIST_CURRENT = "current";
+
+    public static RealmResults<Music> getAllInPlaylist(Realm realm, String playlist) {
+        RealmResults<Music> result = realm.where(Music.class).contains("Playlists", playlist, Case.INSENSITIVE).findAll();
+
+        return result;
+    }
+
+    public static Music load(Realm realm, Context context, String path) {
+        RealmResults<Music> realmResults = get(realm, path);
+
+        Music m = null;
+        if (realmResults == null || realmResults.size() == 0)
+            m = decode(realm, context, path, false, null);
+        else
+            m = realm.copyFromRealm(realmResults.get(0));
+
+        return m;
+    }
+
+    public static Music load(Context context, String path) {
+        try (Realm realm = getDB()) {
+            return load(realm, context, path);
+        }
+    }
+
+    public static ArrayList<Music> loadAll(Realm realm) {
+        ArrayList<Music> result = new ArrayList<>();
+
+        result.addAll(realm.copyFromRealm(getAllInPlaylist(realm, KEY_PLAYLIST_MEDIASTORE)));
+        result.addAll(realm.copyFromRealm(getAllInPlaylist(realm, KEY_PLAYLIST_STORAGE)));
+
+        return result;
+    }
+
+    public static ArrayList<Music> loadAll() {
+        try (Realm realm = getDB()) {
+            return loadAll(realm);
+        }
+    }
+
+    public static ArrayList<Music> loadCurrent(Realm realm) {
+        ArrayList<Music> result = new ArrayList<>();
+
+        RealmResults<Music> realmResults = getAllInPlaylist(realm, KEY_PLAYLIST_CURRENT);
+
+        result.addAll(realm.copyFromRealm(realmResults));
+
+        if (result.size() == 0)
+            result.addAll(loadAll(realm));
+
+        return result;
+    }
+
+    public static ArrayList<Music> loadCurrent() {
+        try (Realm realm = getDB()) {
+            return loadCurrent(realm);
+        }
+    }
+
+    public static final String KEY_PLAYLIST_CURRENT_EXP_M3U = "harmony.m3u";
+
+    public static void saveCurrent(Realm realm, Context context, final Collection<Music> data, boolean notify) {
+        try {
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    for (Music item : data) {
+                        if (!item.isInPlaylist(KEY_PLAYLIST_CURRENT))
+                            item.addPlaylist(KEY_PLAYLIST_CURRENT);
+                    }
+
+                    realm.copyToRealmOrUpdate(data);
+                }
+            });
+
+            String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString();
+
+            //noinspection ConstantConditions
+            String base = (new File(root)).getAbsolutePath();
+            String nl = System.getProperty("line.separator");
+            StringBuilder sb = new StringBuilder();
+            for (Music music : data) {
+                String url = IOEx.getRelativePath(base, music.Path);
+                sb.append(url).append(nl);
+            }
+
+            File file = new File(root);
+            //noinspection ResultOfMethodCallIgnored
+            file.mkdirs();
+            file = new File(root + "/" + KEY_PLAYLIST_CURRENT_EXP_M3U);
+
+            FileUtils.writeStringToFile(file, sb.toString(), "utf-8", false);
+
+            MediaScannerConnection.scanFile(context,
+                    new String[]{
+                            file.toString()
+                    },
+                    null,
+                    new MediaScannerConnection.OnScanCompletedListener() {
+                        public void onScanCompleted(String path, Uri uri) {
+                            Log.i(TAG, "Scanned " + path + ", uri=" + uri);
+                        }
+                    });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (notify) {
+            Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
+            LocalBroadcastManager
+                    .getInstance(context)
+                    .sendBroadcast(broadcastIntent);
+
+            Intent musicServiceIntent = new Intent(context, MusicService.class);
+            musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
+            context.startService(musicServiceIntent);
+        }
+    }
+
+    public static void saveCurrent(Context context, final Collection<Music> data, boolean notify) {
+        try (Realm realm = getDB()) {
+            saveCurrent(realm, context, data, notify);
+        }
     }
 
     //endregion
