@@ -203,10 +203,10 @@ public class Music extends RealmObject {
 
             @Override
             protected Bitmap doInBackground(Object... objects) {
-                try {
-                    if (isCancelled() || contextRef.get() == null)
-                        throw new CancellationException();
+                if (isCancelled() || contextRef.get() == null)
+                    throw new CancellationException();
 
+                try {
                     Bitmap result = data.getCover(contextRef.get(), size);
 
                     // File
@@ -329,6 +329,10 @@ public class Music extends RealmObject {
             CacheEx.getInstance().put(KEY_CACHE_DIR_LYRICS + Path, result);
         }
 
+        if (TextUtils.isEmpty(result)) {
+            result = "";
+        }
+
         return result;
     }
 
@@ -369,6 +373,9 @@ public class Music extends RealmObject {
 
             @Override
             protected String doInBackground(Void... Voids) {
+                if (isCancelled() || contextRef.get() == null)
+                    throw new CancellationException();
+
                 try {
                     String result = data.getLyrics(contextRef.get());
 
@@ -376,7 +383,7 @@ public class Music extends RealmObject {
                         return result;
 
                     // Refresh once more
-                    if (result == null) {
+                    if (result == null && contextRef.get() != null) {
                         data.refresh(contextRef.get());
 
                         result = data.getLyrics(contextRef.get());
