@@ -63,7 +63,7 @@ public class LyricsViewFragment extends Fragment {
             length = (Long) savedInstanceState.get(KEY_LENGTH);
         } else {
             path = (String) getArguments().get(KEY_PATH);
-            length = (Long)  getArguments().get(KEY_LENGTH);
+            length = (Long) getArguments().get(KEY_LENGTH);
         }
     }
 
@@ -140,15 +140,19 @@ public class LyricsViewFragment extends Fragment {
         // Check if need to download or not
         if (content == null) {
             // If download required, postpone function to later
-            Music.getLyricsOrDownload(new WeakReference<Context>(getActivity()), music, new JavaEx.ActionT<String>() {
-                @Override
-                public void execute(String s) {
-                    if (getActivity() == null || getActivity().getApplicationContext() == null)
-                        return;
+            try {
+                Music.getLyricsOrDownload(new WeakReference<Context>(getActivity()), music, new JavaEx.ActionT<String>() {
+                    @Override
+                    public void execute(String s) {
+                        if (getActivity() == null || getActivity().getApplicationContext() == null)
+                            return;
 
-                    processContent();
-                }
-            });
+                        processContent();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return;
         }
 
@@ -256,7 +260,7 @@ public class LyricsViewFragment extends Fragment {
 
     public void reset(String path, Long length) {
         this.path = path;
-        this.music = Music.load(getActivity().getApplicationContext(), path);
+        this.music = Music.load(getActivity(), path);
         this.length = length;
 
         lastPScroll = 0;

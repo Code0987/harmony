@@ -1,4 +1,5 @@
 ﻿✔️ Work in progress, only for testing and feedback.
 ✔️ No more ads 🎉
-✔️ Fixed bugs
+✔️ Fixed bugs (few crash issues)
 ✔️ Updated playback stats 📈
+✔️ Updated database backend, huge improvements

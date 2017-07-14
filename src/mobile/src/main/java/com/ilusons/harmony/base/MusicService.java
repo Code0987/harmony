@@ -51,7 +51,6 @@ import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.data.Stats;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
@@ -61,6 +60,8 @@ import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 
 import java.util.ArrayList;
+
+import io.realm.Realm;
 
 import static android.provider.Settings.Secure;
 
@@ -309,6 +310,8 @@ public class MusicService extends Service {
 
         initializeLicensing();
 
+        musicRealm = Music.getDB();
+
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         headsetMediaButtonIntentReceiverComponent = new ComponentName(getPackageName(), HeadsetMediaButtonIntentReceiver.class.getName());
         audioManager.registerMediaButtonEventReceiver(headsetMediaButtonIntentReceiverComponent);
@@ -415,6 +418,9 @@ public class MusicService extends Service {
             mediaPlayerFactory.release();
             mediaPlayerFactory = null;
         }
+
+        if (musicRealm != null)
+            musicRealm.close();
     }
 
     @Override
@@ -435,6 +441,12 @@ public class MusicService extends Service {
         if (mediaPlayer == null)
             return 0;
         return mediaPlayer.getAudioSessionId();
+    }
+
+    private Realm musicRealm;
+
+    private Realm getMusicRealm() {
+        return musicRealm;
     }
 
     private IVisualizer visualizer;
@@ -682,7 +694,7 @@ public class MusicService extends Service {
             String path = playlist.get(playlistPosition);
 
             // Decode file
-            currentMusic = Music.load(this, path);
+            currentMusic = Music.load(musicRealm, this, path);
             if (currentMusic == null)
                 return;
 
@@ -931,11 +943,13 @@ public class MusicService extends Service {
 
             setPlayerLastPlayed(this, getCurrentPlaylistItem());
 
-            Stats.updateOrCreateAsync(this, currentMusic.Path, new JavaEx.ActionT<Stats>() {
+            musicRealm.executeTransaction(new Realm.Transaction() {
                 @Override
-                public void execute(Stats stats) {
-                    stats.Played++;
-                    stats.LastPlayed = System.currentTimeMillis();
+                public void execute(Realm realm) {
+                    currentMusic.Played++;
+                    currentMusic.LastPlayed = System.currentTimeMillis();
+
+                    realm.insertOrUpdate(currentMusic);
                 }
             });
         }
@@ -973,10 +987,12 @@ public class MusicService extends Service {
         }
 
         if (currentMusic != null)
-            Stats.updateOrCreateAsync(this, currentMusic.Path, new JavaEx.ActionT<Stats>() {
+            musicRealm.executeTransaction(new Realm.Transaction() {
                 @Override
-                public void execute(Stats stats) {
-                    stats.Skipped++;
+                public void execute(Realm realm) {
+                    currentMusic.Skipped++;
+
+                    realm.insertOrUpdate(currentMusic);
                 }
             });
 
@@ -1284,7 +1300,7 @@ public class MusicService extends Service {
             }
 
             // Load playlist
-            for (Music music : Music.loadCurrent(this))
+            for (Music music : Music.loadCurrent(musicRealm))
                 getPlaylist().add(music.Path);
 
             // Check last played
