@@ -280,7 +280,7 @@ public class SettingsActivity extends BaseActivity {
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-
+                                dialogInterface.dismiss();
                             }
                         }))
                         .show();
@@ -313,7 +313,7 @@ public class SettingsActivity extends BaseActivity {
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-
+                                dialogInterface.dismiss();
                             }
                         }))
                         .show();
@@ -537,8 +537,8 @@ public class SettingsActivity extends BaseActivity {
                 (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
                         .setTitle("Sure?")
                         .setMessage("App will become like new, all your personalized content will be lost!")
-                        .setCancelable(false)
-                        .setPositiveButton("Sure", new DialogInterface.OnClickListener() {
+                        .setCancelable(true)
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 try {
@@ -552,6 +552,12 @@ public class SettingsActivity extends BaseActivity {
                                 } finally {
                                     AndroidEx.restartApp(SettingsActivity.this);
                                 }
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
                             }
                         }))
                         .show();
@@ -665,7 +671,7 @@ public class SettingsActivity extends BaseActivity {
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-
+                        dialogInterface.dismiss();
                     }
                 }))
                 .show();

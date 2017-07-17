@@ -53,7 +53,7 @@
 
                     <Spinner
                         android:id="@+id/uiFilters_spinner"
-                        android:layout_width="0dp"
+                        android:layout_width="320dp"
                         android:layout_height="wrap_content"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
@@ -61,10 +61,18 @@
 
                     <Spinner
                         android:id="@+id/uiSortMode_spinner"
-                        android:layout_width="0dp"
+                        android:layout_width="320dp"
                         android:layout_height="wrap_content"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/uiFilters_spinner"
+                        />
+
+                    <Spinner
+                        android:id="@+id/uiGroupMode_spinner"
+                        android:layout_width="320dp"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/uiSortMode_spinner"
                         />
 
                 </android.support.constraint.ConstraintLayout>
