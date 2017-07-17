@@ -498,14 +498,18 @@ public class LibraryUIActivity extends BaseUIActivity {
         Log.d(TAG, "onActivityResult\nrequestCode=" + requestCode + "\nresultCode=" + resultCode + "\ndata=" + data);
 
         if (requestCode == REQUEST_FILE_PICK && resultCode == RESULT_OK) {
-            Uri uri = Uri.parse(StorageEx.getPath(this, data.getData()));
+            try {
+                Uri uri = Uri.parse(StorageEx.getPath(this, data.getData()));
 
-            Intent i = new Intent(this, MusicService.class);
+                Intent i = new Intent(this, MusicService.class);
 
-            i.setAction(MusicService.ACTION_OPEN);
-            i.putExtra(MusicService.KEY_URI, uri.toString());
+                i.setAction(MusicService.ACTION_OPEN);
+                i.putExtra(MusicService.KEY_URI, uri.toString());
 
-            startService(i);
+                startService(i);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else if (requestCode == REQUEST_EXPORT_LOCATION_PICK_SAF && resultCode == Activity.RESULT_OK) {
             Uri uri = null;
             if (data != null) {
