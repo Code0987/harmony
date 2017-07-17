@@ -31,6 +31,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -58,6 +59,9 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.NativeExpressAdView;
+import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
+import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
+import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -80,7 +84,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -244,8 +251,12 @@ public class LibraryUIActivity extends BaseUIActivity {
             }
         });
 
+        RecyclerViewExpandableItemManager recyclerViewExpandableItemManager = new RecyclerViewExpandableItemManager(null);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RecyclerViewAdapter();
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(recyclerViewExpandableItemManager.createWrappedAdapter(adapter));
+        ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
+        recyclerViewExpandableItemManager.attachRecyclerView(recyclerView);
 
         // Set swipe to refresh
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
@@ -343,14 +354,14 @@ public class LibraryUIActivity extends BaseUIActivity {
         search_view.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                adapter.filter(query);
+                adapter.refresh(query);
 
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                adapter.filter(newText);
+                adapter.refresh(newText);
 
                 return true;
             }
@@ -359,6 +370,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         // Set collapse items
         createUIFilters();
         createUISortMode();
+        createUIGroupMode();
 
         // Set right drawer
         drawer_layout.closeDrawer(GravityCompat.END);
@@ -913,13 +925,15 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
     }
 
-    public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
+    //region Library view
+
+    public class RecyclerViewAdapter extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder> {
 
         private static final int ITEMS_PER_AD = 8;
         private AdListener lastAdListener = null;
 
-        private final ArrayList<Music> data;
-        private final ArrayList<Object> dataFiltered;
+        private final List<Music> data;
+        private final List<Pair<String, List<Object>>> dataFiltered;
 
         private final SettingsActivity.UIStyle uiStyle;
 
@@ -928,10 +942,41 @@ public class LibraryUIActivity extends BaseUIActivity {
             dataFiltered = new ArrayList<>();
 
             uiStyle = SettingsActivity.getUIStyle(getApplicationContext());
+
+            setHasStableIds(true);
         }
 
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public int getGroupCount() {
+            return dataFiltered.size();
+        }
+
+        @Override
+        public int getChildCount(int groupPosition) {
+            return dataFiltered.get(groupPosition).second.size();
+        }
+
+        @Override
+        public long getGroupId(int groupPosition) {
+            return groupPosition;
+        }
+
+        @Override
+        public long getChildId(int groupPosition, int childPosition) {
+            return groupPosition + childPosition;
+        }
+
+        @Override
+        public GroupViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+            View view = inflater.inflate(R.layout.library_ui_dark_item_group, parent, false);
+
+            return new GroupViewHolder(view);
+        }
+
+        @Override
+        public ViewHolder onCreateChildViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
             int layoutId = -1;
@@ -952,8 +997,17 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            final Object d = dataFiltered.get(position);
+        public void onBindGroupViewHolder(GroupViewHolder holder, int groupPosition, int viewType) {
+            final String d = dataFiltered.get(groupPosition).first;
+            final View v = holder.view;
+
+            TextView title = ((TextView) v.findViewById(R.id.title));
+            title.setText(d);
+        }
+
+        @Override
+        public void onBindChildViewHolder(ViewHolder holder, int groupPosition, int childPosition, int viewType) {
+            final Object d = dataFiltered.get(groupPosition).second.get(childPosition);
             final View v = holder.view;
 
             // Bind data to view here!
@@ -1015,7 +1069,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             } else if (d instanceof Music) {
 
-                final Music item = (Music) dataFiltered.get(position);
+                final Music item = (Music) d;
 
                 final View root = v.findViewById(R.id.root);
 
@@ -1103,40 +1157,30 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
 
         @Override
-        public int getItemCount() {
-            return dataFiltered.size();
+        public boolean onCheckCanExpandOrCollapseGroup(GroupViewHolder holder, int groupPosition, int x, int y, boolean expand) {
+            return true;
+        }
+
+        @Override
+        public boolean getInitialGroupExpandedState(int groupPosition) {
+            return true;
         }
 
         public void setData(Collection<Music> d) {
             data.clear();
             data.addAll(d);
 
-            filter(null);
-        }
-
-        public void addData(Music d) {
-            data.clear();
-            data.add(0, d);
-            dataFiltered.add(0, d);
-
-            notifyDataSetChanged();
+            refresh(null);
         }
 
         public void removeData(Music d) {
             data.clear();
             data.remove(d);
-            dataFiltered.remove(d);
 
-            notifyDataSetChanged();
+            refresh(null);
         }
 
-        public void clearData() {
-            data.clear();
-
-            filter(null);
-        }
-
-        public void filter(final String text) {
+        public void refresh(final String q) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -1150,97 +1194,24 @@ public class LibraryUIActivity extends BaseUIActivity {
                         });
 
                         // Filter
-                        ArrayList<Music> items = new ArrayList<>();
-                        synchronized (data) {
-                            for (Music item : data) {
-                                boolean f = true;
-
-                                SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
-
-                                String ext = item.Path.substring(item.Path.lastIndexOf(".")).toLowerCase();
-                                for (UIFilters uiFilter : getUIFilters(LibraryUIActivity.this)) {
-                                    boolean uif = uiFilter == UIFilters.NoMP3 && ext.equals(".mp3")
-                                            || uiFilter == UIFilters.NoM4A && ext.equals(".m4a")
-                                            || uiFilter == UIFilters.NoFLAC && ext.equals(".flac")
-                                            || uiFilter == UIFilters.NoOGG && ext.equals(".ogg")
-                                            || uiFilter == UIFilters.NoWAV && ext.equals(".wav")
-                                            || uiFilter == UIFilters.NoMP4 && ext.equals(".mp4")
-                                            || uiFilter == UIFilters.NoMKV && ext.equals(".mkv")
-                                            || uiFilter == UIFilters.NoAVI && ext.equals(".avi")
-                                            || uiFilter == UIFilters.NoWEBM && ext.equals(".webm");
-
-                                    if (uif) {
-                                        f = false;
-                                        break;
-                                    }
-                                }
-
-                                f &= TextUtils.isEmpty(text) || text.length() < 1 || item.getTextDetailed().toLowerCase().contains(text);
-
-                                if (f)
-                                    items.add(item);
-                            }
-                        }
+                        List<Music> filtered = new ArrayList<>();
+                        filtered.addAll(data);
+                        filtered = UIFilter(filtered, q);
 
                         // Sort
-                        // TODO: This could be heavy on ui, analyze
-                        final UISortMode uiSortMode = getUISortMode(LibraryUIActivity.this);
-                        switch (uiSortMode) {
-                            case Title:
-                                Collections.sort(items, new Comparator<Music>() {
-                                    @Override
-                                    public int compare(Music x, Music y) {
-                                        return x.Title.compareToIgnoreCase(y.Title);
-                                    }
-                                });
-                                break;
-                            case Album:
-                                Collections.sort(items, new Comparator<Music>() {
-                                    @Override
-                                    public int compare(Music x, Music y) {
-                                        return x.Album.compareToIgnoreCase(y.Album);
-                                    }
-                                });
-                                break;
-                            case Artist:
-                                Collections.sort(items, new Comparator<Music>() {
-                                    @Override
-                                    public int compare(Music x, Music y) {
-                                        return x.Artist.compareToIgnoreCase(y.Artist);
-                                    }
-                                });
-                                break;
-                            case Played:
-                                Collections.sort(items, new Comparator<Music>() {
-                                    @Override
-                                    public int compare(Music x, Music y) {
-                                        return x.Played.compareTo(y.Played);
-                                    }
-                                });
-                                Collections.reverse(items);
-                                break;
-                            case Added:
-                                Collections.sort(items, new Comparator<Music>() {
-                                    @Override
-                                    public int compare(Music x, Music y) {
-                                        return x.TimeAdded.compareTo(y.TimeAdded);
-                                    }
-                                });
-                                Collections.reverse(items);
-                                break;
+                        List<Music> sorted = UISort(filtered);
 
-                            case Default:
-                            default:
-                                break;
-                        }
+                        // Group
+                        Map<String, List<Music>> grouped = UIGroup(sorted);
 
                         // Apply
                         dataFiltered.clear();
-                        dataFiltered.addAll(items);
+                        for (Map.Entry<String, List<Music>> entry : grouped.entrySet())
+                            dataFiltered.add(new Pair<String, List<Object>>(entry.getKey(), new ArrayList<Object>(entry.getValue())));
 
                         // Add ads
                         // TODO: Fix ads later
-                        if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
+                        /*if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
                             final int n = Math.min(dataFiltered.size(), 7);
                             for (int i = 0; i <= n; i += ITEMS_PER_AD)
                                 try {
@@ -1249,7 +1220,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                                 } catch (Exception e) {
                                     Log.w(TAG, e);
                                 }
-                        }
+                        }*/
 
                         (LibraryUIActivity.this).runOnUiThread(new Runnable() {
                             @Override
@@ -1269,7 +1240,18 @@ public class LibraryUIActivity extends BaseUIActivity {
 
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class GroupViewHolder extends AbstractExpandableItemViewHolder {
+        public View view;
+
+        public GroupViewHolder(View view) {
+            super(view);
+
+            this.view = view;
+        }
+
+    }
+
+    public class ViewHolder extends AbstractExpandableItemViewHolder {
         public View view;
 
         public ViewHolder(View view) {
@@ -1279,6 +1261,10 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
 
     }
+
+    //endregion
+
+    //region Drawer
 
     public class DrawerArrowAnimation {
         public class DrawerArrowDrawableToggle extends DrawerArrowDrawable {
@@ -1435,6 +1421,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
     }
 
+    //endregion
 
     //region UI filters
 
@@ -1562,7 +1549,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                             setUIFilters(getContext(), value);
 
                             if (search_view != null)
-                                adapter.filter("" + search_view.getQuery());
+                                adapter.refresh("" + search_view.getQuery());
                         }
                     });
                 }
@@ -1588,17 +1575,53 @@ public class LibraryUIActivity extends BaseUIActivity {
         });
     }
 
+    public synchronized List<Music> UIFilter(Collection<Music> data, String q) {
+        ArrayList<Music> result = new ArrayList<>();
+
+        for (Music m : data) {
+            boolean f = true;
+
+            SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
+
+            String ext = m.Path.substring(m.Path.lastIndexOf(".")).toLowerCase();
+            for (UIFilters uiFilter : getUIFilters(LibraryUIActivity.this)) {
+                boolean uif = uiFilter == UIFilters.NoMP3 && ext.equals(".mp3")
+                        || uiFilter == UIFilters.NoM4A && ext.equals(".m4a")
+                        || uiFilter == UIFilters.NoFLAC && ext.equals(".flac")
+                        || uiFilter == UIFilters.NoOGG && ext.equals(".ogg")
+                        || uiFilter == UIFilters.NoWAV && ext.equals(".wav")
+                        || uiFilter == UIFilters.NoMP4 && ext.equals(".mp4")
+                        || uiFilter == UIFilters.NoMKV && ext.equals(".mkv")
+                        || uiFilter == UIFilters.NoAVI && ext.equals(".avi")
+                        || uiFilter == UIFilters.NoWEBM && ext.equals(".webm");
+
+                if (uif) {
+                    f = false;
+                    break;
+                }
+            }
+
+            f &= TextUtils.isEmpty(q) || q.length() < 1 || m.getTextDetailed().toLowerCase().contains(q);
+
+            if (f)
+                result.add(m);
+        }
+
+        return result;
+    }
+
     //endregion
 
     //region UI sort mode
 
     public enum UISortMode {
         Default("Default"),
-        Title("Title"),
-        Album("Album"),
-        Artist("Artist"),
-        Played("Times Played"),
-        Added("Added On"),;
+        Title("Title ▲"),
+        Album("Album ▲"),
+        Artist("Artist ▲"),
+        Played("Times Played ▼"),
+        Skipped("Times skipped ▼"),
+        Added("Added On ▼"),;
 
         private String friendlyName;
 
@@ -1676,7 +1699,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                         setUISortMode(getApplicationContext(), (UISortMode) adapterView.getItemAtPosition(position));
 
                         if (search_view != null)
-                            adapter.filter("" + search_view.getQuery());
+                            adapter.refresh("" + search_view.getQuery());
                     }
 
                     @Override
@@ -1685,6 +1708,207 @@ public class LibraryUIActivity extends BaseUIActivity {
                 });
             }
         });
+    }
+
+    public List<Music> UISort(List<Music> data) {
+        final UISortMode uiSortMode = getUISortMode(LibraryUIActivity.this);
+
+        switch (uiSortMode) {
+            case Title:
+                Collections.sort(data, new Comparator<Music>() {
+                    @Override
+                    public int compare(Music x, Music y) {
+                        return x.Title.compareToIgnoreCase(y.Title);
+                    }
+                });
+                break;
+            case Album:
+                Collections.sort(data, new Comparator<Music>() {
+                    @Override
+                    public int compare(Music x, Music y) {
+                        return x.Album.compareToIgnoreCase(y.Album);
+                    }
+                });
+                break;
+            case Artist:
+                Collections.sort(data, new Comparator<Music>() {
+                    @Override
+                    public int compare(Music x, Music y) {
+                        return x.Artist.compareToIgnoreCase(y.Artist);
+                    }
+                });
+                break;
+            case Played:
+                Collections.sort(data, new Comparator<Music>() {
+                    @Override
+                    public int compare(Music x, Music y) {
+                        return x.Played.compareTo(y.Played);
+                    }
+                });
+                Collections.reverse(data);
+                break;
+            case Skipped:
+                Collections.sort(data, new Comparator<Music>() {
+                    @Override
+                    public int compare(Music x, Music y) {
+                        return x.Skipped.compareTo(y.Skipped);
+                    }
+                });
+                Collections.reverse(data);
+                break;
+            case Added:
+                Collections.sort(data, new Comparator<Music>() {
+                    @Override
+                    public int compare(Music x, Music y) {
+                        return x.TimeAdded.compareTo(y.TimeAdded);
+                    }
+                });
+                Collections.reverse(data);
+                break;
+
+            case Default:
+            default:
+                break;
+        }
+
+        return data;
+    }
+
+    //endregion
+
+    //region UI group mode
+
+    public enum UIGroupMode {
+        Default("Default"),
+        Album("Album"),
+        Artist("Artist"),;
+
+        private String friendlyName;
+
+        UIGroupMode(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+    }
+
+    public static final String TAG_SPREF_LIBRARY_UI_GROUP_MODE = SPrefEx.TAG_SPREF + ".library_ui_group_mode";
+
+    public static UIGroupMode getUIGroupMode(Context context) {
+        return UIGroupMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_GROUP_MODE, String.valueOf(UIGroupMode.Default)));
+    }
+
+    public static void setUIGroupMode(Context context, UIGroupMode value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_LIBRARY_UI_GROUP_MODE, String.valueOf(value))
+                .apply();
+    }
+
+    private Spinner uiGroupMode_spinner;
+
+    private void createUIGroupMode() {
+        uiGroupMode_spinner = (Spinner) findViewById(R.id.uiGroupMode_spinner);
+
+        UIGroupMode[] items = UIGroupMode.values();
+
+        uiGroupMode_spinner.setAdapter(new ArrayAdapter<UIGroupMode>(this, 0, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+                text.setText("Grouping: " + text.getText());
+
+                return text;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) convertView;
+
+                if (text == null) {
+                    text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+                    text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                    lp.setMargins(px, px, px, px);
+                    text.setLayoutParams(lp);
+                    text.setPadding(px, px, px, px);
+                }
+
+                text.setText(getItem(position).friendlyName);
+
+                return text;
+            }
+        });
+
+        int i = 0;
+        UIGroupMode lastMode = getUIGroupMode(this);
+        for (; i < items.length; i++)
+            if (items[i] == lastMode)
+                break;
+        uiGroupMode_spinner.setSelection(i, true);
+
+        uiGroupMode_spinner.post(new Runnable() {
+            public void run() {
+                uiGroupMode_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                        setUIGroupMode(getApplicationContext(), (UIGroupMode) adapterView.getItemAtPosition(position));
+
+                        if (search_view != null)
+                            adapter.refresh("" + search_view.getQuery());
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+            }
+        });
+    }
+
+    public Map<String, List<Music>> UIGroup(List<Music> data) {
+        Map<String, List<Music>> result = new HashMap<>();
+
+        final UIGroupMode uiGroupMode = getUIGroupMode(LibraryUIActivity.this);
+
+        switch (uiGroupMode) {
+            case Album:
+                for (Music d : data) {
+                    String key = d.Album;
+                    if (result.containsKey(key)) {
+                        List<Music> list = result.get(key);
+                        list.add(d);
+                    } else {
+                        List<Music> list = new ArrayList<>();
+                        list.add(d);
+                        result.put(key, list);
+                    }
+                }
+                break;
+            case Artist:
+                for (Music d : data) {
+                    String key = d.Artist;
+                    if (result.containsKey(key)) {
+                        List<Music> list = result.get(key);
+                        list.add(d);
+                    } else {
+                        List<Music> list = new ArrayList<>();
+                        list.add(d);
+                        result.put(key, list);
+                    }
+                }
+                break;
+            case Default:
+            default:
+                result.put("*", data);
+                break;
+        }
+
+        return result;
     }
 
     //endregion
