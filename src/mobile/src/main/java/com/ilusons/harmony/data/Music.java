@@ -693,7 +693,13 @@ public class Music extends RealmObject {
 
             realm.commitTransaction();
 
-            data = realm.copyFromRealm(data);
+            if (data != null)
+                try {
+                    data = realm.copyFromRealm(data);
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
+
         } catch (Throwable e) {
             if (realm.isInTransaction()) {
                 realm.cancelTransaction();
