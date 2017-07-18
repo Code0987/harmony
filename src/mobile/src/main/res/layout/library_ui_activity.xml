@@ -75,6 +75,14 @@
                         app:layout_constraintTop_toBottomOf="@id/uiSortMode_spinner"
                         />
 
+                    <Spinner
+                        android:id="@+id/uiViewMode_spinner"
+                        android:layout_width="280dp"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/uiGroupMode_spinner"
+                        />
+
                 </android.support.constraint.ConstraintLayout>
 
                 <android.support.v7.widget.Toolbar

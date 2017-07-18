@@ -1,5 +1,5 @@
 ﻿✔️ Work in progress, only for testing and feedback.
 ✔️ No more ads 🎉
-✔️ Fixed bugs (few crash issues)
-✔️ Updated playback stats 📈
-✔️ Updated database backend, huge improvements
+✔️ Fixed bugs (crash issues, playlist order)
+✔️ Updated library ui
+✔️ Updated playback ui

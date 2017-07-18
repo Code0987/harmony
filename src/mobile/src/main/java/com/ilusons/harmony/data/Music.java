@@ -29,6 +29,7 @@ import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
+import com.ilusons.harmony.ref.SPrefEx;
 
 import org.apache.commons.io.FileUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -48,7 +49,11 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
@@ -1035,7 +1040,10 @@ public class Music extends RealmObject {
     public static final String KEY_PLAYLIST_CURRENT = "current";
 
     public static RealmResults<Music> getAllInPlaylist(Realm realm, String playlist) {
-        RealmResults<Music> result = realm.where(Music.class).contains("Playlists", playlist, Case.INSENSITIVE).findAll();
+        RealmResults<Music> result = realm
+                .where(Music.class)
+                .contains("Playlists", playlist, Case.INSENSITIVE)
+                .findAll();
 
         return result;
     }
@@ -1096,6 +1104,12 @@ public class Music extends RealmObject {
 
     public static void saveCurrent(Realm realm, Context context, final Collection<Music> data, boolean notify) {
         try {
+            try {
+                setPlaylistCurrentSortOrder(context, data);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
@@ -1156,6 +1170,62 @@ public class Music extends RealmObject {
         try (Realm realm = getDB()) {
             saveCurrent(realm, context, data, notify);
         }
+    }
+
+    public static void sort(List<Music> data, List<String> keys) {
+        if (keys == null)
+            return;
+        if (keys.size() == 0)
+            return;
+
+        Map<String, List<Music>> map = new HashMap<>();
+        for (String string : keys)
+            map.put(string, new ArrayList<Music>());
+        for (Music item : data) {
+            List<Music> value = map.get(item.Path);
+            if (value != null)
+                value.add(item);
+        }
+        data.clear();
+        for (String string : keys)
+            for (Music item : map.get(string))
+                data.add(item);
+    }
+
+    public static final String TAG_SPREF_PLAYLIST_CURRENT_SORT_ORDER = SPrefEx.TAG_SPREF + ".playlist_current_sort_order";
+
+    public static List<String> getPlaylistCurrentSortOrder(Context context) {
+        String s = SPrefEx.get(context).getString(TAG_SPREF_PLAYLIST_CURRENT_SORT_ORDER, null);
+        if (TextUtils.isEmpty(s))
+            return null;
+        return new ArrayList<String>(Arrays.asList(s.split(";")));
+    }
+
+    public static void setPlaylistCurrentSortOrder(Context context, Collection<Music> data) {
+        StringBuilder value = new StringBuilder();
+        for (Music item : data)
+            value.append(item.Path).append(";");
+
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PLAYLIST_CURRENT_SORT_ORDER, value.toString())
+                .apply();
+    }
+
+    public static ArrayList<Music> loadCurrentSorted(Realm realm, Context context) {
+        ArrayList<Music> data = loadCurrent(realm);
+
+        sort(data, getPlaylistCurrentSortOrder(context));
+
+        return data;
+    }
+
+    public static ArrayList<Music> loadCurrentSorted(Context context) {
+        ArrayList<Music> data = loadCurrent();
+
+        sort(data, getPlaylistCurrentSortOrder(context));
+
+        return data;
     }
 
     //endregion
