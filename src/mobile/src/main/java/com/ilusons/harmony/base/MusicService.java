@@ -1300,7 +1300,7 @@ public class MusicService extends Service {
             }
 
             // Load playlist
-            for (Music music : Music.loadCurrent(musicRealm))
+            for (Music music : Music.loadCurrentSorted(musicRealm, this))
                 getPlaylist().add(music.Path);
 
             // Check last played

@@ -28,6 +28,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -113,6 +114,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
     // Data
     RecyclerViewAdapter adapter;
+    RecyclerViewExpandableItemManager recyclerViewExpandableItemManager;
 
     // UI
     private DrawerLayout drawer_layout;
@@ -141,7 +143,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                     if (getMusicService() == null)
                         return null;
 
-                    return Music.loadCurrent();
+                    return Music.loadCurrentSorted(LibraryUIActivity.this);
                 }
 
                 @Override
@@ -251,7 +253,7 @@ public class LibraryUIActivity extends BaseUIActivity {
             }
         });
 
-        RecyclerViewExpandableItemManager recyclerViewExpandableItemManager = new RecyclerViewExpandableItemManager(null);
+        recyclerViewExpandableItemManager = new RecyclerViewExpandableItemManager(null);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RecyclerViewAdapter();
         recyclerView.setAdapter(recyclerViewExpandableItemManager.createWrappedAdapter(adapter));
@@ -371,6 +373,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         createUIFilters();
         createUISortMode();
         createUIGroupMode();
+        createUIViewMode();
 
         // Set right drawer
         drawer_layout.closeDrawer(GravityCompat.END);
@@ -454,6 +457,9 @@ public class LibraryUIActivity extends BaseUIActivity {
                 showGuide();
             }
         });
+
+        // Extra
+        UIGroup();
 
     }
 
@@ -764,10 +770,11 @@ public class LibraryUIActivity extends BaseUIActivity {
 
         ArrayList<Music> data = new ArrayList<Music>();
 
-        for (Object o : adapter.dataFiltered) {
-            if (o instanceof Music)
-                data.add((Music) o);
-        }
+        for (Pair<String, List<Object>> item : adapter.dataFiltered)
+            for (Object o : item.second) {
+                if (o instanceof Music)
+                    data.add((Music) o);
+            }
 
         Music.saveCurrent(LibraryUIActivity.this, data, true);
 
@@ -1913,6 +1920,139 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
 
         return result;
+    }
+
+    //endregion
+
+    //region UI view mode
+
+    public enum UIViewMode {
+        Default("Default"),
+        Two("Two"),;
+
+        private String friendlyName;
+
+        UIViewMode(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+    }
+
+    public static final String TAG_SPREF_LIBRARY_UI_VIEW_MODE = SPrefEx.TAG_SPREF + ".library_ui_view_mode";
+
+    public static UIViewMode getUIViewMode(Context context) {
+        return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Default)));
+    }
+
+    public static void setUIViewMode(Context context, UIViewMode value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(value))
+                .apply();
+    }
+
+    private Spinner uiViewMode_spinner;
+
+    private void createUIViewMode() {
+        uiViewMode_spinner = (Spinner) findViewById(R.id.uiViewMode_spinner);
+
+        UIViewMode[] items = UIViewMode.values();
+
+        uiViewMode_spinner.setAdapter(new ArrayAdapter<UIViewMode>(this, 0, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+                text.setText("View: " + text.getText());
+
+                return text;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) convertView;
+
+                if (text == null) {
+                    text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+                    text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                    lp.setMargins(px, px, px, px);
+                    text.setLayoutParams(lp);
+                    text.setPadding(px, px, px, px);
+                }
+
+                text.setText(getItem(position).friendlyName);
+
+                return text;
+            }
+        });
+
+        int i = 0;
+        UIViewMode lastMode = getUIViewMode(this);
+        for (; i < items.length; i++)
+            if (items[i] == lastMode)
+                break;
+        uiViewMode_spinner.setSelection(i, true);
+
+        uiViewMode_spinner.post(new Runnable() {
+            public void run() {
+                uiViewMode_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                        setUIViewMode(getApplicationContext(), (UIViewMode) adapterView.getItemAtPosition(position));
+
+                        UIGroup();
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+            }
+        });
+    }
+
+    private void UIGroup() {
+        final UIViewMode uiViewMode = getUIViewMode(LibraryUIActivity.this);
+
+        switch (uiViewMode) {
+            case Two:
+                GridLayoutManager layoutManager = new GridLayoutManager(LibraryUIActivity.this, 2) {
+                    @Override
+                    public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+                        try {
+                            super.onLayoutChildren(recycler, state);
+                        } catch (IndexOutOfBoundsException e) {
+                            Log.w(TAG, e);
+                        }
+                    }
+                };
+                layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                    @Override
+                    public int getSpanSize(int position) {
+                        return RecyclerViewExpandableItemManager.isGroupItemId(adapter.getItemId(position)) ? 2 : 1;
+                    }
+                });
+                recyclerView.setLayoutManager(layoutManager);
+                break;
+            case Default:
+            default:
+                recyclerView.setLayoutManager(new LinearLayoutManager(LibraryUIActivity.this) {
+                    @Override
+                    public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+                        try {
+                            super.onLayoutChildren(recycler, state);
+                        } catch (IndexOutOfBoundsException e) {
+                            Log.w(TAG, e);
+                        }
+                    }
+                });
+                break;
+        }
     }
 
     //endregion
