@@ -992,11 +992,15 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             int layoutId = -1;
             switch (uiStyle) {
-                case LiteUI:
+                case Lite:
                     layoutId = R.layout.library_ui_lite_item;
                     break;
 
-                case DarkUI:
+                case Simple:
+                    layoutId = R.layout.library_ui_item_simple;
+                    break;
+
+                case Dark:
                 default:
                     layoutId = R.layout.library_ui_dark_item;
                     break;
@@ -1085,28 +1089,30 @@ public class LibraryUIActivity extends BaseUIActivity {
                 final View root = v.findViewById(R.id.root);
 
                 final ImageView cover = (ImageView) v.findViewById(R.id.cover);
-                cover.setImageBitmap(null);
-                // HACK: This animates aw well as reduces load on image view
-                final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
-                (new AsyncTask<Void, Void, Bitmap>() {
-                    @Override
-                    protected Bitmap doInBackground(Void... voids) {
-                        return item.getCover(LibraryUIActivity.this, coverSize);
-                    }
+                if (cover != null) {
+                    cover.setImageBitmap(null);
+                    // HACK: This animates aw well as reduces load on image view
+                    final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
+                    (new AsyncTask<Void, Void, Bitmap>() {
+                        @Override
+                        protected Bitmap doInBackground(Void... voids) {
+                            return item.getCover(LibraryUIActivity.this, coverSize);
+                        }
 
-                    @Override
-                    protected void onPostExecute(Bitmap bitmap) {
-                        TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-                                cover.getDrawable(),
-                                new BitmapDrawable(getResources(), bitmap)
-                        });
+                        @Override
+                        protected void onPostExecute(Bitmap bitmap) {
+                            TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+                                    cover.getDrawable(),
+                                    new BitmapDrawable(getResources(), bitmap)
+                            });
 
-                        cover.setImageDrawable(d);
+                            cover.setImageDrawable(d);
 
-                        d.setCrossFadeEnabled(true);
-                        d.startTransition(200);
-                    }
-                }).execute();
+                            d.setCrossFadeEnabled(true);
+                            d.startTransition(200);
+                        }
+                    }).execute();
+                }
 
                 TextView title = (TextView) v.findViewById(R.id.title);
                 title.setText(item.Title);

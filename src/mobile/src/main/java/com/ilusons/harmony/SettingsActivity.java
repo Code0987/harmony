@@ -11,22 +11,28 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.ArraySet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.codetroopers.betterpickers.OnDialogDismissListener;
@@ -411,42 +417,7 @@ public class SettingsActivity extends BaseActivity {
         });
 
         // UIStyle
-        RadioGroup ui_style_radioGroup = (RadioGroup) findViewById(R.id.ui_style_radioGroup);
-
-        CompoundButton.OnCheckedChangeListener onCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (!b)
-                    return;
-
-                String uiStyle = String.valueOf((UIStyle) compoundButton.getTag());
-
-                SPrefEx.get(getApplicationContext())
-                        .edit()
-                        .putString(TAG_SPREF_UISTYLE, uiStyle)
-                        .apply();
-
-                info("UI Style will be completely applied on restart!");
-            }
-        };
-
-        UIStyle savedUIStyle = getUIStyle(getApplicationContext());
-
-        for (UIStyle value : UIStyle.values()) {
-            RadioButton rb = new RadioButton(this);
-            rb.setText(value.friendlyName);
-            rb.setTag(value);
-            rb.setId(value.ordinal());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                rb.setTextAppearance(android.R.style.TextAppearance_Material_Body1);
-            }
-            ui_style_radioGroup.addView(rb);
-
-            if (savedUIStyle == value)
-                rb.setChecked(true);
-
-            rb.setOnCheckedChangeListener(onCheckedChangeListener);
-        }
+        createUIStyle();
 
         // Playback UI auto open
         CheckBox ui_playback_auto_open_checkBox = (CheckBox) findViewById(R.id.ui_playback_auto_open_checkBox);
@@ -764,9 +735,15 @@ public class SettingsActivity extends BaseActivity {
 
     }
 
+    public static boolean getUIPlaybackAutoOpen(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_UIPLAYBACKAUTOOPEN, UIPLAYBACKAUTOOPEN_DEFAULT);
+    }
+
+    //region UI style
     public enum UIStyle {
-        DarkUI("Dark UI"),
-        LiteUI("Lite UI");
+        Dark("Dark"),
+        Simple("Simple"),
+        Lite("Lite");
 
         private String friendlyName;
 
@@ -776,11 +753,82 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public static UIStyle getUIStyle(Context context) {
-        return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.DarkUI)));
+        return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Dark)));
     }
 
-    public static boolean getUIPlaybackAutoOpen(Context context) {
-        return SPrefEx.get(context).getBoolean(TAG_SPREF_UIPLAYBACKAUTOOPEN, UIPLAYBACKAUTOOPEN_DEFAULT);
+    public static void setUIStyle(Context context, UIStyle value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_UISTYLE, String.valueOf(value))
+                .apply();
     }
+
+    private Spinner uiStyle_spinner;
+
+    private void createUIStyle() {
+        uiStyle_spinner = (Spinner) findViewById(R.id.uiStyle_spinner);
+
+        UIStyle[] items = UIStyle.values();
+
+        uiStyle_spinner.setAdapter(new ArrayAdapter<UIStyle>(this, 0, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+                text.setText("Sorting: " + text.getText());
+
+                return text;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) convertView;
+
+                if (text == null) {
+                    text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+                    text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                    lp.setMargins(px, px, px, px);
+                    text.setLayoutParams(lp);
+                    text.setPadding(px, px, px, px);
+                }
+
+                text.setText(getItem(position).friendlyName);
+
+                return text;
+            }
+        });
+
+        int i = 0;
+        UIStyle lastMode = getUIStyle(this);
+        for (; i < items.length; i++)
+            if (items[i] == lastMode)
+                break;
+        uiStyle_spinner.setSelection(i, true);
+
+        uiStyle_spinner.post(new Runnable() {
+            public void run() {
+                uiStyle_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                        setUIStyle(getApplicationContext(), (UIStyle) adapterView.getItemAtPosition(position));
+
+                        info("UI Style will be completely applied on restart!");
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+            }
+        });
+    }
+
+    //endregion
 
 }
