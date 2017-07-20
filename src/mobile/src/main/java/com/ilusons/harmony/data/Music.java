@@ -84,10 +84,14 @@ public class Music extends RealmObject {
 
     // Stats
     public Integer Played = 0;
-    public Long LastPlayed = -1L;
+    public Long TimeLastPlayed = -1L;
+    public Long TotalDurationPlayed = 0L;
     public Integer Skipped = 0;
+    public Long TimeLastSkipped = -1L;
     public Long TimeAdded = -1L;
     public String Mood = "";
+
+    public Double Score = 0.0;
 
     @Override
     public boolean equals(Object obj) {
@@ -457,6 +461,8 @@ public class Music extends RealmObject {
                     data = new Music();
 
                 data.TimeAdded = System.currentTimeMillis();
+                data.TimeLastPlayed = System.currentTimeMillis();
+                data.TimeLastSkipped = System.currentTimeMillis();
             }
 
             // HACK: Calling the devil
@@ -704,7 +710,9 @@ public class Music extends RealmObject {
 
             if (data != null)
                 try {
-                    data = realm.copyFromRealm(data);
+                    RealmResults<Music> realmResults = get(realm, data.Path);
+                    if (!(realmResults == null || realmResults.size() == 0))
+                        data = realm.copyFromRealm(realmResults.get(0));
                 } catch (Exception e) {
                     Log.w(TAG, e);
                 }
@@ -1234,6 +1242,54 @@ public class Music extends RealmObject {
         sort(data, getPlaylistCurrentSortOrder(context));
 
         return data;
+    }
+
+    //endregion
+
+    //region Smart functions
+
+    public static double getScore(Music music) {
+        double score;
+
+        int daysSinceLastPlayed = (int) ((System.currentTimeMillis() - music.TimeLastPlayed) / (1000 * 60 * 60 * 24));
+        int daysSinceLastSkipped = (int) ((System.currentTimeMillis() - music.TimeLastSkipped) / (1000 * 60 * 60 * 24));
+        int daysSinceAdded = (int) ((System.currentTimeMillis() - music.TimeAdded) / (1000 * 60 * 60 * 24));
+        int length = music.Length;
+        double lengthFixed = Math.round((length + 540) / 4) + Math.round((length * length) / ((length > 3599) ? Math.round((9000 * length) / 3600) : 9000));
+        double played = Math.pow(music.Played, 2) * lengthFixed;
+
+        //Big_Berny_Formula_1 = "(10000000 * (7+OptPlayed-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.5) / (1+DaysSinceLastPlayed/365)"
+        //Big_Berny_Formula_2 = "(10000000 * (7+OptPlayed-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.3) / (1+DaysSinceLastPlayed/730)"
+        //Big_Berny_Formula_4 = "(10000000 * (7+Played-(Skip*0.98^(SongLength/60))^1.7)^3 / (10+DaysSinceFirstPlayed)^0.5) / (1+DaysSinceLastPlayed/365)"
+        //Big_Berny_Formula_5 = "7+OptPlayed-(Skip*0.98^(SongLength/60))"
+        //BerniPi_Formula_1 = "(500000000000+10000000000*(Played*0.999^((10+DaysSinceLastPlayed)/(Played/3+1))-Skip^1.7))/((10+DaysSinceFirstPlayed)/(Played^2+1))"
+        //score = Int((10000000 * (7 + playedTime + (daysSinceLastSkipped / 365)^1.2 -(skipCount*0.98^(otrackLength/60))^1.7)^3 / (10 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
+        //score = Int(10000000 + (((playedTime - (skipCount*lengthFixed*0.971^(otrackLength/60)*0.8^(daysSinceLastSkipped / 365)))^3) / (30 + daysSinceImported)^0.5) / ((daysSinceLastPlayed / 365) + 1))
+
+        score = (
+                (
+                        (played -
+                                (Math.pow(music.Skipped, 2)
+                                        *
+                                        lengthFixed
+                                        *
+                                        Math.pow(0.9, (lengthFixed / 60))
+                                        *
+                                        Math.pow(0.6, (daysSinceLastSkipped / 365))
+                                )
+                        )
+                                / Math.pow((30 + daysSinceAdded), 0.2)
+                ) * 100)
+                /
+                ((Math.pow(daysSinceLastPlayed, 1.2) / 730) + 1);
+
+        if (score < 0) {
+            score = 0.0;
+        }
+
+        Log.d(TAG, "Score generated for [" + music.Path + "], " + score);
+
+        return score;
     }
 
     //endregion
