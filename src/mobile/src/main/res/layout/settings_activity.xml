@@ -285,8 +285,8 @@
                     app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"
                     />
 
-                <RadioGroup
-                    android:id="@+id/ui_style_radioGroup"
+                <Spinner
+                    android:id="@+id/uiStyle_spinner"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -304,7 +304,7 @@
                     android:text="Playback UI auto open on music selection"
                     android:textStyle="italic"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/ui_style_radioGroup"
+                    app:layout_constraintTop_toBottomOf="@id/uiStyle_spinner"
                     />
 
                 <CheckBox
