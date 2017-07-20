@@ -992,15 +992,15 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             int layoutId = -1;
             switch (uiStyle) {
-                case Lite:
+                case LiteUI:
                     layoutId = R.layout.library_ui_lite_item;
                     break;
 
-                case Simple:
+                case SimpleUI:
                     layoutId = R.layout.library_ui_item_simple;
                     break;
 
-                case Dark:
+                case DarkUI:
                 default:
                     layoutId = R.layout.library_ui_dark_item;
                     break;

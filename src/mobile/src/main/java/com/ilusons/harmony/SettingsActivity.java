@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -44,6 +45,7 @@ import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.ViewEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
 import com.ilusons.harmony.ref.inappbilling.IabHelper;
 import com.ilusons.harmony.ref.inappbilling.IabResult;
@@ -335,6 +337,11 @@ public class SettingsActivity extends BaseActivity {
                 showReleaseNotesDialog(SettingsActivity.this);
             }
         });
+
+        // Set views and tabs
+        final ViewEx.StaticViewPager viewPager = (ViewEx.StaticViewPager) findViewById(R.id.viewPager);
+        TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
+        tabs.setupWithViewPager(viewPager);
 
         // Set scan locations
         RecyclerView scan_locations_recyclerView = (RecyclerView) findViewById(R.id.scan_locations_recyclerView);
@@ -741,9 +748,9 @@ public class SettingsActivity extends BaseActivity {
 
     //region UI style
     public enum UIStyle {
-        Dark("Dark"),
-        Simple("Simple"),
-        Lite("Lite");
+        DarkUI("Dark UI"),
+        SimpleUI("Simple UI"),
+        LiteUI("Lite UI");
 
         private String friendlyName;
 
@@ -753,7 +760,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public static UIStyle getUIStyle(Context context) {
-        return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Dark)));
+        return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.DarkUI)));
     }
 
     public static void setUIStyle(Context context, UIStyle value) {
@@ -775,7 +782,7 @@ public class SettingsActivity extends BaseActivity {
             public View getView(int position, View convertView, ViewGroup parent) {
                 CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
 
-                text.setText("Sorting: " + text.getText());
+                text.setText(text.getText());
 
                 return text;
             }
