@@ -186,7 +186,7 @@ public class Music extends RealmObject {
 
     private static AsyncTask<Object, Object, Bitmap> getCoverOrDownloadTask = null;
 
-    public static void getCoverOrDownload(final WeakReference<Context> contextRef, final int size, final Music data, final JavaEx.ActionT<Bitmap> onResult) {
+    public static void getCoverOrDownload(final WeakReference<Context> contextRef, final int size, final Music data, final WeakReference<JavaEx.ActionT<Bitmap>> onResult) {
         if (getCoverOrDownloadTask != null) {
             getCoverOrDownloadTask.cancel(true);
             try {
@@ -202,8 +202,8 @@ public class Music extends RealmObject {
                 if (contextRef.get() == null)
                     return;
 
-                if (onResult != null)
-                    onResult.execute(bitmap);
+                if (onResult.get() != null)
+                    onResult.get().execute(bitmap);
             }
 
             @Override
@@ -691,7 +691,11 @@ public class Music extends RealmObject {
 
             // Check constraints
             if (!(data.hasAudio() || data.hasVideo())) {
-                data.deleteFromRealm();
+                try {
+                    data.deleteFromRealm();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 data = null;
             }
@@ -794,30 +798,34 @@ public class Music extends RealmObject {
         if (action == null)
             return;
 
-        Cursor cursor = cr.query(
-                MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-                new String[]{
-                        MediaStore.Audio.Playlists._ID,
-                        MediaStore.Audio.Playlists.NAME
-                },
-                null,
-                null,
-                MediaStore.Audio.Playlists.NAME + " ASC");
-        if (cursor != null) {
-            int count = 0;
-            count = cursor.getCount();
+        try {
+            Cursor cursor = cr.query(
+                    MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                            MediaStore.Audio.Playlists._ID,
+                            MediaStore.Audio.Playlists.NAME
+                    },
+                    null,
+                    null,
+                    MediaStore.Audio.Playlists.NAME + " ASC");
+            if (cursor != null) {
+                int count = 0;
+                count = cursor.getCount();
 
-            if (count > 0) {
-                while (cursor.moveToNext()) {
-                    Long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
-                    String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME));
+                if (count > 0) {
+                    while (cursor.moveToNext()) {
+                        Long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
+                        String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME));
 
-                    action.execute(id, name);
+                        action.execute(id, name);
+                    }
+
                 }
 
+                cursor.close();
             }
-
-            cursor.close();
+        } catch (Exception e) {
+            Log.w(TAG, e);
         }
     }
 

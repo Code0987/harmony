@@ -557,8 +557,12 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
 
-        if (getMusicService() != null)
-            resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+        try {
+            if (getMusicService() != null)
+                resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (video.getVisibility() == View.VISIBLE)
             video.start();
@@ -645,7 +649,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                 loadingView.smoothToShow();
 
-                Music.getCoverOrDownload(new WeakReference<Context>(this), cover.getWidth(), music, new JavaEx.ActionT<Bitmap>() {
+                Music.getCoverOrDownload(new WeakReference<Context>(this), cover.getWidth(), music, new WeakReference<JavaEx.ActionT<Bitmap>>(new JavaEx.ActionT<Bitmap>() {
                     @Override
                     public void execute(Bitmap bitmap) {
                         try {
@@ -732,7 +736,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                         loadingView.smoothToHide();
                     }
-                });
+                }));
 
                 loadingView.smoothToShow();
 
