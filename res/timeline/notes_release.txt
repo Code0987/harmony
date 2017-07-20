@@ -2,6 +2,6 @@
 ✔️ Fixed bugs
 ✔️ Updated library ui
 ✔️ Updated playback ui
-✔️ Updated ui styles
+✔️ Updated ui styles (+Simple UI)
 ✔️ Updated settings ui
-✔️ Updated playback stats
+✔️ Updated playback stats (+Smart score)

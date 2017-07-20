@@ -240,12 +240,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 toRemove.add(music.Path);
         }
 
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-            }
-        });
+        if (toRemove.size() > 0)
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
+                }
+            });
 
         ContentResolver cr = context.getContentResolver();
 
@@ -290,12 +291,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 toRemove.add(music.Path);
         }
 
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-            }
-        });
+        if (toRemove.size() > 0)
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
+                }
+            });
 
         ContentResolver cr = context.getContentResolver();
 
@@ -351,12 +353,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
         }
 
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-            }
-        });
+        if (toRemove.size() > 0)
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
+                }
+            });
 
         for (String location : scanLocations) {
             addFromDirectory(realm, new File(location), Music.KEY_PLAYLIST_STORAGE);
@@ -378,12 +381,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                 toRemove.add(music.Path);
         }
 
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-            }
-        });
+        if (toRemove.size() > 0)
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
+                }
+            });
 
         Music.saveCurrent(realm, context, Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_CURRENT), false);
 

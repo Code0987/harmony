@@ -732,6 +732,19 @@ public class MusicService extends Service {
                 public void onCompletion(IBasicMediaPlayer mediaPlayer) {
                     Log.d(TAG, "onCompletion");
 
+                    if (currentMusic != null) try {
+                        musicRealm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                currentMusic.TotalDurationPlayed += getPosition();
+
+                                realm.insertOrUpdate(currentMusic);
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                     nextSmart(false);
                 }
             });
@@ -943,15 +956,21 @@ public class MusicService extends Service {
 
             setPlayerLastPlayed(this, getCurrentPlaylistItem());
 
-            musicRealm.executeTransaction(new Realm.Transaction() {
-                @Override
-                public void execute(Realm realm) {
-                    currentMusic.Played++;
-                    currentMusic.LastPlayed = System.currentTimeMillis();
+            try {
+                musicRealm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        currentMusic.Played++;
+                        currentMusic.TimeLastPlayed = System.currentTimeMillis();
 
-                    realm.insertOrUpdate(currentMusic);
-                }
-            });
+                        currentMusic.Score = Music.getScore(currentMusic);
+
+                        realm.insertOrUpdate(currentMusic);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -986,15 +1005,20 @@ public class MusicService extends Service {
                 playlistPosition = 0;
         }
 
-        if (currentMusic != null)
+        if (currentMusic != null) try {
             musicRealm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
                     currentMusic.Skipped++;
+                    currentMusic.TimeLastSkipped = System.currentTimeMillis();
+                    currentMusic.TotalDurationPlayed += getPosition();
 
                     realm.insertOrUpdate(currentMusic);
                 }
             });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         prepare(new JavaEx.Action() {
             @Override
