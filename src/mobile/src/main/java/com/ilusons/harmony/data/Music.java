@@ -32,6 +32,7 @@ import com.ilusons.harmony.ref.LyricsEx;
 import com.ilusons.harmony.ref.SPrefEx;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
@@ -138,6 +139,8 @@ public class Music extends RealmObject {
         return sb.toString();
     }
 
+    //region Cover art
+
     public Bitmap getCover(final Context context, int size) {
         Bitmap result;
 
@@ -212,10 +215,10 @@ public class Music extends RealmObject {
 
             @Override
             protected Bitmap doInBackground(Object... objects) {
-                if (isCancelled() || contextRef.get() == null)
-                    throw new CancellationException();
-
                 try {
+                    if (isCancelled() || contextRef.get() == null)
+                        throw new CancellationException();
+
                     Bitmap result = data.getCover(contextRef.get(), size);
 
                     // File
@@ -314,6 +317,10 @@ public class Music extends RealmObject {
         IOEx.putBitmapInDiskCache(context, KEY_CACHE_DIR_COVER, data.Path, bmp);
     }
 
+    //endregion
+
+    //region Lyrics
+
     public String getLyrics(final Context context) {
         String result;
 
@@ -382,10 +389,10 @@ public class Music extends RealmObject {
 
             @Override
             protected String doInBackground(Void... Voids) {
-                if (isCancelled() || contextRef.get() == null)
-                    throw new CancellationException();
-
                 try {
+                    if (isCancelled() || contextRef.get() == null)
+                        throw new CancellationException();
+
                     String result = data.getLyrics(contextRef.get());
 
                     if (!TextUtils.isEmpty(result))
@@ -407,8 +414,18 @@ public class Music extends RealmObject {
 
                         ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(data.getText());
 
-                        if (!(results == null || results.size() == 0))
-                            result = results.get(0).Content;
+                        if (!(results == null || results.size() == 0)) {
+                            for (LyricsEx.Lyrics lyrics : results) {
+
+                                float t = (1f - (StringUtils.getLevenshteinDistance(lyrics.Title, data.Title) / Math.max(lyrics.Title.length(), data.Title.length())));
+                                float a = (1f - (StringUtils.getLevenshteinDistance(lyrics.Artist, data.Artist) / Math.max(lyrics.Artist.length(), data.Artist.length())));
+
+                                if (t >= 0.8 && a >= 0.8) {
+                                    result = lyrics.Content;
+                                    break;
+                                }
+                            }
+                        }
 
                         if (isCancelled())
                             throw new CancellationException();
@@ -444,6 +461,8 @@ public class Music extends RealmObject {
             Log.w(TAG, e);
         }
     }
+
+    //endregion
 
     //region Decoding
 

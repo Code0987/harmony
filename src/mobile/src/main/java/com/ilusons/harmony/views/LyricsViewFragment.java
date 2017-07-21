@@ -8,6 +8,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.FileProvider;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +46,25 @@ public class LyricsViewFragment extends Fragment {
 
     private TextView textView;
     private ScrollView scrollView;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private final SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+        @Override
+        public void onRefresh() {
+            try {
+                Music.getLyricsOrDownload(new WeakReference<Context>(getActivity()), music, new JavaEx.ActionT<String>() {
+                    @Override
+                    public void execute(String s) {
+                        if (getActivity() == null || getActivity().getApplicationContext() == null)
+                            return;
+
+                        processContent();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -115,6 +135,10 @@ public class LyricsViewFragment extends Fragment {
             }
         });
 
+        // Set swipe to refresh
+        swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(swipeRefreshLayoutOnRefreshListener);
+
         reset(path, length);
 
         return v;
@@ -140,19 +164,7 @@ public class LyricsViewFragment extends Fragment {
         // Check if need to download or not
         if (content == null) {
             // If download required, postpone function to later
-            try {
-                Music.getLyricsOrDownload(new WeakReference<Context>(getActivity()), music, new JavaEx.ActionT<String>() {
-                    @Override
-                    public void execute(String s) {
-                        if (getActivity() == null || getActivity().getApplicationContext() == null)
-                            return;
-
-                        processContent();
-                    }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            swipeRefreshLayoutOnRefreshListener.onRefresh();
             return;
         }
 
