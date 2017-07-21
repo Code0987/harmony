@@ -367,7 +367,7 @@ public class Music extends RealmObject {
 
     private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
 
-    public static void getLyricsOrDownload(final WeakReference<Context> contextRef, final Music data, final JavaEx.ActionT<String> onResult) {
+    public static void getLyricsOrDownload(final WeakReference<Context> contextRef, final Music data, final JavaEx.ActionT<String> onResult,final JavaEx.ActionT<Exception> onError) {
         if (getLyricsOrDownloadTask != null) {
             getLyricsOrDownloadTask.cancel(true);
             try {
@@ -380,9 +380,6 @@ public class Music extends RealmObject {
         getLyricsOrDownloadTask = (new AsyncTask<Void, Void, String>() {
             @Override
             protected void onPostExecute(String result) {
-                if (contextRef.get() == null)
-                    return;
-
                 if (onResult != null)
                     onResult.execute(result);
             }
@@ -444,6 +441,9 @@ public class Music extends RealmObject {
                     return result;
                 } catch (Exception e) {
                     Log.w(TAG, e);
+
+                    if (onError != null)
+                        onError.execute(e);
                 }
                 return null;
             }

@@ -8,8 +8,11 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.FileProvider;
-import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.view.GestureDetectorCompat;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ScrollView;
@@ -42,29 +45,14 @@ public class LyricsViewFragment extends Fragment {
 
     private boolean isContentProcessed = false;
 
+    private GestureDetectorCompat gestureDetector;
+
+    private View root;
+
     private AVLoadingIndicatorView loading_view;
 
     private TextView textView;
     private ScrollView scrollView;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private final SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
-        @Override
-        public void onRefresh() {
-            try {
-                Music.getLyricsOrDownload(new WeakReference<Context>(getActivity()), music, new JavaEx.ActionT<String>() {
-                    @Override
-                    public void execute(String s) {
-                        if (getActivity() == null || getActivity().getApplicationContext() == null)
-                            return;
-
-                        processContent();
-                    }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    };
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -90,6 +78,37 @@ public class LyricsViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.lyrics_view, container, false);
+
+        root = v;
+        gestureDetector = new GestureDetectorCompat(getActivity(), new GestureDetector.SimpleOnGestureListener() {
+            private static final int SWIPE_MIN_DISTANCE = 120;
+            private static final int SWIPE_MAX_OFF_PATH = 320;
+            private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                try {
+                    if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+                        return false;
+
+                    if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+                        reLoad();
+
+                        return true;
+                    }
+
+                } catch (Exception e) {
+                    Log.e(TAG, "There was an error processing the Fling event:" + e);
+                }
+
+                return true;
+            }
+
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
+            }
+        });
 
         loading_view = (AVLoadingIndicatorView) v.findViewById(R.id.loading_view);
 
@@ -135,13 +154,44 @@ public class LyricsViewFragment extends Fragment {
             }
         });
 
-        // Set swipe to refresh
-        swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipeRefreshLayout);
-        swipeRefreshLayout.setOnRefreshListener(swipeRefreshLayoutOnRefreshListener);
+        textView.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (gestureDetector.onTouchEvent(event)) {
+                    return false;
+                }
+                return false;
+            }
+        });
 
         reset(path, length);
 
         return v;
+    }
+
+    private void reLoad() {
+        loading_view.smoothToShow();
+        try {
+            Music.getLyricsOrDownload(new WeakReference<Context>(getActivity()), music, new JavaEx.ActionT<String>() {
+                @Override
+                public void execute(String s) {
+                    if (getActivity() == null || getActivity().getApplicationContext() == null)
+                        return;
+
+                    loading_view.smoothToHide();
+
+                    processContent();
+                }
+            }, new JavaEx.ActionT<Exception>() {
+                @Override
+                public void execute(Exception e) {
+                    Toast.makeText(getActivity(), ":( can't fetch lyrics ...", Toast.LENGTH_SHORT).show();
+
+                    loading_view.smoothToHide();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private String contentFormatted = null;
@@ -164,7 +214,7 @@ public class LyricsViewFragment extends Fragment {
         // Check if need to download or not
         if (content == null) {
             // If download required, postpone function to later
-            swipeRefreshLayoutOnRefreshListener.onRefresh();
+            reLoad();
             return;
         }
 
