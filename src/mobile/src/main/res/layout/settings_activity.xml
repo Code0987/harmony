@@ -118,7 +118,7 @@
 
     <RelativeLayout
         android:id="@+id/bottom_layout"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="96dp"
         android:background="@drawable/gradient_bottom_up"
         android:clipChildren="false"
@@ -135,15 +135,9 @@
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:clipChildren="true"
-        android:clipToPadding="true"
-        android:fadeScrollbars="true"
         android:orientation="vertical"
-        android:scrollbars="vertical"
         app:layout_constraintBottom_toTopOf="@+id/bottom_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -164,7 +158,6 @@
             class="com.ilusons.harmony.ref.ViewEx$StaticViewPager"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
             android:layout_marginTop="@dimen/activity_vertical_margin"
@@ -176,7 +169,6 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:tag="About"
@@ -285,7 +277,6 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
                 android:descendantFocusability="beforeDescendants"
                 android:focusableInTouchMode="true"
                 android:orientation="vertical"
@@ -343,7 +334,6 @@
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
                 android:clipChildren="true"
                 android:clipToPadding="true"
                 android:descendantFocusability="beforeDescendants"
@@ -552,7 +542,6 @@
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
                 android:clipChildren="true"
                 android:clipToPadding="true"
                 android:descendantFocusability="beforeDescendants"

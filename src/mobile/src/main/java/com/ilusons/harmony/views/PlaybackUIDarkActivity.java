@@ -665,7 +665,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                             // Eat!
                         }
 
-                        loadingView.smoothToHide();
+                        loadingView.smoothToShow();
 
                         if (bitmap == null)
                             return;
@@ -738,7 +738,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                     }
                 }));
 
-                loadingView.smoothToShow();
+                loadingView.smoothToHide();
 
                 if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
                     lyricsViewFragment.reset(music, (long) Math.max(music.Length, getMusicService().getDuration()));
