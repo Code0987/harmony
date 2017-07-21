@@ -875,7 +875,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 .dismissOnTouch(true)
                 .enableIcon(true)
                 .performClick(true)
-                .setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to open editor.")
+                .setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to open editor. Pull down on text to reload.")
                 .setTarget(lyrics_layout)
                 .setUsageId(UUID.randomUUID().toString());
 

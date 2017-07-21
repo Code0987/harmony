@@ -4,44 +4,42 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     >
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swipeRefreshLayout"
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fadingEdgeLength="24dp"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:orientation="vertical"
+        android:requiresFadingEdge="vertical"
+        android:scrollbars="none"
         >
 
-        <ScrollView
-            android:id="@+id/scrollView"
+        <TextView
+            android:id="@+id/lyrics"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fadingEdgeLength="24dp"
-            android:orientation="vertical"
-            android:requiresFadingEdge="vertical"
-            android:scrollbars="none"
-            >
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@null"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:lineSpacingMultiplier="1.2"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii. Omnis legio! Omnis con...potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis......legio diabolica, adiuramus te! Exorcizamus te, omnis immundus spiritus, omnis satanica potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis legio diabolica, adiuramus te!"
+            />
 
-            <TextView
-                android:id="@+id/lyrics"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:background="@null"
-                android:gravity="center"
-                android:lineSpacingExtra="3dp"
-                android:lineSpacingMultiplier="1.2"
-                android:textAlignment="center"
-                android:textSize="18sp"
-                tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii. Omnis legio! Omnis con...potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis......legio diabolica, adiuramus te! Exorcizamus te, omnis immundus spiritus, omnis satanica potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis legio diabolica, adiuramus te!"
-                />
-
-        </ScrollView>
-
-    </android.support.v4.widget.SwipeRefreshLayout>
+    </ScrollView>
 
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/loading_view"
