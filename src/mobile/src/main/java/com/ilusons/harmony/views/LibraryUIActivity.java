@@ -394,6 +394,22 @@ public class LibraryUIActivity extends BaseUIActivity {
             }
         });
 
+        findViewById(R.id.load_current).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                swipeRefreshLayoutOnRefreshListener.onRefresh();
+
+                drawer_layout.closeDrawer(GravityCompat.END);
+            }
+        });
+        findViewById(R.id.load_current).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                infoDialog("Loads the current playlist.");
+                return true;
+            }
+        });
+
         findViewById(R.id.save_current).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -655,7 +671,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .dismissOnTouch(true)
                 .enableIcon(true)
                 .performClick(true)
-                .setInfoText("Playlist currently active.")
+                .setInfoText("Playlist currently active. Long-press to see sub-menu on item.")
                 .setTarget(recyclerView)
                 .setUsageId(UUID.randomUUID().toString());
 
@@ -670,7 +686,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .dismissOnTouch(true)
                 .enableIcon(true)
                 .performClick(true)
-                .setInfoText("Here is little search bar, you can use it to find a library item. Also, swipe down for some more options!")
+                .setInfoText("Here is little search bar, you can use it to find a item. Also, swipe down for some more options!")
                 .setTarget(search_view)
                 .setUsageId(UUID.randomUUID().toString());
 
@@ -685,7 +701,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .dismissOnTouch(true)
                 .enableIcon(true)
                 .performClick(true)
-                .setInfoText("That's all! Now go play something!")
+                .setInfoText("That's all! Now go play something (Wait for initial scan...)!")
                 .setTarget(collapse_toolbar)
                 .setUsageId(UUID.randomUUID().toString());
 
@@ -1151,14 +1167,49 @@ public class LibraryUIActivity extends BaseUIActivity {
                         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
                         builder.setTitle("Select the action");
                         builder.setItems(new CharSequence[]{
+                                "Now playing: Add next",
+                                "Now playing: Add at start",
+                                "Now playing: Add at last",
+                                "Now playing: Remove",
+                                "Move down",
+                                "Move up",
                                 "Remove"
                         }, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int itemIndex) {
-                                switch (itemIndex) {
-                                    case 0:
-                                        removeData(item);
-                                        break;
+                                try {
+                                    switch (itemIndex) {
+                                        case 0:
+                                            getMusicService().add(item.Path, getMusicService().getPlaylistPosition() + 1);
+                                            break;
+                                        case 1:
+                                            getMusicService().add(item.Path, 0);
+                                            break;
+                                        case 2:
+                                            getMusicService().add(item.Path);
+                                            break;
+                                        case 3:
+                                            getMusicService().remove(item.Path);
+                                            break;
+                                        case 4:
+                                            int i = data.indexOf(item);
+                                            data.remove(item);
+                                            data.add(i + 1, item);
+                                            refresh(null);
+                                            break;
+                                        case 5:
+                                            int j = data.indexOf(item);
+                                            data.remove(item);
+                                            data.add(j - 1, item);
+                                            refresh(null);
+                                            break;
+                                        case 6:
+                                            data.remove(item);
+                                            refresh(null);
+                                            break;
+                                    }
+                                } catch (Exception e) {
+                                    Log.w(TAG, e);
                                 }
                             }
                         });
@@ -1191,7 +1242,6 @@ public class LibraryUIActivity extends BaseUIActivity {
         }
 
         public void removeData(Music d) {
-            data.clear();
             data.remove(d);
 
             refresh(null);

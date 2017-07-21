@@ -1078,17 +1078,24 @@ public class TuneActivity extends BaseActivity {
         } catch (Exception e) {
             e.printStackTrace();
 
-            reverb_env_preset_spinner.setEnabled(false);
-            reverb_env_decay_hf_ratio_seekBar.setEnabled(false);
-            reverb_env_decay_time_seekBar.setEnabled(false);
-            reverb_env_density_seekBar.setEnabled(false);
-            reverb_env_diffusion_seekBar.setEnabled(false);
-            reverb_env_reflections_delay_seekBar.setEnabled(false);
-            reverb_env_reflections_level_seekBar.setEnabled(false);
-            reverb_env_reverb_delay_seekBar.setEnabled(false);
-            reverb_env_reverb_level_seekBar.setEnabled(false);
-            reverb_env_room_hf_level_seekBar.setEnabled(false);
-            reverb_env_room_level_seekBar.setEnabled(false);
+            try {
+                environmentalReverb.setProperties(EnvironmentalReverbPresets.GENERIC);
+            } catch (Exception e2) {
+                e2.printStackTrace();
+
+                reverb_env_preset_spinner.setEnabled(false);
+                reverb_env_decay_hf_ratio_seekBar.setEnabled(false);
+                reverb_env_decay_time_seekBar.setEnabled(false);
+                reverb_env_density_seekBar.setEnabled(false);
+                reverb_env_diffusion_seekBar.setEnabled(false);
+                reverb_env_reflections_delay_seekBar.setEnabled(false);
+                reverb_env_reflections_level_seekBar.setEnabled(false);
+                reverb_env_reverb_delay_seekBar.setEnabled(false);
+                reverb_env_reverb_level_seekBar.setEnabled(false);
+                reverb_env_room_hf_level_seekBar.setEnabled(false);
+                reverb_env_room_level_seekBar.setEnabled(false);
+            }
+
         }
 
     }
