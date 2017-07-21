@@ -204,7 +204,7 @@ public class AudioVFXViewFragment extends Fragment {
                     // stop visualizerHQ
                     stopVisualizer();
 
-                    visualizer.setEnabled(false);
+                    visualizerHQ.setEnabled(false);
 
                     // use maximum rate & size
                     int rate = visualizerHQ.getMaxCaptureRate();
