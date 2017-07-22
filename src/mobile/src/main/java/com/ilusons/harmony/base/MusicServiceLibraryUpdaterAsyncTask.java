@@ -32,7 +32,7 @@ import io.realm.RealmResults;
 public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, MusicServiceLibraryUpdaterAsyncTask.Result> {
 
     // Logger TAG
-    private static final String TAG = MusicServiceLibraryUpdaterAsyncTask.class.getSimpleName();
+    public static final String TAG = MusicServiceLibraryUpdaterAsyncTask.class.getSimpleName();
 
     public static final long SCAN_INTERVAL_FACTOR = 60 * 60 * 1000;
 
