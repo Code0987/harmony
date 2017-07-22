@@ -74,7 +74,7 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/playlist_recyclerView"
             android:layout_width="match_parent"
-            android:layout_height="196dp"
+            android:layout_height="186dp"
             android:animateLayoutChanges="false"
             android:animationCache="true"
             android:clipToPadding="false"

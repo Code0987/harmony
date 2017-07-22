@@ -1,7 +1,6 @@
 package com.ilusons.harmony.views;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -38,10 +37,8 @@ import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.CacheEx;
-import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
-import java.lang.ref.WeakReference;
 import java.util.UUID;
 
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
@@ -142,6 +139,8 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
         // Set view
         setContentView(R.layout.playback_ui_dark_activity);
+
+        Music.setCurrentCoverView(this);
 
         final View decorView = getWindow().getDecorView();
         decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
@@ -649,94 +648,19 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
                 loadingView.smoothToShow();
 
-                Music.getCoverOrDownload(new WeakReference<Context>(this), cover.getWidth(), music, new WeakReference<JavaEx.ActionT<Bitmap>>(new JavaEx.ActionT<Bitmap>() {
-                    @Override
-                    public void execute(Bitmap bitmap) {
-                        try {
-                            if (bitmap == null)
-                                bitmap = CacheEx.getInstance().getBitmap(String.valueOf(R.drawable.logo));
+                Music.getCoverOrDownload(cover.getWidth(), music);
 
-                            if (bitmap == null) {
-                                bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
+                // Load video
+                if (music.hasVideo()) {
+                    video.setVisibility(View.VISIBLE);
+                    video.setVideoPath(music.Path);
+                    video.requestFocus();
+                    video.start();
+                }
 
-                                CacheEx.getInstance().putBitmap(String.valueOf(R.drawable.logo), bitmap);
-                            }
-                        } catch (Exception e) {
-                            // Eat!
-                        }
-
-                        loadingView.smoothToShow();
-
-                        if (bitmap == null)
-                            return;
-
-                        // Refresh system bindings
-                        Intent musicServiceIntent = new Intent(PlaybackUIDarkActivity.this, MusicService.class);
-                        musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
-                        startService(musicServiceIntent);
-
-                        // Load cover
-                        if (cover.getDrawable() != null) {
-                            TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-                                    cover.getDrawable(),
-                                    new BitmapDrawable(getResources(), bitmap)
-                            });
-
-                            cover.setImageDrawable(d);
-
-                            d.setCrossFadeEnabled(true);
-                            d.startTransition(200);
-                        } else {
-                            cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
-                        }
-
-                        Palette palette = Palette.from(bitmap).generate();
-                        color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
-                        int colorBackup = color;
-                        color = palette.getVibrantColor(color);
-                        if (color == colorBackup)
-                            color = palette.getDarkVibrantColor(color);
-                        if (color == colorBackup)
-                            color = palette.getDarkMutedColor(color);
-
-                        float[] hsl = new float[3];
-                        ColorUtils.colorToHSL(color, hsl);
-                        hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f); // lum +30%
-                        colorLight = ColorUtils.HSLToColor(hsl);
-
-                        seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-                        seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-
-                        play_pause_stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        play_pause_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-                        prev.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        next.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        shuffle.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        repeat.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-                        tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-
-                        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-                            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-                        }
-
-                        // Load video
-                        if (music.hasVideo()) {
-                            video.setVisibility(View.VISIBLE);
-                            video.setVideoPath(music.Path);
-                            video.requestFocus();
-                            video.start();
-                        }
-
-                        if (music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                            root.setBackground(null);
-                        } else {
-                            root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
-                        }
-
-                        loadingView.smoothToHide();
-                    }
-                }));
+                if (music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    root.setBackground(null);
+                }
 
                 loadingView.smoothToHide();
 
@@ -764,6 +688,82 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         else
             OnMusicServicePause();
 
+    }
+
+    public void onCoverReloaded(Bitmap bitmap) {
+        try {
+            if (bitmap == null)
+                bitmap = CacheEx.getInstance().getBitmap(String.valueOf(R.drawable.logo));
+
+            if (bitmap == null) {
+                bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
+
+                CacheEx.getInstance().putBitmap(String.valueOf(R.drawable.logo), bitmap);
+            }
+        } catch (Exception e) {
+            // Eat!
+        }
+
+        loadingView.smoothToShow();
+
+        if (bitmap == null)
+            return;
+
+        // Refresh system bindings
+        Intent musicServiceIntent = new Intent(PlaybackUIDarkActivity.this, MusicService.class);
+        musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
+        startService(musicServiceIntent);
+
+        // Load cover
+        if (cover.getDrawable() != null) {
+            TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+                    cover.getDrawable(),
+                    new BitmapDrawable(getResources(), bitmap)
+            });
+
+            cover.setImageDrawable(d);
+
+            d.setCrossFadeEnabled(true);
+            d.startTransition(200);
+        } else {
+            cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+        }
+
+        Palette palette = Palette.from(bitmap).generate();
+        color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
+        int colorBackup = color;
+        color = palette.getVibrantColor(color);
+        if (color == colorBackup)
+            color = palette.getDarkVibrantColor(color);
+        if (color == colorBackup)
+            color = palette.getDarkMutedColor(color);
+
+        float[] hsl = new float[3];
+        ColorUtils.colorToHSL(color, hsl);
+        hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f); // lum +30%
+        colorLight = ColorUtils.HSLToColor(hsl);
+
+        seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+
+        play_pause_stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+        play_pause_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+        prev.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+        next.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+        shuffle.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+        repeat.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+        avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+        tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+
+        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+        }
+
+        if (!(root.getBackground() == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)) {
+            root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
+        }
+
+        loadingView.smoothToHide();
     }
 
     private Runnable progressHandlerRunnable;

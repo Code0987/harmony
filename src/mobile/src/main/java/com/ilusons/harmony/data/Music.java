@@ -30,6 +30,8 @@ import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.views.LyricsViewFragment;
+import com.ilusons.harmony.views.PlaybackUIDarkActivity;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +67,6 @@ import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.annotations.PrimaryKey;
 
-// TODO: Upgrade database to optimized ones
 public class Music extends RealmObject {
 
     // Logger TAG
@@ -191,9 +192,19 @@ public class Music extends RealmObject {
         return getCover(context, -1);
     }
 
+    private static WeakReference<PlaybackUIDarkActivity> currentCoverView = null;
+
+    public static PlaybackUIDarkActivity getCurrentCoverView() {
+        return currentCoverView.get();
+    }
+
+    public static void setCurrentCoverView(PlaybackUIDarkActivity v) {
+        currentCoverView = new WeakReference<PlaybackUIDarkActivity>(v);
+    }
+
     private static AsyncTask<Object, Object, Bitmap> getCoverOrDownloadTask = null;
 
-    public static void getCoverOrDownload(final WeakReference<Context> contextRef, final int size, final Music data, final WeakReference<JavaEx.ActionT<Bitmap>> onResult) {
+    public static void getCoverOrDownload(final int size, final Music data) {
         if (getCoverOrDownloadTask != null) {
             getCoverOrDownloadTask.cancel(true);
             try {
@@ -206,23 +217,20 @@ public class Music extends RealmObject {
         getCoverOrDownloadTask = (new AsyncTask<Object, Object, Bitmap>() {
             @Override
             protected void onPostExecute(Bitmap bitmap) {
-                if (contextRef.get() == null)
-                    return;
-
-                if (onResult.get() != null)
-                    onResult.get().execute(bitmap);
+                if (getCurrentCoverView() != null)
+                    getCurrentCoverView().onCoverReloaded(bitmap);
             }
 
             @Override
             protected Bitmap doInBackground(Object... objects) {
                 try {
-                    if (isCancelled() || contextRef.get() == null)
+                    if (isCancelled() || getCurrentCoverView() == null)
                         throw new CancellationException();
 
-                    Bitmap result = data.getCover(contextRef.get(), size);
+                    Bitmap result = data.getCover(getCurrentCoverView(), size);
 
                     // File
-                    File file = IOEx.getDiskCacheFile(contextRef.get(), KEY_CACHE_DIR_COVER, data.Path);
+                    File file = IOEx.getDiskCacheFile(getCurrentCoverView(), KEY_CACHE_DIR_COVER, data.Path);
 
                     if (isCancelled())
                         throw new CancellationException();
@@ -279,10 +287,10 @@ public class Music extends RealmObject {
                             result = BitmapFactory.decodeFile(file.getAbsolutePath());
 
                         // Refresh once more
-                        if (result == null && contextRef.get() != null) {
-                            data.refresh(contextRef.get());
+                        if (result == null && getCurrentCoverView() != null) {
+                            data.refresh(getCurrentCoverView());
 
-                            result = data.getCover(contextRef.get(), size);
+                            result = data.getCover(getCurrentCoverView(), size);
                         }
 
                         // Resample
@@ -345,10 +353,6 @@ public class Music extends RealmObject {
             CacheEx.getInstance().put(KEY_CACHE_DIR_LYRICS + Path, result);
         }
 
-        if (TextUtils.isEmpty(result)) {
-            result = "";
-        }
-
         return result;
     }
 
@@ -365,9 +369,19 @@ public class Music extends RealmObject {
         return file;
     }
 
+    private static WeakReference<LyricsViewFragment> currentLyricsView = null;
+
+    public static LyricsViewFragment getCurrentLyricsView() {
+        return currentLyricsView.get();
+    }
+
+    public static void setCurrentLyricsView(LyricsViewFragment v) {
+        currentLyricsView = new WeakReference<LyricsViewFragment>(v);
+    }
+
     private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
 
-    public static void getLyricsOrDownload(final WeakReference<Context> contextRef, final Music data, final JavaEx.ActionT<String> onResult,final JavaEx.ActionT<Exception> onError) {
+    public static void getLyricsOrDownload(final Music data) {
         if (getLyricsOrDownloadTask != null) {
             getLyricsOrDownloadTask.cancel(true);
             try {
@@ -380,29 +394,31 @@ public class Music extends RealmObject {
         getLyricsOrDownloadTask = (new AsyncTask<Void, Void, String>() {
             @Override
             protected void onPostExecute(String result) {
-                if (onResult != null)
-                    onResult.execute(result);
+                if (getCurrentLyricsView() != null)
+                    getCurrentLyricsView().onReloaded(result);
             }
 
             @Override
             protected String doInBackground(Void... Voids) {
                 try {
-                    if (isCancelled() || contextRef.get() == null)
+                    if (isCancelled() || getCurrentLyricsView() == null)
                         throw new CancellationException();
 
-                    String result = data.getLyrics(contextRef.get());
+                    String result = data.getLyrics(getCurrentLyricsView().getActivity());
 
                     if (!TextUtils.isEmpty(result))
                         return result;
 
                     // Refresh once more
-                    if (result == null && contextRef.get() != null) {
-                        data.refresh(contextRef.get());
+                    if (result == null && getCurrentLyricsView().getActivity() != null) try {
+                        data.refresh(getCurrentLyricsView().getActivity());
 
-                        result = data.getLyrics(contextRef.get());
+                        result = data.getLyrics(getCurrentLyricsView().getActivity());
 
                         if (!TextUtils.isEmpty(result))
                             return result;
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
 
                     try {
@@ -427,7 +443,7 @@ public class Music extends RealmObject {
                         if (isCancelled())
                             throw new CancellationException();
 
-                        data.putLyrics(contextRef.get(), result);
+                        data.putLyrics(getCurrentLyricsView().getActivity(), result);
                     } catch (Exception e) {
                         Log.w(TAG, e);
                     }
@@ -435,16 +451,14 @@ public class Music extends RealmObject {
                     if (TextUtils.isEmpty(result)) {
                         result = "";
 
-                        data.putLyrics(contextRef.get(), "");
+                        data.putLyrics(getCurrentLyricsView().getActivity(), "");
                     }
 
                     return result;
                 } catch (Exception e) {
                     Log.w(TAG, e);
-
-                    if (onError != null)
-                        onError.execute(e);
                 }
+
                 return null;
             }
         });
@@ -1140,7 +1154,11 @@ public class Music extends RealmObject {
     public static void saveCurrent(Realm realm, Context context, final Collection<Music> data, boolean notify) {
         try {
             try {
-                setPlaylistCurrentSortOrder(context, data);
+                ArrayList<String> items = new ArrayList<>();
+                for (Music item : data)
+                    items.add(item.Path);
+
+                setPlaylistCurrentSortOrder(context, items);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1236,10 +1254,10 @@ public class Music extends RealmObject {
         return new ArrayList<String>(Arrays.asList(s.split(";")));
     }
 
-    public static void setPlaylistCurrentSortOrder(Context context, Collection<Music> data) {
+    public static void setPlaylistCurrentSortOrder(Context context, Collection<String> data) {
         StringBuilder value = new StringBuilder();
-        for (Music item : data)
-            value.append(item.Path).append(";");
+        for (String item : data)
+            value.append(item).append(";");
 
         SPrefEx.get(context)
                 .edit()

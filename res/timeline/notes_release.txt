@@ -1,3 +1,6 @@
 ﻿✔️ Work in progress, only for testing and feedback.
-✔️ Fixed bugs (HQ audio fx, Crashes, Env. reverb)
+✔️ Fixed bugs (Lyrics+Cover, HQ audio fx, Crashes, Env. reverb)
 ✔️ Updated lyrics ui (+swipe down to re(down)load)
+✔️ Fixed playlist bugs (+Long-press item on library)
+✔️ Added a feedback button on left drawer
+

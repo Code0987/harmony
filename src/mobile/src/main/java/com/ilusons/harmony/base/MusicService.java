@@ -584,10 +584,13 @@ public class MusicService extends Service {
     private int playlistPosition = -1;
 
     public int add(String path, int position) {
-        if (playlist.contains(path))
-            return playlist.indexOf(path);
-
         playlist.add(position, path);
+
+        try {
+            Music.setPlaylistCurrentSortOrder(this, getPlaylist());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return position;
     }
@@ -1176,14 +1179,12 @@ public class MusicService extends Service {
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onPause() {
-                // TODO: Check this
-                // pause();
+                pause();
             }
 
             @Override
             public void onPlay() {
-                // TODO: Check this
-                // play();
+                play();
             }
 
             @Override

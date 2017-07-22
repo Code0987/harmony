@@ -91,4 +91,3 @@ public class App extends Application {
         super.onLowMemory();
     }
 }
-
