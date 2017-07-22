@@ -74,9 +74,9 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     long interval = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_INTERVAL, SCAN_INTERVAL_DEFAULT);
                     long last = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_LAST_TS, 0);
 
-                    long dt = System.currentTimeMillis() - (last + interval);
+                    long dt = ((last + interval) - System.currentTimeMillis());
 
-                    if (dt < 0) {
+                    if (dt > 0) {
                         throw new Exception("Skipped due to time constraints!");
                     }
                 }
