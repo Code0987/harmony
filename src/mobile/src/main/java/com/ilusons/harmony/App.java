@@ -9,12 +9,11 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.ref.RealmEx;
 import com.squareup.leakcanary.LeakCanary;
 
 import io.fabric.sdk.android.Fabric;
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import jonathanfinerty.once.Once;
 
 public class App extends Application {
@@ -68,6 +67,10 @@ public class App extends Application {
         // Start scan
         Intent musicServiceIntent = new Intent(this, MusicService.class);
         musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+        if (!Once.beenDone(Once.THIS_APP_INSTALL, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
+            musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+            Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
+        }
         startService(musicServiceIntent);
 
         // Ads
