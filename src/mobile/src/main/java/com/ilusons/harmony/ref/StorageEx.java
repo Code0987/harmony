@@ -34,7 +34,6 @@ public class StorageEx {
                 if ("primary".equalsIgnoreCase(type)) {
                     return Environment.getExternalStorageDirectory() + "/" + split[1];
                 } else {
-                    // TODO handle non-primary volumes
                     return ("/storage/" + type + "/" + split[1]);
                 }
 

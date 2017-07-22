@@ -19,7 +19,6 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
@@ -71,6 +70,7 @@ import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.ArrayEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -90,6 +90,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -341,6 +342,20 @@ public class LibraryUIActivity extends BaseUIActivity {
             }
         });
 
+        findViewById(R.id.feedback).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_SENDTO);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_SUBJECT, "[#harmony #feedback #android]");
+                intent.putExtra(Intent.EXTRA_TEXT, "");
+                intent.setData(Uri.parse("mailto:"));
+                intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"support@ilusons.com", "harmony@ilusons.com", "7b56b759@opayq.com"});
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        });
+
         findViewById(R.id.exit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -503,8 +518,8 @@ public class LibraryUIActivity extends BaseUIActivity {
         switch (id) {
             case android.R.id.home:
                 if (appBarIsExpanded) {
-                    CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams) appBar_layout.getLayoutParams();
-                    lp.height = getResources().getDisplayMetrics().heightPixels / 3;
+                    // CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams) appBar_layout.getLayoutParams();
+                    // lp.height = getResources().getDisplayMetrics().heightPixels / 3;
                 }
                 appBar_layout.setExpanded(!appBarIsExpanded, true);
                 if (!appBarIsExpanded)
@@ -594,7 +609,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     @Override
     public void OnMusicServiceLibraryUpdated() {
         if (adapter != null)
-            adapter.setData(Music.loadCurrent());
+            adapter.setData(Music.loadCurrentSorted(this));
 
         swipeRefreshLayout.setRefreshing(false);
 
@@ -1186,21 +1201,19 @@ public class LibraryUIActivity extends BaseUIActivity {
                                             getMusicService().add(item.Path, 0);
                                             break;
                                         case 2:
-                                            getMusicService().add(item.Path);
+                                            getMusicService().add(item.Path, getMusicService().getPlaylist().size());
                                             break;
                                         case 3:
                                             getMusicService().remove(item.Path);
                                             break;
                                         case 4:
                                             int i = data.indexOf(item);
-                                            data.remove(item);
-                                            data.add(i + 1, item);
+                                            ArrayEx.move(i, i + 1, data);
                                             refresh(null);
                                             break;
                                         case 5:
                                             int j = data.indexOf(item);
-                                            data.remove(item);
-                                            data.add(j - 1, item);
+                                            ArrayEx.move(j, j - 1, data);
                                             refresh(null);
                                             break;
                                         case 6:
@@ -1965,6 +1978,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                         result.put(key, list);
                     }
                 }
+                result = new TreeMap<>(result);
                 break;
             case Artist:
                 for (Music d : data) {
@@ -1978,6 +1992,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                         result.put(key, list);
                     }
                 }
+                result = new TreeMap<>(result);
                 break;
             case Default:
             default:

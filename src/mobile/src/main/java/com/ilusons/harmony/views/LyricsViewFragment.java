@@ -22,11 +22,9 @@ import android.widget.Toast;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.ref.JavaEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -73,6 +71,8 @@ public class LyricsViewFragment extends Fragment {
             path = (String) getArguments().get(KEY_PATH);
             length = (Long) getArguments().get(KEY_LENGTH);
         }
+
+        Music.setCurrentLyricsView(this);
     }
 
     @Override
@@ -168,30 +168,19 @@ public class LyricsViewFragment extends Fragment {
         return v;
     }
 
-    private void reLoad() {
+    public void reLoad() {
         loading_view.smoothToShow();
         try {
-            Music.getLyricsOrDownload(new WeakReference<Context>(getActivity()), music, new JavaEx.ActionT<String>() {
-                @Override
-                public void execute(String s) {
-                    if (getActivity() == null || getActivity().getApplicationContext() == null)
-                        return;
-
-                    loading_view.smoothToHide();
-
-                    processContent();
-                }
-            }, new JavaEx.ActionT<Exception>() {
-                @Override
-                public void execute(Exception e) {
-                    Toast.makeText(getActivity(), ":( can't fetch lyrics ...", Toast.LENGTH_SHORT).show();
-
-                    loading_view.smoothToHide();
-                }
-            });
+            Music.getLyricsOrDownload(music);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void onReloaded(String s) {
+        loading_view.smoothToHide();
+
+        processContent();
     }
 
     private String contentFormatted = null;
