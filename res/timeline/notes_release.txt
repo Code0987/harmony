@@ -3,3 +3,4 @@
 ✔️ Fixed initial scan bug on new installs.
 ✔️ Added api 21 support.
 ✔️ Added help section.
+✔️ Fixed a crash issue.
