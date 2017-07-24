@@ -462,7 +462,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
-                        android:text="Library update interval (in hours)"
+                        android:text="Library update interval (in seconds)"
                         android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"

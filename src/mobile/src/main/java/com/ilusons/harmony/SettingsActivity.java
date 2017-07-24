@@ -449,48 +449,45 @@ public class SettingsActivity extends BaseActivity {
 
         // Scan interval
         final EditText scan_interval_editText = (EditText) findViewById(R.id.scan_interval_editText);
-
-        scan_interval_editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus) {
-                    EditText editText = (EditText) v;
-
-                    Long value = Long.parseLong(editText.getText().toString().trim());
-
-                    if (!(value <= 7 * 24 && value >= 3)) {
-                        info("Enter value between [3, " + 7 * 24 + "]", true);
-
-                        long savedScanInterval = SPrefEx.get(getApplicationContext()).getLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_DEFAULT);
-
-                        editText.setText("");
-                        editText.append(String.valueOf(savedScanInterval / MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_FACTOR));
-
-                        return;
-                    }
-
-                    value *= MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_FACTOR;
-
-                    SPrefEx.get(getApplicationContext())
-                            .edit()
-                            .putLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, value)
-                            .apply();
-
-                    info("Updated!");
-                }
-            }
-        });
-
-        long savedScanInterval = SPrefEx.get(getApplicationContext()).getLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_DEFAULT);
-
         scan_interval_editText.setText("");
-        scan_interval_editText.append(String.valueOf(savedScanInterval / MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_FACTOR));
+        scan_interval_editText.append(String.valueOf(SPrefEx.get(getApplicationContext()).getLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_DEFAULT)));
         scan_interval_editText.clearFocus();
-
         findViewById(R.id.scan_interval_imageButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                scan_interval_editText.clearFocus();
+                final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
+                    @Override
+                    public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
+                        Long value = ((((hours * 60L) + minutes) * 60) + seconds) * 1000;
+
+                        if (!(value <= (48 * 60 * 60 * 1000) && value >= (7 * 60 * 60 * 1000))) {
+                            info("Enter value between [7hrs, 48hrs]", true);
+
+                            return;
+                        }
+
+                        SPrefEx.get(getApplicationContext())
+                                .edit()
+                                .putLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, value)
+                                .apply();
+
+                        scan_interval_editText.setText("");
+                        scan_interval_editText.append(String.valueOf(value));
+                        scan_interval_editText.clearFocus();
+                    }
+                };
+                final HmsPickerBuilder hpb = new HmsPickerBuilder()
+                        .setFragmentManager(getSupportFragmentManager())
+                        .setStyleResId(R.style.BetterPickersDialogFragment);
+                hpb.addHmsPickerDialogHandler(handler);
+                hpb.setOnDismissListener(new OnDialogDismissListener() {
+                    @Override
+                    public void onDialogDismiss(DialogInterface dialoginterface) {
+                        hpb.removeHmsPickerDialogHandler(handler);
+                    }
+                });
+                hpb.setTimeInMilliseconds(SPrefEx.get(SettingsActivity.this).getLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_DEFAULT));
+                hpb.show();
             }
         });
 
