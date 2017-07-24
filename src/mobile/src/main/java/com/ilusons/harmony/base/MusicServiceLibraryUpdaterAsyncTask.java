@@ -34,12 +34,10 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
     // Logger TAG
     public static final String TAG = MusicServiceLibraryUpdaterAsyncTask.class.getSimpleName();
 
-    public static final long SCAN_INTERVAL_FACTOR = 60 * 60 * 1000;
-
     private static final String TAG_SPREF_SCAN_LAST_TS = SPrefEx.TAG_SPREF + ".scan_last_ts";
 
     public static final String TAG_SPREF_SCAN_INTERVAL = SPrefEx.TAG_SPREF + ".scan_interval";
-    public static final long SCAN_INTERVAL_DEFAULT = 72 * 60 * 60 * 1000;
+    public static final long SCAN_INTERVAL_DEFAULT = 18 * 60 * 60 * 1000;
 
     // For single task per session
     @SuppressLint("StaticFieldLeak")
