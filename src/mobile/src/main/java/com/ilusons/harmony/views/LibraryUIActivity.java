@@ -342,6 +342,22 @@ public class LibraryUIActivity extends BaseUIActivity {
             }
         });
 
+        findViewById(R.id.ytpl).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    Uri uri = Uri.parse("https://www.youtube.com/playlist?list=PLR6v5-VD7fUJtQepsBTq7Wf44e_z1eM8b");
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(uri);
+                    i.setClassName("com.google.android.youtube", "com.google.android.youtube.app.froyo.phone.PlaylistActivity");
+                    startActivity(i);
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/playlist?list=PLR6v5-VD7fUJtQepsBTq7Wf44e_z1eM8b")));
+                }
+            }
+        });
+
         findViewById(R.id.feedback).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1695,7 +1711,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     //region UI sort mode
 
     public enum UISortMode {
-        Default("Default"),
+        Default("Default/Custom"),
         Title("Title ▲"),
         Album("Album ▲"),
         Artist("Artist ▲"),
