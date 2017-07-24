@@ -194,6 +194,9 @@ public class LyricsViewFragment extends Fragment {
         if (music == null)
             return;
 
+        if (getActivity() == null || getActivity().getApplicationContext() == null)
+            return;
+
         loading_view.show();
 
         textView.setText(music.getTextDetailed());

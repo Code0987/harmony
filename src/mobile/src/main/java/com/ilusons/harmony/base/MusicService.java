@@ -192,22 +192,27 @@ public class MusicService extends Service {
                 return;
             }
 
-            Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
+            try {
+                Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
 
-            boolean premium = ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
+                boolean premium = ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
 
-            if (!IsPremium && premium) try {
-                Toast.makeText(MusicService.this, "Thank you for upgrading to premium! All premium features will work correctly after restart!", Toast.LENGTH_LONG).show();
+                if (!IsPremium && premium) try {
+                    Toast.makeText(MusicService.this, "Thank you for upgrading to premium! All premium features will work correctly after restart!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
+
+
+                IsPremium = BuildConfig.DEBUG || premium;
+
+                SPrefEx.get(MusicService.this)
+                        .edit()
+                        .putBoolean(TAG_SPREF_SKU_PREMIUM, IsPremium)
+                        .apply();
             } catch (Exception e) {
                 Log.w(TAG, e);
             }
-
-            IsPremium = BuildConfig.DEBUG || premium;
-
-            SPrefEx.get(MusicService.this)
-                    .edit()
-                    .putBoolean(TAG_SPREF_SKU_PREMIUM, IsPremium)
-                    .apply();
         }
     };
 

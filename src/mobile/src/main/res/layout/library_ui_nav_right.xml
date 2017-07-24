@@ -186,7 +186,7 @@
             android:clickable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="12dp"
+            android:padding="8dp"
             >
 
             <ImageView
