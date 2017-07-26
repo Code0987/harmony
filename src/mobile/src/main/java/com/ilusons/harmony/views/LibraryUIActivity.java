@@ -1195,6 +1195,24 @@ public class LibraryUIActivity extends BaseUIActivity {
                     @Override
                     public boolean onLongClick(View view) {
 
+                        final String tag_pl_cstm = TAG + ".pl_cstm";
+
+                        if (!Once.beenDone(Once.THIS_APP_VERSION, tag_pl_cstm)) {
+                            (new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle))
+                                    .setTitle("Playlist customization")
+                                    .setMessage("Next, Ok, will open a list of actions to allow you to customize [Custom] playlist or Now playing playlist. If you have enabled sorting, you won't see changes, just set it to Default/Custom. Now playing actions will modify playlist directly without reflecting changes.")
+                                    .setCancelable(false)
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            dialogInterface.dismiss();
+                                        }
+                                    }))
+                                    .show();
+
+                            Once.markDone(tag_pl_cstm);
+                        }
+
                         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
                         builder.setTitle("Select the action");
                         builder.setItems(new CharSequence[]{
@@ -1202,6 +1220,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                                 "Now playing: Add at start",
                                 "Now playing: Add at last",
                                 "Now playing: Remove",
+                                "Now playing: Clear",
                                 "Move down",
                                 "Move up",
                                 "Remove"
@@ -1223,16 +1242,20 @@ public class LibraryUIActivity extends BaseUIActivity {
                                             getMusicService().remove(item.Path);
                                             break;
                                         case 4:
+                                            getMusicService().getPlaylist().clear();
+                                            getMusicService().setPlaylistPosition(-1);
+                                            break;
+                                        case 5:
                                             int i = data.indexOf(item);
                                             ArrayEx.move(i, i + 1, data);
                                             refresh(null);
                                             break;
-                                        case 5:
+                                        case 6:
                                             int j = data.indexOf(item);
                                             ArrayEx.move(j, j - 1, data);
                                             refresh(null);
                                             break;
-                                        case 6:
+                                        case 7:
                                             data.remove(item);
                                             refresh(null);
                                             break;

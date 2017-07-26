@@ -71,7 +71,11 @@ public class FCMService extends FirebaseMessagingService {
                 .setAutoCancel(true)
                 .setColor(getColor(R.color.accent))
                 .setPriority(android.support.v7.app.NotificationCompat.PRIORITY_HIGH)
-                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                .setStyle(new NotificationCompat.BigTextStyle()
+                    .setBigContentTitle(title)
+                    .setSummaryText(content)
+                    .bigText(content));
 
         if (pendingIntent != null)
             notificationBuilder.setContentIntent(pendingIntent);
