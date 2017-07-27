@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.ilusons.harmony.MainActivity;
+import com.ilusons.harmony.ref.SPrefEx;
 
 /**
  * Used to control headset playback.
@@ -162,7 +163,8 @@ public class HeadsetMediaButtonIntentReceiver extends WakefulBroadcastReceiver {
                     Log.d(TAG, "Headset is unplugged");
                     break;
                 case 1:
-                    startService(context, MusicService.ACTION_PLAY);
+                    if (HeadsetMediaButtonIntentReceiver.getHeadsetAutoPlayOnPlug(context))
+                        startService(context, MusicService.ACTION_PLAY);
 
                     Log.d(TAG, "Headset is plugged");
                     break;
@@ -270,6 +272,19 @@ public class HeadsetMediaButtonIntentReceiver extends WakefulBroadcastReceiver {
             }
         }
 
+    }
+
+    public static final String TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG = SPrefEx.TAG_SPREF + ".headset_auto_play_on_plug";
+
+    public static boolean getHeadsetAutoPlayOnPlug(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG, true);
+    }
+
+    public static void setHeadsetAutoPlayOnPlug(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG, value)
+                .apply();
     }
 
 }

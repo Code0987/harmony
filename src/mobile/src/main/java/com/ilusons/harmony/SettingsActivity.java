@@ -40,6 +40,7 @@ import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
 import com.ilusons.harmony.base.BaseActivity;
+import com.ilusons.harmony.base.HeadsetMediaButtonIntentReceiver;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.ref.AndroidEx;
@@ -575,6 +576,18 @@ public class SettingsActivity extends BaseActivity {
 
             rb.setOnCheckedChangeListener(player_type_onCheckedChangeListener);
         }
+
+        // Headset
+        CheckBox headset_auto_play_on_plug_checkBox = (CheckBox) findViewById(R.id.headset_auto_play_on_plug_checkBox);
+        headset_auto_play_on_plug_checkBox.setChecked(HeadsetMediaButtonIntentReceiver.getHeadsetAutoPlayOnPlug(this));
+        headset_auto_play_on_plug_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                HeadsetMediaButtonIntentReceiver.setHeadsetAutoPlayOnPlug(SettingsActivity.this, compoundButton.isChecked());
+
+                info("Updated!");
+            }
+        });
 
     }
 

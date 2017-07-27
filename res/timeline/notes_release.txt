@@ -1,6 +1,4 @@
 ﻿✔️ Work in progress, only for testing and feedback.
-✔️ Added a feedback button on left drawer.
-✔️ Fixed initial scan bug on new installs.
-✔️ Added api 21 support.
+✔️ Added option to disable auto play on headset plug
 ✔️ Added help section.
 ✔️ Fixed a crash issue.
