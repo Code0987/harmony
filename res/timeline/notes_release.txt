@@ -1,4 +1,4 @@
 ﻿✔️ Work in progress, only for testing and feedback.
 ✔️ Added option to disable auto play on headset plug
 ✔️ Added help section.
-✔️ Fixed a crash issue.
+✔️ Fixed bug related to random notification bar controls.
