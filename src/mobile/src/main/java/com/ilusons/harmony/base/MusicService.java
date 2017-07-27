@@ -341,7 +341,6 @@ public class MusicService extends Service {
 
         setUpMediaSession();
 
-        setupNotification();
     }
 
     @Override
@@ -1127,8 +1126,9 @@ public class MusicService extends Service {
 
     private void updateNotification() {
         try {
-            if (builder == null)
-                return;
+            if (builder == null) {
+                setupNotification();
+            }
 
             if (currentMusic == null)
                 return;
