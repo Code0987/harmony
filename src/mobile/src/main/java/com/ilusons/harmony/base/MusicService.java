@@ -150,9 +150,24 @@ public class MusicService extends Service {
         public void dontAllow(int policyReason) {
             Log.d(TAG, "LVL do not allow\n" + policyReason);
 
+            if (BuildConfig.DEBUG)
+                return;
+
             Toast.makeText(MusicService.this, "This app is not licensed! Will close now!", Toast.LENGTH_LONG).show();
 
-            System.exit(0);
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(5 * 1000);
+
+                        System.exit(0);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            thread.start();
         }
 
         public void applicationError(int errorCode) {
@@ -1097,7 +1112,8 @@ public class MusicService extends Service {
                 .setContentIntent(contentIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
-                .setOngoing(true)
+                .setOngoing(false)
+                .setDeleteIntent(createActionIntent(this, ACTION_STOP))
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(false)
@@ -1160,7 +1176,8 @@ public class MusicService extends Service {
                     .setSubText(currentMusic.Artist)
                     .setLargeIcon(cover)
                     .setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
-                    .setTicker(currentMusic.getText());
+                    .setTicker(currentMusic.getText())
+                    .setOngoing(false);
 
             Notification currentNotification = builder.build();
 
@@ -1340,8 +1357,8 @@ public class MusicService extends Service {
                 int i = getPlaylist().indexOf(lp);
                 if (i >= 0) {
                     setPlaylistPosition(i);
-                    prepare(null);
-                    update();
+                    // prepare(null);
+                    // update();
                 }
             }
 
