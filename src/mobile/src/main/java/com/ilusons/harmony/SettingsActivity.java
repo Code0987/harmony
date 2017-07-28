@@ -106,9 +106,9 @@ public class SettingsActivity extends BaseActivity {
             }
 
             try {
-                Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
+                Purchase purchase = inventory.getPurchase(SKU_PREMIUM);
 
-                premiumChanged((premiumPurchase != null && MusicService.verifyDeveloperPayload(SettingsActivity.this, premiumPurchase)));
+                premiumChanged((purchase != null && MusicService.verifyDeveloperPayload(SettingsActivity.this, purchase)));
             } catch (Exception e) {
                 Log.w(TAG, e);
             }
