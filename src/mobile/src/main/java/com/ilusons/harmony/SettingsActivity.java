@@ -1,5 +1,7 @@
 package com.ilusons.harmony;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -7,6 +9,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -267,6 +271,23 @@ public class SettingsActivity extends BaseActivity {
                 dialog.show();
             }
         });
+        ArgbEvaluator evaluator = new ArgbEvaluator();
+        ValueAnimator animator = new ValueAnimator();
+        animator.setIntValues(Color.WHITE, Color.BLUE, Color.GREEN, Color.YELLOW, Color.RED);
+        animator.setEvaluator(evaluator);
+        animator.setDuration(350 * 6);
+        animator.setRepeatCount(ValueAnimator.INFINITE);
+        animator.setRepeatMode(ValueAnimator.REVERSE);
+        final ImageButton premium = (ImageButton) findViewById(R.id.premium);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int c = (int) animation.getAnimatedValue();
+
+                premium.getDrawable().setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
+            }
+        });
+        animator.start();
 
         // Set about section
         ((TextView) findViewById(R.id.about_version)).setText(BuildConfig.VERSION_NAME);

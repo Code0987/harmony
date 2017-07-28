@@ -1407,7 +1407,7 @@ public class MusicService extends Service {
 
     public enum PlayerType {
         AndroidOS("Android OS / Device Default"),
-        OpenSL("Open SL based (experimental)");
+        OpenSL("Open SL based (experimental ☢)");
 
         private String friendlyName;
 

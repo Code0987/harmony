@@ -3,3 +3,6 @@
 ✔️ Added help section.
 ✔️ Added swipe to stop on notification controls.
 ✔️ Fixed bug related to in-app purchase.
+✔️ Added track length in playback ui.
+✔️ Added track no. sorting.
+
