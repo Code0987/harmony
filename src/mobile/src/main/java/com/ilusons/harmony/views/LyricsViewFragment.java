@@ -305,7 +305,7 @@ public class LyricsViewFragment extends Fragment {
         }
 
         // For un-synced (no else to show little scroll always)
-        if (p - lastPScroll > 999) { // Scroll every 1 sec
+        if (p - lastPScroll > 750) { // Scroll every 3/4 sec
             scrollView.smoothScrollBy(0, Math.round(scrollBy));
             lastPScroll = p;
         }

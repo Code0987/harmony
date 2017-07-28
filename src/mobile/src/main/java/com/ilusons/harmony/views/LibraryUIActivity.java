@@ -1739,7 +1739,8 @@ public class LibraryUIActivity extends BaseUIActivity {
         Played("Times Played ▼"),
         Skipped("Times skipped ▼"),
         Added("Added On ▼"),
-        Score("Smart score"),;
+        Score("Smart score"),
+        Track("# Track"),;
 
         private String friendlyName;
 
@@ -1891,6 +1892,14 @@ public class LibraryUIActivity extends BaseUIActivity {
                     }
                 });
                 Collections.reverse(data);
+                break;
+            case Track:
+                Collections.sort(data, new Comparator<Music>() {
+                    @Override
+                    public int compare(Music x, Music y) {
+                        return x.Track.compareTo(y.Track);
+                    }
+                });
                 break;
 
             case Default:
