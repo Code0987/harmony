@@ -80,6 +80,7 @@ public class Music extends RealmObject {
     public String Artist = "";
     public String Album = "";
     public Integer Length = -1;
+    public Integer Track = -1;
     @PrimaryKey
     public String Path;
     public String Playlists = "";
@@ -561,6 +562,11 @@ public class Music extends RealmObject {
                             } catch (Exception e) {
                                 // Eat
                             }
+                            try {
+                                data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK));
+                            } catch (Exception e) {
+                                // Eat
+                            }
 
                             path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
 
@@ -674,6 +680,11 @@ public class Music extends RealmObject {
                         data.Album = tag.getFirst(FieldKey.ALBUM);
                         try {
                             data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
+                        } catch (Exception e) {
+                            // Ignore
+                        }
+                        try {
+                            data.Track = Integer.valueOf(tag.getFirst(FieldKey.TRACK));
                         } catch (Exception e) {
                             // Ignore
                         }

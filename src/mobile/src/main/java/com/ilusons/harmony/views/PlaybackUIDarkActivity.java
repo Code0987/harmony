@@ -24,6 +24,7 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.google.android.gms.ads.AdListener;
@@ -38,6 +39,8 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.CacheEx;
 import com.wang.avi.AVLoadingIndicatorView;
+
+import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import java.util.UUID;
 
@@ -77,6 +80,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
     private int colorLight;
 
     private SeekBar seekBar;
+    private TextView position_start, position_end;
 
     private View controls_layout;
     private View lyrics_layout;
@@ -252,6 +256,9 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
 
             }
         });
+
+        position_start = (TextView) findViewById(R.id.position_start);
+        position_end = (TextView) findViewById(R.id.position_end);
 
         play_pause_stop = (ImageButton) findViewById(R.id.play_pause_stop);
         prev = (ImageButton) findViewById(R.id.prev);
@@ -675,6 +682,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 }
 
                 seekBar.setMax(getMusicService().getDuration());
+                position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "HH:mm:ss", false));
 
                 setupProgressHandler();
             }
@@ -780,6 +788,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 if (getMusicService() != null && getMusicService().isPlaying()) {
 
                     seekBar.setProgress(getMusicService().getPosition());
+                    position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "HH:mm:ss", false));
 
                     if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
                         lyricsViewFragment.updateScroll(getMusicService().getPosition());
