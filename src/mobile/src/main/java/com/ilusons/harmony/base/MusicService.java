@@ -208,16 +208,15 @@ public class MusicService extends Service {
             }
 
             try {
-                Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
+                Purchase purchase = inventory.getPurchase(SKU_PREMIUM);
 
-                boolean premium = ((premiumPurchase != null && verifyDeveloperPayload(MusicService.this, premiumPurchase)));
+                boolean premium = ((purchase != null && verifyDeveloperPayload(MusicService.this, purchase)));
 
                 if (!IsPremium && premium) try {
                     Toast.makeText(MusicService.this, "Thank you for upgrading to premium! All premium features will work correctly after restart!", Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                     Log.w(TAG, e);
                 }
-
 
                 IsPremium = BuildConfig.DEBUG || premium;
 
@@ -277,7 +276,9 @@ public class MusicService extends Service {
     }
 
     public static boolean verifyDeveloperPayload(Context context, Purchase p) {
-        String payload = p.getDeveloperPayload();
+        return true;
+
+        // String payload = p.getDeveloperPayload();
 
         /*
          * WARNING: Locally generating a random string when starting a purchase and
@@ -299,13 +300,13 @@ public class MusicService extends Service {
          * installations is recommended.
          */
 
-        String localPayload = getDeveloperPayload(context, SKU_PREMIUM);
+        // String localPayload = getDeveloperPayload(context, SKU_PREMIUM);
 
-        if (!TextUtils.isEmpty(localPayload))
-            if (payload.toLowerCase().equals(localPayload.toLowerCase()))
-                return true;
+        //if (!TextUtils.isEmpty(localPayload))
+        //    if (payload.toLowerCase().equals(localPayload.toLowerCase()))
+        //        return true;
 
-        return false;
+        //return false;
     }
 
     public static String getDeveloperPayload(Context context, String sku) {

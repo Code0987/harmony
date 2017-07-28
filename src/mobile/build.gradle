@@ -121,7 +121,9 @@ android {
         // Git tag
         if (variant.buildType.name == "release" || variant.buildType.name == "releaseAlpha" || variant.buildType.name == "releaseBeta") {
             variant.assemble.doLast {
-                getAndTagCurrentRelease(gitVersionData)
+                if (gitVersionData.clean) {
+                    getAndTagCurrentRelease(gitVersionData)
+                }
             }
         }
 

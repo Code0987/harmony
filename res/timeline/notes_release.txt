@@ -2,4 +2,4 @@
 ✔️ Added option to disable auto play on headset plug
 ✔️ Added help section.
 ✔️ Added swipe to stop on notification controls.
-✔️ Fixed bug related to random notification bar controls.
+✔️ Fixed bug related to in-app purchase.
