@@ -77,10 +77,12 @@ import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1162,13 +1164,60 @@ public class LibraryUIActivity extends BaseUIActivity {
                 }
 
                 TextView title = (TextView) v.findViewById(R.id.title);
-                title.setText(item.Title);
+                if (title != null)
+                    title.setText(item.Title);
 
                 TextView artist = (TextView) v.findViewById(R.id.artist);
-                artist.setText(item.Artist);
+                if (artist != null)
+                    artist.setText(item.Artist);
 
                 TextView album = (TextView) v.findViewById(R.id.album);
-                album.setText(item.Album);
+                if (album != null)
+                    album.setText(item.Album);
+
+                TextView info = (TextView) v.findViewById(R.id.info);
+                if (info != null) try {
+                    StringBuilder sb = new StringBuilder();
+
+                    String del = " • ";
+
+                    if (item.Track > -1) {
+                        sb.append("#");
+                        sb.append(item.Track);
+                        sb.append(del);
+                    }
+                    sb.append("\uD83C\uDFA4 ").append(item.Artist);
+                    sb.append(del);
+                    sb.append(item.Album);
+                    if (item.Length > -1) {
+                        sb.append(del);
+                        sb.append("⏳ ");
+                        sb.append(DurationFormatUtils.formatDuration(item.Length, "mm:ss", false));
+                        sb.append("/");
+                        sb.append(DurationFormatUtils.formatDuration(item.TotalDurationPlayed, "mm:ss", false));
+                    }
+//                    sb.append(del);
+//                    sb.append("\uD83C\uDFB5 ").append(item.Played).append("/").append(item.Skipped);
+//                    if (item.TimeAdded > -1) {
+//                        sb.append(del);
+//                        sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(item.TimeAdded));
+//                    }
+
+                    info.setText(sb.toString());
+                    info.setHorizontallyScrolling(true);
+                    info.setSelected(true);
+                    info.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                        @Override
+                        public void onFocusChange(View v, boolean hasFocus) {
+                            TextView tv = (TextView) v;
+                            if (!hasFocus && tv != null) {
+                                tv.setSelected(true);
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 v.setOnClickListener(new View.OnClickListener() {
                     @Override

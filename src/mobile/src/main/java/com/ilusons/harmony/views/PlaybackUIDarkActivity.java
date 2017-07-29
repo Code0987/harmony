@@ -682,7 +682,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 }
 
                 seekBar.setMax(getMusicService().getDuration());
-                position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "HH:mm:ss", false));
+                position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "mm:ss", false));
 
                 setupProgressHandler();
             }
@@ -788,7 +788,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                 if (getMusicService() != null && getMusicService().isPlaying()) {
 
                     seekBar.setProgress(getMusicService().getPosition());
-                    position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "HH:mm:ss", false));
+                    position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "mm:ss", false));
 
                     if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
                         lyricsViewFragment.updateScroll(getMusicService().getPosition());

@@ -5,4 +5,4 @@
 ✔️ Fixed bug related to in-app purchase.
 ✔️ Added track length in playback ui.
 ✔️ Added track no. sorting.
-
+✔️ Added new metrics in library items. See notes for details.
