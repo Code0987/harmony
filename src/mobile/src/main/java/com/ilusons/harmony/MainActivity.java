@@ -7,12 +7,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.google.android.gms.ads.MobileAds;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.views.LibraryUIActivity;
-import com.ilusons.harmony.views.PlaybackUIDarkActivity;
+import com.ilusons.harmony.views.PlaybackUIActivity;
 
 public class MainActivity extends BaseActivity {
 
@@ -85,7 +84,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public static synchronized Intent getPlaybackUIActivityIntent(final Context context) {
-        Intent intent = new Intent(context, PlaybackUIDarkActivity.class);
+        Intent intent = new Intent(context, PlaybackUIActivity.class);
 
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 

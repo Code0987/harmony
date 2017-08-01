@@ -31,7 +31,7 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.views.LyricsViewFragment;
-import com.ilusons.harmony.views.PlaybackUIDarkActivity;
+import com.ilusons.harmony.views.PlaybackUIActivity;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +52,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -223,14 +222,14 @@ public class Music extends RealmObject {
         return getCover(context, -1);
     }
 
-    private static WeakReference<PlaybackUIDarkActivity> currentCoverView = null;
+    private static WeakReference<PlaybackUIActivity> currentCoverView = null;
 
-    public static PlaybackUIDarkActivity getCurrentCoverView() {
+    public static PlaybackUIActivity getCurrentCoverView() {
         return currentCoverView.get();
     }
 
-    public static void setCurrentCoverView(PlaybackUIDarkActivity v) {
-        currentCoverView = new WeakReference<PlaybackUIDarkActivity>(v);
+    public static void setCurrentCoverView(PlaybackUIActivity v) {
+        currentCoverView = new WeakReference<PlaybackUIActivity>(v);
     }
 
     private static AsyncTask<Object, Object, Bitmap> getCoverOrDownloadTask = null;
