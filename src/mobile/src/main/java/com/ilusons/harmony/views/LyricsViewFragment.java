@@ -199,7 +199,7 @@ public class LyricsViewFragment extends Fragment {
 
         loading_view.show();
 
-        textView.setText(music.getTextDetailed());
+        textView.setText(music.getTextDetailedMultiLine());
 
         // Load lyrics
         String content = music.getLyrics(getActivity().getApplicationContext());
@@ -240,11 +240,11 @@ public class LyricsViewFragment extends Fragment {
                 sb.append(System.lineSeparator());
             }
 
-            contentFormatted = music.getTextDetailed() + nl + nl + sb.toString();
+            contentFormatted = music.getTextDetailedMultiLine() + nl + nl + sb.toString();
 
             lines = sb.toString().split(System.getProperty("line.separator")).length + 3;
         } else {
-            contentFormatted = music.getTextDetailed() + nl + nl + content;
+            contentFormatted = music.getTextDetailedMultiLine() + nl + nl + content;
         }
 
         scrollBy = ((float) textView.getLineHeight() * lines) / ((float) length / 1000);
