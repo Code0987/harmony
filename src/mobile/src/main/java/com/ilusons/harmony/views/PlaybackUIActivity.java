@@ -85,6 +85,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
     private View controls_layout;
     private View lyrics_layout;
 
+    private TextView info;
+
     private Runnable videoSyncTask = new Runnable() {
         @Override
         public void run() {
@@ -423,6 +425,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
                     avfx_layout.setVisibility(View.INVISIBLE);
 
+                    AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, false);
+
                 } else if (!isFinishing() && audioVFXViewFragment == null) {
                     avfx_layout.setVisibility(View.VISIBLE);
 
@@ -433,6 +437,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
                             .commit();
 
                     audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+
+                    AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
+
                 }
 
                 info("Long press to change style!");
@@ -467,6 +474,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
                 startActivity(intent);
             }
         });
+
+        // Info
+        info = (TextView) findViewById(R.id.info);
 
         // Set ads TODO: enable ads in final release
         if (false && (BuildConfig.DEBUG || !MusicService.IsPremium))
@@ -570,6 +580,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
                 resetForUriIfNeeded(item);
             }
         });
+
+        if (avfx != null) {
+            if (AudioVFXViewFragment.getAVFXEnabled(this))
+                avfx.performClick();
+        }
     }
 
     @Override
@@ -628,13 +643,15 @@ public class PlaybackUIActivity extends BaseUIActivity {
     private void toggleUI(boolean hide) {
         if (hide && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             controls_layout.animate().alpha(0).setDuration(500).start();
-            lyrics_layout.animate().alpha(0).setDuration(500).start();
+            if (lyrics_layout != null)
+                lyrics_layout.animate().alpha(0).setDuration(500).start();
             seekBar.animate().alpha(0).setDuration(500).start();
 
             isUIHidden = true;
         } else {
             controls_layout.animate().alpha(1).setDuration(500).start();
-            lyrics_layout.animate().alpha(1).setDuration(500).start();
+            if (lyrics_layout != null)
+                lyrics_layout.animate().alpha(1).setDuration(500).start();
             seekBar.animate().alpha(1).setDuration(500).start();
 
             isUIHidden = false;
@@ -670,6 +687,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
                 loadingView.smoothToShow();
 
+                if (info != null)
+                    info.setText(music.getTextDetailedMultiLine());
+
                 Music.getCoverOrDownload(cover.getWidth(), music);
 
                 // Load video
@@ -686,14 +706,17 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
                 loadingView.smoothToHide();
 
-                if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
-                    lyricsViewFragment.reset(music, (long) Math.max(music.Length, getMusicService().getDuration()));
-                } else if (!isFinishing()) {
-                    lyricsViewFragment = LyricsViewFragment.create(music.Path, (long) Math.max(music.Length, getMusicService().getDuration()));
-                    getFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.lyrics_layout, lyricsViewFragment)
-                            .commit();
+                if (lyrics_layout != null) {
+
+                    if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
+                        lyricsViewFragment.reset(music, (long) Math.max(music.Length, getMusicService().getDuration()));
+                    } else if (!isFinishing()) {
+                        lyricsViewFragment = LyricsViewFragment.create(music.Path, (long) Math.max(music.Length, getMusicService().getDuration()));
+                        getFragmentManager()
+                                .beginTransaction()
+                                .replace(R.id.lyrics_layout, lyricsViewFragment)
+                                .commit();
+                    }
                 }
 
                 seekBar.setMax(getMusicService().getDuration());
@@ -900,7 +923,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
                 .enableIcon(true)
                 .performClick(true)
                 .setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to open editor. Pull down on text to reload.")
-                .setTarget(lyrics_layout)
+                .setTarget(lyrics_layout == null ? root : lyrics_layout)
                 .setUsageId(UUID.randomUUID().toString());
 
         final MaterialIntroView.Builder guide_cover = new MaterialIntroView.Builder(this)

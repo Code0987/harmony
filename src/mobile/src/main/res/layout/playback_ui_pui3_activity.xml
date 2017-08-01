@@ -60,20 +60,24 @@
     <android.support.percent.PercentRelativeLayout
         android:id="@+id/cover_layout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="24dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:clipChildren="false"
         android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         >
+
+        <RelativeLayout
+            android:id="@+id/avfx_layout"
+            android:visibility="invisible"
+            app:layout_aspectRatio="100%"
+            app:layout_heightPercent="100%"
+            />
 
         <RelativeLayout
             android:id="@+id/av_layout"
@@ -108,26 +112,31 @@
 
         </RelativeLayout>
 
-        <RelativeLayout
-            android:id="@+id/avfx_layout"
-            android:visibility="invisible"
-            app:layout_aspectRatio="100%"
-            app:layout_widthPercent="100%"
-            />
-
     </android.support.percent.PercentRelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0.45"
+        android:background="@drawable/lomo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        ></RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/controls_layout"
         android:layout_width="0dp"
         android:layout_height="86dp"
+        android:layout_marginBottom="36dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:clipChildren="false"
         android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cover_layout"
         >
 
         <android.support.constraint.ConstraintLayout
@@ -300,18 +309,23 @@
 
     </RelativeLayout>
 
-    <FrameLayout
-        android:id="@+id/lyrics_layout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <TextView
+        android:id="@+id/info"
+        style="@style/TextAppearance.AppCompat.Title.Inverse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:ellipsize="middle"
+        android:shadowColor="@android:color/black"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:textColor="@color/secondary_text"
+        android:textSize="16dp"
+        app:layout_constraintBottom_toTopOf="@id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/controls_layout"
+        tools:text="Info"
         />
 
     <com.wang.avi.AVLoadingIndicatorView
