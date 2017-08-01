@@ -316,6 +316,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:ellipsize="middle"
+        android:gravity="center"
         android:shadowColor="@android:color/black"
         android:shadowDx="1"
         android:shadowDy="1"
@@ -325,7 +326,7 @@
         app:layout_constraintBottom_toTopOf="@id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        tools:text="Info"
+        tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii."
         />
 
     <com.wang.avi.AVLoadingIndicatorView
