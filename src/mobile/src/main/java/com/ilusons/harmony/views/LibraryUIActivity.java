@@ -308,7 +308,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         findViewById(R.id.now_playing).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(LibraryUIActivity.this, PlaybackUIDarkActivity.class);
+                Intent intent = new Intent(LibraryUIActivity.this, PlaybackUIActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
 

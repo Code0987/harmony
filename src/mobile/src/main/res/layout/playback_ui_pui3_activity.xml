@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/translucent_accent"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:elevation="0dp"
+    app:elevation="0dp"
+    >
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/translucent_primary_dark"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/top_layout"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:background="@drawable/gradient_top_down"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="0dp"
+        android:fitsSystemWindows="true"
+        android:gravity="center_vertical"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/bottom_layout"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:background="@drawable/gradient_bottom_up"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        >
+
+    </RelativeLayout>
+
+    <android.support.percent.PercentRelativeLayout
+        android:id="@+id/cover_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+        <RelativeLayout
+            android:id="@+id/av_layout"
+            app:layout_aspectRatio="100%"
+            app:layout_widthPercent="100%"
+            >
+
+            <ImageView
+                android:id="@+id/cover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:elevation="9dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/logo"
+                />
+
+            <VideoView
+                android:id="@+id/video"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentStart="true"
+                android:layout_centerInParent="true"
+                android:background="@color/translucent"
+                android:visibility="invisible"
+                />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/avfx_layout"
+            android:visibility="invisible"
+            app:layout_aspectRatio="100%"
+            app:layout_widthPercent="100%"
+            />
+
+    </android.support.percent.PercentRelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/controls_layout"
+        android:layout_width="0dp"
+        android:layout_height="86dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cover_layout"
+        >
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            >
+
+            <TextView
+                android:id="@+id/position_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="@color/secondary_text"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Time"
+                />
+
+            <TextView
+                android:id="@+id/position_end"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="@color/secondary_text"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Time"
+                />
+
+            <android.support.v7.widget.AppCompatSeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingEnd="6dp"
+                android:paddingStart="6dp"
+                android:progress="50"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/position_start"
+                app:layout_constraintRight_toLeftOf="@id/position_end"
+                app:layout_constraintTop_toTopOf="parent"
+                />
+
+        </android.support.constraint.ConstraintLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            >
+
+            <ImageButton
+                android:id="@+id/avfx"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="3dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_gradient_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
+                android:id="@+id/shuffle"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="3dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_shuffle_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
+                android:id="@+id/prev"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:alpha="0.9"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_skip_previous_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
+                android:id="@+id/play_pause_stop"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/circle_outline"
+                android:padding="8dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_play_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
+                android:id="@+id/next"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:alpha="0.9"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_skip_next_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
+                android:id="@+id/repeat"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="8dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_repeat_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
+                android:id="@+id/tune"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="8dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_tune_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/lyrics_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/controls_layout"
+        />
+
+    <com.wang.avi.AVLoadingIndicatorView
+        android:id="@+id/loadingView"
+        style="@style/AVLoadingIndicatorView.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="0dp"
+        android:padding="0dp"
+        android:visibility="visible"
+        app:indicatorColor="@color/translucent_primary_light"
+        app:indicatorName="LineScalePulseOutRapidIndicator"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>

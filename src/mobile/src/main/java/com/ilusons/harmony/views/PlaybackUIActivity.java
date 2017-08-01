@@ -50,10 +50,10 @@ import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 import jonathanfinerty.once.Once;
 
-public class PlaybackUIDarkActivity extends BaseUIActivity {
+public class PlaybackUIActivity extends BaseUIActivity {
 
     // Logger TAG
-    private static final String TAG = PlaybackUIDarkActivity.class.getSimpleName();
+    private static final String TAG = PlaybackUIActivity.class.getSimpleName();
 
     // UI
     private View root;
@@ -142,7 +142,22 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
 
         // Set view
-        setContentView(R.layout.playback_ui_dark_activity);
+        int layoutId = -1;
+        switch (SettingsActivity.getPlaybackUIStyle(this)) {
+            case PUI2:
+                layoutId = R.layout.playback_ui_pui2_activity;
+                break;
+
+            case PUI3:
+                layoutId = R.layout.playback_ui_pui3_activity;
+                break;
+
+            case Default:
+            default:
+                layoutId = R.layout.playback_ui_default_activity;
+                break;
+        }
+        setContentView(layoutId);
 
         Music.setCurrentCoverView(this);
 
@@ -329,7 +344,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        if (MusicService.getPlayerShuffleMusicEnabled(PlaybackUIDarkActivity.this))
+        if (MusicService.getPlayerShuffleMusicEnabled(PlaybackUIActivity.this))
             shuffle.setAlpha(0.9f);
         else
             shuffle.setAlpha(0.3f);
@@ -337,11 +352,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null) {
-                    boolean value = MusicService.getPlayerShuffleMusicEnabled(PlaybackUIDarkActivity.this);
+                    boolean value = MusicService.getPlayerShuffleMusicEnabled(PlaybackUIActivity.this);
 
                     value = !value;
 
-                    MusicService.setPlayerShuffleMusicEnabled(PlaybackUIDarkActivity.this, value);
+                    MusicService.setPlayerShuffleMusicEnabled(PlaybackUIActivity.this, value);
 
                     if (value)
                         info("Shuffle turned ON");
@@ -367,7 +382,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             }
         });
 
-        if (MusicService.getPlayerRepeatMusicEnabled(PlaybackUIDarkActivity.this))
+        if (MusicService.getPlayerRepeatMusicEnabled(PlaybackUIActivity.this))
             repeat.setAlpha(0.9f);
         else
             repeat.setAlpha(0.3f);
@@ -375,11 +390,11 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             @Override
             public void onClick(View view) {
                 if (getMusicService() != null) {
-                    boolean value = MusicService.getPlayerRepeatMusicEnabled(PlaybackUIDarkActivity.this);
+                    boolean value = MusicService.getPlayerRepeatMusicEnabled(PlaybackUIActivity.this);
 
                     value = !value;
 
-                    MusicService.setPlayerRepeatMusicEnabled(PlaybackUIDarkActivity.this, value);
+                    MusicService.setPlayerRepeatMusicEnabled(PlaybackUIActivity.this, value);
 
                     if (value)
                         info("Repeat turned ON");
@@ -447,7 +462,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
         tune.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(PlaybackUIDarkActivity.this, TuneActivity.class);
+                Intent intent = new Intent(PlaybackUIActivity.this, TuneActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
             }
@@ -461,7 +476,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            iad = new InterstitialAd(PlaybackUIDarkActivity.this);
+                            iad = new InterstitialAd(PlaybackUIActivity.this);
                             iad.setAdUnitId(BuildConfig.AD_UNIT_ID_I1);
                             iad.setAdListener(new AdListener() {
                                 @Override
@@ -718,7 +733,7 @@ public class PlaybackUIDarkActivity extends BaseUIActivity {
             return;
 
         // Refresh system bindings
-        Intent musicServiceIntent = new Intent(PlaybackUIDarkActivity.this, MusicService.class);
+        Intent musicServiceIntent = new Intent(PlaybackUIActivity.this, MusicService.class);
         musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
         startService(musicServiceIntent);
 

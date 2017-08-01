@@ -451,6 +451,7 @@ public class SettingsActivity extends BaseActivity {
 
         // UIStyle
         createUIStyle();
+        createPlaybackUIStyle();
 
         // Playback UI auto open
         CheckBox ui_playback_auto_open_checkBox = (CheckBox) findViewById(R.id.ui_playback_auto_open_checkBox);
@@ -861,6 +862,101 @@ public class SettingsActivity extends BaseActivity {
                         setUIStyle(getApplicationContext(), (UIStyle) adapterView.getItemAtPosition(position));
 
                         info("UI Style will be completely applied on restart!");
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+            }
+        });
+    }
+
+    //endregion
+
+    //region PlaybackUI style
+    public enum PlaybackUIStyle {
+        Default("Default"),
+        PUI2("Lyrics"),
+        PUI3("Art");
+
+        private String friendlyName;
+
+        PlaybackUIStyle(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+    }
+
+
+    public static final String TAG_SPREF_PlaybackUIStyle = SPrefEx.TAG_SPREF + ".playback_ui_style";
+
+    public static PlaybackUIStyle getPlaybackUIStyle(Context context) {
+        return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PlaybackUIStyle, String.valueOf(PlaybackUIStyle.Default)));
+    }
+
+    public static void setPlaybackUIStyle(Context context, PlaybackUIStyle value) {
+        SPrefEx.get(context)
+                .edit()
+                .putString(TAG_SPREF_PlaybackUIStyle, String.valueOf(value))
+                .apply();
+    }
+
+    private Spinner playbackUIStyle_spinner;
+
+    private void createPlaybackUIStyle() {
+        playbackUIStyle_spinner = (Spinner) findViewById(R.id.playbackUIStyle_spinner);
+
+        PlaybackUIStyle[] items = PlaybackUIStyle.values();
+
+        playbackUIStyle_spinner.setAdapter(new ArrayAdapter<PlaybackUIStyle>(this, 0, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+                text.setText(text.getText());
+
+                return text;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) convertView;
+
+                if (text == null) {
+                    text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+                    text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                    lp.setMargins(px, px, px, px);
+                    text.setLayoutParams(lp);
+                    text.setPadding(px, px, px, px);
+                }
+
+                text.setText(getItem(position).friendlyName);
+
+                return text;
+            }
+        });
+
+        int i = 0;
+        PlaybackUIStyle lastMode = getPlaybackUIStyle(this);
+        for (; i < items.length; i++)
+            if (items[i] == lastMode)
+                break;
+        playbackUIStyle_spinner.setSelection(i, true);
+
+        playbackUIStyle_spinner.post(new Runnable() {
+            public void run() {
+                playbackUIStyle_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                        setPlaybackUIStyle(getApplicationContext(), (PlaybackUIStyle) adapterView.getItemAtPosition(position));
+
+                        info("Playback UI Style will be completely applied on restart!");
                     }
 
                     @Override

@@ -109,7 +109,7 @@
             >
         </activity>
         <activity
-            android:name=".views.PlaybackUIDarkActivity"
+            android:name=".views.PlaybackUIActivity"
             android:launchMode="singleTop"
             >
         </activity>
