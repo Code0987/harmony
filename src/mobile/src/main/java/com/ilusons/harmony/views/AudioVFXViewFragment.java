@@ -416,6 +416,19 @@ public class AudioVFXViewFragment extends Fragment {
                 .apply();
     }
 
+    public static final String TAG_SPREF_AVFXTYPE_ENABLED = SPrefEx.TAG_SPREF + ".avfx_enabled";
+
+    public static boolean getAVFXEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_AVFXTYPE_ENABLED, false);
+    }
+
+    public static void setAVFXEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_AVFXTYPE_ENABLED, value)
+                .apply();
+    }
+
     public class WaveDbmHandler extends DbmHandler<byte[]> {
 
         private static final float MAX_DB_VALUE = 76;
