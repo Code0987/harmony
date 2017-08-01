@@ -77,12 +77,10 @@ import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1177,33 +1175,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
                 TextView info = (TextView) v.findViewById(R.id.info);
                 if (info != null) try {
-                    StringBuilder sb = new StringBuilder();
-
-                    String del = " • ";
-
-                    if (item.Track > -1) {
-                        sb.append("#");
-                        sb.append(item.Track);
-                        sb.append(del);
-                    }
-                    sb.append("\uD83C\uDFA4 ").append(item.Artist);
-                    sb.append(del);
-                    sb.append(item.Album);
-                    if (item.Length > -1) {
-                        sb.append(del);
-                        sb.append("⏳ ");
-                        sb.append(DurationFormatUtils.formatDuration(item.Length, "mm:ss", false));
-                        sb.append("/");
-                        sb.append(DurationFormatUtils.formatDuration(item.TotalDurationPlayed, "mm:ss", false));
-                    }
-//                    sb.append(del);
-//                    sb.append("\uD83C\uDFB5 ").append(item.Played).append("/").append(item.Skipped);
-//                    if (item.TimeAdded > -1) {
-//                        sb.append(del);
-//                        sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(item.TimeAdded));
-//                    }
-
-                    info.setText(sb.toString());
+                    info.setText(item.getTextDetailedSingleLine());
                     info.setHorizontallyScrolling(true);
                     info.setSelected(true);
                     info.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -1767,7 +1739,11 @@ public class LibraryUIActivity extends BaseUIActivity {
                 }
             }
 
-            f &= TextUtils.isEmpty(q) || q.length() < 1 || m.getTextDetailed().toLowerCase().contains(q);
+            f &= TextUtils.isEmpty(q) || q.length() < 1 ||
+                    (m.Path.toLowerCase().contains(q)
+                            || m.Title.toLowerCase().contains(q)
+                            || m.Artist.toLowerCase().contains(q)
+                            || m.Album.toLowerCase().contains(q));
 
             if (f)
                 result.add(m);

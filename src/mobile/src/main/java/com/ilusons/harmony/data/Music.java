@@ -35,6 +35,7 @@ import com.ilusons.harmony.views.PlaybackUIDarkActivity;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
@@ -51,6 +52,7 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -127,18 +129,46 @@ public class Music extends RealmObject {
         return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
     }
 
-    public String getTextDetailed() {
+    public String getTextDetailed(String del) {
         StringBuilder sb = new StringBuilder();
 
-        String nl = System.getProperty("line.separator");
-
+        if (Track > -1) {
+            sb.append("#");
+            sb.append(Track);
+            sb.append(del);
+        }
         sb.append(Title);
-        sb.append(nl);
-        sb.append(Artist);
-        sb.append(nl);
-        sb.append(Album);
+        if (!TextUtils.isEmpty(Artist)) {
+            sb.append(del);
+            sb.append("\uD83C\uDFA4 ").append(Artist);
+        }
+        if (!TextUtils.isEmpty(Artist)) {
+            sb.append(del);
+            sb.append(Album);
+        }
+        if (Length > -1) {
+            sb.append(del);
+            sb.append("⏳ ");
+            sb.append(DurationFormatUtils.formatDuration(Length, "mm:ss", false));
+            sb.append("/");
+            sb.append(DurationFormatUtils.formatDuration(TotalDurationPlayed, "mm:ss", false));
+        }
+        sb.append(del);
+        sb.append("\uD83C\uDFB5 ").append(Played).append("/").append(Skipped);
+//        if (TimeAdded > -1) {
+//            sb.append(del);
+//            sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(TimeAdded));
+//        }
 
         return sb.toString();
+    }
+
+    public String getTextDetailedSingleLine() {
+        return getTextDetailed(" • ");
+    }
+
+    public String getTextDetailedMultiLine() {
+        return getTextDetailed(System.getProperty("line.separator"));
     }
 
     //region Cover art
