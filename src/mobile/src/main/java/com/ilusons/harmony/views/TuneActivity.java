@@ -924,58 +924,62 @@ public class TuneActivity extends BaseActivity {
     protected void onPause() {
         super.onPause();
 
-        MusicService musicService = getMusicService();
-        if (musicService != null) {
+        try {
+            MusicService musicService = getMusicService();
+            if (musicService != null) {
 
-            IPreAmp preAmp = musicService.getPreAmp();
-            if (preAmp != null) try {
-                MusicService.setPlayerPreAmp(TuneActivity.this, preAmp.getProperties());
-            } catch (Exception e) {
-                e.printStackTrace();
+                IPreAmp preAmp = musicService.getPreAmp();
+                if (preAmp != null) try {
+                    MusicService.setPlayerPreAmp(TuneActivity.this, preAmp.getProperties());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                IEqualizer equalizer = musicService.getEqualizer();
+                if (equalizer != null) try {
+                    MusicService.setPlayerEQ(TuneActivity.this, equalizer.getProperties());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                IBassBoost bassBoost = musicService.getBassBoost();
+                if (bassBoost != null) try {
+                    MusicService.setPlayerBassBoost(TuneActivity.this, bassBoost.getProperties());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                ILoudnessEnhancer loudnessEnhancer = musicService.getLoudnessEnhancer();
+                if (loudnessEnhancer != null) try {
+                    MusicService.setPlayerLoudness(TuneActivity.this, loudnessEnhancer.getProperties());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                IVirtualizer virtualizer = musicService.getVirtualizer();
+                if (virtualizer != null) try {
+                    MusicService.setPlayerVirtualizer(TuneActivity.this, virtualizer.getProperties());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                IPresetReverb presetReverb = musicService.getPresetReverb();
+                if (presetReverb != null) try {
+                    MusicService.setPlayerReverbPreset(TuneActivity.this, presetReverb.getProperties());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                IEnvironmentalReverb environmentalReverb = musicService.getEnvironmentalReverb();
+                if (environmentalReverb != null) try {
+                    MusicService.setPlayerReverbEnv(TuneActivity.this, environmentalReverb.getProperties());
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
+
             }
-
-            IEqualizer equalizer = musicService.getEqualizer();
-            if (equalizer != null) try {
-                MusicService.setPlayerEQ(TuneActivity.this, equalizer.getProperties());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            IBassBoost bassBoost = musicService.getBassBoost();
-            if (bassBoost != null) try {
-                MusicService.setPlayerBassBoost(TuneActivity.this, bassBoost.getProperties());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            ILoudnessEnhancer loudnessEnhancer = musicService.getLoudnessEnhancer();
-            if (loudnessEnhancer != null) try {
-                MusicService.setPlayerLoudness(TuneActivity.this, loudnessEnhancer.getProperties());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            IVirtualizer virtualizer = musicService.getVirtualizer();
-            if (virtualizer != null) try {
-                MusicService.setPlayerVirtualizer(TuneActivity.this, virtualizer.getProperties());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            IPresetReverb presetReverb = musicService.getPresetReverb();
-            if (presetReverb != null) try {
-                MusicService.setPlayerReverbPreset(TuneActivity.this, presetReverb.getProperties());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            IEnvironmentalReverb environmentalReverb = musicService.getEnvironmentalReverb();
-            if (environmentalReverb != null) try {
-                MusicService.setPlayerReverbEnv(TuneActivity.this, environmentalReverb.getProperties());
-            } catch (Exception e) {
-                Log.w(TAG, e);
-            }
-
+        } catch (Exception e) {
+            Log.w(TAG, e);
         }
     }
 
