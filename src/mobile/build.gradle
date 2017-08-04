@@ -193,6 +193,7 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
+    compile 'jp.wasabeef:blurry:2.1.1'
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
     releaseAlphaCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'

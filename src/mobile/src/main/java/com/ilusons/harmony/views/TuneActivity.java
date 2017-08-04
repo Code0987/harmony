@@ -104,7 +104,7 @@ public class TuneActivity extends BaseActivity {
         tabs.setupWithViewPager(viewPager);
 
         // Set eq
-        CheckBox preamp_checkBox = (CheckBox) findViewById(R.id.preamp_checkBox);
+        final CheckBox preamp_checkBox = (CheckBox) findViewById(R.id.preamp_checkBox);
         preamp_checkBox.setChecked(MusicService.getPlayerPreAmpEnabled(this));
         preamp_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -141,6 +141,9 @@ public class TuneActivity extends BaseActivity {
                 if (preAmp == null)
                     return;
 
+                if (!preamp_checkBox.isChecked())
+                    preamp_checkBox.setChecked(true);
+
                 setNormalizedPreAmpLevel(preAmp, (float) progress / SEEKBAR_MAX);
             }
 
@@ -155,7 +158,7 @@ public class TuneActivity extends BaseActivity {
             }
         });
 
-        CheckBox eq_checkBox = (CheckBox) findViewById(R.id.eq_checkBox);
+        final CheckBox eq_checkBox = (CheckBox) findViewById(R.id.eq_checkBox);
         eq_checkBox.setChecked(MusicService.getPlayerEQEnabled(this));
         eq_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -236,6 +239,9 @@ public class TuneActivity extends BaseActivity {
 
                 if (equalizer == null)
                     return;
+
+                if (!eq_checkBox.isChecked())
+                    eq_checkBox.setChecked(true);
 
                 equalizer.setEnabled(true);
 
@@ -634,7 +640,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setDecayHFRatio(DecayHFRatioNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setDecayHFRatio(DecayHFRatioNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -664,7 +674,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setDecayTime(DecayTimeNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setDecayTime(DecayTimeNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -694,7 +708,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setDensity(DensityNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setDensity(DensityNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -724,7 +742,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setDiffusion(DiffusionNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setDiffusion(DiffusionNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -754,7 +776,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setReflectionsDelay(ReflectionsDelayNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setReflectionsDelay(ReflectionsDelayNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -784,7 +810,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setReflectionsLevel(ReflectionsLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setReflectionsLevel(ReflectionsLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -814,7 +844,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setReverbDelay(ReverbDelayNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setReverbDelay(ReverbDelayNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -844,7 +878,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setReverbLevel(ReverbLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setReverbLevel(ReverbLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -874,7 +912,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setRoomHFLevel(RoomHFLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setRoomHFLevel(RoomHFLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -904,7 +946,11 @@ public class TuneActivity extends BaseActivity {
                 if (environmentalReverb == null)
                     return;
 
-                environmentalReverb.setRoomLevel(RoomLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                try {
+                    environmentalReverb.setRoomLevel(RoomLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -1083,21 +1129,21 @@ public class TuneActivity extends BaseActivity {
             e.printStackTrace();
 
             try {
-                environmentalReverb.setProperties(EnvironmentalReverbPresets.GENERIC);
+                environmentalReverb.setProperties(EnvironmentalReverbPresets.DEFAULT);
             } catch (Exception e2) {
                 e2.printStackTrace();
 
-                reverb_env_preset_spinner.setEnabled(false);
-                reverb_env_decay_hf_ratio_seekBar.setEnabled(false);
-                reverb_env_decay_time_seekBar.setEnabled(false);
-                reverb_env_density_seekBar.setEnabled(false);
-                reverb_env_diffusion_seekBar.setEnabled(false);
-                reverb_env_reflections_delay_seekBar.setEnabled(false);
-                reverb_env_reflections_level_seekBar.setEnabled(false);
-                reverb_env_reverb_delay_seekBar.setEnabled(false);
-                reverb_env_reverb_level_seekBar.setEnabled(false);
-                reverb_env_room_hf_level_seekBar.setEnabled(false);
-                reverb_env_room_level_seekBar.setEnabled(false);
+//                reverb_env_preset_spinner.setEnabled(false);
+//                reverb_env_decay_hf_ratio_seekBar.setEnabled(false);
+//                reverb_env_decay_time_seekBar.setEnabled(false);
+//                reverb_env_density_seekBar.setEnabled(false);
+//                reverb_env_diffusion_seekBar.setEnabled(false);
+//                reverb_env_reflections_delay_seekBar.setEnabled(false);
+//                reverb_env_reflections_level_seekBar.setEnabled(false);
+//                reverb_env_reverb_delay_seekBar.setEnabled(false);
+//                reverb_env_reverb_level_seekBar.setEnabled(false);
+//                reverb_env_room_hf_level_seekBar.setEnabled(false);
+//                reverb_env_room_level_seekBar.setEnabled(false);
             }
 
         }

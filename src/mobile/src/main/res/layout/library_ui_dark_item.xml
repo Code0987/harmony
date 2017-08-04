@@ -38,23 +38,6 @@
             >
 
             <TextView
-                android:id="@+id/title"
-                style="@style/TextAppearance.AppCompat.Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:ellipsize="end"
-                android:shadowColor="@android:color/black"
-                android:shadowDx="1"
-                android:shadowDy="1"
-                android:shadowRadius="2"
-                android:textColor="@color/secondary_text"
-                android:textSize="11sp"
-                tools:text="Test"
-                />
-
-            <TextView
                 android:id="@+id/info"
                 style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
@@ -70,10 +53,10 @@
                 android:scrollHorizontally="true"
                 android:shadowColor="@android:color/black"
                 android:shadowDx="1"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:shadowDy="2"
+                android:shadowRadius="3"
                 android:textColor="@color/secondary_text"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 android:textStyle="italic"
                 tools:text="Info"
                 />

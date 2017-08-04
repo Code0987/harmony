@@ -1250,16 +1250,16 @@ public class LibraryUIActivity extends BaseUIActivity {
                                         case 5:
                                             int i = data.indexOf(item);
                                             ArrayEx.move(i, i + 1, data);
-                                            refresh(null);
+                                            refresh(String.valueOf(search_view.getQuery()));
                                             break;
                                         case 6:
                                             int j = data.indexOf(item);
                                             ArrayEx.move(j, j - 1, data);
-                                            refresh(null);
+                                            refresh(String.valueOf(search_view.getQuery()));
                                             break;
                                         case 7:
                                             data.remove(item);
-                                            refresh(null);
+                                            refresh(String.valueOf(search_view.getQuery()));
                                             break;
                                     }
                                 } catch (Exception e) {
@@ -1309,13 +1309,13 @@ public class LibraryUIActivity extends BaseUIActivity {
             data.clear();
             data.addAll(d);
 
-            refresh(null);
+            refresh(String.valueOf(search_view.getQuery()));
         }
 
         public void removeData(Music d) {
             data.remove(d);
 
-            refresh(null);
+            refresh(String.valueOf(search_view.getQuery()));
         }
 
         public void refresh(final String q) {
@@ -1687,7 +1687,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                             setUIFilters(getContext(), value);
 
                             if (search_view != null)
-                                adapter.refresh("" + search_view.getQuery());
+                                adapter.refresh(String.valueOf(search_view.getQuery()));
                         }
                     });
                 }
@@ -1843,7 +1843,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                         setUISortMode(getApplicationContext(), (UISortMode) adapterView.getItemAtPosition(position));
 
                         if (search_view != null)
-                            adapter.refresh("" + search_view.getQuery());
+                            adapter.refresh(String.valueOf(search_view.getQuery()));
                     }
 
                     @Override
@@ -2020,7 +2020,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                         setUIGroupMode(getApplicationContext(), (UIGroupMode) adapterView.getItemAtPosition(position));
 
                         if (search_view != null)
-                            adapter.refresh("" + search_view.getQuery());
+                            adapter.refresh(String.valueOf(search_view.getQuery()));
                     }
 
                     @Override
