@@ -1,4 +1,3 @@
-﻿✔️ Work in progress, only for testing and feedback.
-✔️ Added new metrics in library items. See notes for details.
-✔️ Added new playback ui styles (free for limited time).
-✔️ Fixed bug to remember restoring audio vis.
+﻿◾️ Work in progress, please give feedback.
+✔️ Fixed: Search bar bug, Crashes, UI, Settings, Tune
+✔️ Updates: UI

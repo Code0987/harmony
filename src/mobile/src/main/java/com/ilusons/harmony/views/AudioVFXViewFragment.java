@@ -328,8 +328,8 @@ public class AudioVFXViewFragment extends Fragment {
                     waveformAVFXView = new WaveformAVFXView(getActivity().getApplicationContext());
 
                     waveformAVFXView.setColor(
-                            new BaseAVFXView.FloatColor(r, g, b, a),
-                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a));
+                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a),
+                            new BaseAVFXView.FloatColor(r, g, b, a));
 
                     root.addView(waveformAVFXView);
                     break;
@@ -337,8 +337,8 @@ public class AudioVFXViewFragment extends Fragment {
                     fftAVFXView = new FFTAVFXView(getActivity().getApplicationContext());
 
                     fftAVFXView.setColor(
-                            new BaseAVFXView.FloatColor(r, g, b, a),
-                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a));
+                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a),
+                            new BaseAVFXView.FloatColor(r, g, b, a));
 
                     root.addView(fftAVFXView);
                     break;
@@ -359,7 +359,7 @@ public class AudioVFXViewFragment extends Fragment {
                     }
 
                     wavesView = new GLAudioVisualizationView.Builder(getActivity())
-                            .setBubblesPerLayer(24)
+                            .setBubblesPerLayer(16)
                             .setBubblesRandomizeSize(true)
                             .setBubblesSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, getResources().getDisplayMetrics()))
                             .setLayersCount(layers)

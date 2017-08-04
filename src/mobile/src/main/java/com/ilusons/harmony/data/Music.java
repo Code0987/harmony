@@ -139,7 +139,7 @@ public class Music extends RealmObject {
         sb.append(Title);
         if (!TextUtils.isEmpty(Artist)) {
             sb.append(del);
-            sb.append("\uD83C\uDFA4 ").append(Artist);
+            sb/*.append("\uD83C\uDFA4 ")*/.append(Artist);
         }
         if (!TextUtils.isEmpty(Artist)) {
             sb.append(del);
@@ -147,13 +147,13 @@ public class Music extends RealmObject {
         }
         if (Length > -1) {
             sb.append(del);
-            sb.append("⏳ ");
+            //sb.append("⏳ ");
             sb.append(DurationFormatUtils.formatDuration(Length, "mm:ss", false));
             sb.append("/");
             sb.append(DurationFormatUtils.formatDuration(TotalDurationPlayed, "mm:ss", false));
         }
         sb.append(del);
-        sb.append("\uD83C\uDFB5 ").append(Played).append("/").append(Skipped);
+        sb/*.append("\uD83C\uDFB5 ")*/.append(Played).append("/").append(Skipped);
 //        if (TimeAdded > -1) {
 //            sb.append(del);
 //            sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(TimeAdded));

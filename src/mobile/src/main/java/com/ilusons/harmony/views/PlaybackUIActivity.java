@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
@@ -49,6 +50,7 @@ import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 import jonathanfinerty.once.Once;
+import jp.wasabeef.blurry.Blurry;
 
 public class PlaybackUIActivity extends BaseUIActivity {
 
@@ -57,6 +59,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
     // UI
     private View root;
+
+    private ImageView bg1;
 
     private InterstitialAd iad;
 
@@ -173,6 +177,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
         // Set views
         root = findViewById(R.id.root);
+
+        bg1 = (ImageView) findViewById(R.id.bg1);
 
         loadingView = (AVLoadingIndicatorView) findViewById(R.id.loadingView);
 
@@ -441,8 +447,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
                     AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
 
                 }
-
-                info("Long press to change style!");
             }
         });
         avfx.setOnLongClickListener(new View.OnLongClickListener() {
@@ -760,21 +764,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
         musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
         startService(musicServiceIntent);
 
-        // Load cover
-        if (cover.getDrawable() != null) {
-            TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-                    cover.getDrawable(),
-                    new BitmapDrawable(getResources(), bitmap)
-            });
-
-            cover.setImageDrawable(d);
-
-            d.setCrossFadeEnabled(true);
-            d.startTransition(200);
-        } else {
-            cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
-        }
-
         Palette palette = Palette.from(bitmap).generate();
         color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
         int colorBackup = color;
@@ -806,7 +795,70 @@ public class PlaybackUIActivity extends BaseUIActivity {
         }
 
         if (!(root.getBackground() == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)) {
-            root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
+            root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 180)));
+
+            if (bg1 != null)
+                try {
+                    Blurry.with(this)
+                            .radius(25)
+                            .sampling(1)
+                            .color(Color.argb(160, 0, 0, 0))
+                            .animate(450)
+                            .async()
+                            .from(bitmap)
+                            .into(bg1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        } else {
+            if (bg1 != null)
+                bg1.setImageDrawable(null);
+        }
+
+        switch (SettingsActivity.getPlaybackUIStyle(this)) {
+            case PUI2:
+                Blurry.with(this)
+                        .radius(25)
+                        .sampling(1)
+                        .color(Color.argb(160, 0, 0, 0))
+                        .async()
+                        .animate(450)
+                        .from(bitmap)
+                        .into(cover);
+                break;
+
+            case PUI3:
+                if (cover.getDrawable() != null) {
+                    TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+                            cover.getDrawable(),
+                            new BitmapDrawable(getResources(), bitmap)
+                    });
+
+                    cover.setImageDrawable(d);
+
+                    d.setCrossFadeEnabled(true);
+                    d.startTransition(450);
+                } else {
+                    cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+                }
+                break;
+
+            case Default:
+            default:
+                if (cover.getDrawable() != null) {
+                    TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+                            cover.getDrawable(),
+                            new BitmapDrawable(getResources(), bitmap)
+                    });
+
+                    cover.setImageDrawable(d);
+
+                    d.setCrossFadeEnabled(true);
+                    d.startTransition(200);
+                } else {
+                    cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+                }
+                break;
         }
 
         loadingView.smoothToHide();
