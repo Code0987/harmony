@@ -56,6 +56,7 @@ import com.ilusons.harmony.ref.inappbilling.IabHelper;
 import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
+import com.ilusons.harmony.views.AudioVFXViewFragment;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -467,6 +468,7 @@ public class SettingsActivity extends BaseActivity {
         createUIStyle();
         createPlaybackUIStyle();
 
+
         // Playback UI auto open
         CheckBox ui_playback_auto_open_checkBox = (CheckBox) findViewById(R.id.ui_playback_auto_open_checkBox);
 
@@ -483,6 +485,11 @@ public class SettingsActivity extends BaseActivity {
                 info("Updated!");
             }
         });
+
+        // AVFXType
+        avfxtype_spinner = (Spinner) findViewById(R.id.avfxtype_spinner);
+
+        createAVFXType();
 
         // Scan interval
         final EditText scan_interval_editText = (EditText) findViewById(R.id.scan_interval_editText);
@@ -798,9 +805,11 @@ public class SettingsActivity extends BaseActivity {
 
     //region UI style
     public enum UIStyle {
-        DarkUI("Dark UI"),
-        SimpleUI("Simple UI"),
-        LiteUI("Lite UI");
+        Default("Default"),
+        LUI5("Simple UI"),
+        LUI2("UI Style 2"),
+        LUI11("UI Style 11"),
+        LUI12("UI Style 12");
 
         private String friendlyName;
 
@@ -810,7 +819,11 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public static UIStyle getUIStyle(Context context) {
-        return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.DarkUI)));
+        try {
+            return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Default)));
+        } catch (Exception e) {
+            return UIStyle.Default;
+        }
     }
 
     public static void setUIStyle(Context context, UIStyle value) {
@@ -905,7 +918,11 @@ public class SettingsActivity extends BaseActivity {
     public static final String TAG_SPREF_PlaybackUIStyle = SPrefEx.TAG_SPREF + ".playback_ui_style";
 
     public static PlaybackUIStyle getPlaybackUIStyle(Context context) {
-        return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PlaybackUIStyle, String.valueOf(PlaybackUIStyle.Default)));
+        try {
+            return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PlaybackUIStyle, String.valueOf(PlaybackUIStyle.Default)));
+        } catch (Exception e) {
+            return PlaybackUIStyle.Default;
+        }
     }
 
     public static void setPlaybackUIStyle(Context context, PlaybackUIStyle value) {
@@ -971,6 +988,74 @@ public class SettingsActivity extends BaseActivity {
                         setPlaybackUIStyle(getApplicationContext(), (PlaybackUIStyle) adapterView.getItemAtPosition(position));
 
                         info("Playback UI Style will be completely applied on restart!");
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+            }
+        });
+    }
+
+    //endregion
+
+    //region AVFXType
+
+    private Spinner avfxtype_spinner;
+
+    private void createAVFXType() {
+        avfxtype_spinner = (Spinner) findViewById(R.id.avfxtype_spinner);
+
+        AudioVFXViewFragment.AVFXType[] items = AudioVFXViewFragment.AVFXType.values();
+
+        avfxtype_spinner.setAdapter(new ArrayAdapter<AudioVFXViewFragment.AVFXType>(this, 0, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+                text.setText(text.getText());
+
+                return text;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                CheckedTextView text = (CheckedTextView) convertView;
+
+                if (text == null) {
+                    text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+                    text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+                    text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+                    lp.setMargins(px, px, px, px);
+                    text.setLayoutParams(lp);
+                    text.setPadding(px, px, px, px);
+                }
+
+                text.setText(getItem(position).friendlyName);
+
+                return text;
+            }
+        });
+
+        int i = 0;
+        AudioVFXViewFragment.AVFXType lastMode = AudioVFXViewFragment.getAVFXType(this);
+        for (; i < items.length; i++)
+            if (items[i] == lastMode)
+                break;
+        avfxtype_spinner.setSelection(i, true);
+
+        avfxtype_spinner.post(new Runnable() {
+            public void run() {
+                avfxtype_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), (AudioVFXViewFragment.AVFXType) adapterView.getItemAtPosition(position));
                     }
 
                     @Override

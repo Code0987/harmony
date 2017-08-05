@@ -52,6 +52,7 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -128,6 +129,31 @@ public class Music extends RealmObject {
         return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
     }
 
+    public String getTextExtraOnly(String del) {
+        StringBuilder sb = new StringBuilder();
+
+        if (Track > -1) {
+            sb.append("#");
+            sb.append(Track);
+        }
+        if (!TextUtils.isEmpty(Album)) {
+            if (sb.length() > 0)
+                sb.append(del);
+            sb.append(Album);
+        }
+        if (!TextUtils.isEmpty(Artist)) {
+            if (sb.length() > 0)
+                sb.append(del);
+            sb.append(Artist);
+        }
+
+        return sb.toString();
+    }
+
+    public String getTextExtraOnlySingleLine() {
+        return getTextExtraOnly(" • ");
+    }
+
     public String getTextDetailed(String del) {
         StringBuilder sb = new StringBuilder();
 
@@ -139,25 +165,25 @@ public class Music extends RealmObject {
         sb.append(Title);
         if (!TextUtils.isEmpty(Artist)) {
             sb.append(del);
-            sb/*.append("\uD83C\uDFA4 ")*/.append(Artist);
+            sb.append("\uD83C\uDFA4 ").append(Artist);
         }
-        if (!TextUtils.isEmpty(Artist)) {
+        if (!TextUtils.isEmpty(Album)) {
             sb.append(del);
             sb.append(Album);
         }
         if (Length > -1) {
             sb.append(del);
-            //sb.append("⏳ ");
+            sb.append("⏳ ");
             sb.append(DurationFormatUtils.formatDuration(Length, "mm:ss", false));
             sb.append("/");
             sb.append(DurationFormatUtils.formatDuration(TotalDurationPlayed, "mm:ss", false));
         }
         sb.append(del);
-        sb/*.append("\uD83C\uDFB5 ")*/.append(Played).append("/").append(Skipped);
-//        if (TimeAdded > -1) {
-//            sb.append(del);
-//            sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(TimeAdded));
-//        }
+        sb.append("\uD83C\uDFB5 ").append(Played).append("/").append(Skipped);
+        if (TimeAdded > -1) {
+            sb.append(del);
+            sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(TimeAdded));
+        }
 
         return sb.toString();
     }

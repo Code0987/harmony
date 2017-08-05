@@ -20,6 +20,7 @@ import com.cleveroad.audiovisualization.GLAudioVisualizationView;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.avfx.BarsAVFXView;
 import com.ilusons.harmony.avfx.BaseAVFXView;
 import com.ilusons.harmony.avfx.FFTAVFXView;
 import com.ilusons.harmony.avfx.WaveformAVFXView;
@@ -342,6 +343,15 @@ public class AudioVFXViewFragment extends Fragment {
 
                     root.addView(fftAVFXView);
                     break;
+                case Bars:
+                    fftAVFXView = new BarsAVFXView(getActivity().getApplicationContext());
+
+                    fftAVFXView.setColor(
+                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a),
+                            new BaseAVFXView.FloatColor(r, g, b, a));
+
+                    root.addView(fftAVFXView);
+                    break;
                 case Waves:
                 default:
                     int layers = 5;
@@ -393,10 +403,12 @@ public class AudioVFXViewFragment extends Fragment {
 
     public enum AVFXType {
         Waveform("Waveform"),
-        FFT("Bars / Lines"),
-        Waves("Waves"),;
+        FFT("FFT"),
+        Waves("Waves"),
+        Bars("Bars"),
+        ;
 
-        private String friendlyName;
+        public String friendlyName;
 
         AVFXType(String friendlyName) {
             this.friendlyName = friendlyName;
