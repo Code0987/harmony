@@ -1,3 +1,4 @@
 ﻿◾️ Work in progress, please give feedback.
 ✔️ Fixed: Search bar bug, Crashes, UI, Settings, Tune
-✔️ Updates: UI
+✔️ Updates: UI, Playback UI (check settings)
+😱 Be sure to check out new UI, from Settings

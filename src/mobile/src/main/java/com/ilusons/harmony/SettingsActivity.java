@@ -820,7 +820,10 @@ public class SettingsActivity extends BaseActivity {
 
     public static UIStyle getUIStyle(Context context) {
         try {
-            return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Default)));
+            UIStyle[] uiStyles = UIStyle.values();
+            UIStyle uiStyle = uiStyles[(int)(Math.random() * uiStyles.length)];
+
+            return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(uiStyle)));
         } catch (Exception e) {
             return UIStyle.Default;
         }
