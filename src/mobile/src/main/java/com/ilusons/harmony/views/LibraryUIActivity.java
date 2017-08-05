@@ -861,7 +861,7 @@ public class LibraryUIActivity extends BaseUIActivity {
             info("Export failed!", true);
     }
 
-    private AsyncTask<Void, Void, Void> setFromTask = null;
+    private static AsyncTask<Void, Void, Void> setFromTask = null;
 
     private void setFromLibrary() {
         if (setFromTask != null) {
@@ -1028,7 +1028,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         public GroupViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
-            View view = inflater.inflate(R.layout.library_ui_dark_item_group, parent, false);
+            View view = inflater.inflate(R.layout.library_ui_item_group, parent, false);
 
             return new GroupViewHolder(view);
         }
@@ -1039,17 +1039,25 @@ public class LibraryUIActivity extends BaseUIActivity {
 
             int layoutId = -1;
             switch (uiStyle) {
-                case LiteUI:
-                    layoutId = R.layout.library_ui_lite_item;
+                case LUI2:
+                    layoutId = R.layout.library_ui_lui2_item;
                     break;
 
-                case SimpleUI:
-                    layoutId = R.layout.library_ui_item_simple;
+                case LUI5:
+                    layoutId = R.layout.library_ui_lui5_item;
                     break;
 
-                case DarkUI:
+                case LUI11:
+                    layoutId = R.layout.library_ui_lui11_item;
+                    break;
+
+                case LUI12:
+                    layoutId = R.layout.library_ui_lui12_item;
+                    break;
+
+                case Default:
                 default:
-                    layoutId = R.layout.library_ui_dark_item;
+                    layoutId = R.layout.library_ui_default_item;
                     break;
             }
 
@@ -1175,7 +1183,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
                 TextView info = (TextView) v.findViewById(R.id.info);
                 if (info != null) try {
-                    info.setText(item.getTextDetailedSingleLine());
+                    info.setText(item.getTextExtraOnlySingleLine());
                     info.setHorizontallyScrolling(true);
                     info.setSelected(true);
                     info.setOnFocusChangeListener(new View.OnFocusChangeListener() {

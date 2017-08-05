@@ -150,7 +150,7 @@
                     android:scrollbars="vertical"
                     app:layoutManager="android.support.v7.widget.LinearLayoutManager"
                     tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
-                    tools:listitem="@layout/library_ui_dark_item"
+                    tools:listitem="@layout/library_ui_default_item"
                     />
 
             </android.support.v4.widget.SwipeRefreshLayout>
