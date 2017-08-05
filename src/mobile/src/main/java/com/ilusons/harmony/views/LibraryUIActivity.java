@@ -1226,14 +1226,13 @@ public class LibraryUIActivity extends BaseUIActivity {
                         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
                         builder.setTitle("Select the action");
                         builder.setItems(new CharSequence[]{
-                                "Now playing: Add next",
-                                "Now playing: Add at start",
-                                "Now playing: Add at last",
-                                "Now playing: Remove",
-                                "Now playing: Clear",
+                                "Add next",
+                                "Add at start",
+                                "Add at last",
+                                "Remove",
+                                "Clear",
                                 "Move down",
-                                "Move up",
-                                "Remove"
+                                "Move up"
                         }, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int itemIndex) {
@@ -1241,33 +1240,38 @@ public class LibraryUIActivity extends BaseUIActivity {
                                     switch (itemIndex) {
                                         case 0:
                                             getMusicService().add(item.Path, getMusicService().getPlaylistPosition() + 1);
+                                            refresh(String.valueOf(search_view.getQuery()));
                                             break;
                                         case 1:
                                             getMusicService().add(item.Path, 0);
+                                            refresh(String.valueOf(search_view.getQuery()));
                                             break;
                                         case 2:
                                             getMusicService().add(item.Path, getMusicService().getPlaylist().size());
+                                            refresh(String.valueOf(search_view.getQuery()));
                                             break;
                                         case 3:
                                             getMusicService().remove(item.Path);
+                                            refresh(String.valueOf(search_view.getQuery()));
                                             break;
                                         case 4:
                                             getMusicService().getPlaylist().clear();
                                             getMusicService().setPlaylistPosition(-1);
+                                            refresh(String.valueOf(search_view.getQuery()));
                                             break;
                                         case 5:
-                                            int i = data.indexOf(item);
-                                            ArrayEx.move(i, i + 1, data);
-                                            refresh(String.valueOf(search_view.getQuery()));
+                                            int i = getMusicService().getPlaylist().indexOf(item.Path);
+                                            if (i > -1) {
+                                                ArrayEx.move(i, i + 1, data);
+                                                refresh(String.valueOf(search_view.getQuery()));
+                                            }
                                             break;
                                         case 6:
-                                            int j = data.indexOf(item);
-                                            ArrayEx.move(j, j - 1, data);
-                                            refresh(String.valueOf(search_view.getQuery()));
-                                            break;
-                                        case 7:
-                                            data.remove(item);
-                                            refresh(String.valueOf(search_view.getQuery()));
+                                            int j = getMusicService().getPlaylist().indexOf(item.Path);
+                                            if (j > -1) {
+                                                ArrayEx.move(j, j - 1, data);
+                                                refresh(String.valueOf(search_view.getQuery()));
+                                            }
                                             break;
                                     }
                                 } catch (Exception e) {
@@ -1282,7 +1286,7 @@ public class LibraryUIActivity extends BaseUIActivity {
                         if (!Once.beenDone(Once.THIS_APP_VERSION, tag_pl_cstm)) {
                             (new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle))
                                     .setTitle("Playlist customization")
-                                    .setMessage("Next, Ok, will open a list of actions to allow you to customize [Custom] playlist or Now playing playlist. If you have enabled sorting, you won't see changes, just set it to Default/Custom. Now playing actions will modify playlist directly without reflecting changes.")
+                                    .setMessage("Next, Ok, will open a list of actions to allow you to customize [Custom] playlist or Now playing playlist. If you have enabled sorting, you won't see changes, just set it to Default/Custom.")
                                     .setCancelable(false)
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
