@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 apply plugin: 'io.fabric'
 apply plugin: 'realm-android'
 
@@ -32,10 +31,8 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled = true
-        jackOptions {
-            enabled false
-        }
     }
+    flavorDimensions "versionCode"
     buildTypes {
         debug {
             buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
@@ -155,7 +152,6 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     // TODO: Later ? wearApp project(':wear')
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     compile group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:mediarouter-v7:25.3.1'
