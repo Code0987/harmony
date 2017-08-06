@@ -1192,6 +1192,11 @@ public class MusicService extends Service {
 
             Notification currentNotification = builder.build();
 
+            currentNotification.defaults |= Notification.DEFAULT_SOUND;
+            currentNotification.defaults |= Notification.DEFAULT_VIBRATE;
+            currentNotification.defaults |= Notification.DEFAULT_LIGHTS;
+            currentNotification.flags |= Notification.FLAG_AUTO_CANCEL;
+
             if (isPlaying()) {
                 startForeground(NOTIFICATION_ID, currentNotification);
             } else {

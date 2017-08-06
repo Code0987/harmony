@@ -32,7 +32,7 @@ android {
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled = true
     }
-    flavorDimensions "versionCode"
+    // flavorDimensions "versionCode"
     buildTypes {
         debug {
             buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
