@@ -1,4 +1,5 @@
 ﻿◾️ Work in progress, please give feedback.
-✔️ Fixed: Search bar bug, Crashes, UI, Settings, Tune
-✔️ Updates: New styles in UI, Playback UI (check settings)
-😱 Be sure to check out new UI, from Settings
+✔️ Fixed: Search bar bug, Crashes, UI, Settings, Tune.
+✔️ Updates: New styles in UI, Playback UI (check settings).
+✔️ New: Added new lyrics api, timestamped sometimes.
+😱 Be sure to check out new UI, from Settings.

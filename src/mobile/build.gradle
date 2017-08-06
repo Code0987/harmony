@@ -190,6 +190,7 @@ dependencies {
         transitive = true;
     }
     compile 'jp.wasabeef:blurry:2.1.1'
+    compile 'com.squareup.okhttp3:okhttp:3.8.1'
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
     releaseAlphaCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
