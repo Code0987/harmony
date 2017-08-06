@@ -56,8 +56,7 @@ public class MainActivity extends BaseActivity {
 
                         startService(i);
 
-                        if (SettingsActivity.getUIPlaybackAutoOpen(MainActivity.this))
-                            openPlaybackUIActivity(MainActivity.this);
+                        openPlaybackUIActivity(MainActivity.this);
                     }
                 }, 350);
 

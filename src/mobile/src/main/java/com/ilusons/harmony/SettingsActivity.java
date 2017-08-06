@@ -81,9 +81,6 @@ public class SettingsActivity extends BaseActivity {
 
     public static final String TAG_SPREF_UISTYLE = SPrefEx.TAG_SPREF + ".uistyle";
 
-    public static final String TAG_SPREF_UIPLAYBACKAUTOOPEN = SPrefEx.TAG_SPREF + ".ui_playback_auto_open";
-    public static final boolean UIPLAYBACKAUTOOPEN_DEFAULT = true;
-
     private static final int REQUEST_SCAN_LOCATIONS_PICK = 11;
 
     // Threading
@@ -304,255 +301,24 @@ public class SettingsActivity extends BaseActivity {
         });
         animator.start();
 
-        // Set about section
-        ((TextView) findViewById(R.id.about_version)).setText(BuildConfig.VERSION_NAME);
-
-        findViewById(R.id.about_license).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isFinishing())
-                    return;
-
-                String content;
-                try (InputStream is = getResources().openRawResource(R.raw.license)) {
-                    content = IOUtils.toString(is, "UTF-8");
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    content = "Error loading data!";
-                }
-
-                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
-                        .setTitle("Licenses")
-                        .setMessage(content)
-                        .setCancelable(false)
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.dismiss();
-                            }
-                        }))
-                        .show();
-            }
-        });
-
-        findViewById(R.id.about_info).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isFinishing())
-                    return;
-
-                String content;
-                try (InputStream is = getResources().openRawResource(R.raw.gps_listing)) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>"), Html.FROM_HTML_MODE_LEGACY).toString();
-                    } else {
-                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>")).toString();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    content = "Error loading data!";
-                }
-
-                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
-                        .setTitle("Information")
-                        .setMessage(content)
-                        .setCancelable(false)
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.dismiss();
-                            }
-                        }))
-                        .show();
-            }
-        });
-
-        findViewById(R.id.about_release_notes).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isFinishing())
-                    return;
-
-                showReleaseNotesDialog(SettingsActivity.this);
-            }
-        });
-
         // Set views and tabs
         final ViewEx.StaticViewPager viewPager = (ViewEx.StaticViewPager) findViewById(R.id.viewPager);
         TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
 
-        // Set scan locations
-        RecyclerView scan_locations_recyclerView = (RecyclerView) findViewById(R.id.scan_locations_recyclerView);
-        scan_locations_recyclerView.setHasFixedSize(true);
-        scan_locations_recyclerView.setItemViewCacheSize(3);
-        scan_locations_recyclerView.setDrawingCacheEnabled(true);
-        scan_locations_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+        // About section
+        onCreateBindAboutSection();
 
-        scanLocationsRecyclerViewAdapter = new ScanLocationsRecyclerViewAdapter();
-        scan_locations_recyclerView.setAdapter(scanLocationsRecyclerViewAdapter);
-
-        scanLocationsRecyclerViewAdapter.setData(MusicServiceLibraryUpdaterAsyncTask.getScanLocations(this));
-
-        findViewById(R.id.scan_locations_imageButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // This always works
-                Intent i = new Intent(SettingsActivity.this, FilePickerActivity.class);
-                // This works if you defined the intent filter
-                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-
-                // Set these depending on your use case. These are the defaults.
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, true);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
-
-                // Configure initial directory by specifying a String.
-                // You could specify a String like "/storage/emulated/0/", but that can
-                // dangerous. Always use Android's API calls to get paths to the SD-card or
-                // internal memory.
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
-
-                startActivityForResult(i, REQUEST_SCAN_LOCATIONS_PICK);
-            }
-        });
-
-        // Set scan media store
-        CheckBox scan_mediastore_enabled_checkBox = (CheckBox) findViewById(R.id.scan_mediastore_enabled_checkBox);
-        scan_mediastore_enabled_checkBox.setChecked(MusicServiceLibraryUpdaterAsyncTask.getScanMediaStoreEnabled(this));
-        scan_mediastore_enabled_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                MusicServiceLibraryUpdaterAsyncTask.setScanMediaStoreEnabled(SettingsActivity.this, compoundButton.isChecked());
-
-                info("Updated!");
-            }
-        });
-
-        // Set scan constraint min duration
-        final EditText scan_constraint_min_duration_editView = (EditText) findViewById(R.id.scan_constraint_min_duration_editView);
-        scan_constraint_min_duration_editView.setText("");
-        scan_constraint_min_duration_editView.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this).toString());
-        scan_constraint_min_duration_editView.clearFocus();
-        findViewById(R.id.scan_constraint_min_duration_imageButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
-                    @Override
-                    public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
-                        MusicServiceLibraryUpdaterAsyncTask.setScanConstraintMinDuration(SettingsActivity.this, ((((hours * 60L) + minutes) * 60) + seconds) * 1000);
-
-                        scan_constraint_min_duration_editView.setText("");
-                        scan_constraint_min_duration_editView.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this).toString());
-                        scan_constraint_min_duration_editView.clearFocus();
-                    }
-                };
-                final HmsPickerBuilder hpb = new HmsPickerBuilder()
-                        .setFragmentManager(getSupportFragmentManager())
-                        .setStyleResId(R.style.BetterPickersDialogFragment);
-                hpb.addHmsPickerDialogHandler(handler);
-                hpb.setOnDismissListener(new OnDialogDismissListener() {
-                    @Override
-                    public void onDialogDismiss(DialogInterface dialoginterface) {
-                        hpb.removeHmsPickerDialogHandler(handler);
-                    }
-                });
-                hpb.setTimeInMilliseconds(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this));
-                hpb.show();
-            }
-        });
-
-        // UIStyle
-        createUIStyle();
-        createPlaybackUIStyle();
-
-
-        // Playback UI auto open
-        CheckBox ui_playback_auto_open_checkBox = (CheckBox) findViewById(R.id.ui_playback_auto_open_checkBox);
-
-        ui_playback_auto_open_checkBox.setChecked(getUIPlaybackAutoOpen(this));
-
-        ui_playback_auto_open_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SPrefEx.get(getApplicationContext())
-                        .edit()
-                        .putBoolean(TAG_SPREF_UIPLAYBACKAUTOOPEN, compoundButton.isChecked())
-                        .apply();
-
-                info("Updated!");
-            }
-        });
+        // UI section
+        onCreateBindUISection();
 
         // AVFXType
         avfxtype_spinner = (Spinner) findViewById(R.id.avfxtype_spinner);
 
         createAVFXType();
 
-        // Scan interval
-        final EditText scan_interval_editText = (EditText) findViewById(R.id.scan_interval_editText);
-        scan_interval_editText.setText("");
-        scan_interval_editText.append(String.valueOf(SPrefEx.get(getApplicationContext()).getLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_DEFAULT)));
-        scan_interval_editText.clearFocus();
-        findViewById(R.id.scan_interval_imageButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
-                    @Override
-                    public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
-                        Long value = ((((hours * 60L) + minutes) * 60) + seconds) * 1000;
-
-                        if (!(value <= (48 * 60 * 60 * 1000) && value >= (7 * 60 * 60 * 1000))) {
-                            info("Enter value between [7hrs, 48hrs]", true);
-
-                            return;
-                        }
-
-                        SPrefEx.get(getApplicationContext())
-                                .edit()
-                                .putLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, value)
-                                .apply();
-
-                        scan_interval_editText.setText("");
-                        scan_interval_editText.append(String.valueOf(value));
-                        scan_interval_editText.clearFocus();
-                    }
-                };
-                final HmsPickerBuilder hpb = new HmsPickerBuilder()
-                        .setFragmentManager(getSupportFragmentManager())
-                        .setStyleResId(R.style.BetterPickersDialogFragment);
-                hpb.addHmsPickerDialogHandler(handler);
-                hpb.setOnDismissListener(new OnDialogDismissListener() {
-                    @Override
-                    public void onDialogDismiss(DialogInterface dialoginterface) {
-                        hpb.removeHmsPickerDialogHandler(handler);
-                    }
-                });
-                hpb.setTimeInMilliseconds(SPrefEx.get(SettingsActivity.this).getLong(MusicServiceLibraryUpdaterAsyncTask.TAG_SPREF_SCAN_INTERVAL, MusicServiceLibraryUpdaterAsyncTask.SCAN_INTERVAL_DEFAULT));
-                hpb.show();
-            }
-        });
-
-        // Library update fast mode
-        CheckBox library_update_fastMode_checkBox = (CheckBox) findViewById(R.id.library_update_fastMode_checkBox);
-
-        boolean savedLibraryUpdateFastMode = SPrefEx.get(getApplicationContext()).getBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, MusicService.LIBRARY_UPDATE_FASTMODE_DEFAULT);
-
-        library_update_fastMode_checkBox.setChecked(savedLibraryUpdateFastMode);
-
-        library_update_fastMode_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SPrefEx.get(getApplicationContext())
-                        .edit()
-                        .putBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, compoundButton.isChecked())
-                        .apply();
-
-                info("Updated!");
-            }
-        });
+        // Library section
+        onCreateBindLibrarySection();
 
         findViewById(R.id.reset_imageButton).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -799,9 +565,251 @@ public class SettingsActivity extends BaseActivity {
 
     }
 
-    public static boolean getUIPlaybackAutoOpen(Context context) {
-        return SPrefEx.get(context).getBoolean(TAG_SPREF_UIPLAYBACKAUTOOPEN, UIPLAYBACKAUTOOPEN_DEFAULT);
+    //region About section
+
+    private void onCreateBindAboutSection() {
+
+        ((TextView) findViewById(R.id.about_version)).setText(BuildConfig.VERSION_NAME);
+
+        findViewById(R.id.about_license).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFinishing())
+                    return;
+
+                String content;
+                try (InputStream is = getResources().openRawResource(R.raw.license)) {
+                    content = IOUtils.toString(is, "UTF-8");
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    content = "Error loading data!";
+                }
+
+                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
+                        .setTitle("Licenses")
+                        .setMessage(content)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }))
+                        .show();
+            }
+        });
+
+        findViewById(R.id.about_info).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFinishing())
+                    return;
+
+                String content;
+                try (InputStream is = getResources().openRawResource(R.raw.gps_listing)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>"), Html.FROM_HTML_MODE_LEGACY).toString();
+                    } else {
+                        content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>")).toString();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    content = "Error loading data!";
+                }
+
+                (new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
+                        .setTitle("Information")
+                        .setMessage(content)
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }))
+                        .show();
+            }
+        });
+
+        findViewById(R.id.about_release_notes).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFinishing())
+                    return;
+
+                showReleaseNotesDialog(SettingsActivity.this);
+            }
+        });
+
     }
+
+    //endregion
+
+    //region UI section
+
+    private void onCreateBindUISection() {
+
+        createUIStyle();
+        createPlaybackUIStyle();
+
+    }
+
+    //endregion
+
+    //region Library section
+
+    private void onCreateBindLibrarySection() {
+
+        CheckBox library_scan_auto_checkBox = (CheckBox) findViewById(R.id.library_scan_auto_checkBox);
+        library_scan_auto_checkBox.setChecked(MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this));
+        library_scan_auto_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                MusicServiceLibraryUpdaterAsyncTask.setScanAutoEnabled(SettingsActivity.this, compoundButton.isChecked());
+            }
+        });
+
+        final EditText library_scan_auto_interval_editText = (EditText) findViewById(R.id.library_scan_auto_interval_editText);
+        library_scan_auto_interval_editText.setText("");
+        library_scan_auto_interval_editText.append(String.valueOf(MusicServiceLibraryUpdaterAsyncTask.getScanAutoInterval(this)));
+        library_scan_auto_interval_editText.clearFocus();
+        findViewById(R.id.library_scan_auto_interval_imageButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
+                    @Override
+                    public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
+                        Long value = ((((hours * 60L) + minutes) * 60) + seconds) * 1000;
+
+                        if (!(value <= (48 * 60 * 60 * 1000) && value >= (7 * 60 * 60 * 1000))) {
+                            info("Enter value between [7hrs, 48hrs]", true);
+
+                            return;
+                        }
+
+                        MusicServiceLibraryUpdaterAsyncTask.setScanAutoInterval(SettingsActivity.this, value);
+
+                        library_scan_auto_interval_editText.setText("");
+                        library_scan_auto_interval_editText.append(String.valueOf(value));
+                        library_scan_auto_interval_editText.clearFocus();
+                    }
+                };
+                final HmsPickerBuilder hpb = new HmsPickerBuilder()
+                        .setFragmentManager(getSupportFragmentManager())
+                        .setStyleResId(R.style.BetterPickersDialogFragment);
+                hpb.addHmsPickerDialogHandler(handler);
+                hpb.setOnDismissListener(new OnDialogDismissListener() {
+                    @Override
+                    public void onDialogDismiss(DialogInterface dialoginterface) {
+                        hpb.removeHmsPickerDialogHandler(handler);
+                    }
+                });
+                hpb.setTimeInMilliseconds(MusicServiceLibraryUpdaterAsyncTask.getScanAutoInterval(SettingsActivity.this));
+                hpb.show();
+            }
+        });
+
+        // Set scan locations
+        RecyclerView scan_locations_recyclerView = (RecyclerView) findViewById(R.id.scan_locations_recyclerView);
+        scan_locations_recyclerView.setHasFixedSize(true);
+        scan_locations_recyclerView.setItemViewCacheSize(3);
+        scan_locations_recyclerView.setDrawingCacheEnabled(true);
+        scan_locations_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+
+        scanLocationsRecyclerViewAdapter = new ScanLocationsRecyclerViewAdapter();
+        scan_locations_recyclerView.setAdapter(scanLocationsRecyclerViewAdapter);
+
+        scanLocationsRecyclerViewAdapter.setData(MusicServiceLibraryUpdaterAsyncTask.getScanLocations(this));
+
+        findViewById(R.id.scan_locations_imageButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // This always works
+                Intent i = new Intent(SettingsActivity.this, FilePickerActivity.class);
+                // This works if you defined the intent filter
+                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+
+                // Set these depending on your use case. These are the defaults.
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, true);
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
+                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
+
+                // Configure initial directory by specifying a String.
+                // You could specify a String like "/storage/emulated/0/", but that can
+                // dangerous. Always use Android's API calls to get paths to the SD-card or
+                // internal memory.
+                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+
+                startActivityForResult(i, REQUEST_SCAN_LOCATIONS_PICK);
+            }
+        });
+
+        // Set scan media store
+        CheckBox scan_mediastore_enabled_checkBox = (CheckBox) findViewById(R.id.scan_mediastore_enabled_checkBox);
+        scan_mediastore_enabled_checkBox.setChecked(MusicServiceLibraryUpdaterAsyncTask.getScanMediaStoreEnabled(this));
+        scan_mediastore_enabled_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                MusicServiceLibraryUpdaterAsyncTask.setScanMediaStoreEnabled(SettingsActivity.this, compoundButton.isChecked());
+
+                info("Updated!");
+            }
+        });
+
+        // Set scan constraint min duration
+        final EditText scan_constraint_min_duration_editView = (EditText) findViewById(R.id.scan_constraint_min_duration_editView);
+        scan_constraint_min_duration_editView.setText("");
+        scan_constraint_min_duration_editView.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this).toString());
+        scan_constraint_min_duration_editView.clearFocus();
+        findViewById(R.id.scan_constraint_min_duration_imageButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
+                    @Override
+                    public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
+                        MusicServiceLibraryUpdaterAsyncTask.setScanConstraintMinDuration(SettingsActivity.this, ((((hours * 60L) + minutes) * 60) + seconds) * 1000);
+
+                        scan_constraint_min_duration_editView.setText("");
+                        scan_constraint_min_duration_editView.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this).toString());
+                        scan_constraint_min_duration_editView.clearFocus();
+                    }
+                };
+                final HmsPickerBuilder hpb = new HmsPickerBuilder()
+                        .setFragmentManager(getSupportFragmentManager())
+                        .setStyleResId(R.style.BetterPickersDialogFragment);
+                hpb.addHmsPickerDialogHandler(handler);
+                hpb.setOnDismissListener(new OnDialogDismissListener() {
+                    @Override
+                    public void onDialogDismiss(DialogInterface dialoginterface) {
+                        hpb.removeHmsPickerDialogHandler(handler);
+                    }
+                });
+                hpb.setTimeInMilliseconds(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this));
+                hpb.show();
+            }
+        });
+
+        // Library update fast mode
+        CheckBox library_update_fastMode_checkBox = (CheckBox) findViewById(R.id.library_update_fastMode_checkBox);
+        boolean savedLibraryUpdateFastMode = SPrefEx.get(getApplicationContext()).getBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, MusicService.LIBRARY_UPDATE_FASTMODE_DEFAULT);
+        library_update_fastMode_checkBox.setChecked(savedLibraryUpdateFastMode);
+        library_update_fastMode_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                SPrefEx.get(getApplicationContext())
+                        .edit()
+                        .putBoolean(MusicService.TAG_SPREF_LIBRARY_UPDATE_FASTMODE, compoundButton.isChecked())
+                        .apply();
+
+                info("Updated!");
+            }
+        });
+
+    }
+
+    //endregion
 
     //region UI style
     public enum UIStyle {
@@ -821,7 +829,7 @@ public class SettingsActivity extends BaseActivity {
     public static UIStyle getUIStyle(Context context) {
         try {
             UIStyle[] uiStyles = UIStyle.values();
-            UIStyle uiStyle = uiStyles[(int)(Math.random() * uiStyles.length)];
+            UIStyle uiStyle = uiStyles[(int) (Math.random() * uiStyles.length)];
 
             return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(uiStyle)));
         } catch (Exception e) {

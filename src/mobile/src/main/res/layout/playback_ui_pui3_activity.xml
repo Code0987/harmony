@@ -123,6 +123,17 @@
     </android.support.percent.PercentRelativeLayout>
 
     <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0.65"
+        android:background="@drawable/lomo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <RelativeLayout
         android:id="@+id/controls_layout"
         android:layout_width="0dp"
         android:layout_height="86dp"
@@ -336,16 +347,6 @@
         android:visibility="visible"
         app:indicatorColor="@color/translucent_primary_light"
         app:indicatorName="LineScalePulseOutRapidIndicator"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
-
-    <RelativeLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/lomo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

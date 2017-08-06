@@ -56,8 +56,8 @@
         <ImageButton
             android:id="@+id/close"
             style="@style/Widget.AppCompat.ImageButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:layout_gravity="center"
@@ -68,7 +68,7 @@
             android:minWidth="0dp"
             android:padding="0dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_check_black"
+            android:src="@drawable/ic_dialog_close_dark"
             android:tint="@color/icons"
             android:tintMode="src_atop"
             />
