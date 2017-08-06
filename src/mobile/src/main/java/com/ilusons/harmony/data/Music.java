@@ -1,5 +1,6 @@
 package com.ilusons.harmony.data;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -437,6 +438,7 @@ public class Music extends RealmObject {
 
     private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
 
+    @SuppressLint("StaticFieldLeak")
     public static void getLyricsOrDownload(final Music data) {
         if (getLyricsOrDownloadTask != null) {
             getLyricsOrDownloadTask.cancel(true);
@@ -477,32 +479,48 @@ public class Music extends RealmObject {
                         e.printStackTrace();
                     }
 
+                    // Fetch
                     try {
                         if (isCancelled())
                             throw new CancellationException();
 
-                        ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(data.getText());
+                        LyricsEx.Lyrics lyrics = LyricsEx.ViewLyricsApi.get(data.Title, data.Artist);
 
-                        if (!(results == null || results.size() == 0)) {
-                            for (LyricsEx.Lyrics lyrics : results) {
-
-                                float t = (1f - (StringUtils.getLevenshteinDistance(lyrics.Title, data.Title) / Math.max(lyrics.Title.length(), data.Title.length())));
-                                float a = (1f - (StringUtils.getLevenshteinDistance(lyrics.Artist, data.Artist) / Math.max(lyrics.Artist.length(), data.Artist.length())));
-
-                                if (t >= 0.8 && a >= 0.8) {
-                                    result = lyrics.Content;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (isCancelled())
-                            throw new CancellationException();
+                        result = lyrics.Content;
 
                         data.putLyrics(getCurrentLyricsView().getActivity(), result);
                     } catch (Exception e) {
                         Log.w(TAG, e);
                     }
+
+                    // Fetch
+                    if (TextUtils.isEmpty(result))
+                        try {
+                            if (isCancelled())
+                                throw new CancellationException();
+
+                            ArrayList<LyricsEx.Lyrics> results = LyricsEx.GeniusApi.get(data.getText());
+
+                            if (!(results == null || results.size() == 0)) {
+                                for (LyricsEx.Lyrics lyrics : results) {
+
+                                    float t = (1f - (StringUtils.getLevenshteinDistance(lyrics.Title, data.Title) / Math.max(lyrics.Title.length(), data.Title.length())));
+                                    float a = (1f - (StringUtils.getLevenshteinDistance(lyrics.Artist, data.Artist) / Math.max(lyrics.Artist.length(), data.Artist.length())));
+
+                                    if (t >= 0.8 && a >= 0.8) {
+                                        result = lyrics.Content;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (isCancelled())
+                                throw new CancellationException();
+
+                            data.putLyrics(getCurrentLyricsView().getActivity(), result);
+                        } catch (Exception e) {
+                            Log.w(TAG, e);
+                        }
 
                     if (TextUtils.isEmpty(result)) {
                         result = "";

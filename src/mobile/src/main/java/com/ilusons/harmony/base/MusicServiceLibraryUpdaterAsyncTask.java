@@ -143,12 +143,15 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         }
     }
 
-    private void addFromDirectory(Realm realm, File path, String playlist) {
+    private void addFromDirectory(Realm realm, File path, String playlist) throws Exception {
 
         if (isCancelled())
             return;
 
         for (File file : path.listFiles()) {
+            if (isCancelled())
+                throw new Exception("Canceled by user");
+
             if (file.canRead()) {
                 String filePath = file.getAbsolutePath();
                 if (file.isDirectory()) {
@@ -221,7 +224,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         }
     }
 
-    private void scanMediaStoreAudio(Realm realm) {
+    private void scanMediaStoreAudio(Realm realm) throws Exception {
         if (isCancelled())
             return;
 
@@ -256,6 +259,9 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
             if (count > 0) {
                 while (cursor.moveToNext()) {
+                    if (isCancelled())
+                        throw new Exception("Canceled by user");
+
                     String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
                     if ((new File(path)).exists()) {
@@ -272,7 +278,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             cursor.close();
     }
 
-    private void scanMediaStoreVideo(Realm realm) {
+    private void scanMediaStoreVideo(Realm realm) throws Exception {
         if (isCancelled())
             return;
 
@@ -306,6 +312,9 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
             if (count > 0) {
                 while (cursor.moveToNext()) {
+                    if (isCancelled())
+                        throw new Exception("Canceled by user");
+
                     String path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
 
                     if ((new File(path)).exists()) {
@@ -322,7 +331,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
             cursor.close();
     }
 
-    private void scanStorage(Realm realm) {
+    private void scanStorage(Realm realm) throws Exception {
         if (isCancelled())
             return;
 
@@ -331,6 +340,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
         final ArrayList<String> toRemove = new ArrayList<>();
 
         for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_STORAGE)) {
+            if (isCancelled())
+                throw new Exception("Canceled by user");
 
             File file = (new File(music.Path));
 
