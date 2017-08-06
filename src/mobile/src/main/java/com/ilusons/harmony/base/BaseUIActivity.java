@@ -50,6 +50,11 @@ public abstract class BaseUIActivity extends BaseActivity {
             }
 
             @Override
+            public void OnMusicServicePrepared() {
+                BaseUIActivity.this.OnMusicServicePrepared();
+            }
+
+            @Override
             public void OnMusicServiceLibraryUpdateBegins() {
                 BaseUIActivity.this.OnMusicServiceLibraryUpdateBegins();
             }
@@ -120,6 +125,10 @@ public abstract class BaseUIActivity extends BaseActivity {
     }
 
     public void OnMusicServiceOpen(String uri) {
+
+    }
+
+    protected void OnMusicServicePrepared() {
 
     }
 

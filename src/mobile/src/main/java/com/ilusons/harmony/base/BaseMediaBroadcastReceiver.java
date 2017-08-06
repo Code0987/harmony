@@ -50,6 +50,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
                 OnMusicServiceOpen(uri);
         }
 
+        if (action.equals(MusicService.ACTION_PREPARED)) {
+            OnMusicServicePrepared();
+        }
+
         if (action.equals(MusicService.ACTION_LIBRARY_UPDATE_BEGINS)) {
             OnMusicServiceLibraryUpdateBegins();
         }
@@ -70,6 +74,7 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
         intentFilter.addAction(MusicService.ACTION_PAUSE);
         intentFilter.addAction(MusicService.ACTION_STOP);
         intentFilter.addAction(MusicService.ACTION_OPEN);
+        intentFilter.addAction(MusicService.ACTION_PREPARED);
         intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATE_BEGINS);
         intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATED);
 
@@ -93,6 +98,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
     }
 
     public void OnMusicServiceOpen(String uri) {
+
+    }
+
+    public void OnMusicServicePrepared() {
 
     }
 

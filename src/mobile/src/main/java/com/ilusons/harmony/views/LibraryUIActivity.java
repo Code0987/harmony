@@ -49,6 +49,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -180,6 +181,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
     private AsyncTask<Void, Void, Collection<Music>> refreshTask = null;
 
+    private PlaybackUIMiniFragment playbackUIMiniFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -195,8 +198,8 @@ public class LibraryUIActivity extends BaseUIActivity {
         toolbar.setCollapsible(false);
 
         getSupportActionBar().setTitle(null);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setHomeButtonEnabled(false);
 
         collapse_toolbar = (CollapsingToolbarLayout) findViewById(R.id.collapse_toolbar);
         collapse_toolbar.setEnabled(false);
@@ -234,13 +237,26 @@ public class LibraryUIActivity extends BaseUIActivity {
         drawer_layout.closeDrawer(GravityCompat.START);
         drawer_layout.closeDrawer(GravityCompat.END);
 
+        ImageButton toolbar_menu = (ImageButton)findViewById(R.id.toolbar_menu);
+        toolbar_menu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.animate().rotationBy(180).setDuration(330).start();
+
+                if (appBarIsExpanded) {
+                }
+
+                appBar_layout.setExpanded(!appBarIsExpanded, true);
+            }
+        });
+
         // Set views
         root = findViewById(R.id.root);
 
         // Set recycler
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setItemViewCacheSize(11);
+        recyclerView.setItemViewCacheSize(8);
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
         recyclerView.setLayoutManager(new LinearLayoutManager(this) {
@@ -508,6 +524,13 @@ public class LibraryUIActivity extends BaseUIActivity {
         // Extra
         UIGroup();
 
+        // PlaybackUIMiniFragment
+        playbackUIMiniFragment = PlaybackUIMiniFragment.create();
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.playbackUIMiniFragment, playbackUIMiniFragment)
+                .commit();
+
     }
 
     @Override
@@ -597,22 +620,39 @@ public class LibraryUIActivity extends BaseUIActivity {
     @Override
     public void OnMusicServicePlay() {
         super.OnMusicServicePlay();
+
+        if (playbackUIMiniFragment != null)
+            playbackUIMiniFragment.onMusicServicePlay();
     }
 
     @Override
     public void OnMusicServicePause() {
         super.OnMusicServicePause();
+
+        if (playbackUIMiniFragment != null)
+            playbackUIMiniFragment.onMusicServicePause();
     }
 
     @Override
     public void OnMusicServiceStop() {
         super.OnMusicServiceStop();
+
+        if (playbackUIMiniFragment != null)
+            playbackUIMiniFragment.onMusicServiceStop();
     }
 
     @Override
     public void OnMusicServiceOpen(String uri) {
-        if (SettingsActivity.getUIPlaybackAutoOpen(this))
-            MainActivity.openPlaybackUIActivity(this);
+    }
+
+    @Override
+    public void OnMusicServicePrepared() {
+        try {
+            if (playbackUIMiniFragment != null)
+                playbackUIMiniFragment.reset(getMusicService());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -630,6 +670,13 @@ public class LibraryUIActivity extends BaseUIActivity {
         swipeRefreshLayout.setRefreshing(false);
 
         info("Library updated!");
+
+        try {
+            if (playbackUIMiniFragment != null)
+                playbackUIMiniFragment.reset(getMusicService());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void showGuide() {

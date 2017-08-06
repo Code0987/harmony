@@ -3,7 +3,7 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:todo="http://schemas.android.com/tools"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -71,7 +71,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
-            android:text="@string/app_name"
+            android:text="Settings"
             />
 
         <ImageButton
@@ -89,7 +89,7 @@
             android:minWidth="0dp"
             android:padding="0dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_check_black"
+            android:src="@drawable/ic_dialog_close_dark"
             android:tint="@color/icons"
             android:tintMode="src_atop"
             />
@@ -214,7 +214,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/about_website"
-                    todo:text="Version"
+                    tools:text="Version"
                     />
 
                 <TextView
@@ -308,29 +308,6 @@
                     />
 
                 <TextView
-                    android:id="@+id/ui_playback_auto_open_textView"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="Playback UI auto open on music selection"
-                    android:textStyle="italic"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/uiStyle_spinner"
-                    />
-
-                <CheckBox
-                    android:id="@+id/ui_playback_auto_open_checkBox"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:gravity="center"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/ui_playback_auto_open_textView"
-                    />
-
-                <TextView
                     android:id="@+id/playbackUIStyle_textView"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="wrap_content"
@@ -339,7 +316,7 @@
                     android:text="Playback UI Style"
                     android:textStyle="italic"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/ui_playback_auto_open_checkBox"
+                    app:layout_constraintTop_toBottomOf="@id/uiStyle_spinner"
                     />
 
                 <Spinner
@@ -382,10 +359,11 @@
                 android:clipChildren="true"
                 android:clipToPadding="true"
                 android:descendantFocusability="beforeDescendants"
-                android:fadeScrollbars="true"
+                android:fadeScrollbars="false"
                 android:focusableInTouchMode="true"
                 android:orientation="vertical"
                 android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:scrollbarFadeDuration="0"
                 android:scrollbars="vertical"
                 android:tag="Library"
                 >
@@ -396,15 +374,79 @@
                     >
 
                     <TextView
-                        android:id="@+id/scan_locations_textView"
+                        android:id="@+id/library_scan_auto_textView"
                         style="@style/TextAppearance.AppCompat.Body1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Library locations (scan locations)"
+                        android:text="Scan automatically for updated media"
                         android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/library_scan_auto_checkBox"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_textView"
+                        />
+
+                    <TextView
+                        android:id="@+id/library_scan_auto_interval_textView"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Automatic scan interval (in seconds)"
+                        android:textStyle="italic"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_checkBox"
+                        />
+
+                    <EditText
+                        android:id="@+id/library_scan_auto_interval_editText"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        android:minWidth="40dp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_textView"
+                        />
+
+                    <ImageButton
+                        android:id="@+id/library_scan_auto_interval_imageButton"
+                        style="@style/Widget.AppCompat.ImageButton"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="5dp"
+                        android:background="@null"
+                        android:padding="0dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_check_black"
+                        android:tint="@color/icons"
+                        android:tintMode="src_atop"
+                        app:layout_constraintBottom_toBottomOf="@+id/library_scan_auto_interval_editText"
+                        app:layout_constraintLeft_toRightOf="@id/library_scan_auto_interval_editText"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_textView"
+                        />
+
+                    <TextView
+                        android:id="@+id/scan_locations_textView"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Scan locations"
+                        android:textStyle="italic"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_editText"
                         />
 
                     <android.support.v7.widget.RecyclerView
@@ -414,11 +456,13 @@
                         android:animateLayoutChanges="false"
                         android:animationCache="true"
                         android:clipToPadding="false"
+                        android:maxHeight="80dp"
                         android:nestedScrollingEnabled="false"
                         android:scrollbars="vertical"
                         app:layoutManager="android.support.v7.widget.LinearLayoutManager"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/scan_locations_textView"
+                        tools:layout_height="40dp"
                         />
 
                     <ImageButton
@@ -439,6 +483,29 @@
                         />
 
                     <TextView
+                        android:id="@+id/scan_mediastore_enabled_textView"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Include Android media store in library"
+                        android:textStyle="italic"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_locations_imageButton"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/scan_mediastore_enabled_checkBox"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_textView"
+                        />
+
+                    <TextView
                         android:id="@+id/scan_constraint_min_duration_textView"
                         style="@style/TextAppearance.AppCompat.Body1"
                         android:layout_width="wrap_content"
@@ -447,7 +514,7 @@
                         android:text="Minimum length of media to include (seconds)"
                         android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_locations_imageButton"
+                        app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"
                         />
 
                     <EditText
@@ -480,70 +547,6 @@
                         />
 
                     <TextView
-                        android:id="@+id/scan_mediastore_enabled_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:text="Include Android media store in library"
-                        android:textStyle="italic"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_editView"
-                        />
-
-                    <CheckBox
-                        android:id="@+id/scan_mediastore_enabled_checkBox"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_textView"
-                        />
-
-                    <TextView
-                        android:id="@+id/scan_interval_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:text="Library update interval (in seconds)"
-                        android:textStyle="italic"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"
-                        />
-
-                    <EditText
-                        android:id="@+id/scan_interval_editText"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        android:minWidth="40dp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_interval_textView"
-                        />
-
-                    <ImageButton
-                        android:id="@+id/scan_interval_imageButton"
-                        style="@style/Widget.AppCompat.ImageButton"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginTop="5dp"
-                        android:background="@null"
-                        android:padding="0dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_check_black"
-                        android:tint="@color/icons"
-                        android:tintMode="src_atop"
-                        app:layout_constraintBottom_toBottomOf="@+id/scan_interval_editText"
-                        app:layout_constraintLeft_toRightOf="@id/scan_interval_editText"
-                        app:layout_constraintTop_toBottomOf="@id/scan_interval_textView"
-                        />
-
-                    <TextView
                         android:id="@+id/library_update_fastMode_textView"
                         style="@style/TextAppearance.AppCompat.Body1"
                         android:layout_width="wrap_content"
@@ -552,7 +555,7 @@
                         android:text="Library update fast mode"
                         android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_interval_editText"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_editView"
                         />
 
                     <CheckBox
@@ -574,7 +577,7 @@
                         android:layout_marginStart="5dp"
                         android:layout_marginTop="5dp"
                         android:lines="3"
-                        android:text="Fast mode wil ignore reading tags from file itself, and only use system provided data"
+                        android:text="Fast mode will ignore reading tags from file itself, and only use system provided data"
                         android:textSize="11sp"
                         android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"

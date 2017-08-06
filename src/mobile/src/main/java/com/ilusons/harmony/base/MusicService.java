@@ -83,6 +83,8 @@ public class MusicService extends Service {
     public static final String ACTION_OPEN = TAG + ".open";
     public static final String KEY_URI = "uri";
 
+    public static final String ACTION_PREPARED = TAG + ".prepared";
+
     public static final String ACTION_LIBRARY_UPDATE = TAG + ".library_update";
     public static final String KEY_LIBRARY_UPDATE_FORCE = "force";
     public static final String KEY_LIBRARY_UPDATE_FASTMODE = "fast_mode";
@@ -658,6 +660,10 @@ public class MusicService extends Service {
         return playlist.get(playlistPosition);
     }
 
+    public Music getCurrentPlaylistItemMusic() {
+        return currentMusic;
+    }
+
     public IBasicMediaPlayer getMediaPlayer() {
         return mediaPlayer;
     }
@@ -737,13 +743,17 @@ public class MusicService extends Service {
 
             try {
                 mediaPlayer.reset();
-                if (onPrepare != null)
-                    mediaPlayer.setOnPreparedListener(new IBasicMediaPlayer.OnPreparedListener() {
-                        @Override
-                        public void onPrepared(IBasicMediaPlayer mediaPlayer) {
+                mediaPlayer.setOnPreparedListener(new IBasicMediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(IBasicMediaPlayer mediaPlayer) {
+                        if (onPrepare != null)
                             onPrepare.execute();
-                        }
-                    });
+
+                        LocalBroadcastManager
+                                .getInstance(MusicService.this)
+                                .sendBroadcast(new Intent(ACTION_PREPARED));
+                    }
+                });
                 mediaPlayer.setDataSource(path);
                 mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mediaPlayer.prepare();
@@ -1358,7 +1368,7 @@ public class MusicService extends Service {
                 int i = getPlaylist().indexOf(lp);
                 if (i >= 0) {
                     setPlaylistPosition(i);
-                    // prepare(null);
+                    prepare(null);
                     // update();
                 }
             }

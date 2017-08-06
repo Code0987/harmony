@@ -65,13 +65,15 @@ public class App extends Application {
         Once.initialise(this);
 
         // Start scan
-        Intent musicServiceIntent = new Intent(this, MusicService.class);
-        musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-        if (!Once.beenDone(Once.THIS_APP_INSTALL, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
-            musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
-            Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
+        if (MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this)) {
+            Intent musicServiceIntent = new Intent(this, MusicService.class);
+            musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+            if (!Once.beenDone(Once.THIS_APP_INSTALL, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
+                musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+                Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
+            }
+            startService(musicServiceIntent);
         }
-        startService(musicServiceIntent);
 
         // Ads
         // TODO: Ads later

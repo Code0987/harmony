@@ -36,9 +36,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
     private static final String TAG_SPREF_SCAN_LAST_TS = SPrefEx.TAG_SPREF + ".scan_last_ts";
 
-    public static final String TAG_SPREF_SCAN_INTERVAL = SPrefEx.TAG_SPREF + ".scan_interval";
-    public static final long SCAN_INTERVAL_DEFAULT = 18 * 60 * 60 * 1000;
-
     // For single task per session
     @SuppressLint("StaticFieldLeak")
     private static MusicServiceLibraryUpdaterAsyncTask instance;
@@ -69,7 +66,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
                 // Check if really scan is needed
                 if (!force) {
-                    long interval = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_INTERVAL, SCAN_INTERVAL_DEFAULT);
+                    long interval = getScanAutoInterval(context);
                     long last = SPrefEx.get(context).getLong(TAG_SPREF_SCAN_LAST_TS, 0);
 
                     long dt = ((last + interval) - System.currentTimeMillis());
@@ -461,6 +458,38 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
     public static class Result {
         public ArrayList<Music> Data = new ArrayList<>();
     }
+
+    //region Settings: Scan automatically
+
+    public static final String TAG_SPREF_LIBRARY_SCAN_AUTO_ENABLED = SPrefEx.TAG_SPREF + ".library_scan_auto_enabled";
+    private static final boolean LIBRARY_SCAN_AUTO_ENABLED_DEFAULT = true;
+
+    public static boolean getScanAutoEnabled(Context context) {
+        return SPrefEx.get(context).getBoolean(TAG_SPREF_LIBRARY_SCAN_AUTO_ENABLED, LIBRARY_SCAN_AUTO_ENABLED_DEFAULT);
+    }
+
+    public static void setScanAutoEnabled(Context context, boolean value) {
+        SPrefEx.get(context)
+                .edit()
+                .putBoolean(TAG_SPREF_LIBRARY_SCAN_AUTO_ENABLED, value)
+                .apply();
+    }
+
+    public static final String TAG_SPREF_LIBRARY_SCAN_AUTO_INTERVAL = SPrefEx.TAG_SPREF + ".library_scan_auto_interval";
+    public static final long LIBRARY_SCAN_AUTO_INTERVAL_DEFAULT = 18 * 60 * 60 * 1000;
+
+    public static Long getScanAutoInterval(Context context) {
+        return SPrefEx.get(context).getLong(TAG_SPREF_LIBRARY_SCAN_AUTO_INTERVAL, LIBRARY_SCAN_AUTO_INTERVAL_DEFAULT);
+    }
+
+    public static void setScanAutoInterval(Context context, Long value) {
+        SPrefEx.get(context)
+                .edit()
+                .putLong(TAG_SPREF_LIBRARY_SCAN_AUTO_INTERVAL, value)
+                .apply();
+    }
+
+    //endregion
 
     public static final String TAG_SPREF_LIBRARY_SCAN_LOCATIONS = SPrefEx.TAG_SPREF + ".library_scan_locations";
 

@@ -564,8 +564,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
     @Override
     public void onBackPressed() {
-        if (SettingsActivity.getUIPlaybackAutoOpen(this))
-            MainActivity.openLibraryUIActivity(this);
+        MainActivity.openLibraryUIActivity(this);
 
         super.onBackPressed();
     }
@@ -802,7 +801,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
                     Blurry.with(this)
                             .radius(25)
                             .sampling(1)
-                            .color(Color.argb(160, 0, 0, 0))
+                            .color(Color.argb(72, 0, 0, 0))
                             .animate(450)
                             .async()
                             .from(bitmap)
@@ -820,7 +819,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
                 Blurry.with(this)
                         .radius(25)
                         .sampling(1)
-                        .color(Color.argb(160, 0, 0, 0))
+                        .color(Color.argb(72, 0, 0, 0))
                         .async()
                         .animate(450)
                         .from(bitmap)

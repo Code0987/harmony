@@ -100,6 +100,7 @@
                 android:elevation="9dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/logo"
+                android:transitionName="transition_cover"
                 />
 
             <VideoView
