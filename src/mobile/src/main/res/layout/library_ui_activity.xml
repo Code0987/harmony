@@ -120,15 +120,33 @@
                             app:layout_constraintTop_toTopOf="parent"
                             />
 
+                        <ImageButton
+                            android:id="@+id/feedback"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginStart="8dp"
+                            android:background="?attr/actionBarItemBackground"
+                            android:contentDescription="Feedback"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_feedback_black"
+                            android:tint="@android:color/holo_green_light"
+                            android:tintMode="src_atop"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintRight_toLeftOf="@id/toolbar_menu"
+                            app:layout_constraintTop_toTopOf="parent"
+                            />
+
                         <android.support.v7.widget.SearchView
                             android:id="@+id/search_view"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
+                            android:layout_marginEnd="8dp"
                             android:focusableInTouchMode="true"
                             app:iconifiedByDefault="false"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintLeft_toLeftOf="parent"
-                            app:layout_constraintRight_toLeftOf="@id/toolbar_menu"
+                            app:layout_constraintRight_toLeftOf="@id/feedback"
                             app:layout_constraintTop_toTopOf="parent"
                             app:queryHint="Search"
                             app:searchIcon="@null"

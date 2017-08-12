@@ -329,8 +329,8 @@ public class AudioVFXViewFragment extends Fragment {
                     waveformAVFXView = new WaveformAVFXView(getActivity().getApplicationContext());
 
                     waveformAVFXView.setColor(
-                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a),
-                            new BaseAVFXView.FloatColor(r, g, b, a));
+                            new BaseAVFXView.FloatColor(r, g, b, a),
+                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a));
 
                     root.addView(waveformAVFXView);
                     break;
@@ -338,8 +338,8 @@ public class AudioVFXViewFragment extends Fragment {
                     fftAVFXView = new FFTAVFXView(getActivity().getApplicationContext());
 
                     fftAVFXView.setColor(
-                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a),
-                            new BaseAVFXView.FloatColor(r, g, b, a));
+                            new BaseAVFXView.FloatColor(r, g, b, a),
+                            new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a));
 
                     root.addView(fftAVFXView);
                     break;
@@ -405,8 +405,7 @@ public class AudioVFXViewFragment extends Fragment {
         Waveform("Waveform"),
         FFT("FFT"),
         Waves("Waves"),
-        Bars("Bars"),
-        ;
+        Bars("Bars"),;
 
         public String friendlyName;
 

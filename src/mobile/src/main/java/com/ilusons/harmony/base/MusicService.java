@@ -1127,7 +1127,7 @@ public class MusicService extends Service {
                 .setDeleteIntent(createActionIntent(this, ACTION_STOP))
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(false)
+                .setAutoCancel(true)
                 /*.addAction(android.R.drawable.ic_menu_close_clear_cancel,
                         "Stop",
                         createActionIntent(this, ACTION_STOP))
@@ -1181,7 +1181,6 @@ public class MusicService extends Service {
                     ? android.R.drawable.ic_media_pause
                     : android.R.drawable.ic_media_play);
 
-
             builder.setContentTitle(currentMusic.Title)
                     .setContentText(currentMusic.Album)
                     .setSubText(currentMusic.Artist)
@@ -1192,10 +1191,7 @@ public class MusicService extends Service {
 
             Notification currentNotification = builder.build();
 
-            currentNotification.defaults |= Notification.DEFAULT_SOUND;
-            currentNotification.defaults |= Notification.DEFAULT_VIBRATE;
-            currentNotification.defaults |= Notification.DEFAULT_LIGHTS;
-            currentNotification.flags |= Notification.FLAG_AUTO_CANCEL;
+            currentNotification.flags |= Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
 
             if (isPlaying()) {
                 startForeground(NOTIFICATION_ID, currentNotification);

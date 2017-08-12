@@ -64,7 +64,6 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.ilusons.harmony.BuildConfig;
-import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
@@ -78,10 +77,12 @@ import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -182,6 +183,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     private AsyncTask<Void, Void, Collection<Music>> refreshTask = null;
 
     private PlaybackUIMiniFragment playbackUIMiniFragment;
+    private View playbackUIMiniFragmentLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -237,7 +239,7 @@ public class LibraryUIActivity extends BaseUIActivity {
         drawer_layout.closeDrawer(GravityCompat.START);
         drawer_layout.closeDrawer(GravityCompat.END);
 
-        ImageButton toolbar_menu = (ImageButton)findViewById(R.id.toolbar_menu);
+        ImageButton toolbar_menu = (ImageButton) findViewById(R.id.toolbar_menu);
         toolbar_menu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -287,7 +289,9 @@ public class LibraryUIActivity extends BaseUIActivity {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent();
-                i.setType("audio/*");
+                String[] mimes = new String[]{"audio/*", "video/*"};
+                i.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
+                i.setType(StringUtils.join(mimes, '|'));
                 i.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(i, REQUEST_FILE_PICK);
 
@@ -371,20 +375,6 @@ public class LibraryUIActivity extends BaseUIActivity {
                     Log.w(TAG, e);
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/playlist?list=PLR6v5-VD7fUJtQepsBTq7Wf44e_z1eM8b")));
                 }
-            }
-        });
-
-        findViewById(R.id.feedback).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_SENDTO);
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_SUBJECT, "[#harmony #feedback #android]");
-                intent.putExtra(Intent.EXTRA_TEXT, "");
-                intent.setData(Uri.parse("mailto:"));
-                intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"support@ilusons.com", "harmony@ilusons.com", "7b56b759@opayq.com"});
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
             }
         });
 
@@ -530,6 +520,33 @@ public class LibraryUIActivity extends BaseUIActivity {
                 .beginTransaction()
                 .replace(R.id.playbackUIMiniFragment, playbackUIMiniFragment)
                 .commit();
+        playbackUIMiniFragmentLayout = findViewById(R.id.playbackUIMiniFragment);
+        playbackUIMiniFragmentLayout.animate()
+                .alpha(0)
+                .translationY(playbackUIMiniFragmentLayout.getHeight())
+                .setDuration(330)
+                .start();
+        playbackUIMiniFragment.setJumpOnClickListener(new WeakReference<View.OnClickListener>(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                adapter.jumpToCurrentlyPlayingItem();
+            }
+        }));
+
+        // Feedback
+        findViewById(R.id.feedback).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_SENDTO);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_SUBJECT, "[#harmony #feedback #android #" + BuildConfig.VERSION_NAME + "]");
+                intent.putExtra(Intent.EXTRA_TEXT, "");
+                intent.setData(Uri.parse("mailto:"));
+                intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"harmony@ilusons.com", "7b56b759@opayq.com"});
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        });
 
     }
 
@@ -647,12 +664,17 @@ public class LibraryUIActivity extends BaseUIActivity {
 
     @Override
     public void OnMusicServicePrepared() {
-        try {
-            if (playbackUIMiniFragment != null)
+        if (playbackUIMiniFragment != null)
+            try {
                 playbackUIMiniFragment.reset(getMusicService());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                playbackUIMiniFragmentLayout.animate()
+                        .alpha(1)
+                        .translationY(0)
+                        .setDuration(330)
+                        .start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     @Override
@@ -670,13 +692,6 @@ public class LibraryUIActivity extends BaseUIActivity {
         swipeRefreshLayout.setRefreshing(false);
 
         info("Library updated!");
-
-        try {
-            if (playbackUIMiniFragment != null)
-                playbackUIMiniFragment.reset(getMusicService());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void showGuide() {
@@ -1256,14 +1271,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
                         startService(i);
 
-                        AnimatorSet as = new AnimatorSet();
-                        as.playSequentially(
-                                ObjectAnimator.ofArgb(root, "backgroundColor", ContextCompat.getColor(getApplicationContext(), R.color.transparent), ContextCompat.getColor(getApplicationContext(), R.color.accent), ContextCompat.getColor(getApplicationContext(), R.color.transparent))
-                        );
-                        as.setDuration(450);
-                        as.setInterpolator(new LinearInterpolator());
-                        as.setTarget(root);
-                        as.start();
+                        highlightView(root);
                     }
                 });
 
@@ -1279,7 +1287,8 @@ public class LibraryUIActivity extends BaseUIActivity {
                                 "Remove",
                                 "Clear",
                                 "Move down",
-                                "Move up"
+                                "Move up",
+                                "Jump to playing"
                         }, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int itemIndex) {
@@ -1319,6 +1328,9 @@ public class LibraryUIActivity extends BaseUIActivity {
                                                 ArrayEx.move(j, j - 1, data);
                                                 refresh(String.valueOf(search_view.getQuery()));
                                             }
+                                            break;
+                                        case 7:
+                                            jumpToCurrentlyPlayingItem();
                                             break;
                                     }
                                 } catch (Exception e) {
@@ -1433,6 +1445,56 @@ public class LibraryUIActivity extends BaseUIActivity {
                     }
                 }
             }).start();
+        }
+
+        public void highlightView(View root) {
+            try {
+                root.clearAnimation();
+
+                AnimatorSet as = new AnimatorSet();
+                as.playSequentially(
+                        ObjectAnimator.ofArgb(root, "backgroundColor", ContextCompat.getColor(getApplicationContext(), R.color.transparent), ContextCompat.getColor(getApplicationContext(), R.color.accent), ContextCompat.getColor(getApplicationContext(), R.color.transparent))
+                );
+                as.setDuration(733);
+                as.setInterpolator(new LinearInterpolator());
+                as.setTarget(root);
+
+                as.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void bringInToView(int position) {
+            try {
+                recyclerView.smoothScrollToPosition(position);
+
+                View v = recyclerView.getLayoutManager().getChildAt(position);
+
+                highlightView(v);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void jumpToCurrentlyPlayingItem() {
+            int pg = -1;
+            int pc = -1;
+            String current = getMusicService().getCurrentPlaylistItem();
+            for (int gi = 0; gi < dataFiltered.size(); gi++) {
+                Pair<String, List<Object>> group = dataFiltered.get(gi);
+                for (int ci = 0; ci < group.second.size(); ci++) {
+                    Music child = (Music) group.second.get(ci);
+                    if (child != null && child.Path.equals(current)) {
+                        pg = gi;
+                        pc = ci;
+                        break;
+                    }
+                }
+            }
+            long ppc = RecyclerViewExpandableItemManager.getPackedPositionForChild(pg, pc);
+            int k = recyclerViewExpandableItemManager.getFlatPosition(ppc);
+            bringInToView(k);
         }
 
     }
@@ -2151,7 +2213,7 @@ public class LibraryUIActivity extends BaseUIActivity {
     public static final String TAG_SPREF_LIBRARY_UI_VIEW_MODE = SPrefEx.TAG_SPREF + ".library_ui_view_mode";
 
     public static UIViewMode getUIViewMode(Context context) {
-        return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Default)));
+        return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Two)));
     }
 
     public static void setUIViewMode(Context context, UIViewMode value) {
