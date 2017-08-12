@@ -20,6 +20,8 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.CacheEx;
 
+import java.lang.ref.WeakReference;
+
 import jp.wasabeef.blurry.Blurry;
 
 public class PlaybackUIMiniFragment extends Fragment {
@@ -39,6 +41,9 @@ public class PlaybackUIMiniFragment extends Fragment {
     private TextView info;
 
     private ImageView play_pause_stop;
+    private ImageView jump;
+
+    private WeakReference<View.OnClickListener> jumpOnClickListenerReference;
 
     private ProgressBar progressBar;
 
@@ -83,9 +88,13 @@ public class PlaybackUIMiniFragment extends Fragment {
             }
         });
 
+        jump = (ImageView) v.findViewById(R.id.jump);
+        if (jumpOnClickListenerReference != null && jumpOnClickListenerReference.get() != null)
+            jump.setOnClickListener(jumpOnClickListenerReference.get());
+
         progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
 
-        cover.setOnClickListener(new View.OnClickListener() {
+        final View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getActivity(), PlaybackUIActivity.class);
@@ -95,6 +104,17 @@ public class PlaybackUIMiniFragment extends Fragment {
                                 cover,
                                 ViewCompat.getTransitionName(cover));
                 startActivity(intent, options.toBundle());
+            }
+        };
+
+        cover.setOnClickListener(onClickListener);
+        title.setOnClickListener(onClickListener);
+        info.setOnClickListener(onClickListener);
+        jump.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                onClickListener.onClick(view);
+                return true;
             }
         });
 
@@ -166,9 +186,8 @@ public class PlaybackUIMiniFragment extends Fragment {
         if (!isAdded())
             return;
 
-        play_pause_stop.setImageResource(R.drawable.ic_play_black);
+        play_pause_stop.setImageResource(R.drawable.ic_stop_black);
     }
-
 
     private Runnable progressHandlerRunnable;
 
@@ -190,6 +209,15 @@ public class PlaybackUIMiniFragment extends Fragment {
             }
         };
         handler.postDelayed(progressHandlerRunnable, dt);
+    }
+
+    public void setJumpOnClickListener(WeakReference<View.OnClickListener> onClickListenerReference) {
+        if (jump == null)
+            jumpOnClickListenerReference = onClickListenerReference;
+        else {
+            jump.setOnClickListener(onClickListenerReference.get());
+            jumpOnClickListenerReference = null;
+        }
     }
 
     public static PlaybackUIMiniFragment create() {

@@ -828,12 +828,12 @@ public class SettingsActivity extends BaseActivity {
 
     public static UIStyle getUIStyle(Context context) {
         try {
-            UIStyle[] uiStyles = UIStyle.values();
+            UIStyle[] uiStyles = new UIStyle[] { UIStyle.Default, UIStyle.LUI11, UIStyle.LUI12 };
             UIStyle uiStyle = uiStyles[(int) (Math.random() * uiStyles.length)];
 
             return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(uiStyle)));
         } catch (Exception e) {
-            return UIStyle.Default;
+            return UIStyle.LUI12;
         }
     }
 
@@ -925,12 +925,14 @@ public class SettingsActivity extends BaseActivity {
         }
     }
 
-
     public static final String TAG_SPREF_PlaybackUIStyle = SPrefEx.TAG_SPREF + ".playback_ui_style";
 
     public static PlaybackUIStyle getPlaybackUIStyle(Context context) {
         try {
-            return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PlaybackUIStyle, String.valueOf(PlaybackUIStyle.Default)));
+            UIStyle[] playbackUIStyles = UIStyle.values();
+            UIStyle playbackUIStyle = playbackUIStyles[(int) (Math.random() * playbackUIStyles.length)];
+
+            return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PlaybackUIStyle, String.valueOf(playbackUIStyle)));
         } catch (Exception e) {
             return PlaybackUIStyle.Default;
         }
