@@ -124,7 +124,7 @@
                             android:id="@+id/feedback"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:layout_marginEnd="8dp"
+                            android:layout_marginEnd="16dp"
                             android:layout_marginStart="8dp"
                             android:background="?attr/actionBarItemBackground"
                             android:contentDescription="Feedback"

@@ -83,9 +83,6 @@ public class SettingsActivity extends BaseActivity {
 
     private static final int REQUEST_SCAN_LOCATIONS_PICK = 11;
 
-    // Threading
-    final WeakReference<SettingsActivity> contextRef = new WeakReference<>(this);
-
     // IAB
     private static final int REQUEST_SKU_PREMIUM = 1401;
 
@@ -274,32 +271,6 @@ public class SettingsActivity extends BaseActivity {
                 dialog.show();
             }
         });
-        ArgbEvaluator evaluator = new ArgbEvaluator();
-        final ValueAnimator animator = new ValueAnimator();
-        animator.setIntValues(
-                Color.parseColor("#3cba54"),
-                Color.parseColor("#4885ed"),
-                Color.parseColor("#f4c20d"),
-                Color.parseColor("#db3236")
-        );
-        animator.setEvaluator(evaluator);
-        animator.setDuration(650 * 6);
-        animator.setRepeatCount(ValueAnimator.INFINITE);
-        animator.setRepeatMode(ValueAnimator.REVERSE);
-        premium = (ImageButton) findViewById(R.id.premium);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                if (contextRef.get() == null)
-                    return;
-                SettingsActivity context = contextRef.get();
-
-                int c = (int) animation.getAnimatedValue();
-
-                context.premium.getDrawable().setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
-            }
-        });
-        animator.start();
 
         // Set views and tabs
         final ViewEx.StaticViewPager viewPager = (ViewEx.StaticViewPager) findViewById(R.id.viewPager);
