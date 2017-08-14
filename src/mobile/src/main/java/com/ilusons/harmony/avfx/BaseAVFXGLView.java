@@ -13,19 +13,19 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public abstract class BaseAVFXView extends GLSurfaceView {
+public abstract class BaseAVFXGLView extends GLSurfaceView {
 
     @SuppressWarnings("unused")
-    private static final String TAG = BaseAVFXView.class.getSimpleName();
+    private static final String TAG = BaseAVFXGLView.class.getSimpleName();
 
-    private DoubleBufferingManager doubleBufferingManager;
+    private AudioDataBuffer.DoubleBufferingManager doubleBufferingManager;
 
-    public BaseAVFXView(Context context) {
+    public BaseAVFXGLView(Context context) {
         super(context);
         setup();
     }
 
-    public BaseAVFXView(Context context, AttributeSet attrs) {
+    public BaseAVFXGLView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setup();
     }
@@ -39,11 +39,11 @@ public abstract class BaseAVFXView extends GLSurfaceView {
 
         setZOrderOnTop(true);
 
-        doubleBufferingManager = new DoubleBufferingManager();
+        doubleBufferingManager = new AudioDataBuffer.DoubleBufferingManager();
     }
 
     public void onDrawFrame(GL10 gl, int width, int height) {
-        Buffer buffer = doubleBufferingManager.getAndSwapBuffer();
+        AudioDataBuffer.Buffer buffer = doubleBufferingManager.getAndSwapBuffer();
 
         if (buffer != null && buffer.valid()) {
             // clear background
@@ -54,7 +54,7 @@ public abstract class BaseAVFXView extends GLSurfaceView {
         }
     }
 
-    protected void onRenderAudioData(GL10 gl, int width, int height, Buffer data) {
+    protected void onRenderAudioData(GL10 gl, int width, int height, AudioDataBuffer.Buffer data) {
 
     }
 
@@ -82,90 +82,13 @@ public abstract class BaseAVFXView extends GLSurfaceView {
         buffer.flip();
     }
 
-    protected static final class Buffer {
-
-        public byte[] bData;
-        public float[] fData;
-        public int channels;
-        public int sr;
-
-        public void update(byte[] data, int numChannels, int samplingRate) {
-            if (bData != null && bData.length == data.length) {
-                System.arraycopy(data, 0, bData, 0, data.length);
-            } else {
-                bData = data.clone();
-            }
-            fData = null;
-            channels = numChannels;
-            sr = samplingRate;
-        }
-
-        public void update(float[] data, int numChannels, int samplingRate) {
-            if (fData != null && fData.length == data.length) {
-                System.arraycopy(data, 0, fData, 0, data.length);
-            } else {
-                fData = data.clone();
-            }
-            bData = null;
-            channels = numChannels;
-            sr = samplingRate;
-        }
-
-        public boolean valid() {
-            return (bData != null || fData != null) && channels != 0 && sr != 0;
-        }
-    }
-
-    protected static final class DoubleBufferingManager {
-
-        private Buffer[] buffers;
-        private int index;
-        private boolean updated;
-
-        public DoubleBufferingManager() {
-            reset();
-        }
-
-        public synchronized void reset() {
-            if (buffers == null)
-                buffers = new Buffer[2];
-            buffers[0] = new Buffer();
-            buffers[1] = new Buffer();
-            index = 0;
-            updated = false;
-        }
-
-        public synchronized void update(byte[] data, int numChannels, int samplingRate) {
-            buffers[index ^ 1].update(data, numChannels, samplingRate);
-            updated = true;
-
-            notify();
-        }
-
-        public synchronized void update(float[] data, int numChannels, int samplingRate) {
-            buffers[index ^ 1].update(data, numChannels, samplingRate);
-            updated = true;
-
-            notify();
-        }
-
-        public synchronized Buffer getAndSwapBuffer() {
-            if (updated) {
-                index ^= 1;
-                updated = false;
-            }
-
-            return buffers[index];
-        }
-    }
-
     private static final class VisualizerRenderer implements Renderer {
-        private WeakReference<BaseAVFXView> holderViewReference;
+        private WeakReference<BaseAVFXGLView> holderViewReference;
 
         int w;
         int h;
 
-        public VisualizerRenderer(BaseAVFXView holderView) {
+        public VisualizerRenderer(BaseAVFXGLView holderView) {
             holderViewReference = new WeakReference<>(holderView);
         }
 
@@ -194,7 +117,7 @@ public abstract class BaseAVFXView extends GLSurfaceView {
 
         @Override
         public void onDrawFrame(GL10 gl) {
-            BaseAVFXView holderView = holderViewReference.get();
+            BaseAVFXGLView holderView = holderViewReference.get();
 
             if (holderView != null) {
                 holderView.onDrawFrame(gl, w, h);

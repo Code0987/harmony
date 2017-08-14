@@ -7,7 +7,7 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class WaveformAVFXView extends BaseAVFXView {
+public class WaveformView extends BaseAVFXGLView {
 
     float[] buffer;
     FloatBuffer nativeBuffer;
@@ -17,11 +17,11 @@ public class WaveformAVFXView extends BaseAVFXView {
 
     int lastCanvasWidth;
 
-    public WaveformAVFXView(Context context) {
+    public WaveformView(Context context) {
         super(context);
     }
 
-    public WaveformAVFXView(Context context, AttributeSet attrs) {
+    public WaveformView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -39,7 +39,7 @@ public class WaveformAVFXView extends BaseAVFXView {
     }
 
     @Override
-    protected void onRenderAudioData(GL10 gl, int width, int height, Buffer data) {
+    protected void onRenderAudioData(GL10 gl, int width, int height, AudioDataBuffer.Buffer data) {
         if (data.fData != null) {
             // NOTE:
             // Increase the SKIP value if the visualization is too heavy

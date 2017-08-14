@@ -1,6 +1,5 @@
 package com.ilusons.harmony.views;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
@@ -19,10 +18,11 @@ import com.cleveroad.audiovisualization.GLAudioVisualizationView;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.avfx.BarsAVFXView;
-import com.ilusons.harmony.avfx.BaseAVFXView;
-import com.ilusons.harmony.avfx.FFTAVFXView;
-import com.ilusons.harmony.avfx.WaveformAVFXView;
+import com.ilusons.harmony.avfx.BarsView;
+import com.ilusons.harmony.avfx.BaseAVFXCanvasView;
+import com.ilusons.harmony.avfx.BaseAVFXGLView;
+import com.ilusons.harmony.avfx.FFTView;
+import com.ilusons.harmony.avfx.WaveformView;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -39,10 +39,11 @@ public class AudioVFXViewFragment extends Fragment {
 	private IHQVisualizer visualizerHQ;
 	private IVisualizer visualizer;
 
-	private WaveformAVFXView waveformAVFXView;
-	private FFTAVFXView fftAVFXView;
+	private WaveformView waveformAVFXView;
+	private FFTView fftAVFXView;
 	private GLAudioVisualizationView wavesView;
 	private WaveDbmHandler waveDbmHandler;
+	private BaseAVFXCanvasView avfxCanvasView;
 
 	private FrameLayout root;
 
@@ -96,6 +97,7 @@ public class AudioVFXViewFragment extends Fragment {
 			wavesView.release();
 		wavesView = null;
 		waveDbmHandler = null;
+		avfxCanvasView = null;
 	}
 
 	@Override
@@ -121,6 +123,9 @@ public class AudioVFXViewFragment extends Fragment {
 		if (wavesView != null) {
 			wavesView.onResume();
 		}
+		if (avfxCanvasView != null) {
+			avfxCanvasView.onResume();
+		}
 
 		startVisualizer();
 	}
@@ -138,6 +143,9 @@ public class AudioVFXViewFragment extends Fragment {
 		if (wavesView != null) {
 			wavesView.onPause();
 		}
+		if (avfxCanvasView != null) {
+			avfxCanvasView.onPause();
+		}
 
 		cleanupVisualizer();
 	}
@@ -146,19 +154,19 @@ public class AudioVFXViewFragment extends Fragment {
 
 		@Override
 		public void onWaveFormDataCapture(IHQVisualizer visualizerHQ, float[] waveform, int numChannels, int samplingRate) {
-			WaveformAVFXView view = waveformAVFXView;
+			if (waveformAVFXView != null) {
+				waveformAVFXView.updateAudioData(waveform, numChannels, samplingRate);
+			}
 
-			if (view != null) {
-				view.updateAudioData(waveform, numChannels, samplingRate);
+			if (avfxCanvasView != null) {
+				avfxCanvasView.updateAudioData(waveform, numChannels, samplingRate);
 			}
 		}
 
 		@Override
 		public void onFftDataCapture(IHQVisualizer visualizerHQ, float[] fft, int numChannels, int samplingRate) {
-			FFTAVFXView view = fftAVFXView;
-
-			if (view != null) {
-				view.updateAudioData(fft, numChannels, samplingRate);
+			if (fftAVFXView != null) {
+				fftAVFXView.updateAudioData(fft, numChannels, samplingRate);
 			}
 
 			if (waveDbmHandler != null) {
@@ -170,6 +178,10 @@ public class AudioVFXViewFragment extends Fragment {
 				}
 				waveDbmHandler.onDataReceived(b);
 			}
+
+			if (avfxCanvasView != null) {
+				avfxCanvasView.updateAudioData(fft, numChannels, samplingRate);
+			}
 		}
 
 	};
@@ -178,23 +190,27 @@ public class AudioVFXViewFragment extends Fragment {
 
 		@Override
 		public void onWaveFormDataCapture(IVisualizer visualizerHQ, byte[] waveform, int samplingRate) {
-			WaveformAVFXView view = waveformAVFXView;
+			if (waveformAVFXView != null) {
+				waveformAVFXView.updateAudioData(waveform, samplingRate);
+			}
 
-			if (view != null) {
-				view.updateAudioData(waveform, samplingRate);
+			if (avfxCanvasView != null) {
+				avfxCanvasView.updateAudioData(waveform, samplingRate);
 			}
 		}
 
 		@Override
 		public void onFftDataCapture(IVisualizer visualizerHQ, byte[] fft, int samplingRate) {
-			FFTAVFXView view = fftAVFXView;
-
-			if (view != null) {
-				view.updateAudioData(fft, samplingRate);
+			if (fftAVFXView != null) {
+				fftAVFXView.updateAudioData(fft, samplingRate);
 			}
 
 			if (waveDbmHandler != null) {
 				waveDbmHandler.onDataReceived(fft);
+			}
+
+			if (avfxCanvasView != null) {
+				avfxCanvasView.updateAudioData(fft, samplingRate);
 			}
 		}
 	};
@@ -319,6 +335,9 @@ public class AudioVFXViewFragment extends Fragment {
 				wavesView = null;
 				waveDbmHandler = null;
 			}
+			if (avfxCanvasView != null) {
+				avfxCanvasView = null;
+			}
 
 			float r = Color.red(color) / 255.0f;
 			float g = Color.green(color) / 255.0f;
@@ -329,32 +348,35 @@ public class AudioVFXViewFragment extends Fragment {
 
 			switch (avfxType) {
 				case Waveform:
-					waveformAVFXView = new WaveformAVFXView(getActivity().getApplicationContext());
+					waveformAVFXView = new WaveformView(getActivity().getApplicationContext());
 
 					waveformAVFXView.setColor(
-							new BaseAVFXView.FloatColor(r, g, b, a),
-							new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a));
+							new BaseAVFXGLView.FloatColor(r, g, b, a),
+							new BaseAVFXGLView.FloatColor(r + g - b, g + b - r, b + r - g, a));
 
 					root.addView(waveformAVFXView);
 					break;
+
 				case FFT:
-					fftAVFXView = new FFTAVFXView(getActivity().getApplicationContext());
+					fftAVFXView = new FFTView(getActivity().getApplicationContext());
 
 					fftAVFXView.setColor(
-							new BaseAVFXView.FloatColor(r, g, b, a),
-							new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a));
+							new BaseAVFXGLView.FloatColor(r, g, b, a),
+							new BaseAVFXGLView.FloatColor(r + g - b, g + b - r, b + r - g, a));
 
 					root.addView(fftAVFXView);
 					break;
+
 				case Bars:
-					fftAVFXView = new BarsAVFXView(getActivity().getApplicationContext());
+					BarsView bars = new BarsView(getActivity().getApplicationContext());
 
-					fftAVFXView.setColor(
-							new BaseAVFXView.FloatColor(r + g - b, g + b - r, b + r - g, a),
-							new BaseAVFXView.FloatColor(r, g, b, a));
+					bars.setColor(color);
 
-					root.addView(fftAVFXView);
+					root.addView(bars);
+
+					avfxCanvasView = bars;
 					break;
+
 				case Waves:
 				default:
 					int layers = 5;
@@ -428,6 +450,30 @@ public class AudioVFXViewFragment extends Fragment {
 				.edit()
 				.putString(TAG_SPREF_AVFXTYPE, String.valueOf(value))
 				.apply();
+	}
+
+	public static AVFXType getNextAVFXType(Context context) {
+		try {
+			AVFXType avfxTypeCurrent = getAVFXType(context);
+
+			int i = -1;
+			AVFXType[] avfxTypes = AVFXType.values();
+			for (; i < avfxTypes.length; i++)
+				if (avfxTypes[i] == avfxTypeCurrent) {
+					i++;
+					break;
+				}
+
+			AVFXType avfxTypeNext = avfxTypeCurrent;
+			if (i != -1)
+				avfxTypeNext = avfxTypes[i % avfxTypes.length];
+
+			return avfxTypeNext;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return getAVFXType(context);
 	}
 
 	public static final String TAG_SPREF_AVFXTYPE_ENABLED = SPrefEx.TAG_SPREF + ".avfx_enabled";
