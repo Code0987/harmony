@@ -54,1035 +54,1030 @@ import jp.wasabeef.blurry.Blurry;
 
 public class PlaybackUIActivity extends BaseUIActivity {
 
-    // Logger TAG
-    private static final String TAG = PlaybackUIActivity.class.getSimpleName();
+	// Logger TAG
+	private static final String TAG = PlaybackUIActivity.class.getSimpleName();
 
-    // UI
-    private View root;
+	// UI
+	private View root;
 
-    private ImageView bg1;
+	private ImageView bg1;
 
-    private InterstitialAd iad;
+	private InterstitialAd iad;
 
-    private ImageButton play_pause_stop;
-    private ImageButton prev;
-    private ImageButton next;
-    private ImageButton shuffle;
-    private ImageButton repeat;
-    private ImageButton avfx;
-    private ImageButton tune;
+	private ImageButton play_pause_stop;
+	private ImageButton prev;
+	private ImageButton next;
+	private ImageButton shuffle;
+	private ImageButton repeat;
+	private ImageButton avfx;
+	private ImageButton tune;
 
-    private LyricsViewFragment lyricsViewFragment;
-    private AudioVFXViewFragment audioVFXViewFragment;
+	private LyricsViewFragment lyricsViewFragment;
+	private AudioVFXViewFragment audioVFXViewFragment;
 
-    private AVLoadingIndicatorView loadingView;
+	private AVLoadingIndicatorView loadingView;
 
-    private ImageView cover;
-    private VideoView video;
+	private ImageView cover;
+	private VideoView video;
 
-    private int color;
-    private int colorLight;
+	private int color;
+	private int colorLight;
 
-    private SeekBar seekBar;
-    private TextView position_start, position_end;
+	private SeekBar seekBar;
+	private TextView position_start, position_end;
 
-    private View controls_layout;
-    private View lyrics_layout;
+	private View controls_layout;
+	private View lyrics_layout;
 
-    private TextView info;
+	private TextView info;
 
-    private Runnable videoSyncTask = new Runnable() {
-        @Override
-        public void run() {
+	private Runnable videoSyncTask = new Runnable() {
+		@Override
+		public void run() {
 
-            if (video.getVisibility() == View.VISIBLE)
-                video.seekTo(getMusicService().getPosition());
+			if (video.getVisibility() == View.VISIBLE)
+				video.seekTo(getMusicService().getPosition());
 
-            handler.removeCallbacks(videoSyncTask);
-            handler.postDelayed(videoSyncTask, 9 * 1000);
-        }
-    };
+			handler.removeCallbacks(videoSyncTask);
+			handler.postDelayed(videoSyncTask, 9 * 1000);
+		}
+	};
 
-    private Runnable updateSystemUITask = new Runnable() {
-        @Override
-        public void run() {
+	private Runnable updateSystemUITask = new Runnable() {
+		@Override
+		public void run() {
 
-            View v = getWindow().getDecorView();
+			View v = getWindow().getDecorView();
 
-            if ((v.getVisibility() & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-                v.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-
-        }
-    };
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        outState.putInt("color", color);
-        outState.putInt("colorLight", colorLight);
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        // State
-        if (savedInstanceState != null)
-            try {
-
-                color = savedInstanceState.getInt("color");
-                colorLight = savedInstanceState.getInt("colorLight");
-
-            } catch (Exception e) {
-                Log.w(TAG, e);
-            }
-
-        // Set view
-        int layoutId = -1;
-        switch (SettingsActivity.getPlaybackUIStyle(this)) {
-            case PUI2:
-                layoutId = R.layout.playback_ui_pui2_activity;
-                break;
-
-            case PUI3:
-                layoutId = R.layout.playback_ui_pui3_activity;
-                break;
-
-            case Default:
-            default:
-                layoutId = R.layout.playback_ui_default_activity;
-                break;
-        }
-        setContentView(layoutId);
-
-        Music.setCurrentCoverView(this);
-
-        final View decorView = getWindow().getDecorView();
-        decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-            @Override
-            public void onSystemUiVisibilityChange(int visibility) {
-                handler.postDelayed(updateSystemUITask, 500);
-            }
-        });
-
-        // Set views
-        root = findViewById(R.id.root);
-
-        bg1 = (ImageView) findViewById(R.id.bg1);
-
-        loadingView = (AVLoadingIndicatorView) findViewById(R.id.loadingView);
-
-        findViewById(R.id.av_layout).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggleUI();
-            }
-        });
-
-        controls_layout = findViewById(R.id.controls_layout);
-        lyrics_layout = findViewById(R.id.lyrics_layout);
-
-        cover = (ImageView) findViewById(R.id.cover);
-        video = (VideoView) findViewById(R.id.video);
-
-        // Video, if loaded is on mute
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            video.setZOrderOnTop(false);
-        } else {
-            video.setZOrderOnTop(true);
-        }
-        video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                mediaPlayer.setVolume(0, 0);
-
-                if (getMusicService() != null)
-                    getMusicService().play();
-
-                handler.postDelayed(videoSyncTask, 1000);
-
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        toggleUI(true);
-                    }
-                }, 3500);
-            }
-        });
-        video.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                video.setVisibility(View.INVISIBLE);
-
-                handler.removeCallbacks(videoSyncTask);
-
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        toggleUI(false);
-                    }
-                });
-            }
-        });
-        video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-                video.setVisibility(View.INVISIBLE);
-
-                handler.removeCallbacks(videoSyncTask);
-
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        toggleUI(false);
-                    }
-                });
-
-                return false;
-            }
-        });
-
-        color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
-        colorLight = ContextCompat.getColor(getApplicationContext(), R.color.accent);
-
-        seekBar = (SeekBar) findViewById(R.id.seekBar);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (!b) return;
-
-                if (getMusicService() != null) {
-                    getMusicService().seek(i);
-
-                    if (video.getVisibility() == View.VISIBLE)
-                        video.seekTo(getMusicService().getPosition());
-                }
-
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-        position_start = (TextView) findViewById(R.id.position_start);
-        position_end = (TextView) findViewById(R.id.position_end);
-
-        play_pause_stop = (ImageButton) findViewById(R.id.play_pause_stop);
-        prev = (ImageButton) findViewById(R.id.prev);
-        next = (ImageButton) findViewById(R.id.next);
-        shuffle = (ImageButton) findViewById(R.id.shuffle);
-        repeat = (ImageButton) findViewById(R.id.repeat);
-        avfx = (ImageButton) findViewById(R.id.avfx);
-        tune = (ImageButton) findViewById(R.id.tune);
-
-        play_pause_stop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getMusicService() != null && getMusicService().isPlaying()) {
-                    getMusicService().pause();
-                } else {
-                    getMusicService().play();
-                }
-            }
-        });
-        play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (getMusicService() != null) {
-                    getMusicService().stop();
-
-                    info("Stopped!");
-                }
-
-                return true;
-            }
-        });
-
-        prev.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getMusicService() != null) {
-                    getMusicService().prev();
-                }
-            }
-        });
-        prev.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (getMusicService() != null) {
-                    getMusicService().random();
-                }
-
-                return true;
-            }
-        });
-
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getMusicService() != null) {
-                    getMusicService().next();
-                }
-            }
-        });
-        next.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (getMusicService() != null) {
-                    getMusicService().random();
-                }
-
-                return true;
-            }
-        });
-
-        if (MusicService.getPlayerShuffleMusicEnabled(PlaybackUIActivity.this))
-            shuffle.setAlpha(0.9f);
-        else
-            shuffle.setAlpha(0.3f);
-        shuffle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getMusicService() != null) {
-                    boolean value = MusicService.getPlayerShuffleMusicEnabled(PlaybackUIActivity.this);
-
-                    value = !value;
-
-                    MusicService.setPlayerShuffleMusicEnabled(PlaybackUIActivity.this, value);
-
-                    if (value)
-                        info("Shuffle turned ON");
-                    else
-                        info("Shuffle turned OFF");
-
-
-                    if (value)
-                        shuffle.setAlpha(0.9f);
-                    else
-                        shuffle.setAlpha(0.3f);
-                }
-            }
-        });
-        shuffle.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (getMusicService() != null) {
-                    getMusicService().random();
-                }
-
-                return true;
-            }
-        });
-
-        if (MusicService.getPlayerRepeatMusicEnabled(PlaybackUIActivity.this))
-            repeat.setAlpha(0.9f);
-        else
-            repeat.setAlpha(0.3f);
-        repeat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getMusicService() != null) {
-                    boolean value = MusicService.getPlayerRepeatMusicEnabled(PlaybackUIActivity.this);
-
-                    value = !value;
-
-                    MusicService.setPlayerRepeatMusicEnabled(PlaybackUIActivity.this, value);
-
-                    if (value)
-                        info("Repeat turned ON");
-                    else
-                        info("Repeat turned OFF");
-
-                    if (value)
-                        repeat.setAlpha(0.9f);
-                    else
-                        repeat.setAlpha(0.3f);
-                }
-            }
-        });
-
-        final View avfx_layout = findViewById(R.id.avfx_layout);
-        avfx.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (audioVFXViewFragment != null) {
-                    getFragmentManager()
-                            .beginTransaction()
-                            .remove(audioVFXViewFragment)
-                            .commit();
-
-                    audioVFXViewFragment = null;
-
-                    avfx_layout.setVisibility(View.INVISIBLE);
-
-                    AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, false);
-
-                } else if (!isFinishing() && audioVFXViewFragment == null) {
-                    avfx_layout.setVisibility(View.VISIBLE);
-
-                    audioVFXViewFragment = AudioVFXViewFragment.create();
-                    getFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.avfx_layout, audioVFXViewFragment)
-                            .commit();
-
-                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-
-                    AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
-
-                }
-            }
-        });
-        avfx.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-                    if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waveform) {
-                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.FFT);
-                    } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.FFT) {
-                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waves);
-                    } else if (AudioVFXViewFragment.getAVFXType(getApplicationContext()) == AudioVFXViewFragment.AVFXType.Waves) {
-                        AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.AVFXType.Waveform);
-                    }
-
-                    audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-
-                    info("Now using " + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + " fx!");
-                }
-
-                return true;
-            }
-        });
-
-        tune.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(PlaybackUIActivity.this, TuneActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                startActivity(intent);
-            }
-        });
-
-        // Info
-        info = (TextView) findViewById(R.id.info);
-
-        // Set ads TODO: enable ads in final release
-        if (false && (BuildConfig.DEBUG || !MusicService.IsPremium))
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            iad = new InterstitialAd(PlaybackUIActivity.this);
-                            iad.setAdUnitId(BuildConfig.AD_UNIT_ID_I1);
-                            iad.setAdListener(new AdListener() {
-                                @Override
-                                public void onAdLoaded() {
-                                    super.onAdLoaded();
-
-                                    if (isFinishing())
-                                        return;
-
-                                    iad.show();
-                                }
-
-                                @Override
-                                public void onAdClosed() {
-                                    if (isFinishing())
-                                        return;
-
-                                    // iad.loadAd(new AdRequest.Builder().build());
-                                }
-
-                                @Override
-                                public void onAdFailedToLoad(int i) {
-                                    super.onAdFailedToLoad(i);
-                                }
-                            });
-                            iad.loadAd(new AdRequest.Builder().build());
-                        }
-                    });
-                }
-            }, 1 * 60 * 1000);
-
-        // Guide
-        root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-
-            @Override
-            public void onGlobalLayout() {
-                root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-                showGuide();
-            }
-        });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        handler.postDelayed(updateSystemUITask, 500);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        switch (id) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        MainActivity.openLibraryUIActivity(this);
-
-        super.onBackPressed();
-    }
-
-    @Override
-    protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
-        super.OnMusicServiceChanged(className, musicService, isBound);
-
-        final String item = musicService.getCurrentPlaylistItem();
-        if (item == null || TextUtils.isEmpty(item))
-            return;
-
-        getWindow().getDecorView().post(new Runnable() {
-            @Override
-            public void run() {
-                resetForUriIfNeeded(item);
-            }
-        });
-
-        if (avfx != null) {
-            if (AudioVFXViewFragment.getAVFXEnabled(this))
-                avfx.performClick();
-        }
-    }
-
-    @Override
-    public void OnMusicServicePlay() {
-        super.OnMusicServicePlay();
-
-        play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
-
-        try {
-            if (getMusicService() != null)
-                resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (video.getVisibility() == View.VISIBLE)
-            video.start();
-    }
-
-    @Override
-    public void OnMusicServicePause() {
-        super.OnMusicServicePlay();
-
-        play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
-
-        if (getMusicService() != null)
-            resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
-
-        if (video.getVisibility() == View.VISIBLE)
-            video.pause();
-    }
-
-    @Override
-    public void OnMusicServiceStop() {
-        super.OnMusicServicePlay();
-
-        play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
-
-        if (video.getVisibility() == View.VISIBLE) {
-            video.stopPlayback();
-            video.setVisibility(View.INVISIBLE);
-        }
-    }
-
-    @Override
-    public void OnMusicServiceOpen(String uri) {
-        super.OnMusicServiceOpen(uri);
-
-        toggleUI(false);
-
-        resetForUriIfNeeded(uri);
-    }
-
-    private boolean isUIHidden = false;
-
-    private void toggleUI(boolean hide) {
-        if (hide && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            controls_layout.animate().alpha(0).setDuration(500).start();
-            if (lyrics_layout != null)
-                lyrics_layout.animate().alpha(0).setDuration(500).start();
-            seekBar.animate().alpha(0).setDuration(500).start();
-
-            isUIHidden = true;
-        } else {
-            controls_layout.animate().alpha(1).setDuration(500).start();
-            if (lyrics_layout != null)
-                lyrics_layout.animate().alpha(1).setDuration(500).start();
-            seekBar.animate().alpha(1).setDuration(500).start();
-
-            isUIHidden = false;
-        }
-
-    }
-
-    private void toggleUI() {
-        toggleUI(!isUIHidden);
-    }
-
-    private String currentUri;
-
-    private void resetForUriIfNeeded(String uri) {
-        Log.d(TAG, "resetForUri\n" + uri);
-
-        if (currentUri != null && currentUri.equals(uri))
-            return;
-
-        currentUri = uri;
-
-        loadingView.smoothToShow();
-
-        if (video.getVisibility() == View.VISIBLE) {
-            video.stopPlayback();
-            video.setVisibility(View.INVISIBLE);
-        }
-
-        try {
-            final Music music = Music.load(this, uri);
-
-            if (music != null) {
-
-                loadingView.smoothToShow();
-
-                if (info != null)
-                    info.setText(music.getTextDetailedMultiLine());
-
-                Music.getCoverOrDownload(cover.getWidth(), music);
-
-                // Load video
-                if (music.hasVideo()) {
-                    video.setVisibility(View.VISIBLE);
-                    video.setVideoPath(music.Path);
-                    video.requestFocus();
-                    video.start();
-                }
-
-                if (music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    root.setBackground(null);
-                }
-
-                loadingView.smoothToHide();
-
-                if (lyrics_layout != null) {
-
-                    if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
-                        lyricsViewFragment.reset(music, (long) Math.max(music.Length, getMusicService().getDuration()));
-                    } else if (!isFinishing()) {
-                        lyricsViewFragment = LyricsViewFragment.create(music.Path, (long) Math.max(music.Length, getMusicService().getDuration()));
-                        getFragmentManager()
-                                .beginTransaction()
-                                .replace(R.id.lyrics_layout, lyricsViewFragment)
-                                .commit();
-                    }
-                }
-
-                seekBar.setMax(getMusicService().getDuration());
-                position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "mm:ss", false));
-
-                setupProgressHandler();
-            }
-
-        } catch (Exception e) {
-            Log.e(TAG, "open file", e);
-        }
-
-        if (getMusicService().isPlaying())
-            OnMusicServicePlay();
-        else
-            OnMusicServicePause();
-
-    }
-
-    public void onCoverReloaded(Bitmap bitmap) {
-        try {
-            if (bitmap == null)
-                bitmap = CacheEx.getInstance().getBitmap(String.valueOf(R.drawable.logo));
-
-            if (bitmap == null) {
-                bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
-
-                CacheEx.getInstance().putBitmap(String.valueOf(R.drawable.logo), bitmap);
-            }
-        } catch (Exception e) {
-            // Eat!
-        }
-
-        loadingView.smoothToShow();
-
-        if (bitmap == null)
-            return;
-
-        // Refresh system bindings
-        Intent musicServiceIntent = new Intent(PlaybackUIActivity.this, MusicService.class);
-        musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
-        startService(musicServiceIntent);
-
-        Palette palette = Palette.from(bitmap).generate();
-        color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
-        int colorBackup = color;
-        color = palette.getVibrantColor(color);
-        if (color == colorBackup)
-            color = palette.getDarkVibrantColor(color);
-        if (color == colorBackup)
-            color = palette.getDarkMutedColor(color);
-
-        float[] hsl = new float[3];
-        ColorUtils.colorToHSL(color, hsl);
-        hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f); // lum +30%
-        colorLight = ColorUtils.HSLToColor(hsl);
-
-        seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-        seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-
-        play_pause_stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-        play_pause_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-        prev.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-        next.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-        shuffle.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-        repeat.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-        avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-        tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-
-        if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-            audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-        }
-
-        if (!(root.getBackground() == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)) {
-            root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 180)));
-
-            if (bg1 != null)
-                try {
-                    Blurry.with(this)
-                            .radius(25)
-                            .sampling(1)
-                            .color(Color.argb(112, 0, 0, 0))
-                            .animate(450)
-                            .async()
-                            .from(bitmap)
-                            .into(bg1);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-        } else {
-            if (bg1 != null)
-                bg1.setImageDrawable(null);
-        }
-
-        switch (SettingsActivity.getPlaybackUIStyle(this)) {
-            case PUI2:
-                Blurry.with(this)
-                        .radius(25)
-                        .sampling(1)
-                        .color(Color.argb(112, 0, 0, 0))
-                        .async()
-                        .animate(450)
-                        .from(bitmap)
-                        .into(cover);
-                break;
-
-            case PUI3:
-                if (cover.getDrawable() != null) {
-                    TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-                            cover.getDrawable(),
-                            new BitmapDrawable(getResources(), bitmap)
-                    });
-
-                    cover.setImageDrawable(d);
-
-                    d.setCrossFadeEnabled(true);
-                    d.startTransition(450);
-                } else {
-                    cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
-                }
-                break;
-
-            case Default:
-            default:
-                if (cover.getDrawable() != null) {
-                    TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-                            cover.getDrawable(),
-                            new BitmapDrawable(getResources(), bitmap)
-                    });
-
-                    cover.setImageDrawable(d);
-
-                    d.setCrossFadeEnabled(true);
-                    d.startTransition(200);
-                } else {
-                    cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
-                }
-                break;
-        }
-
-        loadingView.smoothToHide();
-    }
-
-    private Runnable progressHandlerRunnable;
-
-    private void setupProgressHandler() {
-        if (progressHandlerRunnable != null)
-            handler.removeCallbacks(progressHandlerRunnable);
-
-        final int dt = (int) (1000.0 / 24.0);
-
-        progressHandlerRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (getMusicService() != null && getMusicService().isPlaying()) {
-
-                    seekBar.setProgress(getMusicService().getPosition());
-                    position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "mm:ss", false));
-
-                    if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
-                        lyricsViewFragment.updateScroll(getMusicService().getPosition());
-                }
-
-                if (isFinishing())
-                    return;
-                if (isDestroyed())
-                    return;
-
-                handler.removeCallbacks(progressHandlerRunnable);
-                handler.postDelayed(progressHandlerRunnable, dt);
-            }
-        };
-        handler.postDelayed(progressHandlerRunnable, dt);
-
-    }
-
-    private void showGuide() {
-        final String tag_guide = TAG + ".guide";
-
-        if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))
-            return;
-
-        final MaterialIntroView.Builder guide_play_pause_stop = new MaterialIntroView.Builder(this)
-                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
-                .setDelayMillis(500)
-                .enableFadeAnimation(true)
-                .enableDotAnimation(false)
-                .setFocusType(Focus.MINIMUM)
-                .setFocusGravity(FocusGravity.CENTER)
-                .setTargetPadding(32)
-                .dismissOnTouch(true)
-                .enableIcon(true)
-                .performClick(true)
-                .setInfoText("Press to Play/Pause, and long press to Stop current item.")
-                .setTarget(play_pause_stop)
-                .setUsageId(UUID.randomUUID().toString());
-
-        final MaterialIntroView.Builder guide_next = new MaterialIntroView.Builder(this)
-                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
-                .setDelayMillis(500)
-                .enableFadeAnimation(true)
-                .enableDotAnimation(false)
-                .setFocusType(Focus.MINIMUM)
-                .setFocusGravity(FocusGravity.CENTER)
-                .setTargetPadding(32)
-                .dismissOnTouch(true)
-                .enableIcon(true)
-                .performClick(true)
-                .setInfoText("Press to skip to next item in playlist. Long press to skip to random item.")
-                .setTarget(next)
-                .setUsageId(UUID.randomUUID().toString());
-
-        final MaterialIntroView.Builder guide_avfx = new MaterialIntroView.Builder(this)
-                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
-                .setDelayMillis(500)
-                .enableFadeAnimation(true)
-                .enableDotAnimation(false)
-                .setFocusType(Focus.MINIMUM)
-                .setFocusGravity(FocusGravity.CENTER)
-                .setTargetPadding(32)
-                .dismissOnTouch(true)
-                .enableIcon(true)
-                .performClick(true)
-                .setInfoText("Press to enable visualizations. Long press to cycle between various styles.")
-                .setTarget(avfx)
-                .setUsageId(UUID.randomUUID().toString());
-
-        final MaterialIntroView.Builder guide_tune = new MaterialIntroView.Builder(this)
-                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
-                .setDelayMillis(500)
-                .enableFadeAnimation(true)
-                .enableDotAnimation(false)
-                .setFocusType(Focus.MINIMUM)
-                .setFocusGravity(FocusGravity.CENTER)
-                .setTargetPadding(32)
-                .dismissOnTouch(true)
-                .enableIcon(true)
-                .performClick(true)
-                .setInfoText("Press to open Tune view. You can fine tune your sound here!")
-                .setTarget(tune)
-                .setUsageId(UUID.randomUUID().toString());
-
-        final MaterialIntroView.Builder guide_lyrics = new MaterialIntroView.Builder(this)
-                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
-                .setDelayMillis(500)
-                .enableFadeAnimation(true)
-                .enableDotAnimation(false)
-                .setFocusType(Focus.MINIMUM)
-                .setFocusGravity(FocusGravity.CENTER)
-                .setTargetPadding(32)
-                .dismissOnTouch(true)
-                .enableIcon(true)
-                .performClick(true)
-                .setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to open editor. Pull down on text to reload.")
-                .setTarget(lyrics_layout == null ? root : lyrics_layout)
-                .setUsageId(UUID.randomUUID().toString());
-
-        final MaterialIntroView.Builder guide_cover = new MaterialIntroView.Builder(this)
-                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
-                .setDelayMillis(500)
-                .enableFadeAnimation(true)
-                .enableDotAnimation(false)
-                .setFocusType(Focus.MINIMUM)
-                .setFocusGravity(FocusGravity.CENTER)
-                .setTargetPadding(32)
-                .dismissOnTouch(true)
-                .enableIcon(true)
-                .performClick(true)
-                .setInfoText("Cover art, video, visualizations will be here (in that order)!")
-                .setTarget(cover)
-                .setUsageId(UUID.randomUUID().toString());
-
-        final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
-                .setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
-                .setDelayMillis(500)
-                .enableFadeAnimation(true)
-                .enableDotAnimation(false)
-                .setFocusType(Focus.MINIMUM)
-                .setFocusGravity(FocusGravity.CENTER)
-                .setTargetPadding(32)
-                .dismissOnTouch(true)
-                .enableIcon(true)
-                .performClick(true)
-                .setInfoText("That's all! Now go play something!")
-                .setTarget(play_pause_stop)
-                .setUsageId(UUID.randomUUID().toString());
-
-        guide_final.setListener(new MaterialIntroListener() {
-            @Override
-            public void onUserClicked(String usageId) {
-                try {
-                    Once.markDone(tag_guide);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        guide_cover.setListener(new MaterialIntroListener() {
-            @Override
-            public void onUserClicked(String usageId) {
-                try {
-                    guide_final.show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        guide_lyrics.setListener(new MaterialIntroListener() {
-            @Override
-            public void onUserClicked(String usageId) {
-                try {
-                    guide_cover.show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        guide_tune.setListener(new MaterialIntroListener() {
-            @Override
-            public void onUserClicked(String usageId) {
-                try {
-                    guide_lyrics.show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        guide_avfx.setListener(new MaterialIntroListener() {
-            @Override
-            public void onUserClicked(String usageId) {
-                try {
-                    guide_tune.show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        guide_next.setListener(new MaterialIntroListener() {
-            @Override
-            public void onUserClicked(String usageId) {
-                try {
-                    guide_avfx.show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        guide_play_pause_stop.setListener(new MaterialIntroListener() {
-            @Override
-            public void onUserClicked(String usageId) {
-                try {
-                    guide_next.show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        try {
-            guide_play_pause_stop.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
+			if ((v.getVisibility() & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
+				v.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+
+		}
+	};
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putInt("color", color);
+		outState.putInt("colorLight", colorLight);
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		// State
+		if (savedInstanceState != null)
+			try {
+
+				color = savedInstanceState.getInt("color");
+				colorLight = savedInstanceState.getInt("colorLight");
+
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+
+		// Set view
+		int layoutId = -1;
+		switch (SettingsActivity.getPlaybackUIStyle(this)) {
+			case PUI2:
+				layoutId = R.layout.playback_ui_pui2_activity;
+				break;
+
+			case PUI3:
+				layoutId = R.layout.playback_ui_pui3_activity;
+				break;
+
+			case Default:
+			default:
+				layoutId = R.layout.playback_ui_default_activity;
+				break;
+		}
+		setContentView(layoutId);
+
+		Music.setCurrentCoverView(this);
+
+		final View decorView = getWindow().getDecorView();
+		decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+			@Override
+			public void onSystemUiVisibilityChange(int visibility) {
+				handler.postDelayed(updateSystemUITask, 500);
+			}
+		});
+
+		// Set views
+		root = findViewById(R.id.root);
+
+		bg1 = (ImageView) findViewById(R.id.bg1);
+
+		loadingView = (AVLoadingIndicatorView) findViewById(R.id.loadingView);
+
+		findViewById(R.id.av_layout).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				toggleUI();
+			}
+		});
+
+		controls_layout = findViewById(R.id.controls_layout);
+		lyrics_layout = findViewById(R.id.lyrics_layout);
+
+		cover = (ImageView) findViewById(R.id.cover);
+		video = (VideoView) findViewById(R.id.video);
+
+		// Video, if loaded is on mute
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			video.setZOrderOnTop(false);
+		} else {
+			video.setZOrderOnTop(true);
+		}
+		video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+			public void onPrepared(MediaPlayer mediaPlayer) {
+				mediaPlayer.setVolume(0, 0);
+
+				if (getMusicService() != null)
+					getMusicService().play();
+
+				handler.postDelayed(videoSyncTask, 1000);
+
+				handler.postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						toggleUI(true);
+					}
+				}, 3500);
+			}
+		});
+		video.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+			@Override
+			public void onCompletion(MediaPlayer mediaPlayer) {
+				video.setVisibility(View.INVISIBLE);
+
+				handler.removeCallbacks(videoSyncTask);
+
+				handler.post(new Runnable() {
+					@Override
+					public void run() {
+						toggleUI(false);
+					}
+				});
+			}
+		});
+		video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+			@Override
+			public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+				video.setVisibility(View.INVISIBLE);
+
+				handler.removeCallbacks(videoSyncTask);
+
+				handler.post(new Runnable() {
+					@Override
+					public void run() {
+						toggleUI(false);
+					}
+				});
+
+				return false;
+			}
+		});
+
+		color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
+		colorLight = ContextCompat.getColor(getApplicationContext(), R.color.accent);
+
+		seekBar = (SeekBar) findViewById(R.id.seekBar);
+		seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+				if (!b) return;
+
+				if (getMusicService() != null) {
+					getMusicService().seek(i);
+
+					if (video.getVisibility() == View.VISIBLE)
+						video.seekTo(getMusicService().getPosition());
+				}
+
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+
+			}
+		});
+
+		position_start = (TextView) findViewById(R.id.position_start);
+		position_end = (TextView) findViewById(R.id.position_end);
+
+		play_pause_stop = (ImageButton) findViewById(R.id.play_pause_stop);
+		prev = (ImageButton) findViewById(R.id.prev);
+		next = (ImageButton) findViewById(R.id.next);
+		shuffle = (ImageButton) findViewById(R.id.shuffle);
+		repeat = (ImageButton) findViewById(R.id.repeat);
+		avfx = (ImageButton) findViewById(R.id.avfx);
+		tune = (ImageButton) findViewById(R.id.tune);
+
+		play_pause_stop.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() != null && getMusicService().isPlaying()) {
+					getMusicService().pause();
+				} else {
+					getMusicService().play();
+				}
+			}
+		});
+		play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (getMusicService() != null) {
+					getMusicService().stop();
+
+					info("Stopped!");
+				}
+
+				return true;
+			}
+		});
+
+		prev.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() != null) {
+					getMusicService().prev();
+				}
+			}
+		});
+		prev.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (getMusicService() != null) {
+					getMusicService().random();
+				}
+
+				return true;
+			}
+		});
+
+		next.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() != null) {
+					getMusicService().next();
+				}
+			}
+		});
+		next.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (getMusicService() != null) {
+					getMusicService().random();
+				}
+
+				return true;
+			}
+		});
+
+		if (MusicService.getPlayerShuffleMusicEnabled(PlaybackUIActivity.this))
+			shuffle.setAlpha(0.9f);
+		else
+			shuffle.setAlpha(0.3f);
+		shuffle.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() != null) {
+					boolean value = MusicService.getPlayerShuffleMusicEnabled(PlaybackUIActivity.this);
+
+					value = !value;
+
+					MusicService.setPlayerShuffleMusicEnabled(PlaybackUIActivity.this, value);
+
+					if (value)
+						info("Shuffle turned ON");
+					else
+						info("Shuffle turned OFF");
+
+
+					if (value)
+						shuffle.setAlpha(0.9f);
+					else
+						shuffle.setAlpha(0.3f);
+				}
+			}
+		});
+		shuffle.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (getMusicService() != null) {
+					getMusicService().random();
+				}
+
+				return true;
+			}
+		});
+
+		if (MusicService.getPlayerRepeatMusicEnabled(PlaybackUIActivity.this))
+			repeat.setAlpha(0.9f);
+		else
+			repeat.setAlpha(0.3f);
+		repeat.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() != null) {
+					boolean value = MusicService.getPlayerRepeatMusicEnabled(PlaybackUIActivity.this);
+
+					value = !value;
+
+					MusicService.setPlayerRepeatMusicEnabled(PlaybackUIActivity.this, value);
+
+					if (value)
+						info("Repeat turned ON");
+					else
+						info("Repeat turned OFF");
+
+					if (value)
+						repeat.setAlpha(0.9f);
+					else
+						repeat.setAlpha(0.3f);
+				}
+			}
+		});
+
+		final View avfx_layout = findViewById(R.id.avfx_layout);
+		avfx.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (audioVFXViewFragment != null) {
+					getFragmentManager()
+							.beginTransaction()
+							.remove(audioVFXViewFragment)
+							.commit();
+
+					audioVFXViewFragment = null;
+
+					avfx_layout.setVisibility(View.INVISIBLE);
+
+					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, false);
+
+				} else if (!isFinishing() && audioVFXViewFragment == null) {
+					avfx_layout.setVisibility(View.VISIBLE);
+
+					audioVFXViewFragment = AudioVFXViewFragment.create();
+					getFragmentManager()
+							.beginTransaction()
+							.replace(R.id.avfx_layout, audioVFXViewFragment)
+							.commit();
+
+					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+
+					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
+
+				}
+			}
+		});
+		avfx.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+
+					AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.getNextAVFXType(getApplicationContext()));
+
+					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+
+					info("Now using " + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + " fx!");
+				}
+
+				return true;
+			}
+		});
+
+		tune.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(PlaybackUIActivity.this, TuneActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+			}
+		});
+
+		// Info
+		info = (TextView) findViewById(R.id.info);
+
+		// Set ads TODO: enable ads in final release
+		if (false && (BuildConfig.DEBUG || !MusicService.IsPremium))
+			handler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							iad = new InterstitialAd(PlaybackUIActivity.this);
+							iad.setAdUnitId(BuildConfig.AD_UNIT_ID_I1);
+							iad.setAdListener(new AdListener() {
+								@Override
+								public void onAdLoaded() {
+									super.onAdLoaded();
+
+									if (isFinishing())
+										return;
+
+									iad.show();
+								}
+
+								@Override
+								public void onAdClosed() {
+									if (isFinishing())
+										return;
+
+									// iad.loadAd(new AdRequest.Builder().build());
+								}
+
+								@Override
+								public void onAdFailedToLoad(int i) {
+									super.onAdFailedToLoad(i);
+								}
+							});
+							iad.loadAd(new AdRequest.Builder().build());
+						}
+					});
+				}
+			}, 1 * 60 * 1000);
+
+		// Guide
+		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+			@Override
+			public void onGlobalLayout() {
+				root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+				showGuide();
+			}
+		});
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		handler.postDelayed(updateSystemUITask, 500);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+
+		switch (id) {
+			case android.R.id.home:
+				onBackPressed();
+				return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onBackPressed() {
+		MainActivity.openLibraryUIActivity(this);
+
+		super.onBackPressed();
+	}
+
+	@Override
+	protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
+		super.OnMusicServiceChanged(className, musicService, isBound);
+
+		final String item = musicService.getCurrentPlaylistItem();
+		if (item == null || TextUtils.isEmpty(item))
+			return;
+
+		getWindow().getDecorView().post(new Runnable() {
+			@Override
+			public void run() {
+				resetForUriIfNeeded(item);
+			}
+		});
+
+		if (avfx != null) {
+			if (AudioVFXViewFragment.getAVFXEnabled(this))
+				avfx.performClick();
+		}
+	}
+
+	@Override
+	public void OnMusicServicePlay() {
+		super.OnMusicServicePlay();
+
+		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
+
+		try {
+			if (getMusicService() != null)
+				resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if (video.getVisibility() == View.VISIBLE)
+			video.start();
+	}
+
+	@Override
+	public void OnMusicServicePause() {
+		super.OnMusicServicePlay();
+
+		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
+
+		if (getMusicService() != null)
+			resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+
+		if (video.getVisibility() == View.VISIBLE)
+			video.pause();
+	}
+
+	@Override
+	public void OnMusicServiceStop() {
+		super.OnMusicServicePlay();
+
+		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
+
+		if (video.getVisibility() == View.VISIBLE) {
+			video.stopPlayback();
+			video.setVisibility(View.INVISIBLE);
+		}
+	}
+
+	@Override
+	public void OnMusicServiceOpen(String uri) {
+		super.OnMusicServiceOpen(uri);
+
+		toggleUI(false);
+
+		resetForUriIfNeeded(uri);
+	}
+
+	private boolean isUIHidden = false;
+
+	private void toggleUI(boolean hide) {
+		if (hide && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			controls_layout.animate().alpha(0).setDuration(500).start();
+			if (lyrics_layout != null)
+				lyrics_layout.animate().alpha(0).setDuration(500).start();
+			seekBar.animate().alpha(0).setDuration(500).start();
+
+			isUIHidden = true;
+		} else {
+			controls_layout.animate().alpha(1).setDuration(500).start();
+			if (lyrics_layout != null)
+				lyrics_layout.animate().alpha(1).setDuration(500).start();
+			seekBar.animate().alpha(1).setDuration(500).start();
+
+			isUIHidden = false;
+		}
+
+	}
+
+	private void toggleUI() {
+		toggleUI(!isUIHidden);
+	}
+
+	private String currentUri;
+
+	private void resetForUriIfNeeded(String uri) {
+		Log.d(TAG, "resetForUri\n" + uri);
+
+		if (currentUri != null && currentUri.equals(uri))
+			return;
+
+		currentUri = uri;
+
+		loadingView.smoothToShow();
+
+		if (video.getVisibility() == View.VISIBLE) {
+			video.stopPlayback();
+			video.setVisibility(View.INVISIBLE);
+		}
+
+		try {
+			final Music music = Music.load(this, uri);
+
+			if (music != null) {
+
+				loadingView.smoothToShow();
+
+				if (info != null)
+					info.setText(music.getTextDetailedMultiLine());
+
+				Music.getCoverOrDownload(cover.getWidth(), music);
+
+				// Load video
+				if (music.hasVideo()) {
+					video.setVisibility(View.VISIBLE);
+					video.setVideoPath(music.Path);
+					video.requestFocus();
+					video.start();
+				}
+
+				if (music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+					root.setBackground(null);
+				}
+
+				loadingView.smoothToHide();
+
+				if (lyrics_layout != null) {
+
+					if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
+						lyricsViewFragment.reset(music, (long) Math.max(music.Length, getMusicService().getDuration()));
+					} else if (!isFinishing()) {
+						lyricsViewFragment = LyricsViewFragment.create(music.Path, (long) Math.max(music.Length, getMusicService().getDuration()));
+						getFragmentManager()
+								.beginTransaction()
+								.replace(R.id.lyrics_layout, lyricsViewFragment)
+								.commit();
+					}
+				}
+
+				seekBar.setMax(getMusicService().getDuration());
+				position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "mm:ss", false));
+
+				setupProgressHandler();
+			}
+
+		} catch (Exception e) {
+			Log.e(TAG, "open file", e);
+		}
+
+		if (getMusicService().isPlaying())
+			OnMusicServicePlay();
+		else
+			OnMusicServicePause();
+
+	}
+
+	public void onCoverReloaded(Bitmap bitmap) {
+		try {
+			if (bitmap == null)
+				bitmap = CacheEx.getInstance().getBitmap(String.valueOf(R.drawable.logo));
+
+			if (bitmap == null) {
+				bitmap = ((BitmapDrawable) getDrawable(R.drawable.logo)).getBitmap();
+
+				CacheEx.getInstance().putBitmap(String.valueOf(R.drawable.logo), bitmap);
+			}
+		} catch (Exception e) {
+			// Eat!
+		}
+
+		loadingView.smoothToShow();
+
+		if (bitmap == null)
+			return;
+
+		// Refresh system bindings
+		Intent musicServiceIntent = new Intent(PlaybackUIActivity.this, MusicService.class);
+		musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
+		startService(musicServiceIntent);
+
+		Palette palette = Palette.from(bitmap).generate();
+		color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
+		int colorBackup = color;
+		color = palette.getVibrantColor(color);
+		if (color == colorBackup)
+			color = palette.getDarkVibrantColor(color);
+		if (color == colorBackup)
+			color = palette.getDarkMutedColor(color);
+
+		float[] hsl = new float[3];
+		ColorUtils.colorToHSL(color, hsl);
+		hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f); // lum +30%
+		colorLight = ColorUtils.HSLToColor(hsl);
+
+		seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+		seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+
+		play_pause_stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		play_pause_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+		prev.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		next.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		shuffle.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		repeat.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+
+		if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+			audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+		}
+
+		if (!(root.getBackground() == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)) {
+			root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 180)));
+
+			if (bg1 != null)
+				try {
+					Blurry.with(this)
+							.radius(25)
+							.sampling(1)
+							.color(Color.argb(112, 0, 0, 0))
+							.animate(450)
+							.async()
+							.from(bitmap)
+							.into(bg1);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+		} else {
+			if (bg1 != null)
+				bg1.setImageDrawable(null);
+		}
+
+		switch (SettingsActivity.getPlaybackUIStyle(this)) {
+			case PUI2:
+				Blurry.with(this)
+						.radius(25)
+						.sampling(1)
+						.color(Color.argb(112, 0, 0, 0))
+						.async()
+						.animate(450)
+						.from(bitmap)
+						.into(cover);
+				break;
+
+			case PUI3:
+				if (cover.getDrawable() != null) {
+					TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+							cover.getDrawable(),
+							new BitmapDrawable(getResources(), bitmap)
+					});
+
+					cover.setImageDrawable(d);
+
+					d.setCrossFadeEnabled(true);
+					d.startTransition(450);
+				} else {
+					cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+				}
+				break;
+
+			case Default:
+			default:
+				if (cover.getDrawable() != null) {
+					TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+							cover.getDrawable(),
+							new BitmapDrawable(getResources(), bitmap)
+					});
+
+					cover.setImageDrawable(d);
+
+					d.setCrossFadeEnabled(true);
+					d.startTransition(200);
+				} else {
+					cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+				}
+				break;
+		}
+
+		loadingView.smoothToHide();
+	}
+
+	private Runnable progressHandlerRunnable;
+
+	private void setupProgressHandler() {
+		if (progressHandlerRunnable != null)
+			handler.removeCallbacks(progressHandlerRunnable);
+
+		final int dt = (int) (1000.0 / 24.0);
+
+		progressHandlerRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (getMusicService() != null && getMusicService().isPlaying()) {
+
+					seekBar.setProgress(getMusicService().getPosition());
+					position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "mm:ss", false));
+
+					if (lyricsViewFragment != null && lyricsViewFragment.isAdded())
+						lyricsViewFragment.updateScroll(getMusicService().getPosition());
+				}
+
+				if (isFinishing())
+					return;
+				if (isDestroyed())
+					return;
+
+				handler.removeCallbacks(progressHandlerRunnable);
+				handler.postDelayed(progressHandlerRunnable, dt);
+			}
+		};
+		handler.postDelayed(progressHandlerRunnable, dt);
+
+	}
+
+	private void showGuide() {
+		final String tag_guide = TAG + ".guide";
+
+		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))
+			return;
+
+		final MaterialIntroView.Builder guide_play_pause_stop = new MaterialIntroView.Builder(this)
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setDelayMillis(500)
+				.enableFadeAnimation(true)
+				.enableDotAnimation(false)
+				.setFocusType(Focus.MINIMUM)
+				.setFocusGravity(FocusGravity.CENTER)
+				.setTargetPadding(32)
+				.dismissOnTouch(true)
+				.enableIcon(true)
+				.performClick(true)
+				.setInfoText("Press to Play/Pause, and long press to Stop current item.")
+				.setTarget(play_pause_stop)
+				.setUsageId(UUID.randomUUID().toString());
+
+		final MaterialIntroView.Builder guide_next = new MaterialIntroView.Builder(this)
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setDelayMillis(500)
+				.enableFadeAnimation(true)
+				.enableDotAnimation(false)
+				.setFocusType(Focus.MINIMUM)
+				.setFocusGravity(FocusGravity.CENTER)
+				.setTargetPadding(32)
+				.dismissOnTouch(true)
+				.enableIcon(true)
+				.performClick(true)
+				.setInfoText("Press to skip to next item in playlist. Long press to skip to random item.")
+				.setTarget(next)
+				.setUsageId(UUID.randomUUID().toString());
+
+		final MaterialIntroView.Builder guide_avfx = new MaterialIntroView.Builder(this)
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setDelayMillis(500)
+				.enableFadeAnimation(true)
+				.enableDotAnimation(false)
+				.setFocusType(Focus.MINIMUM)
+				.setFocusGravity(FocusGravity.CENTER)
+				.setTargetPadding(32)
+				.dismissOnTouch(true)
+				.enableIcon(true)
+				.performClick(true)
+				.setInfoText("Press to enable visualizations. Long press to cycle between various styles.")
+				.setTarget(avfx)
+				.setUsageId(UUID.randomUUID().toString());
+
+		final MaterialIntroView.Builder guide_tune = new MaterialIntroView.Builder(this)
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setDelayMillis(500)
+				.enableFadeAnimation(true)
+				.enableDotAnimation(false)
+				.setFocusType(Focus.MINIMUM)
+				.setFocusGravity(FocusGravity.CENTER)
+				.setTargetPadding(32)
+				.dismissOnTouch(true)
+				.enableIcon(true)
+				.performClick(true)
+				.setInfoText("Press to open Tune view. You can fine tune your sound here!")
+				.setTarget(tune)
+				.setUsageId(UUID.randomUUID().toString());
+
+		final MaterialIntroView.Builder guide_lyrics = new MaterialIntroView.Builder(this)
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setDelayMillis(500)
+				.enableFadeAnimation(true)
+				.enableDotAnimation(false)
+				.setFocusType(Focus.MINIMUM)
+				.setFocusGravity(FocusGravity.CENTER)
+				.setTargetPadding(32)
+				.dismissOnTouch(true)
+				.enableIcon(true)
+				.performClick(true)
+				.setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to open editor. Pull down on text to reload.")
+				.setTarget(lyrics_layout == null ? root : lyrics_layout)
+				.setUsageId(UUID.randomUUID().toString());
+
+		final MaterialIntroView.Builder guide_cover = new MaterialIntroView.Builder(this)
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setDelayMillis(500)
+				.enableFadeAnimation(true)
+				.enableDotAnimation(false)
+				.setFocusType(Focus.MINIMUM)
+				.setFocusGravity(FocusGravity.CENTER)
+				.setTargetPadding(32)
+				.dismissOnTouch(true)
+				.enableIcon(true)
+				.performClick(true)
+				.setInfoText("Cover art, video, visualizations will be here (in that order)!")
+				.setTarget(cover)
+				.setUsageId(UUID.randomUUID().toString());
+
+		final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setDelayMillis(500)
+				.enableFadeAnimation(true)
+				.enableDotAnimation(false)
+				.setFocusType(Focus.MINIMUM)
+				.setFocusGravity(FocusGravity.CENTER)
+				.setTargetPadding(32)
+				.dismissOnTouch(true)
+				.enableIcon(true)
+				.performClick(true)
+				.setInfoText("That's all! Now go play something!")
+				.setTarget(play_pause_stop)
+				.setUsageId(UUID.randomUUID().toString());
+
+		guide_final.setListener(new MaterialIntroListener() {
+			@Override
+			public void onUserClicked(String usageId) {
+				try {
+					Once.markDone(tag_guide);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		guide_cover.setListener(new MaterialIntroListener() {
+			@Override
+			public void onUserClicked(String usageId) {
+				try {
+					guide_final.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		guide_lyrics.setListener(new MaterialIntroListener() {
+			@Override
+			public void onUserClicked(String usageId) {
+				try {
+					guide_cover.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		guide_tune.setListener(new MaterialIntroListener() {
+			@Override
+			public void onUserClicked(String usageId) {
+				try {
+					guide_lyrics.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		guide_avfx.setListener(new MaterialIntroListener() {
+			@Override
+			public void onUserClicked(String usageId) {
+				try {
+					guide_tune.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		guide_next.setListener(new MaterialIntroListener() {
+			@Override
+			public void onUserClicked(String usageId) {
+				try {
+					guide_avfx.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		guide_play_pause_stop.setListener(new MaterialIntroListener() {
+			@Override
+			public void onUserClicked(String usageId) {
+				try {
+					guide_next.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		try {
+			guide_play_pause_stop.show();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
 
 }

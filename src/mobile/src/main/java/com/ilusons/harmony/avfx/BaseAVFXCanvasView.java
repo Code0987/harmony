@@ -1,144 +1,197 @@
 package com.ilusons.harmony.avfx;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public abstract class BaseAVFXCanvasView extends SurfaceView {
+public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceHolder.Callback {
 
-    @SuppressWarnings("unused")
-    private static final String TAG = BaseAVFXCanvasView.class.getSimpleName();
+	@SuppressWarnings("unused")
+	private static final String TAG = BaseAVFXCanvasView.class.getSimpleName();
 
-    private DoubleBufferingManager doubleBufferingManager;
+	private UpdaterThread thread;
+	private final SurfaceHolder surfaceHolder;
+	private AudioDataBuffer.DoubleBufferingManager doubleBufferingManager;
+	private int height;
+	private int width;
 
-    public BaseAVFXCanvasView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs);
-        setup();
-    }
+	public BaseAVFXCanvasView(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs);
 
-    public BaseAVFXCanvasView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
+		surfaceHolder = getHolder();
 
-    public BaseAVFXCanvasView(Context context) {
-        this(context, null, 0);
-    }
+		setup();
+	}
 
-    public void setup() {
-        doubleBufferingManager = new DoubleBufferingManager();
-    }
+	public BaseAVFXCanvasView(Context context, AttributeSet attrs) {
+		this(context, attrs, 0);
+	}
 
-    public void updateAudioData(byte[] data, int samplingRate) {
-        doubleBufferingManager.update(data, 1, samplingRate);
+	public BaseAVFXCanvasView(Context context) {
+		this(context, null, 0);
+	}
 
-        invalidate();
-    }
+	public void setup() {
+		doubleBufferingManager = new AudioDataBuffer.DoubleBufferingManager();
 
-    public void updateAudioData(float[] data, int numChannels, int samplingRate) {
-        doubleBufferingManager.update(data, numChannels, samplingRate);
+		setDrawingCacheEnabled(true);
 
-        invalidate();
-    }
+		if (surfaceHolder != null) {
+			surfaceHolder.addCallback(this);
+			surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
+		}
 
-    protected void onRenderAudioData(Canvas canvas, int width, int height, Buffer data) {
+		setZOrderOnTop(true);
 
-    }
+		setWillNotDraw(false);
+	}
 
-    private Canvas canvas;
-    private Bitmap canvasBitmap;
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		if (thread == null || !thread.isAlive()) {
+			thread = new UpdaterThread(this, holder);
+			thread.setRunning(true);
+			thread.start();
+		}
+	}
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+		if (thread == null || !thread.isAlive()) {
+			thread = new UpdaterThread(this, holder);
+			thread.setRunning(true);
+			thread.start();
+		}
 
-        if (canvasBitmap == null) {
-            canvasBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
-        }
-        if (canvas == null) {
-            canvas = new Canvas(canvasBitmap);
-        }
+		this.height = height;
+		this.width = width;
+	}
 
-        canvas.drawBitmap(canvasBitmap, new Matrix(), null);
-    }
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		boolean retry = true;
+		thread.setRunning(false);
+		while (retry) {
+			try {
+				thread.join();
+				retry = false;
+			} catch (InterruptedException e) {
+				Log.d(TAG, "Interrupted Exception", e);
+			}
+		}
+	}
 
-    protected static final class Buffer {
+	public void onPause() {
+		synchronized (surfaceHolder) {
+			surfaceDestroyed(surfaceHolder);
+		}
+	}
 
-        public byte[] bData;
-        public float[] fData;
-        public int channels;
-        public int sr;
+	public void onResume() {
+		synchronized (surfaceHolder) {
+			surfaceCreated(surfaceHolder);
+		}
+	}
 
-        public void update(byte[] data, int numChannels, int samplingRate) {
-            if (bData != null && bData.length == data.length) {
-                System.arraycopy(data, 0, bData, 0, data.length);
-            } else {
-                bData = data.clone();
-            }
-            fData = null;
-            channels = numChannels;
-            sr = samplingRate;
-        }
+	@Override
+	protected void onDraw(Canvas canvas) {
+		super.onDraw(canvas);
 
-        public void update(float[] data, int numChannels, int samplingRate) {
-            if (fData != null && fData.length == data.length) {
-                System.arraycopy(data, 0, fData, 0, data.length);
-            } else {
-                fData = data.clone();
-            }
-            bData = null;
-            channels = numChannels;
-            sr = samplingRate;
-        }
+		onRender(canvas, width, height);
 
-        public boolean valid() {
-            return (bData != null || fData != null) && channels != 0 && sr != 0;
-        }
-    }
+		onRenderAudioData(
+				canvas,
+				width,
+				height,
+				doubleBufferingManager.getAndSwapBuffer());
+	}
 
-    protected static final class DoubleBufferingManager {
+	protected void onRender(Canvas canvas, int width, int height) {
 
-        private Buffer[] buffers;
-        private int index;
-        private boolean updated;
+	}
 
-        public DoubleBufferingManager() {
-            reset();
-        }
+	protected void onRenderAudioData(Canvas canvas, int width, int height, AudioDataBuffer.Buffer data) {
 
-        public synchronized void reset() {
-            if (buffers == null)
-                buffers = new Buffer[2];
-            buffers[0] = new Buffer();
-            buffers[1] = new Buffer();
-            index = 0;
-            updated = false;
-        }
+	}
 
-        public synchronized void update(byte[] data, int numChannels, int samplingRate) {
-            buffers[index ^ 1].update(data, numChannels, samplingRate);
-            updated = true;
+	protected void onUpdate() {
 
-            notify();
-        }
+	}
 
-        public synchronized void update(float[] data, int numChannels, int samplingRate) {
-            buffers[index ^ 1].update(data, numChannels, samplingRate);
-            updated = true;
+	public void updateAudioData(byte[] data, int samplingRate) {
+		doubleBufferingManager.update(data, 1, samplingRate);
+	}
 
-            notify();
-        }
+	public void updateAudioData(float[] data, int numChannels, int samplingRate) {
+		doubleBufferingManager.update(data, numChannels, samplingRate);
+	}
 
-        public synchronized Buffer getAndSwapBuffer() {
-            if (updated) {
-                index ^= 1;
-                updated = false;
-            }
+	public static class UpdaterThread extends Thread {
 
-            return buffers[index];
-        }
-    }
+		private final BaseAVFXCanvasView sv;
+		private final SurfaceHolder sh;
+
+		private boolean running = false;
+
+		private float frameRate = 30;
+		private float frameTime = 1000 / frameRate;
+
+		public UpdaterThread(BaseAVFXCanvasView sv, SurfaceHolder sh) {
+			this.sv = sv;
+			this.sh = sh;
+		}
+
+		@Override
+		public void run() {
+
+			Canvas canvas = null;
+
+			while (running) {
+				float startTime = System.currentTimeMillis();
+
+				if (!sh.getSurface().isValid())
+					continue;
+
+				sv.onUpdate();
+
+				try {
+					canvas = sh.lockCanvas(null);
+					synchronized (sh) {
+						sv.postInvalidate();
+					}
+				} finally {
+					if (canvas != null) {
+						sh.unlockCanvasAndPost(canvas);
+					}
+				}
+
+				float endTime = System.currentTimeMillis();
+				long deltaTime = (long) (frameTime - (endTime - startTime));
+				try {
+					Thread.sleep(deltaTime);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
+
+		public void setRunning(boolean b) {
+			running = b;
+		}
+
+		public void setFrameRate(int rate) {
+			frameRate = rate;
+		}
+
+	}
 
 }

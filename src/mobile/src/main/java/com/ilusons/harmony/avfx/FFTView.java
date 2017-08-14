@@ -7,7 +7,7 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class FFTAVFXView extends BaseAVFXView {
+public class FFTView extends BaseAVFXGLView {
 
     float[] buffer;
     public FloatBuffer nativeBuffer;
@@ -17,11 +17,11 @@ public class FFTAVFXView extends BaseAVFXView {
 
     int lastCanvasWidth;
 
-    public FFTAVFXView(Context context) {
+    public FFTView(Context context) {
         super(context);
     }
 
-    public FFTAVFXView(Context context, AttributeSet attrs) {
+    public FFTView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -39,7 +39,7 @@ public class FFTAVFXView extends BaseAVFXView {
     }
 
     @Override
-    protected void onRenderAudioData(GL10 gl, int width, int height, Buffer data) {
+    protected void onRenderAudioData(GL10 gl, int width, int height, AudioDataBuffer.Buffer data) {
         if (data.fData != null) {
             final int canvasWidth = width;
             final int canvasHeight = height;
