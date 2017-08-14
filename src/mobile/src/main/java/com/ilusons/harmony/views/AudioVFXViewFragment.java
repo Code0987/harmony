@@ -236,7 +236,12 @@ public class AudioVFXViewFragment extends Fragment {
 
 					visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
 					visualizerHQ.setCaptureSize(size);
-					visualizerHQ.setDataCaptureListener(onDataCaptureListenerHQ, rate, waveformAVFXView != null, fftAVFXView != null || waveDbmHandler != null);
+					visualizerHQ.setDataCaptureListener(
+							onDataCaptureListenerHQ,
+							rate,
+							waveformAVFXView != null || avfxCanvasView != null,
+							fftAVFXView != null || waveDbmHandler != null || avfxCanvasView != null
+					);
 
 					visualizerHQ.setEnabled(true);
 				}
@@ -253,7 +258,12 @@ public class AudioVFXViewFragment extends Fragment {
 
 					visualizer.setCaptureSize(size);
 					visualizer.setScalingMode(Visualizer.SCALING_MODE_NORMALIZED);
-					visualizer.setDataCaptureListener(onDataCaptureListener, rate, waveformAVFXView != null, fftAVFXView != null || waveDbmHandler != null);
+					visualizer.setDataCaptureListener(
+							onDataCaptureListener,
+							rate,
+							waveformAVFXView != null || avfxCanvasView != null,
+							fftAVFXView != null || waveDbmHandler != null || avfxCanvasView != null
+					);
 					visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
 
 					visualizer.setEnabled(true);
@@ -456,7 +466,7 @@ public class AudioVFXViewFragment extends Fragment {
 		try {
 			AVFXType avfxTypeCurrent = getAVFXType(context);
 
-			int i = -1;
+			int i = 0;
 			AVFXType[] avfxTypes = AVFXType.values();
 			for (; i < avfxTypes.length; i++)
 				if (avfxTypes[i] == avfxTypeCurrent) {

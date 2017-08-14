@@ -12,6 +12,10 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+
 public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceHolder.Callback {
 
 	@SuppressWarnings("unused")
@@ -132,6 +136,20 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 
 	public void updateAudioData(float[] data, int numChannels, int samplingRate) {
 		doubleBufferingManager.update(data, numChannels, samplingRate);
+	}
+
+	protected static FloatBuffer allocateNativeFloatBuffer(int size) {
+		return ByteBuffer
+				.allocateDirect(size * (Float.SIZE / 8))
+				.order(ByteOrder.nativeOrder())
+				.asFloatBuffer();
+	}
+
+	protected static void converToFloatBuffer(FloatBuffer buffer, float[] array, int n) {
+		buffer.clear();
+		buffer.limit(n);
+		buffer.put(array, 0, n);
+		buffer.flip();
 	}
 
 	public static class UpdaterThread extends Thread {
