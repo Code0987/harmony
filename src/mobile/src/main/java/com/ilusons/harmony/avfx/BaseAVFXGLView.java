@@ -5,6 +5,9 @@ import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
+import com.ilusons.harmony.BuildConfig;
+import com.ilusons.harmony.ref.TimeIt;
+
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -17,6 +20,7 @@ public abstract class BaseAVFXGLView extends GLSurfaceView {
 
     @SuppressWarnings("unused")
     private static final String TAG = BaseAVFXGLView.class.getSimpleName();
+    private static TimeIt TimeIt = new TimeIt();
 
     private AudioDataBuffer.DoubleBufferingManager doubleBufferingManager;
 

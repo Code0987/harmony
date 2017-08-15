@@ -25,43 +25,74 @@ public class BarsView extends BaseAVFXCanvasView {
 
 	float[] buffer;
 	public FloatBuffer nativeBuffer;
-	private Paint mFlashPaint;
-	private Paint mFadePaint;
+
+	private int divisions;
 	private Paint paint;
 
 	@Override
 	public void setup() {
 		super.setup();
 
-		mFlashPaint = new Paint();
-		mFlashPaint.setColor(Color.argb(122, 255, 255, 255));
-		mFadePaint = new Paint();
-		mFadePaint.setColor(Color.argb(238, 255, 255, 255));
-		mFadePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
+		divisions = 1;
+
 		paint = new Paint();
+		paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
 
 	}
 
-	private int color;
-	private float amplitude = 0;
-
-	public void setColor(int c) {
-		color = c;
+	public void setDivisions(int n) {
+		divisions = n;
 	}
 
-	private float colorCounter = 0;
+	public int getDivisions() {
+		return divisions;
+	}
 
-	private void cycleColor() {
-		int r = (int) Math.floor(128 * (Math.sin(colorCounter) + 3));
-		int g = (int) Math.floor(128 * (Math.sin(colorCounter + 1) + 1));
-		int b = (int) Math.floor(128 * (Math.sin(colorCounter + 7) + 1));
-		paint.setColor(Color.argb(128, r, g, b));
-		colorCounter += 0.03;
+	public Paint getPaint() {
+		return paint;
+	}
+
+	private float paintColorCounter = 0;
+
+	private void cyclePaintColor() {
+		int r = (int) Math.floor(128 * (Math.sin(paintColorCounter) + 3));
+		int g = (int) Math.floor(128 * (Math.sin(paintColorCounter + 1) + 1));
+		int b = (int) Math.floor(128 * (Math.sin(paintColorCounter + 7) + 1));
+
+		paintColorCounter += 0.03;
+
+		int c = Color.rgb(r, g, b);
+
+		//c = blend(paint.getColor(), c, 0.85f);
+
+		paint.setColor(c);
+	}
+
+	private int blend(int c1, int c2, float ratio) {
+		if (ratio > 1f) ratio = 1f;
+		else if (ratio < 0f) ratio = 0f;
+		float ir = 1.0f - ratio;
+
+		int a1 = (c1 >> 24 & 0xff);
+		int r1 = ((c1 & 0xff0000) >> 16);
+		int g1 = ((c1 & 0xff00) >> 8);
+		int b1 = (c1 & 0xff);
+
+		int a2 = (c2 >> 24 & 0xff);
+		int r2 = ((c2 & 0xff0000) >> 16);
+		int g2 = ((c2 & 0xff00) >> 8);
+		int b2 = (c2 & 0xff);
+
+		int a = (int) ((a1 * ir) + (a2 * ratio));
+		int r = (int) ((r1 * ir) + (r2 * ratio));
+		int g = (int) ((g1 * ir) + (g2 * ratio));
+		int b = (int) ((b1 * ir) + (b2 * ratio));
+
+		return (a << 24 | r << 16 | g << 8 | b);
 	}
 
 	@Override
 	protected void onRenderAudioData(Canvas canvas, int width, int height, AudioDataBuffer.Buffer data) {
-
 		if (data.bData != null) {
 			final byte[] fft = data.bData;
 
@@ -75,10 +106,8 @@ public class BarsView extends BaseAVFXCanvasView {
 			final FloatBuffer pointsBuffer = nativeBuffer;
 
 			// Calculate points
-
-			final int div = 12;
-
-			for (int i = 0; i < fft.length / div; i++) {
+			final int div = divisions;
+			for (int i = 0; i < fft.length / div - 1; i++) {
 				points[i * 4] = i * 4 * div;
 				points[i * 4 + 2] = i * 4 * div;
 				byte rfk = fft[div * i];
@@ -86,19 +115,17 @@ public class BarsView extends BaseAVFXCanvasView {
 				int dbValue = (int) (10 * Math.log10((float) (rfk * rfk + ifk * ifk)));
 
 				points[i * 4 + 1] = height;
-				points[i * 4 + 3] = height - (dbValue * 2 - 10);
+				points[i * 4 + 3] = height - (dbValue * 2 - 10) * 4;
 			}
 
 			converToFloatBuffer(pointsBuffer, points, workBufferSize);
 
 			// Draw
-
-			cycleColor();
+			cyclePaintColor();
 
 			canvas.drawLines(points, paint);
 
 		}
-
 	}
 
 }

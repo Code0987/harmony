@@ -3,6 +3,7 @@ package com.ilusons.harmony.views;
 import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -380,7 +381,11 @@ public class AudioVFXViewFragment extends Fragment {
 				case Bars:
 					BarsView bars = new BarsView(getActivity().getApplicationContext());
 
-					bars.setColor(color);
+					bars.setDivisions(1);
+
+					Paint barsPaint = bars.getPaint();
+					barsPaint.setColor(Color.rgb(Color.red(color), Color.green(color), Color.blue(color)));
+					barsPaint.setStrokeWidth(2);
 
 					root.addView(bars);
 

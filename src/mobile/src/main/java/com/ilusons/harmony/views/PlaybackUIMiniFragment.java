@@ -26,203 +26,179 @@ import jp.wasabeef.blurry.Blurry;
 
 public class PlaybackUIMiniFragment extends Fragment {
 
-    // Logger TAG
-    private static final String TAG = PlaybackUIMiniFragment.class.getSimpleName();
+	// Logger TAG
+	private static final String TAG = PlaybackUIMiniFragment.class.getSimpleName();
 
-    protected Handler handler = new Handler();
+	protected Handler handler = new Handler();
 
-    private MusicService musicService;
+	private MusicService musicService;
 
-    private View root;
+	private View root;
 
-    private ImageView cover;
+	private TextView title;
+	private TextView info;
 
-    private TextView title;
-    private TextView info;
+	private ImageView play_pause_stop;
+	private ImageView jump;
 
-    private ImageView play_pause_stop;
-    private ImageView jump;
+	private WeakReference<View.OnClickListener> jumpOnClickListenerReference;
 
-    private WeakReference<View.OnClickListener> jumpOnClickListenerReference;
+	private ProgressBar progressBar;
 
-    private ProgressBar progressBar;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+	}
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		View v = inflater.inflate(R.layout.playback_ui_mini, container, false);
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.playback_ui_mini, container, false);
+		root = v;
 
-        root = v;
+		title = (TextView) v.findViewById(R.id.title);
+		info = (TextView) v.findViewById(R.id.info);
 
-        cover = (ImageView) v.findViewById(R.id.cover);
+		play_pause_stop = (ImageView) v.findViewById(R.id.play_pause_stop);
 
-        title = (TextView) v.findViewById(R.id.title);
-        info = (TextView) v.findViewById(R.id.info);
+		play_pause_stop.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (musicService == null) return;
 
-        play_pause_stop = (ImageView) v.findViewById(R.id.play_pause_stop);
+				if (musicService.isPlaying()) {
+					musicService.pause();
+				} else {
+					musicService.play();
+				}
+			}
+		});
+		play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (musicService == null) return false;
 
-        play_pause_stop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (musicService == null) return;
+				musicService.stop();
 
-                if (musicService.isPlaying()) {
-                    musicService.pause();
-                } else {
-                    musicService.play();
-                }
-            }
-        });
-        play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (musicService == null) return false;
+				return true;
+			}
+		});
 
-                musicService.stop();
+		jump = (ImageView) v.findViewById(R.id.jump);
+		if (jumpOnClickListenerReference != null && jumpOnClickListenerReference.get() != null)
+			jump.setOnClickListener(jumpOnClickListenerReference.get());
 
-                return true;
-            }
-        });
+		progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
 
-        jump = (ImageView) v.findViewById(R.id.jump);
-        if (jumpOnClickListenerReference != null && jumpOnClickListenerReference.get() != null)
-            jump.setOnClickListener(jumpOnClickListenerReference.get());
+		final View.OnClickListener onClickListener = new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(getActivity(), PlaybackUIActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+			}
+		};
 
-        progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
+		title.setOnClickListener(onClickListener);
+		info.setOnClickListener(onClickListener);
+		jump.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				onClickListener.onClick(view);
+				return true;
+			}
+		});
 
-        final View.OnClickListener onClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), PlaybackUIActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                ActivityOptionsCompat options = ActivityOptionsCompat
-                        .makeSceneTransitionAnimation(getActivity(),
-                                cover,
-                                ViewCompat.getTransitionName(cover));
-                startActivity(intent, options.toBundle());
-            }
-        };
+		return v;
+	}
 
-        cover.setOnClickListener(onClickListener);
-        title.setOnClickListener(onClickListener);
-        info.setOnClickListener(onClickListener);
-        jump.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                onClickListener.onClick(view);
-                return true;
-            }
-        });
+	public void reset(MusicService ms) {
+		if (ms == null || ms.getCurrentPlaylistItemMusic() == null)
+			return;
 
-        return v;
-    }
+		if (!isAdded())
+			return;
 
-    public void reset(MusicService ms) {
-        if (ms == null || ms.getCurrentPlaylistItemMusic() == null)
-            return;
+		musicService = ms;
 
-        if (!isAdded())
-            return;
+		Music m = ms.getCurrentPlaylistItemMusic();
 
-        musicService = ms;
+		title.setText(m.Title);
+		info.setText(m.getTextExtraOnlySingleLine());
 
-        Music m = ms.getCurrentPlaylistItemMusic();
+		progressBar.setMax(ms.getDuration());
 
-        Bitmap bitmap = m.getCover(getActivity());
-        if (bitmap == null)
-            bitmap = CacheEx.getInstance().getBitmap(String.valueOf(R.drawable.logo));
-        if (bitmap != null)
-            Blurry.with(getActivity())
-                    .radius(8)
-                    .sampling(1)
-                    .color(Color.argb(72, 0, 0, 0))
-                    .async()
-                    .animate(350)
-                    .from(bitmap)
-                    .into(cover);
-        else
-            cover.setImageResource(R.drawable.logo);
+		setupProgressHandler();
 
-        title.setText(m.Title);
-        info.setText(m.getTextExtraOnlySingleLine());
+		if (musicService.isPlaying())
+			onMusicServicePlay();
+	}
 
-        progressBar.setMax(ms.getDuration());
+	public void onMusicServicePlay() {
+		if (musicService == null)
+			return;
 
-        setupProgressHandler();
+		if (!isAdded())
+			return;
 
-        if (musicService.isPlaying())
-            onMusicServicePlay();
-    }
+		play_pause_stop.setImageResource(R.drawable.ic_pause_black);
 
-    public void onMusicServicePlay() {
-        if (musicService == null)
-            return;
+	}
 
-        if (!isAdded())
-            return;
+	public void onMusicServicePause() {
+		if (musicService == null)
+			return;
 
-        play_pause_stop.setImageResource(R.drawable.ic_pause_black);
+		if (!isAdded())
+			return;
 
-    }
+		play_pause_stop.setImageResource(R.drawable.ic_play_black);
+	}
 
-    public void onMusicServicePause() {
-        if (musicService == null)
-            return;
+	public void onMusicServiceStop() {
+		if (musicService == null)
+			return;
 
-        if (!isAdded())
-            return;
+		if (!isAdded())
+			return;
 
-        play_pause_stop.setImageResource(R.drawable.ic_play_black);
-    }
+		play_pause_stop.setImageResource(R.drawable.ic_stop_black);
+	}
 
-    public void onMusicServiceStop() {
-        if (musicService == null)
-            return;
+	private Runnable progressHandlerRunnable;
 
-        if (!isAdded())
-            return;
+	private void setupProgressHandler() {
+		if (progressHandlerRunnable != null)
+			handler.removeCallbacks(progressHandlerRunnable);
 
-        play_pause_stop.setImageResource(R.drawable.ic_stop_black);
-    }
+		final int dt = (int) (1000.0 / 16.0);
 
-    private Runnable progressHandlerRunnable;
+		progressHandlerRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (musicService != null && musicService.isPlaying()) {
+					progressBar.setProgress(musicService.getPosition());
+				}
 
-    private void setupProgressHandler() {
-        if (progressHandlerRunnable != null)
-            handler.removeCallbacks(progressHandlerRunnable);
+				handler.removeCallbacks(progressHandlerRunnable);
+				handler.postDelayed(progressHandlerRunnable, dt);
+			}
+		};
+		handler.postDelayed(progressHandlerRunnable, dt);
+	}
 
-        final int dt = (int) (1000.0 / 16.0);
+	public void setJumpOnClickListener(WeakReference<View.OnClickListener> onClickListenerReference) {
+		if (jump == null)
+			jumpOnClickListenerReference = onClickListenerReference;
+		else {
+			jump.setOnClickListener(onClickListenerReference.get());
+			jumpOnClickListenerReference = null;
+		}
+	}
 
-        progressHandlerRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (musicService != null && musicService.isPlaying()) {
-                    progressBar.setProgress(musicService.getPosition());
-                }
-
-                handler.removeCallbacks(progressHandlerRunnable);
-                handler.postDelayed(progressHandlerRunnable, dt);
-            }
-        };
-        handler.postDelayed(progressHandlerRunnable, dt);
-    }
-
-    public void setJumpOnClickListener(WeakReference<View.OnClickListener> onClickListenerReference) {
-        if (jump == null)
-            jumpOnClickListenerReference = onClickListenerReference;
-        else {
-            jump.setOnClickListener(onClickListenerReference.get());
-            jumpOnClickListenerReference = null;
-        }
-    }
-
-    public static PlaybackUIMiniFragment create() {
-        PlaybackUIMiniFragment f = new PlaybackUIMiniFragment();
-        return f;
-    }
+	public static PlaybackUIMiniFragment create() {
+		PlaybackUIMiniFragment f = new PlaybackUIMiniFragment();
+		return f;
+	}
 
 }
