@@ -31,6 +31,8 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 	private AudioDataBuffer.DoubleBufferingManager doubleBufferingManager;
 	private int height;
 	private int width;
+	private Bitmap bitmap;
+	private Canvas bitmapCanvas;
 
 	public BaseAVFXCanvasView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs);
@@ -63,6 +65,27 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 		setWillNotDraw(false);
 	}
 
+	private void surfaceUpdated() {
+		bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+		if (bitmapCanvas == null) {
+			bitmapCanvas = new Canvas(bitmap);
+		} else {
+			bitmapCanvas.setBitmap(bitmap);
+		}
+	}
+
+	@SuppressLint("DrawAllocation")
+	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		width = MeasureSpec.getSize(widthMeasureSpec);
+		height = MeasureSpec.getSize(heightMeasureSpec);
+
+		surfaceUpdated();
+
+		setMeasuredDimension(width, height);
+	}
+
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 	}
@@ -71,6 +94,8 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 		this.height = height;
 		this.width = width;
+
+		surfaceUpdated();
 	}
 
 	@Override
@@ -93,7 +118,9 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 
-		onRenderAudioData(canvas, width, height, doubleBufferingManager.getAndSwapBuffer());
+		onRenderAudioData(bitmapCanvas, width, height, doubleBufferingManager.getAndSwapBuffer());
+
+		canvas.drawBitmap(bitmap, 0, 0, null);
 	}
 
 	protected void onRenderAudioData(Canvas canvas, int width, int height, AudioDataBuffer.Buffer data) {
