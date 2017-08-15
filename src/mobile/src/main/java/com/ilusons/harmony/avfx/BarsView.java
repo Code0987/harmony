@@ -27,16 +27,23 @@ public class BarsView extends BaseAVFXCanvasView {
 	public FloatBuffer nativeBuffer;
 
 	private int divisions;
+	private Paint fadePaint;
 	private Paint paint;
 
 	@Override
 	public void setup() {
 		super.setup();
 
-		divisions = 1;
+		divisions = 4;
+
+		fadePaint = new Paint();
+		fadePaint.setColor(Color.argb(216, 255, 255, 255));
+		fadePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
 
 		paint = new Paint();
-		paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
+		paint.setStrokeWidth(13.2f);
+		paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SCREEN));
+		paint.setStyle(Paint.Style.FILL);
 
 	}
 
@@ -44,24 +51,27 @@ public class BarsView extends BaseAVFXCanvasView {
 		divisions = n;
 	}
 
-	public int getDivisions() {
-		return divisions;
-	}
-
 	public Paint getPaint() {
 		return paint;
+	}
+
+	private boolean cycleColorEnabled = true;
+
+	public void setCycleColorEnabled(boolean k) {
+		cycleColorEnabled = k;
 	}
 
 	private float paintColorCounter = 0;
 
 	private void cyclePaintColor() {
+		int a = paint.getAlpha();
 		int r = (int) Math.floor(128 * (Math.sin(paintColorCounter) + 3));
 		int g = (int) Math.floor(128 * (Math.sin(paintColorCounter + 1) + 1));
 		int b = (int) Math.floor(128 * (Math.sin(paintColorCounter + 7) + 1));
 
 		paintColorCounter += 0.03;
 
-		int c = Color.rgb(r, g, b);
+		int c = Color.argb(a, r, g, b);
 
 		//c = blend(paint.getColor(), c, 0.85f);
 
@@ -115,13 +125,16 @@ public class BarsView extends BaseAVFXCanvasView {
 				int dbValue = (int) (10 * Math.log10((float) (rfk * rfk + ifk * ifk)));
 
 				points[i * 4 + 1] = height;
-				points[i * 4 + 3] = height - (dbValue * 2 - 10) * 4;
+				points[i * 4 + 3] = height - (dbValue * 2 - 10) * 2;
 			}
 
 			converToFloatBuffer(pointsBuffer, points, workBufferSize);
 
 			// Draw
-			cyclePaintColor();
+			if (cycleColorEnabled)
+				cyclePaintColor();
+
+			canvas.drawPaint(fadePaint);
 
 			canvas.drawLines(points, paint);
 
