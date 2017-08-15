@@ -9,19 +9,24 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TimingLogger;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import com.ilusons.harmony.BuildConfig;
+import com.ilusons.harmony.ref.TimeIt;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Locale;
 
 public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceHolder.Callback {
 
 	@SuppressWarnings("unused")
 	private static final String TAG = BaseAVFXCanvasView.class.getSimpleName();
+	private static TimeIt TimeIt = new TimeIt();
 
-	private UpdaterThread thread;
 	private final SurfaceHolder surfaceHolder;
 	private AudioDataBuffer.DoubleBufferingManager doubleBufferingManager;
 	private int height;
@@ -60,37 +65,16 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		if (thread == null || !thread.isAlive()) {
-			thread = new UpdaterThread(this, holder);
-			thread.setRunning(true);
-			thread.start();
-		}
 	}
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-		if (thread == null || !thread.isAlive()) {
-			thread = new UpdaterThread(this, holder);
-			thread.setRunning(true);
-			thread.start();
-		}
-
 		this.height = height;
 		this.width = width;
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		boolean retry = true;
-		thread.setRunning(false);
-		while (retry) {
-			try {
-				thread.join();
-				retry = false;
-			} catch (InterruptedException e) {
-				Log.d(TAG, "Interrupted Exception", e);
-			}
-		}
 	}
 
 	public void onPause() {
@@ -109,33 +93,23 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 
-		onRender(canvas, width, height);
-
-		onRenderAudioData(
-				canvas,
-				width,
-				height,
-				doubleBufferingManager.getAndSwapBuffer());
-	}
-
-	protected void onRender(Canvas canvas, int width, int height) {
-
+		onRenderAudioData(canvas, width, height, doubleBufferingManager.getAndSwapBuffer());
 	}
 
 	protected void onRenderAudioData(Canvas canvas, int width, int height, AudioDataBuffer.Buffer data) {
 
 	}
 
-	protected void onUpdate() {
-
-	}
-
 	public void updateAudioData(byte[] data, int samplingRate) {
 		doubleBufferingManager.update(data, 1, samplingRate);
+
+		invalidate();
 	}
 
 	public void updateAudioData(float[] data, int numChannels, int samplingRate) {
 		doubleBufferingManager.update(data, numChannels, samplingRate);
+
+		invalidate();
 	}
 
 	protected static FloatBuffer allocateNativeFloatBuffer(int size) {
@@ -150,66 +124,6 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 		buffer.limit(n);
 		buffer.put(array, 0, n);
 		buffer.flip();
-	}
-
-	public static class UpdaterThread extends Thread {
-
-		private final BaseAVFXCanvasView sv;
-		private final SurfaceHolder sh;
-
-		private boolean running = false;
-
-		private float frameRate = 30;
-		private float frameTime = 1000 / frameRate;
-
-		public UpdaterThread(BaseAVFXCanvasView sv, SurfaceHolder sh) {
-			this.sv = sv;
-			this.sh = sh;
-		}
-
-		@Override
-		public void run() {
-
-			Canvas canvas = null;
-
-			while (running) {
-				float startTime = System.currentTimeMillis();
-
-				if (!sh.getSurface().isValid())
-					continue;
-
-				sv.onUpdate();
-
-				try {
-					canvas = sh.lockCanvas(null);
-					synchronized (sh) {
-						sv.postInvalidate();
-					}
-				} finally {
-					if (canvas != null) {
-						sh.unlockCanvasAndPost(canvas);
-					}
-				}
-
-				float endTime = System.currentTimeMillis();
-				long deltaTime = (long) (frameTime - (endTime - startTime));
-				try {
-					Thread.sleep(deltaTime);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-
-		}
-
-		public void setRunning(boolean b) {
-			running = b;
-		}
-
-		public void setFrameRate(int rate) {
-			frameRate = rate;
-		}
-
 	}
 
 }

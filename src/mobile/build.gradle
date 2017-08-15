@@ -20,8 +20,8 @@ android {
             storePassword 'keystore'
         }
     }
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
     defaultConfig {
         applicationId "com.ilusons.harmony"
         minSdkVersion 21
@@ -32,7 +32,7 @@ android {
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled = true
     }
-    // flavorDimensions "versionCode"
+    flavorDimensions "versionCode"
     buildTypes {
         debug {
             buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
@@ -99,22 +99,6 @@ android {
     }
 
     applicationVariants.all { variant ->
-        /*
-        variant.outputs.each { output ->
-            def alignedOutputFile = output.outputFile
-            def unalignedOutputFile = output.packageApplication.outputFile
-
-            def outputNameExtra = defaultConfig.versionName + "-" + defaultConfig.versionCode
-
-            if (variant.buildType.zipAlignEnabled) {
-                // normal APK
-                output.outputFile = new File(alignedOutputFile.parent, alignedOutputFile.name.replace(".apk", "-" + outputNameExtra + ".apk"))
-            }
-            // 'unaligned' APK
-            output.packageApplication.outputFile = new File(unalignedOutputFile.parent, unalignedOutputFile.name.replace(".apk", "-" + outputNameExtra + ".apk"))
-        }
-        */
-
         // Git tag
         if (variant.buildType.name == "release" || variant.buildType.name == "releaseAlpha" || variant.buildType.name == "releaseBeta") {
             variant.assemble.doLast {
@@ -144,58 +128,58 @@ repositories {
     mavenCentral()
     maven { url "https://jitpack.io" }
     maven { url 'https://maven.fabric.io/public' }
+    maven { url "https://maven.google.com" }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     // TODO: Later ? wearApp project(':wear')
-    compile group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6'
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:mediarouter-v7:25.3.1'
-    compile 'com.android.support:support-core-utils:25.3.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:25.3.1'
-    compile 'com.android.support:palette-v7:25.3.1'
-    compile 'com.android.support:percent:25.3.1'
-    compile 'com.android.support:recyclerview-v7:25.3.1'
-    compile 'com.android.support:cardview-v7:25.3.1'
-    compile 'com.android.support:support-v4:25.3.1'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'commons-codec:commons-codec:1.10'
-    compile 'com.facebook.fresco:fresco:1.2.0'
-    compile 'org.jsoup:jsoup:1.10.2'
-    compile 'com.google.code.gson:gson:2.8.0'
-    compile 'com.wang.avi:library:2.1.3'
-    compile 'com.h6ah4i.android:openslmediaplayer:0.7.5'
-    compile 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:0.7.2'
-    compile 'commons-io:commons-io:2.5'
-    compile 'com.google.firebase:firebase-ads:10.0.1'
-    compile 'com.google.firebase:firebase-messaging:10.0.1'
-    compile 'me.tankery.lib:circularSeekBar:1.1.3'
-    compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'com.nononsenseapps:filepicker:4.1.0'
-    compile 'com.code-troopers.betterpickers:library:3.1.0'
-    compile 'com.airbnb.android:lottie:2.0.0'
-    compile 'com.github.iammert:MaterialIntroView:1.6.0'
-    compile 'com.jonathanfinerty.once:once:1.2.2'
-    compile 'com.cleveroad:audiovisualization:1.0.0'
-    compile ('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.6@aar'){
+    api group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6'
+    api 'com.android.support:appcompat-v7:26.0.1'
+    api 'com.android.support:mediarouter-v7:26.0.1'
+    api 'com.android.support:support-core-utils:26.0.1'
+    api 'com.android.support.constraint:constraint-layout:1.0.2'
+    api 'com.android.support:design:26.0.1'
+    api 'com.android.support:palette-v7:26.0.1'
+    api 'com.android.support:percent:26.0.1'
+    api 'com.android.support:recyclerview-v7:26.0.1'
+    api 'com.android.support:cardview-v7:26.0.1'
+    api 'com.squareup.picasso:picasso:2.5.2'
+    api 'commons-codec:commons-codec:1.10'
+    api 'com.facebook.fresco:fresco:1.2.0'
+    api 'org.jsoup:jsoup:1.10.2'
+    api 'com.google.code.gson:gson:2.8.0'
+    api 'com.wang.avi:library:2.1.3'
+    api 'com.h6ah4i.android:openslmediaplayer:0.7.5'
+    api 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:0.7.2'
+    api 'commons-io:commons-io:2.5'
+    api 'com.google.firebase:firebase-ads:11.0.4'
+    api 'com.google.firebase:firebase-messaging:11.0.4'
+    api 'me.tankery.lib:circularSeekBar:1.1.3'
+    api 'org.apache.commons:commons-lang3:3.4'
+    api 'com.nononsenseapps:filepicker:4.1.0'
+    api 'com.code-troopers.betterpickers:library:3.1.0'
+    api 'com.airbnb.android:lottie:2.0.0'
+    api 'com.github.iammert:MaterialIntroView:1.6.0'
+    api 'com.jonathanfinerty.once:once:1.2.2'
+    api 'com.cleveroad:audiovisualization:1.0.0'
+    api ('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.6@aar'){
         transitive=true
     }
-    compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
-        transitive = true;
+    api('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
+        transitive=true
     }
-    compile 'jp.wasabeef:blurry:2.1.1'
-    compile 'com.squareup.okhttp3:okhttp:3.8.1'
-    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
-    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-    releaseAlphaCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-    releaseBetaCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-    testCompile 'junit:junit:4.12'
+    api 'jp.wasabeef:blurry:2.1.1'
+    api 'com.squareup.okhttp3:okhttp:3.8.1'
+    debugApi 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+    releaseApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+    releaseAlphaApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+    releaseBetaApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+    testApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+    testApi 'junit:junit:4.12'
 }
 
 android {
