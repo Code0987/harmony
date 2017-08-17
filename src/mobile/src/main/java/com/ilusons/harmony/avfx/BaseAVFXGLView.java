@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.ref.TimeIt;
@@ -12,6 +13,7 @@ import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.LinkedList;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -20,7 +22,6 @@ public abstract class BaseAVFXGLView extends GLSurfaceView {
 
     @SuppressWarnings("unused")
     private static final String TAG = BaseAVFXGLView.class.getSimpleName();
-    private static TimeIt TimeIt = new TimeIt();
 
     private AudioDataBuffer.DoubleBufferingManager doubleBufferingManager;
 
@@ -119,8 +120,25 @@ public abstract class BaseAVFXGLView extends GLSurfaceView {
             h = height;
         }
 
+        private static LinkedList<Long> fpsTimes = new LinkedList<Long>() {{
+            add(System.nanoTime());
+        }};
+
+        private static double getFPS() {
+            long lastTime = System.nanoTime();
+            double difference = (lastTime - fpsTimes.getFirst()) / 1000000000.0;
+            fpsTimes.addLast(lastTime);
+            int size = fpsTimes.size();
+            if (size > 10) {
+                fpsTimes.removeFirst();
+            }
+            return difference > 0 ? fpsTimes.size() / difference : 0.0;
+        }
+
         @Override
         public void onDrawFrame(GL10 gl) {
+            Log.d(TAG, "FPS: " + getFPS());
+
             BaseAVFXGLView holderView = holderViewReference.get();
 
             if (holderView != null) {

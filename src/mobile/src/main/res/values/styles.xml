@@ -8,9 +8,9 @@
     <!-- base -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
 
-        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowBackground">@color/translucent</item>
-        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentStatus">false</item>
 
         <item name="android:colorForeground">@color/translucent_primary_light</item>
         <item name="android:colorBackground">@color/translucent_primary_dark</item>
