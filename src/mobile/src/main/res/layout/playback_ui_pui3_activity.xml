@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <android.support.constraint.ConstraintLayout
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/translucent_accent"
@@ -73,7 +73,6 @@
         android:clickable="true"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -89,6 +88,7 @@
 
         <RelativeLayout
             android:id="@+id/av_layout"
+            android:padding="16dp"
             app:layout_aspectRatio="100%"
             app:layout_widthPercent="100%"
             >

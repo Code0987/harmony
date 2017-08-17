@@ -1,10 +1,9 @@
 package com.ilusons.harmony.ref;
 
-import android.os.Environment;
-import android.os.SystemClock;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
@@ -60,6 +59,21 @@ public class TimeIt implements AutoCloseable {
 			e.printStackTrace();
 		}
 		return call;
+	}
+
+	private static LinkedList<Long> fpsTimes = new LinkedList<Long>() {{
+		add(System.nanoTime());
+	}};
+
+	public static double getFPS() {
+		long lastTime = System.nanoTime();
+		double difference = (lastTime - fpsTimes.getFirst()) / 1000000000.0;
+		fpsTimes.addLast(lastTime);
+		int size = fpsTimes.size();
+		if (size > 10) {
+			fpsTimes.removeFirst();
+		}
+		return difference > 0 ? fpsTimes.size() / difference : 0.0;
 	}
 
 }

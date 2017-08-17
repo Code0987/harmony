@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.util.AttributeSet;
@@ -19,15 +20,15 @@ import com.ilusons.harmony.ref.TimeIt;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.LinkedList;
 import java.util.Locale;
 
 public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceHolder.Callback {
 
 	@SuppressWarnings("unused")
 	private static final String TAG = BaseAVFXCanvasView.class.getSimpleName();
-	private static TimeIt TimeIt = new TimeIt();
 
-	private final SurfaceHolder surfaceHolder;
+	private UpdaterThread thread;
 	private AudioDataBuffer.DoubleBufferingManager doubleBufferingManager;
 	private int height;
 	private int width;
@@ -37,7 +38,11 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 	public BaseAVFXCanvasView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs);
 
-		surfaceHolder = getHolder();
+		SurfaceHolder sh = getHolder();
+		if (sh != null) {
+			sh.addCallback(this);
+			sh.setFormat(PixelFormat.TRANSLUCENT);
+		}
 
 		setup();
 	}
@@ -51,18 +56,11 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 	}
 
 	public void setup() {
-		doubleBufferingManager = new AudioDataBuffer.DoubleBufferingManager();
-
+		setWillNotDraw(false);
 		setDrawingCacheEnabled(true);
-
-		if (surfaceHolder != null) {
-			surfaceHolder.addCallback(this);
-			surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
-		}
-
 		setZOrderOnTop(true);
 
-		setWillNotDraw(false);
+		doubleBufferingManager = new AudioDataBuffer.DoubleBufferingManager();
 	}
 
 	private void surfaceUpdated() {
@@ -96,26 +94,57 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 		this.width = width;
 
 		surfaceUpdated();
+
+		if (thread == null || !thread.isAlive()) {
+			thread = new UpdaterThread(this, holder);
+			thread.setRunning(true);
+			thread.start();
+		}
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
+		boolean retry = true;
+		thread.setRunning(false);
+		while (retry) {
+			try {
+				thread.join();
+				retry = false;
+			} catch (InterruptedException e) {
+				Log.d(TAG, "Interrupted Exception", e);
+			}
+		}
 	}
 
 	public void onPause() {
-		synchronized (surfaceHolder) {
-			surfaceDestroyed(surfaceHolder);
-		}
+		if (!(thread == null || !thread.isAlive()))
+			thread.setRunning(false);
 	}
 
 	public void onResume() {
-		synchronized (surfaceHolder) {
-			surfaceCreated(surfaceHolder);
+		if (!(thread == null || !thread.isAlive()))
+			thread.setRunning(true);
+	}
+
+	private static LinkedList<Long> fpsTimes = new LinkedList<Long>() {{
+		add(System.nanoTime());
+	}};
+
+	private static double getFPS() {
+		long lastTime = System.nanoTime();
+		double difference = (lastTime - fpsTimes.getFirst()) / 1000000000.0;
+		fpsTimes.addLast(lastTime);
+		int size = fpsTimes.size();
+		if (size > 10) {
+			fpsTimes.removeFirst();
 		}
+		return difference > 0 ? fpsTimes.size() / difference : 0.0;
 	}
 
 	@Override
 	protected void onDraw(Canvas canvas) {
+		Log.d(TAG, "FPS: " + getFPS());
+
 		super.onDraw(canvas);
 
 		onRenderAudioData(bitmapCanvas, width, height, doubleBufferingManager.getAndSwapBuffer());
@@ -129,14 +158,10 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 
 	public void updateAudioData(byte[] data, int samplingRate) {
 		doubleBufferingManager.update(data, 1, samplingRate);
-
-		invalidate();
 	}
 
 	public void updateAudioData(float[] data, int numChannels, int samplingRate) {
 		doubleBufferingManager.update(data, numChannels, samplingRate);
-
-		invalidate();
 	}
 
 	protected static FloatBuffer allocateNativeFloatBuffer(int size) {
@@ -151,6 +176,61 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 		buffer.limit(n);
 		buffer.put(array, 0, n);
 		buffer.flip();
+	}
+
+	public static class UpdaterThread extends Thread {
+
+		private final BaseAVFXCanvasView sv;
+		private final SurfaceHolder sh;
+
+		private boolean running = false;
+
+		private float frameTime = 1000.0f / 60;
+
+		public UpdaterThread(BaseAVFXCanvasView sv, SurfaceHolder sh) {
+			this.sv = sv;
+			this.sh = sh;
+		}
+
+		@Override
+		public void run() {
+
+			Canvas canvas = null;
+
+			while (running) {
+				float startTime = System.nanoTime();
+
+				if (!sh.getSurface().isValid())
+					continue;
+
+				try {
+					canvas = sh.lockCanvas(null);
+					synchronized (sh) {
+						sv.postInvalidate();
+					}
+				} finally {
+					if (canvas != null) {
+						sh.unlockCanvasAndPost(canvas);
+					}
+				}
+
+				try {
+					Thread.sleep((long) (frameTime - (System.nanoTime() - startTime) / 1000000000.0));
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
+
+		public void setRunning(boolean b) {
+			running = b;
+		}
+
+		public void setFrameRate(int rate) {
+			frameTime = 1000.0f / rate;
+		}
+
 	}
 
 }
