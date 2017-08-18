@@ -3,9 +3,6 @@ package com.ilusons.harmony.views;
 import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -25,6 +22,7 @@ import com.ilusons.harmony.avfx.BarsView;
 import com.ilusons.harmony.avfx.BaseAVFXCanvasView;
 import com.ilusons.harmony.avfx.BaseAVFXGLView;
 import com.ilusons.harmony.avfx.FFTView;
+import com.ilusons.harmony.avfx.ParticlesView;
 import com.ilusons.harmony.avfx.WaveformView;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.JavaEx;
@@ -381,7 +379,7 @@ public class AudioVFXViewFragment extends Fragment {
 					break;
 
 				case Bars:
-					BarsView bars = new BarsView(getActivity().getApplicationContext());
+					BarsView bars = new BarsView(getActivity());
 
 					bars.getPaint().setColor(Color.rgb(Color.red(color), Color.green(color), Color.blue(color)));
 					bars.getPaint().setAlpha(Color.alpha(color));
@@ -390,6 +388,16 @@ public class AudioVFXViewFragment extends Fragment {
 					root.addView(bars);
 
 					avfxCanvasView = bars;
+					break;
+
+				case Particles:
+					ParticlesView particles = new ParticlesView(getActivity());
+
+					particles.setColor(color);
+
+					root.addView(particles);
+
+					avfxCanvasView = particles;
 					break;
 
 				case Waves:
@@ -445,7 +453,8 @@ public class AudioVFXViewFragment extends Fragment {
 		Waveform("Waveform"),
 		FFT("FFT"),
 		Waves("Waves"),
-		Bars("Bars"),;
+		Bars("Bars"),
+		Particles("Particles");
 
 		public String friendlyName;
 

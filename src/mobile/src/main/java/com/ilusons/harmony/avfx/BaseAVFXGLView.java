@@ -120,24 +120,10 @@ public abstract class BaseAVFXGLView extends GLSurfaceView {
             h = height;
         }
 
-        private static LinkedList<Long> fpsTimes = new LinkedList<Long>() {{
-            add(System.nanoTime());
-        }};
+        private static TimeIt.FPS FPS = new TimeIt.FPS();
 
-        private static double getFPS() {
-            long lastTime = System.nanoTime();
-            double difference = (lastTime - fpsTimes.getFirst()) / 1000000000.0;
-            fpsTimes.addLast(lastTime);
-            int size = fpsTimes.size();
-            if (size > 10) {
-                fpsTimes.removeFirst();
-            }
-            return difference > 0 ? fpsTimes.size() / difference : 0.0;
-        }
-
-        @Override
         public void onDrawFrame(GL10 gl) {
-            Log.d(TAG, "FPS: " + getFPS());
+            Log.d(TAG, "FPS: " + FPS.getFPS());
 
             BaseAVFXGLView holderView = holderViewReference.get();
 
