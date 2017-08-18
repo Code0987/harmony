@@ -30,8 +30,8 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 
 	private UpdaterThread thread;
 	private AudioDataBuffer.DoubleBufferingManager doubleBufferingManager;
-	private int height;
-	private int width;
+	protected int height;
+	protected int width;
 	private Bitmap bitmap;
 	private Canvas bitmapCanvas;
 
@@ -126,24 +126,11 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 			thread.setRunning(true);
 	}
 
-	private static LinkedList<Long> fpsTimes = new LinkedList<Long>() {{
-		add(System.nanoTime());
-	}};
-
-	private static double getFPS() {
-		long lastTime = System.nanoTime();
-		double difference = (lastTime - fpsTimes.getFirst()) / 1000000000.0;
-		fpsTimes.addLast(lastTime);
-		int size = fpsTimes.size();
-		if (size > 10) {
-			fpsTimes.removeFirst();
-		}
-		return difference > 0 ? fpsTimes.size() / difference : 0.0;
-	}
+	private static final TimeIt.FPS FPS = new TimeIt.FPS();
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		Log.d(TAG, "FPS: " + getFPS());
+		Log.d(TAG, "FPS: " + FPS.getFPS());
 
 		super.onDraw(canvas);
 

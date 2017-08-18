@@ -39,15 +39,15 @@ public class BarsView extends BaseAVFXCanvasView {
 		divisions = 4;
 
 		fadePaint = new Paint();
-		fadePaint.setColor(Color.argb(250, 255, 255, 255));
+		fadePaint.setColor(Color.argb(240, 255, 255, 255));
 		fadePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
 
 		paint = new Paint();
 		paint.setStrokeWidth(13.2f);
-		paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SCREEN));
+		paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
 		paint.setStyle(Paint.Style.FILL);
 
-		blurFilter = new BlurMaskFilter(1.3f, BlurMaskFilter.Blur.NORMAL);
+		blurFilter = new BlurMaskFilter(0.7f, BlurMaskFilter.Blur.NORMAL);
 
 		paint.setMaskFilter(blurFilter);
 

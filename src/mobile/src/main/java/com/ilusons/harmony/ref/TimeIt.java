@@ -61,19 +61,23 @@ public class TimeIt implements AutoCloseable {
 		return call;
 	}
 
-	private static LinkedList<Long> fpsTimes = new LinkedList<Long>() {{
-		add(System.nanoTime());
-	}};
+	public static class FPS {
 
-	public static double getFPS() {
-		long lastTime = System.nanoTime();
-		double difference = (lastTime - fpsTimes.getFirst()) / 1000000000.0;
-		fpsTimes.addLast(lastTime);
-		int size = fpsTimes.size();
-		if (size > 10) {
-			fpsTimes.removeFirst();
+		private LinkedList<Long> fpsTimes = new LinkedList<Long>() {{
+			add(System.nanoTime());
+		}};
+
+		public double getFPS() {
+			long lastTime = System.nanoTime();
+			double difference = (lastTime - fpsTimes.getFirst()) / 1000000000.0;
+			fpsTimes.addLast(lastTime);
+			int size = fpsTimes.size();
+			if (size > 10) {
+				fpsTimes.removeFirst();
+			}
+			return difference > 0 ? fpsTimes.size() / difference : 0.0;
 		}
-		return difference > 0 ? fpsTimes.size() / difference : 0.0;
+
 	}
 
 }
