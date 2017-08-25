@@ -236,7 +236,11 @@ public class AudioVFXViewFragment extends Fragment {
 					size = Math.min(visualizerHQ.getCaptureSizeRange()[1], size);
 
 					visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
-					visualizerHQ.setCaptureSize(size);
+					try {
+						visualizerHQ.setCaptureSize(size);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					visualizerHQ.setDataCaptureListener(
 							onDataCaptureListenerHQ,
 							rate,
@@ -257,8 +261,12 @@ public class AudioVFXViewFragment extends Fragment {
 					int rate = visualizer.getMaxCaptureRate();
 					int size = visualizer.getCaptureSizeRange()[1];
 
-					visualizer.setCaptureSize(size);
-					visualizer.setScalingMode(Visualizer.SCALING_MODE_NORMALIZED);
+					try {
+						visualizer.setCaptureSize(size);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					visualizer.setScalingMode(Visualizer.SCALING_MODE_AS_PLAYED);
 					visualizer.setDataCaptureListener(
 							onDataCaptureListener,
 							rate,
@@ -281,10 +289,14 @@ public class AudioVFXViewFragment extends Fragment {
 	private void stopVisualizer() {
 		if (visualizerHQ != null) {
 			visualizerHQ.setEnabled(false);
+
+			visualizerHQ.release();
 		}
 
 		if (visualizer != null) {
 			visualizer.setEnabled(false);
+
+			visualizer.release();
 		}
 
 		if (wavesView != null)

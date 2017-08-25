@@ -549,6 +549,18 @@ public class LibraryUIActivity extends BaseUIActivity {
 	}
 
 	@Override
+	protected void onResume() {
+		super.onResume();
+
+		if (playbackUIMiniFragment != null)
+			try {
+				playbackUIMiniFragment.reset(getMusicService());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	}
+
+	@Override
 	public void onBackPressed() {
 		if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
 			drawer_layout.closeDrawer(GravityCompat.START);
@@ -1408,7 +1420,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 						// Add ads
 						// TODO: Fix ads later
-	                    /*if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
+		                /*if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
                             final int n = Math.min(dataFiltered.size(), 7);
                             for (int i = 0; i <= n; i += ITEMS_PER_AD)
                                 try {

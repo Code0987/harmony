@@ -1,6 +1,7 @@
 package com.ilusons.harmony.views;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -39,6 +40,7 @@ import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.CacheEx;
+import com.ilusons.harmony.ref.SPrefEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -79,6 +81,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	private ImageView cover;
 	private VideoView video;
+	private View av_layout;
 
 	private int color;
 	private int colorLight;
@@ -182,7 +185,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		loadingView = (AVLoadingIndicatorView) findViewById(R.id.loadingView);
 
-		findViewById(R.id.av_layout).setOnClickListener(new View.OnClickListener() {
+		av_layout = findViewById(R.id.av_layout);
+		av_layout.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				toggleUI();
@@ -194,6 +198,28 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		cover = (ImageView) findViewById(R.id.cover);
 		video = (VideoView) findViewById(R.id.video);
+
+		if (!getPlaybackUIAVHidden(PlaybackUIActivity.this)) {
+			cover.animate().alpha(0.3f).setDuration(666).start();
+		} else {
+			cover.animate().alpha(1.0f).setDuration(333).start();
+		}
+		av_layout.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (!getPlaybackUIAVHidden(PlaybackUIActivity.this)) {
+					cover.animate().alpha(0.3f).setDuration(666).start();
+
+					setPlaybackUIAVHidden(PlaybackUIActivity.this, true);
+				} else {
+					cover.animate().alpha(1.0f).setDuration(333).start();
+
+					setPlaybackUIAVHidden(PlaybackUIActivity.this, false);
+				}
+
+				return true;
+			}
+		});
 
 		// Video, if loaded is on mute
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -1078,6 +1104,19 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			e.printStackTrace();
 		}
 
+	}
+
+	public static final String TAG_SPREF_PLAYBACK_UI_AV_HIDDEN = SPrefEx.TAG_SPREF + ".playback_ui_av_hidden";
+
+	public static boolean getPlaybackUIAVHidden(Context context) {
+		return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYBACK_UI_AV_HIDDEN, false);
+	}
+
+	public static void setPlaybackUIAVHidden(Context context, boolean value) {
+		SPrefEx.get(context)
+				.edit()
+				.putBoolean(TAG_SPREF_PLAYBACK_UI_AV_HIDDEN, value)
+				.apply();
 	}
 
 }
