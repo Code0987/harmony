@@ -166,7 +166,7 @@ dependencies {
     api 'com.github.iammert:MaterialIntroView:1.6.0'
     api 'com.jonathanfinerty.once:once:1.2.2'
     api 'com.cleveroad:audiovisualization:1.0.0'
-    api ('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.6@aar'){
+    api ('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.6@aar') {
         transitive=true
     }
     api('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
