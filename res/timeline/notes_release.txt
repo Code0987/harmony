@@ -1,3 +1,8 @@
 ﻿◾️ Work in progress, please leave feedback.
 ✔️ Fixed: Bugs.
+✔️ New: Added EQ presets!
+✔️ Updates: Reworked on EQ.
 ✔️ Updates: Improved UI.
+✔️ Updates: Lyrics fetching, Song name detection.
+✔️ Updates: Added long-press to focus AVFX in cover art in Playback UI.
+✔️ Updates: Allowed 3rd party installation of app.

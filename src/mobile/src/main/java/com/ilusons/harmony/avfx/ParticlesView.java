@@ -33,7 +33,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 	private Paint paint;
 	private Paint pathPaint;
 	private Path path;
-	private static final int N = 55;
+	private static final int N = 95;
 	private ArrayList<Particle> particles;
 
 	@Override

@@ -264,7 +264,12 @@ public class AudioVFXViewFragment extends Fragment {
 					try {
 						visualizer.setCaptureSize(size);
 					} catch (Exception e) {
-						e.printStackTrace();
+						try {
+							visualizer.setEnabled(false);
+							visualizer.setCaptureSize(size);
+						} catch (Exception e2) {
+							e2.printStackTrace();
+						}
 					}
 					visualizer.setScalingMode(Visualizer.SCALING_MODE_AS_PLAYED);
 					visualizer.setDataCaptureListener(

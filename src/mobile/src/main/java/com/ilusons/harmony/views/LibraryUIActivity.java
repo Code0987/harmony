@@ -162,6 +162,13 @@ public class LibraryUIActivity extends BaseUIActivity {
 					swipeRefreshLayout.setRefreshing(false);
 
 					refreshTask = null;
+
+					if (playbackUIMiniFragment != null)
+						try {
+							playbackUIMiniFragment.reset(getMusicService());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 				}
 
 				@Override
@@ -692,6 +699,13 @@ public class LibraryUIActivity extends BaseUIActivity {
 		swipeRefreshLayout.setRefreshing(false);
 
 		info("Library updated!");
+
+		if (playbackUIMiniFragment != null)
+			try {
+				playbackUIMiniFragment.reset(getMusicService());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 	}
 
 	private void showGuide() {

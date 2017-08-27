@@ -122,6 +122,10 @@ android {
         exclude 'META-INF/LGPL2.1'
     }
     useLibrary 'org.apache.http.legacy'
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 repositories {
@@ -180,6 +184,11 @@ dependencies {
     releaseBetaApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
     testApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
     testApi 'junit:junit:4.12'
+    testApi 'org.mockito:mockito-core:1.10.19'
+    testApi "org.powermock:powermock-module-junit4:1.6.2"
+    testApi "org.powermock:powermock-module-junit4-rule:1.6.2"
+    testApi "org.powermock:powermock-api-mockito:1.6.2"
+    testApi "org.powermock:powermock-classloading-xstream:1.6.2"
 }
 
 android {
