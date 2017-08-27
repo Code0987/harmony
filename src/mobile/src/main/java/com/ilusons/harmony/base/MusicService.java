@@ -483,7 +483,7 @@ public class MusicService extends Service {
 
 	public IEqualizer getEqualizer() {
 		if (getPlayerEQEnabled(this)) try {
-			if (equalizer == null)
+			if (equalizer == null) {
 				try {
 					switch (getPlayerType(this)) {
 						case OpenSL:
@@ -498,8 +498,8 @@ public class MusicService extends Service {
 					// Eat?
 				}
 
-			loadEqualizer();
-
+				loadEqualizer();
+			}
 		} catch (Exception e) {
 			Log.w(TAG, e);
 
@@ -556,6 +556,8 @@ public class MusicService extends Service {
 				equalizer.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
+
+				equalizer.setEnabled(true);
 			}
 	}
 
@@ -588,14 +590,15 @@ public class MusicService extends Service {
 
 	public IPreAmp getPreAmp() {
 		if (getPlayerPreAmpEnabled(this)) try {
-			if (preAmp == null)
+			if (preAmp == null) {
 				try {
 					preAmp = mediaPlayerFactory.createPreAmp();
 				} catch (Exception e) {
 					// Eat?
 				}
 
-			loadPreAmp();
+				loadPreAmp();
+			}
 		} catch (Exception e) {
 			Log.w(TAG, e);
 		}
@@ -633,7 +636,7 @@ public class MusicService extends Service {
 	}
 
 	public void savePreAmp() {
-		if (equalizer != null)
+		if (preAmp != null)
 			try {
 				MusicService.setPlayerPreAmp(this, preAmp.getProperties());
 			} catch (Exception e) {
@@ -642,12 +645,14 @@ public class MusicService extends Service {
 	}
 
 	private void loadPreAmp() {
-		if (equalizer != null)
+		if (preAmp != null)
 			try {
 				preAmp.setProperties(getPlayerPreAmp(this));
 				preAmp.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
+
+				preAmp.setEnabled(true);
 			}
 	}
 
@@ -1256,7 +1261,7 @@ public class MusicService extends Service {
 				.setCustomContentView(customNotificationViewS)
 				.setCustomHeadsUpContentView(customNotificationViewS)
 				.setCustomBigContentView(customNotificationView)
-		        /*.setStyle(new NotificationCompat.DecoratedMediaCustomViewStyle()
+				/*.setStyle(new NotificationCompat.DecoratedMediaCustomViewStyle()
                         .setShowCancelButton(true)
                         .setCancelButtonIntent(createActionIntent(this, ACTION_STOP))
                         .setMediaSession(mediaSession.getSessionToken())

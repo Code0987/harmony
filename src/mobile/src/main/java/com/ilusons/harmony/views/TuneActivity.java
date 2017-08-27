@@ -784,8 +784,8 @@ public class TuneActivity extends BaseActivity {
 		final String tag_msg_info = TAG + ".msg_info";
 		if (!Once.beenDone(Once.THIS_APP_VERSION, tag_msg_info)) {
 			(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
-					.setTitle("Tune ☢")
-					.setMessage("Tune allows you to deeply customize the sound you want to hear. It's currently in experimental ☢ state. Anyway, Tune functions are totally device dependent, you'll see options only available in your device. Thank you.")
+					.setTitle("A note ...")
+					.setMessage("Tune allows you to deeply customize the sound you want to hear. It's currently in experimental ☢ state. Tune functions are totally device dependent. Thank you.")
 					.setCancelable(false)
 					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 						@Override
@@ -1074,6 +1074,8 @@ public class TuneActivity extends BaseActivity {
 				try {
 					equalizer.setBandLevel(band, BandLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
 				} catch (Exception e) {
+					e.printStackTrace();
+
 					info("Update failed, try another preset or settings!");
 				}
 			}
@@ -1095,6 +1097,7 @@ public class TuneActivity extends BaseActivity {
 
 		eq_preset_spinner = (Spinner) findViewById(R.id.eq_preset_spinner);
 		ArrayList<String> presets = new ArrayList<>();
+		presets.add("Custom");
 		for (int i = 0; i < NUMBER_OF_PRESETS; i++)
 			presets.add(PRESETS[i].name);
 		final ArrayAdapter<String> eq_preset_spinner_adapter = new ArrayAdapter<String>(this, R.layout.spinner_layout, presets);
@@ -1114,15 +1117,24 @@ public class TuneActivity extends BaseActivity {
 							return;
 
 						try {
-							if (equalizer.getCurrentPreset() == (short) i)
+							short preset = (short) (i - 1);
+							short eqPreset = equalizer.getCurrentPreset();
+
+							if (eqPreset == preset)
 								return;
 
-							equalizer.usePreset((short) i);
+							if (eqPreset == IEqualizer.PRESET_UNDEFINED && preset == (short) -1)
+								return;
+
+							if (preset == IEqualizer.PRESET_UNDEFINED)
+								return;
+
+							equalizer.usePreset(preset);
 
 							updateEq(equalizer);
-
-							info("Updated!");
 						} catch (Exception e) {
+							e.printStackTrace();
+
 							info("Update failed, try another preset or settings!");
 						}
 					}
@@ -1194,7 +1206,7 @@ public class TuneActivity extends BaseActivity {
 		}
 
 		try {
-			eq_preset_spinner.setSelection(equalizer.getCurrentPreset());
+			eq_preset_spinner.setSelection(equalizer.getCurrentPreset() + 1);
 		} catch (Exception e) {
 			e.printStackTrace();
 
