@@ -15,83 +15,89 @@ import com.ilusons.harmony.views.PlaybackUIActivity;
 
 public class MainActivity extends BaseActivity {
 
-    // Logger TAG
-    private static final String TAG = MainActivity.class.getSimpleName();
+	// Logger TAG
+	private static final String TAG = MainActivity.class.getSimpleName();
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-        // Intent
-        handleIntent(getIntent());
+		// Intent
+		handleIntent(getIntent());
 
-        // Kill self
-        finish();
+		// Kill self
+		finish();
 
-    }
+	}
 
-    private void handleIntent(final Intent intent) {
-        Log.d(TAG, "handleIntent\n" + intent);
+	private void handleIntent(final Intent intent) {
+		Log.d(TAG, "handleIntent\n" + intent);
 
-        if (intent.getAction() == null) {
-            openLibraryUIActivity(this);
-            return;
-        }
+		if (intent.getAction() == null) {
+			openLibraryUIActivity(this);
+			return;
+		}
 
-        if (intent.getAction().equals(Intent.ACTION_VIEW)) {
-            String scheme = intent.getScheme();
+		if (intent.getAction().equals(Intent.ACTION_VIEW)) {
+			String scheme = intent.getScheme();
 
-            if (scheme.equals(ContentResolver.SCHEME_FILE)
-                    || scheme.equals(ContentResolver.SCHEME_CONTENT)) {
+			if (scheme.equals(ContentResolver.SCHEME_FILE)
+					|| scheme.equals(ContentResolver.SCHEME_CONTENT)) {
 
-                final Uri uri = Uri.parse(StorageEx.getPath(MainActivity.this, intent.getData()));
+				try {
+					final Uri uri = Uri.parse(StorageEx.getPath(MainActivity.this, intent.getData()));
 
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Intent i = new Intent(MainActivity.this, MusicService.class);
+					handler.postDelayed(new Runnable() {
+						@Override
+						public void run() {
+							Intent i = new Intent(MainActivity.this, MusicService.class);
 
-                        i.setAction(MusicService.ACTION_OPEN);
-                        i.putExtra(MusicService.KEY_URI, uri.toString());
+							i.setAction(MusicService.ACTION_OPEN);
+							i.putExtra(MusicService.KEY_URI, uri.toString());
 
-                        startService(i);
+							startService(i);
 
-                        openPlaybackUIActivity(MainActivity.this);
-                    }
-                }, 350);
+							openPlaybackUIActivity(MainActivity.this);
+						}
+					}, 350);
+				} catch (Exception e) {
+					e.printStackTrace();
 
-            } else if (scheme.equals("http")) {
-            } else if (scheme.equals("ftp")) {
-            } else {
-                openLibraryUIActivity(this);
-                return;
-            }
+					openLibraryUIActivity(this);
+				}
 
-        }
-    }
+			} else if (scheme.equals("http")) {
+			} else if (scheme.equals("ftp")) {
+			} else {
+				openLibraryUIActivity(this);
+				return;
+			}
 
-    public static synchronized Intent getLibraryUIActivityIntent(final Context context) {
-        Intent intent = new Intent(context, LibraryUIActivity.class);
+		}
+	}
 
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	public static synchronized Intent getLibraryUIActivityIntent(final Context context) {
+		Intent intent = new Intent(context, LibraryUIActivity.class);
 
-        return intent;
-    }
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-    public static synchronized void openLibraryUIActivity(final Context context) {
-        context.startActivity(getLibraryUIActivityIntent(context));
-    }
+		return intent;
+	}
 
-    public static synchronized Intent getPlaybackUIActivityIntent(final Context context) {
-        Intent intent = new Intent(context, PlaybackUIActivity.class);
+	public static synchronized void openLibraryUIActivity(final Context context) {
+		context.startActivity(getLibraryUIActivityIntent(context));
+	}
 
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	public static synchronized Intent getPlaybackUIActivityIntent(final Context context) {
+		Intent intent = new Intent(context, PlaybackUIActivity.class);
 
-        return intent;
-    }
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-    public static synchronized void openPlaybackUIActivity(final Context context) {
-        context.startActivity(getPlaybackUIActivityIntent(context));
-    }
+		return intent;
+	}
+
+	public static synchronized void openPlaybackUIActivity(final Context context) {
+		context.startActivity(getPlaybackUIActivityIntent(context));
+	}
 
 }

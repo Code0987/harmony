@@ -199,7 +199,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		cover = (ImageView) findViewById(R.id.cover);
 		video = (VideoView) findViewById(R.id.video);
 
-		if (!getPlaybackUIAVHidden(PlaybackUIActivity.this)) {
+		if (getPlaybackUIAVHidden(PlaybackUIActivity.this)) {
 			cover.animate().alpha(0.3f).setDuration(666).start();
 		} else {
 			cover.animate().alpha(1.0f).setDuration(333).start();
@@ -558,6 +558,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+
+		handler.removeCallbacks(videoSyncTask);
 	}
 
 	@Override

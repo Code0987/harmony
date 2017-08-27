@@ -1,13 +1,16 @@
 package com.ilusons.harmony.views;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -43,6 +46,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
+import jonathanfinerty.once.Once;
 import me.tankery.lib.circularseekbar.CircularSeekBar;
 
 public class TuneActivity extends BaseActivity {
@@ -56,10 +60,6 @@ public class TuneActivity extends BaseActivity {
 
 	private AudioVFXViewFragment audioVFXViewFragment;
 
-	private VerticalSeekBar preamp_seekBar;
-	private View[] band_layouts;
-	private VerticalSeekBar[] bands;
-	private TextView[] freqs;
 	private CircularSeekBar bassBoost_seekBar;
 	private CircularSeekBar loudness_seekBar;
 	private CircularSeekBar virtualizer_seekBar;
@@ -113,205 +113,11 @@ public class TuneActivity extends BaseActivity {
 				.replace(R.id.avfx_layout, audioVFXViewFragment)
 				.commit();
 
-		// Set eq
-		final CheckBox preamp_checkBox = (CheckBox) findViewById(R.id.preamp_checkBox);
-		preamp_checkBox.setChecked(MusicService.getPlayerPreAmpEnabled(this));
-		preamp_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-				if (getMusicService() == null)
-					return;
+		// Eq
+		createEq();
 
-				IPreAmp preAmp = getMusicService().getPreAmp();
-
-				if (preAmp == null)
-					return;
-
-				preAmp.setEnabled(b);
-
-				MusicService.setPlayerPreAmpEnabled(TuneActivity.this, b);
-
-				info("Updated, requires restart for complete effect!");
-			}
-		});
-
-		preamp_seekBar = (VerticalSeekBar) findViewById(R.id.preamp_seekBar);
-		preamp_seekBar.setMax(SEEKBAR_MAX);
-		preamp_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				if (!fromUser)
-					return;
-
-				if (getMusicService() == null)
-					return;
-
-				IPreAmp preAmp = getMusicService().getPreAmp();
-
-				if (preAmp == null)
-					return;
-
-				if (!preamp_checkBox.isChecked())
-					preamp_checkBox.setChecked(true);
-
-				setNormalizedPreAmpLevel(preAmp, (float) progress / SEEKBAR_MAX);
-			}
-
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-
-			}
-
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
-
-			}
-		});
-
-		final CheckBox eq_checkBox = (CheckBox) findViewById(R.id.eq_checkBox);
-		eq_checkBox.setChecked(MusicService.getPlayerEQEnabled(this));
-		eq_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-				if (getMusicService() == null)
-					return;
-
-				IEqualizer equalizer = getMusicService().getEqualizer();
-
-				if (equalizer == null)
-					return;
-
-				equalizer.setEnabled(b);
-
-				MusicService.setPlayerEQEnabled(TuneActivity.this, b);
-
-				info("Updated, requires restart for complete effect!");
-			}
-		});
-
-		band_layouts = new View[]{
-				findViewById(R.id.band0_layout),
-				findViewById(R.id.band1_layout),
-				findViewById(R.id.band2_layout),
-				findViewById(R.id.band3_layout),
-				findViewById(R.id.band4_layout),
-				findViewById(R.id.band5_layout),
-				findViewById(R.id.band6_layout),
-				findViewById(R.id.band7_layout),
-				findViewById(R.id.band8_layout),
-				findViewById(R.id.band9_layout),
-		};
-		bands = new VerticalSeekBar[]{
-				(VerticalSeekBar) findViewById(R.id.band0_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band1_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band2_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band3_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band4_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band5_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band6_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band7_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band8_seekBar),
-				(VerticalSeekBar) findViewById(R.id.band9_seekBar)
-		};
-		freqs = new TextView[]{
-				(TextView) findViewById(R.id.band0_textView),
-				(TextView) findViewById(R.id.band1_textView),
-				(TextView) findViewById(R.id.band2_textView),
-				(TextView) findViewById(R.id.band3_textView),
-				(TextView) findViewById(R.id.band4_textView),
-				(TextView) findViewById(R.id.band5_textView),
-				(TextView) findViewById(R.id.band6_textView),
-				(TextView) findViewById(R.id.band7_textView),
-				(TextView) findViewById(R.id.band8_textView),
-				(TextView) findViewById(R.id.band9_textView)
-		};
-
-		for (int i = 0; i < bands.length; i++) {
-			band_layouts[i].setVisibility((i < NUMBER_OF_BANDS) ? View.VISIBLE : View.GONE);
-			bands[i].setEnabled((i < NUMBER_OF_BANDS));
-		}
-
-		for (int i = 0; i < NUMBER_OF_BANDS; i++) {
-			freqs[i].setText(formatFrequencyText(CENTER_FREQUENCY[i]));
-			bands[i].setMax(SEEKBAR_MAX);
-		}
-
-		SeekBar.OnSeekBarChangeListener bands_OnSeekBarChangeListener = (new SeekBar.OnSeekBarChangeListener() {
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				if (!fromUser)
-					return;
-
-				if (getMusicService() == null)
-					return;
-
-				IEqualizer equalizer = getMusicService().getEqualizer();
-
-				if (equalizer == null)
-					return;
-
-				if (!eq_checkBox.isChecked())
-					eq_checkBox.setChecked(true);
-
-				equalizer.setEnabled(true);
-
-				short band;
-				switch (seekBar.getId()) {
-					case R.id.band0_seekBar:
-						band = 0;
-						break;
-					case R.id.band1_seekBar:
-						band = 1;
-						break;
-					case R.id.band2_seekBar:
-						band = 2;
-						break;
-					case R.id.band3_seekBar:
-						band = 3;
-						break;
-					case R.id.band4_seekBar:
-						band = 4;
-						break;
-					case R.id.band5_seekBar:
-						band = 5;
-						break;
-					case R.id.band6_seekBar:
-						band = 6;
-						break;
-					case R.id.band7_seekBar:
-						band = 7;
-						break;
-					case R.id.band8_seekBar:
-						band = 8;
-						break;
-					case R.id.band9_seekBar:
-						band = 9;
-						break;
-					default:
-						throw new IllegalArgumentException();
-				}
-
-				try {
-					equalizer.setBandLevel(band, BandLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
-				} catch (Exception e) {
-					info("Update failed, try another preset or settings!");
-				}
-			}
-
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-
-			}
-
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
-
-			}
-		});
-
-		for (int i = 0; i < NUMBER_OF_BANDS; i++) {
-			bands[i].setOnSeekBarChangeListener(bands_OnSeekBarChangeListener);
-		}
+		// PreAmp
+		createPreAmp();
 
 		// Set bass boost
 		CheckBox bassboost_checkBox = (CheckBox) findViewById(R.id.bassboost_checkBox);
@@ -974,6 +780,24 @@ public class TuneActivity extends BaseActivity {
 			}
 		});
 
+		// Info
+		final String tag_msg_info = TAG + ".msg_info";
+		if (!Once.beenDone(Once.THIS_APP_VERSION, tag_msg_info)) {
+			(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
+					.setTitle("Tune ☢")
+					.setMessage("Tune allows you to deeply customize the sound you want to hear. It's currently in experimental ☢ state. Anyway, Tune functions are totally device dependent, you'll see options only available in your device. Thank you.")
+					.setCancelable(false)
+					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialogInterface, int i) {
+							dialogInterface.dismiss();
+						}
+					}))
+					.show();
+
+			Once.markDone(tag_msg_info);
+		}
+
 	}
 
 	@Override
@@ -984,19 +808,9 @@ public class TuneActivity extends BaseActivity {
 			MusicService musicService = getMusicService();
 			if (musicService != null) {
 
-				IPreAmp preAmp = musicService.getPreAmp();
-				if (preAmp != null) try {
-					MusicService.setPlayerPreAmp(TuneActivity.this, preAmp.getProperties());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				musicService.saveEqualizer();
 
-				IEqualizer equalizer = musicService.getEqualizer();
-				if (equalizer != null) try {
-					MusicService.setPlayerEQ(TuneActivity.this, equalizer.getProperties());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				musicService.savePreAmp();
 
 				IBassBoost bassBoost = musicService.getBassBoost();
 				if (bassBoost != null) try {
@@ -1050,30 +864,9 @@ public class TuneActivity extends BaseActivity {
 					ContextCompat.getColor(getApplicationContext(), R.color.accent));
 		}
 
-		IPreAmp preAmp = musicService.getPreAmp();
-		if (preAmp != null) try {
-			preamp_seekBar.setProgress((int) (SEEKBAR_MAX * getNormalizedPreAmpLevel(preAmp)));
+		updateEq(musicService.getEqualizer());
 
-			preamp_seekBar.setEnabled(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			preamp_seekBar.setEnabled(false);
-		}
-
-		IEqualizer equalizer = musicService.getEqualizer();
-		if (equalizer != null) try {
-			for (int i = 0; i < NUMBER_OF_BANDS; i++)
-				bands[i].setProgress((int) (SEEKBAR_MAX * BandLevelNormalizer.normalize(equalizer.getBandLevel((short) i))));
-
-			for (int i = 0; i < NUMBER_OF_BANDS; i++)
-				bands[i].setEnabled(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			for (int i = 0; i < NUMBER_OF_BANDS; i++)
-				bands[i].setEnabled(false);
-		}
+		updatePreAmp(musicService.getPreAmp());
 
 		IBassBoost bassBoost = musicService.getBassBoost();
 		if (bassBoost != null) try {
@@ -1166,6 +959,342 @@ public class TuneActivity extends BaseActivity {
 		}
 
 	}
+
+	//region EQ
+
+	private CheckBox eq_checkBox;
+	private View[] band_layouts;
+	private VerticalSeekBar[] bands;
+	private TextView[] freqs;
+	private Spinner eq_preset_spinner;
+
+	private void createEq() {
+		eq_checkBox = (CheckBox) findViewById(R.id.eq_checkBox);
+
+		band_layouts = new View[]{
+				findViewById(R.id.band0_layout),
+				findViewById(R.id.band1_layout),
+				findViewById(R.id.band2_layout),
+				findViewById(R.id.band3_layout),
+				findViewById(R.id.band4_layout),
+				findViewById(R.id.band5_layout),
+				findViewById(R.id.band6_layout),
+				findViewById(R.id.band7_layout),
+				findViewById(R.id.band8_layout),
+				findViewById(R.id.band9_layout),
+		};
+		bands = new VerticalSeekBar[]{
+				(VerticalSeekBar) findViewById(R.id.band0_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band1_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band2_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band3_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band4_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band5_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band6_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band7_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band8_seekBar),
+				(VerticalSeekBar) findViewById(R.id.band9_seekBar)
+		};
+		freqs = new TextView[]{
+				(TextView) findViewById(R.id.band0_textView),
+				(TextView) findViewById(R.id.band1_textView),
+				(TextView) findViewById(R.id.band2_textView),
+				(TextView) findViewById(R.id.band3_textView),
+				(TextView) findViewById(R.id.band4_textView),
+				(TextView) findViewById(R.id.band5_textView),
+				(TextView) findViewById(R.id.band6_textView),
+				(TextView) findViewById(R.id.band7_textView),
+				(TextView) findViewById(R.id.band8_textView),
+				(TextView) findViewById(R.id.band9_textView)
+		};
+
+		for (int i = 0; i < bands.length; i++) {
+			band_layouts[i].setVisibility((i < NUMBER_OF_BANDS) ? View.VISIBLE : View.GONE);
+			bands[i].setEnabled((i < NUMBER_OF_BANDS));
+		}
+
+		for (int i = 0; i < NUMBER_OF_BANDS; i++) {
+			freqs[i].setText(formatFrequencyText(CENTER_FREQUENCY[i]));
+			bands[i].setMax(SEEKBAR_MAX);
+		}
+
+		SeekBar.OnSeekBarChangeListener bands_OnSeekBarChangeListener = (new SeekBar.OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				if (!fromUser)
+					return;
+
+				if (getMusicService() == null)
+					return;
+
+				IEqualizer equalizer = getMusicService().getEqualizer();
+
+				if (equalizer == null)
+					return;
+
+				if (!eq_checkBox.isChecked())
+					eq_checkBox.setChecked(true);
+
+				short band;
+				switch (seekBar.getId()) {
+					case R.id.band0_seekBar:
+						band = 0;
+						break;
+					case R.id.band1_seekBar:
+						band = 1;
+						break;
+					case R.id.band2_seekBar:
+						band = 2;
+						break;
+					case R.id.band3_seekBar:
+						band = 3;
+						break;
+					case R.id.band4_seekBar:
+						band = 4;
+						break;
+					case R.id.band5_seekBar:
+						band = 5;
+						break;
+					case R.id.band6_seekBar:
+						band = 6;
+						break;
+					case R.id.band7_seekBar:
+						band = 7;
+						break;
+					case R.id.band8_seekBar:
+						band = 8;
+						break;
+					case R.id.band9_seekBar:
+						band = 9;
+						break;
+					default:
+						throw new IllegalArgumentException();
+				}
+
+				try {
+					equalizer.setBandLevel(band, BandLevelNormalizer.denormalize((float) progress / SEEKBAR_MAX));
+				} catch (Exception e) {
+					info("Update failed, try another preset or settings!");
+				}
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+
+			}
+		});
+
+		for (int i = 0; i < NUMBER_OF_BANDS; i++) {
+			bands[i].setOnSeekBarChangeListener(bands_OnSeekBarChangeListener);
+		}
+
+		eq_preset_spinner = (Spinner) findViewById(R.id.eq_preset_spinner);
+		ArrayList<String> presets = new ArrayList<>();
+		for (int i = 0; i < NUMBER_OF_PRESETS; i++)
+			presets.add(PRESETS[i].name);
+		final ArrayAdapter<String> eq_preset_spinner_adapter = new ArrayAdapter<String>(this, R.layout.spinner_layout, presets);
+		eq_preset_spinner_adapter.setDropDownViewResource(R.layout.spinner_layout);
+		eq_preset_spinner.setAdapter(eq_preset_spinner_adapter);
+		eq_preset_spinner.post(new Runnable() {
+			public void run() {
+				eq_preset_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+						if (getMusicService() == null)
+							return;
+
+						IEqualizer equalizer = getMusicService().getEqualizer();
+
+						if (equalizer == null)
+							return;
+
+						try {
+							if (equalizer.getCurrentPreset() == (short) i)
+								return;
+
+							equalizer.usePreset((short) i);
+
+							updateEq(equalizer);
+
+							info("Updated!");
+						} catch (Exception e) {
+							info("Update failed, try another preset or settings!");
+						}
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> adapterView) {
+
+					}
+				});
+			}
+		});
+
+	}
+
+	private void updateEq(final IEqualizer equalizer) {
+		if (equalizer == null) {
+			eq_checkBox.setOnClickListener(null);
+			eq_checkBox.setChecked(false);
+			eq_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+					if (getMusicService() == null)
+						return;
+
+					getMusicService().setEqualizer(b);
+
+					updateEq(getMusicService().getEqualizer());
+				}
+			});
+
+			for (int i = 0; i < NUMBER_OF_BANDS; i++)
+				bands[i].setEnabled(false);
+
+			eq_preset_spinner.setEnabled(false);
+
+			return;
+		} else {
+			eq_checkBox.setOnClickListener(null);
+			eq_checkBox.setChecked(true);
+			eq_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+					if (getMusicService() == null)
+						return;
+
+					getMusicService().setEqualizer(b);
+
+					updateEq(getMusicService().getEqualizer());
+				}
+			});
+
+			for (int i = 0; i < NUMBER_OF_BANDS; i++)
+				bands[i].setEnabled(true);
+
+			eq_preset_spinner.setEnabled(true);
+		}
+
+		try {
+			for (int i = 0; i < NUMBER_OF_BANDS; i++)
+				bands[i].setProgress((int) (SEEKBAR_MAX * BandLevelNormalizer.normalize(equalizer.getBandLevel((short) i))));
+
+			for (int i = 0; i < NUMBER_OF_BANDS; i++)
+				bands[i].setEnabled(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			for (int i = 0; i < NUMBER_OF_BANDS; i++)
+				bands[i].setEnabled(false);
+		}
+
+		try {
+			eq_preset_spinner.setSelection(equalizer.getCurrentPreset());
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			eq_preset_spinner.setEnabled(false);
+		}
+	}
+
+	//endregion
+
+	//region PreAmp
+
+	private CheckBox preamp_checkBox;
+	private VerticalSeekBar preamp_seekBar;
+
+	private void createPreAmp() {
+		preamp_checkBox = (CheckBox) findViewById(R.id.preamp_checkBox);
+
+		preamp_seekBar = (VerticalSeekBar) findViewById(R.id.preamp_seekBar);
+		preamp_seekBar.setMax(SEEKBAR_MAX);
+		preamp_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				if (!fromUser)
+					return;
+
+				if (getMusicService() == null)
+					return;
+
+				IPreAmp preAmp = getMusicService().getPreAmp();
+
+				if (preAmp == null)
+					return;
+
+				if (!preamp_checkBox.isChecked())
+					preamp_checkBox.setChecked(true);
+
+				setNormalizedPreAmpLevel(preAmp, (float) progress / SEEKBAR_MAX);
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+
+			}
+		});
+
+	}
+
+	private void updatePreAmp(final IPreAmp preAmp) {
+		if (preAmp == null) {
+			preamp_checkBox.setOnClickListener(null);
+			preamp_checkBox.setChecked(false);
+			preamp_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+					if (getMusicService() == null)
+						return;
+
+					getMusicService().setPreAmp(b);
+
+					updatePreAmp(getMusicService().getPreAmp());
+				}
+			});
+			preamp_seekBar.setEnabled(false);
+
+			return;
+		} else {
+			preamp_checkBox.setOnClickListener(null);
+			preamp_checkBox.setChecked(true);
+			preamp_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+					if (getMusicService() == null)
+						return;
+
+					getMusicService().setPreAmp(b);
+
+					updatePreAmp(getMusicService().getPreAmp());
+				}
+			});
+
+			preamp_seekBar.setEnabled(true);
+		}
+
+		try {
+			preamp_seekBar.setProgress((int) (SEEKBAR_MAX * getNormalizedPreAmpLevel(preAmp)));
+
+			preamp_seekBar.setEnabled(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			preamp_seekBar.setEnabled(false);
+		}
+	}
+
+	//endregion
 
 	private static String formatFrequencyText(int freq_millihertz) {
 		final int freq = freq_millihertz / 1000;
