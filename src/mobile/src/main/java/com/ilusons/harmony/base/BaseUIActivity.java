@@ -64,6 +64,10 @@ public abstract class BaseUIActivity extends BaseActivity {
                 BaseUIActivity.this.OnMusicServiceLibraryUpdated();
             }
 
+            @Override
+            public void OnMusicServicePlaylistCurrentUpdated() {
+                BaseUIActivity.this.OnMusicServicePlaylistCurrentUpdated();
+            }
         };
 
     }
@@ -137,6 +141,10 @@ public abstract class BaseUIActivity extends BaseActivity {
     }
 
     public void OnMusicServiceLibraryUpdated() {
+
+    }
+
+    public void OnMusicServicePlaylistCurrentUpdated(){
 
     }
 

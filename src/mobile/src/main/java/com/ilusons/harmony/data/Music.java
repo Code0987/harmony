@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import io.realm.Case;
 import io.realm.Realm;
@@ -1248,7 +1249,7 @@ public class Music extends RealmObject {
 				for (Music item : data)
 					items.add(item.Path);
 
-				setPlaylistCurrentSortOrder(context, items);
+				setPlaylistCurrentSortOrder(context, items, notify, notify);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1344,7 +1345,7 @@ public class Music extends RealmObject {
 		return new ArrayList<String>(Arrays.asList(s.split(";")));
 	}
 
-	public static void setPlaylistCurrentSortOrder(Context context, Collection<String> data) {
+	public static void setPlaylistCurrentSortOrder(Context context, Collection<String> data, boolean notifyUI, boolean notifyService) {
 		StringBuilder value = new StringBuilder();
 		for (String item : data)
 			value.append(item).append(";");
@@ -1353,6 +1354,19 @@ public class Music extends RealmObject {
 				.edit()
 				.putString(TAG_SPREF_PLAYLIST_CURRENT_SORT_ORDER, value.toString())
 				.apply();
+
+		if (notifyUI) {
+			Intent broadcastIntent = new Intent(MusicService.ACTION_PLAYLIST_CURRENT_UPDATED);
+			LocalBroadcastManager
+					.getInstance(context)
+					.sendBroadcast(broadcastIntent);
+		}
+
+		if (notifyService) {
+			Intent musicServiceIntent = new Intent(context, MusicService.class);
+			musicServiceIntent.setAction(MusicService.ACTION_PLAYLIST_CURRENT_UPDATED);
+			context.startService(musicServiceIntent);
+		}
 	}
 
 	public static ArrayList<Music> loadCurrentSorted(Realm realm, Context context) {
@@ -1369,6 +1383,40 @@ public class Music extends RealmObject {
 		sort(data, getPlaylistCurrentSortOrder(context));
 
 		return data;
+	}
+
+	public static void delete(final MusicService musicService, final Realm realm, final Music data, boolean notify) {
+		try {
+			if (musicService.getCurrentPlaylistItemMusic().Path.equals(data.Path))
+				musicService.next();
+
+			realm.executeTransaction(new Realm.Transaction() {
+				@Override
+				public void execute(Realm realm) {
+					realm.where(Music.class)
+							.equalTo("Path", data.Path, Case.INSENSITIVE)
+							.findAll()
+							.deleteAllFromRealm();
+				}
+			});
+
+			(new File(data.Path)).deleteOnExit();
+
+			List<String> playlistCurrentSortOrder = getPlaylistCurrentSortOrder(musicService);
+			if (playlistCurrentSortOrder != null) {
+				playlistCurrentSortOrder.remove(data.Path);
+				setPlaylistCurrentSortOrder(musicService, playlistCurrentSortOrder, notify, notify);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void delete(final MusicService musicService, final Music data, boolean notify) {
+		try (Realm realm = getDB()) {
+			delete(musicService, realm, data, notify);
+		}
 	}
 
 	//endregion
