@@ -61,6 +61,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
         if (action.equals(MusicService.ACTION_LIBRARY_UPDATED)) {
             OnMusicServiceLibraryUpdated();
         }
+
+        if (action.equals(MusicService.ACTION_PLAYLIST_CURRENT_UPDATED)) {
+            OnMusicServicePlaylistCurrentUpdated();
+        }
     }
 
     LocalBroadcastManager broadcastManager;
@@ -77,6 +81,7 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
         intentFilter.addAction(MusicService.ACTION_PREPARED);
         intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATE_BEGINS);
         intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATED);
+        intentFilter.addAction(MusicService.ACTION_PLAYLIST_CURRENT_UPDATED);
 
         broadcastManager.registerReceiver(this, intentFilter);
     }
@@ -110,6 +115,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
     }
 
     public void OnMusicServiceLibraryUpdated() {
+
+    }
+
+    public void OnMusicServicePlaylistCurrentUpdated() {
 
     }
 

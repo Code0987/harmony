@@ -75,6 +75,7 @@ import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -119,76 +120,17 @@ public class LibraryUIActivity extends BaseUIActivity {
 	RecyclerViewAdapter adapter;
 	RecyclerViewExpandableItemManager recyclerViewExpandableItemManager;
 
+	private static final int RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW = 8;
+
 	// UI
 	private DrawerLayout drawer_layout;
 	private boolean appBarIsExpanded = false;
 	private CollapsingToolbarLayout collapse_toolbar;
 	private AppBarLayout appBar_layout;
 	private View root;
+	private AVLoadingIndicatorView loading_view;
 	private RecyclerView recyclerView;
-	private SwipeRefreshLayout swipeRefreshLayout;
-	private final SwipeRefreshLayout.OnRefreshListener swipeRefreshLayoutOnRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
-		@Override
-		public void onRefresh() {
-			if (refreshTask != null && !refreshTask.isCancelled()) {
-				refreshTask.cancel(true);
-
-				try {
-					refreshTask.get();
-				} catch (Exception e) {
-					Log.w(TAG, e);
-				}
-			}
-
-			refreshTask = (new AsyncTask<Void, Void, Collection<Music>>() {
-				@Override
-				protected Collection<Music> doInBackground(Void... voids) {
-					if (getMusicService() == null)
-						return null;
-
-					return Music.loadCurrentSorted(LibraryUIActivity.this);
-				}
-
-				@Override
-				protected void onPreExecute() {
-					swipeRefreshLayout.setRefreshing(true);
-				}
-
-				@Override
-				protected void onPostExecute(Collection<Music> data) {
-					if (data != null)
-						adapter.setData(data);
-
-					swipeRefreshLayout.setRefreshing(false);
-
-					refreshTask = null;
-
-					if (playbackUIMiniFragment != null)
-						try {
-							playbackUIMiniFragment.reset(getMusicService());
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-				}
-
-				@Override
-				protected void onCancelled() {
-					super.onCancelled();
-
-					swipeRefreshLayout.setRefreshing(false);
-
-					refreshTask = null;
-				}
-			});
-
-			refreshTask.execute();
-		}
-	};
-
 	private SearchView search_view;
-
-	private AsyncTask<Void, Void, Collection<Music>> refreshTask = null;
-
 	private PlaybackUIMiniFragment playbackUIMiniFragment;
 
 	@Override
@@ -261,10 +203,12 @@ public class LibraryUIActivity extends BaseUIActivity {
 		// Set views
 		root = findViewById(R.id.root);
 
+		loading_view = findViewById(R.id.loading_view);
+
 		// Set recycler
 		recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
 		recyclerView.setHasFixedSize(true);
-		recyclerView.setItemViewCacheSize(8);
+		recyclerView.setItemViewCacheSize(RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW);
 		recyclerView.setDrawingCacheEnabled(true);
 		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 		recyclerView.setLayoutManager(new LinearLayoutManager(this) {
@@ -284,10 +228,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 		recyclerView.setAdapter(recyclerViewExpandableItemManager.createWrappedAdapter(adapter));
 		((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 		recyclerViewExpandableItemManager.attachRecyclerView(recyclerView);
-
-		// Set swipe to refresh
-		swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-		swipeRefreshLayout.setOnRefreshListener(swipeRefreshLayoutOnRefreshListener);
 
 		// Set search
 
@@ -440,7 +380,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 		findViewById(R.id.load_current).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				swipeRefreshLayoutOnRefreshListener.onRefresh();
+				setFromCurrentPlaylist();
 
 				drawer_layout.closeDrawer(GravityCompat.END);
 			}
@@ -520,18 +460,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 		// Extra
 		UIGroup();
 
-		// PlaybackUIMiniFragment
-		playbackUIMiniFragment = PlaybackUIMiniFragment.create();
-		getFragmentManager()
-				.beginTransaction()
-				.replace(R.id.playbackUIMiniFragment, playbackUIMiniFragment)
-				.commit();
-		playbackUIMiniFragment.setJumpOnClickListener(new WeakReference<View.OnClickListener>(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				adapter.jumpToCurrentlyPlayingItem();
-			}
-		}));
+		// PlaybackUIMini
+		createPlaybackUIMini();
 
 		// Feedback
 		findViewById(R.id.feedback).setOnClickListener(new View.OnClickListener() {
@@ -548,6 +478,11 @@ public class LibraryUIActivity extends BaseUIActivity {
 			}
 		});
 
+		loading_view.smoothToHide();
+
+		// Load playlist
+		setFromCurrentPlaylist();
+
 	}
 
 	@Override
@@ -559,12 +494,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 	protected void onResume() {
 		super.onResume();
 
-		if (playbackUIMiniFragment != null)
-			try {
-				playbackUIMiniFragment.reset(getMusicService());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		updatePlaybackUIMini();
 	}
 
 	@Override
@@ -642,8 +572,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 	@Override
 	protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
 		super.OnMusicServiceChanged(className, musicService, isBound);
-
-		swipeRefreshLayoutOnRefreshListener.onRefresh();
 	}
 
 	@Override
@@ -676,30 +604,39 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	@Override
 	public void OnMusicServicePrepared() {
-		if (playbackUIMiniFragment != null)
-			try {
-				playbackUIMiniFragment.reset(getMusicService());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		updatePlaybackUIMini();
 	}
 
 	@Override
 	public void OnMusicServiceLibraryUpdateBegins() {
-		swipeRefreshLayout.setRefreshing(true);
-
 		info("Library update is in progress!", true);
 	}
 
 	@Override
 	public void OnMusicServiceLibraryUpdated() {
-		if (adapter != null)
-			adapter.setData(Music.loadCurrentSorted(this));
-
-		swipeRefreshLayout.setRefreshing(false);
-
 		info("Library updated!");
+	}
 
+	@Override
+	public void OnMusicServicePlaylistCurrentUpdated() {
+		setFromCurrentPlaylist();
+	}
+
+	private void createPlaybackUIMini() {
+		playbackUIMiniFragment = PlaybackUIMiniFragment.create();
+		getFragmentManager()
+				.beginTransaction()
+				.replace(R.id.playbackUIMiniFragment, playbackUIMiniFragment)
+				.commit();
+		playbackUIMiniFragment.setJumpOnClickListener(new WeakReference<View.OnClickListener>(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				adapter.jumpToCurrentlyPlayingItem();
+			}
+		}));
+	}
+
+	private void updatePlaybackUIMini() {
 		if (playbackUIMiniFragment != null)
 			try {
 				playbackUIMiniFragment.reset(getMusicService());
@@ -887,6 +824,15 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	}
 
+	private void setFromCurrentPlaylist() {
+		loading_view.smoothToShow();
+
+		if (adapter != null)
+			adapter.setData(Music.loadCurrentSorted(this));
+
+		loading_view.smoothToHide();
+	}
+
 	private void setCurrent() {
 		if (getMusicService() == null)
 			return;
@@ -949,7 +895,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 			setFromTask = null;
 		}
 
-		swipeRefreshLayout.setRefreshing(true);
+		loading_view.smoothToShow();
 
 		setFromTask = (new AsyncTask<Void, Void, Void>() {
 			@Override
@@ -958,7 +904,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 				setFromTask = null;
 
-				swipeRefreshLayout.setRefreshing(false);
+				loading_view.smoothToHide();
 			}
 
 			@Override
@@ -967,7 +913,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 				setFromTask = null;
 
-				swipeRefreshLayout.setRefreshing(false);
+				loading_view.smoothToHide();
 
 				info("Loaded library!");
 			}
@@ -1006,7 +952,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 		final Collection<String> audioIds = Music.getAllAudioIdsInPlaylist(getContentResolver(), Long.parseLong(playlistId));
 
 		if (audioIds.size() > 0) {
-			swipeRefreshLayout.setRefreshing(true);
+			loading_view.smoothToShow();
 
 			setFromTask = (new AsyncTask<Void, Void, Void>() {
 				@Override
@@ -1015,7 +961,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 					setFromTask = null;
 
-					swipeRefreshLayout.setRefreshing(false);
+					loading_view.smoothToHide();
 				}
 
 				@Override
@@ -1024,7 +970,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 					setFromTask = null;
 
-					swipeRefreshLayout.setRefreshing(false);
+					loading_view.smoothToHide();
 
 					info("Loaded playlist!");
 				}
@@ -1039,6 +985,9 @@ public class LibraryUIActivity extends BaseUIActivity {
 							@Override
 							public void execute(final Music music) {
 								data.add(music);
+
+								if (data.size() % RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW == 0)
+									adapter.setData(data);
 							}
 						};
 						try (Realm musicRealm = Music.getDB()) {
@@ -1299,10 +1248,10 @@ public class LibraryUIActivity extends BaseUIActivity {
 								"Add at start",
 								"Add at last",
 								"Remove",
-								"Clear",
+								"Clear (except current)",
 								"Move down",
 								"Move up",
-								"Jump to playing"
+								"Delete (physically)"
 						}, new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int itemIndex) {
@@ -1310,41 +1259,27 @@ public class LibraryUIActivity extends BaseUIActivity {
 									switch (itemIndex) {
 										case 0:
 											getMusicService().add(item.Path, getMusicService().getPlaylistPosition() + 1);
-											refresh(String.valueOf(search_view.getQuery()));
 											break;
 										case 1:
 											getMusicService().add(item.Path, 0);
-											refresh(String.valueOf(search_view.getQuery()));
 											break;
 										case 2:
 											getMusicService().add(item.Path, getMusicService().getPlaylist().size());
-											refresh(String.valueOf(search_view.getQuery()));
 											break;
 										case 3:
 											getMusicService().remove(item.Path);
-											refresh(String.valueOf(search_view.getQuery()));
 											break;
 										case 4:
-											getMusicService().getPlaylist().clear();
-											getMusicService().setPlaylistPosition(-1);
-											refresh(String.valueOf(search_view.getQuery()));
+											getMusicService().clearExceptCurrent();
 											break;
 										case 5:
-											int i = getMusicService().getPlaylist().indexOf(item.Path);
-											if (i > -1) {
-												ArrayEx.move(i, i + 1, data);
-												refresh(String.valueOf(search_view.getQuery()));
-											}
+											getMusicService().moveDown(item.Path);
 											break;
 										case 6:
-											int j = getMusicService().getPlaylist().indexOf(item.Path);
-											if (j > -1) {
-												ArrayEx.move(j, j - 1, data);
-												refresh(String.valueOf(search_view.getQuery()));
-											}
+											getMusicService().moveUp(item.Path);
 											break;
 										case 7:
-											jumpToCurrentlyPlayingItem();
+											item.delete(getMusicService(), item, true);
 											break;
 									}
 								} catch (Exception e) {
@@ -1359,7 +1294,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						if (!Once.beenDone(Once.THIS_APP_VERSION, tag_pl_cstm)) {
 							(new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle))
 									.setTitle("Playlist customization")
-									.setMessage("Next, Ok, will open a list of actions to allow you to customize [Custom] playlist or Now playing playlist. If you have enabled sorting, you won't see changes, just set it to Default/Custom.")
+									.setMessage("Next, Ok, will open a list of actions to allow you to customize current playlist or Now playing playlist. If you have enabled sorting, you won't see changes, just set it to Default/Custom. Example: Add will add the select music to current playlist from visible playlist.")
 									.setCancelable(false)
 									.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 										@Override
@@ -1412,7 +1347,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						(LibraryUIActivity.this).runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
-								swipeRefreshLayout.setRefreshing(true);
+								loading_view.smoothToShow();
 							}
 						});
 
@@ -1434,8 +1369,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 						// Add ads
 						// TODO: Fix ads later
-		                /*if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
-                            final int n = Math.min(dataFiltered.size(), 7);
+						/*if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
+					        final int n = Math.min(dataFiltered.size(), 7);
                             for (int i = 0; i <= n; i += ITEMS_PER_AD)
                                 try {
                                     final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIActivity.this);
@@ -1448,7 +1383,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						(LibraryUIActivity.this).runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
-								swipeRefreshLayout.setRefreshing(false);
+								loading_view.smoothToHide();
 
 								notifyDataSetChanged();
 							}

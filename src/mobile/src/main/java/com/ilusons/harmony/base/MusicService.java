@@ -51,6 +51,7 @@ import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.ArrayEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
@@ -95,6 +96,8 @@ public class MusicService extends Service {
 	public static final String ACTION_LIBRARY_UPDATE_CANCEL = TAG + ".library_update_cancel";
 
 	public static final String ACTION_REFRESH_SYSTEM_BINDINGS = TAG + ".refresh_system_bindings";
+
+	public static final String ACTION_PLAYLIST_CURRENT_UPDATED = TAG + ".playlist_current_updated";
 
 	// Threads
 	private Handler handler = new Handler();
@@ -753,7 +756,7 @@ public class MusicService extends Service {
 		playlist.add(position, path);
 
 		try {
-			Music.setPlaylistCurrentSortOrder(this, getPlaylist());
+			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -767,21 +770,75 @@ public class MusicService extends Service {
 
 		playlist.add(path);
 
+		try {
+			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		return playlist.size() - 1;
 	}
 
-	public void clear() {
+	public void clearExceptCurrent() {
 		stop();
 
 		playlist.clear();
+		if (currentMusic != null)
+			playlist.add(currentMusic.Path);
+
+		try {
+			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	public void remove(String path) {
 		playlist.remove(path);
+
+		try {
+			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	public void remove(int position) {
 		playlist.remove(position);
+
+		try {
+			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void moveDown(String item) {
+		int i = getPlaylist().indexOf(item);
+		if (i > -1) {
+			ArrayEx.move(i, i + 1, getPlaylist());
+		}
+
+		try {
+			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void moveUp(String item) {
+		int i = getPlaylist().indexOf(item);
+		if (i > -1) {
+			ArrayEx.move(i, i - 1, getPlaylist());
+		}
+
+		try {
+			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public int getPlaylistPosition() {
@@ -1262,7 +1319,7 @@ public class MusicService extends Service {
 				.setCustomHeadsUpContentView(customNotificationViewS)
 				.setCustomBigContentView(customNotificationView)
 				/*.setStyle(new NotificationCompat.DecoratedMediaCustomViewStyle()
-                        .setShowCancelButton(true)
+	                    .setShowCancelButton(true)
                         .setCancelButtonIntent(createActionIntent(this, ACTION_STOP))
                         .setMediaSession(mediaSession.getSessionToken())
                         .setShowActionsInCompactView(1, 2, 0))*/;

@@ -87,8 +87,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     if (isCancelled())
                         throw new Exception("Canceled by user");
 
-                    ArrayList<Music> data = new ArrayList<>();
-
                     // Record time
                     long time = System.currentTimeMillis();
 
@@ -112,9 +110,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
                     Log.d(TAG, "Library update from current took " + (System.currentTimeMillis() - time) + "ms");
 
                     Log.d(TAG, "Library update took " + (System.currentTimeMillis() - time) + "ms");
-
-                    result.Data.clear();
-                    result.Data.addAll(data);
 
                 } catch (Exception e) {
                     Log.w(TAG, "doInBackground", e);
@@ -453,7 +448,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
     protected void onPostExecute(Result result) {
         super.onPostExecute(result);
 
-        if (result == null || result.Data == null)
+        if (result == null)
             return;
 
         Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
@@ -467,7 +462,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
     }
 
     public static class Result {
-        public ArrayList<Music> Data = new ArrayList<>();
     }
 
     //region Settings: Scan automatically
