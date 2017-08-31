@@ -1,7 +1,9 @@
 package com.ilusons.harmony.views;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -10,6 +12,7 @@ import android.os.Bundle;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -42,8 +45,6 @@ public class LyricsViewFragment extends Fragment {
     private Long length = -1L;
 
     private boolean isContentProcessed = false;
-
-    private GestureDetectorCompat gestureDetector;
 
     private View root;
 
@@ -80,36 +81,6 @@ public class LyricsViewFragment extends Fragment {
         View v = inflater.inflate(R.layout.lyrics_view, container, false);
 
         root = v;
-        gestureDetector = new GestureDetectorCompat(getActivity(), new GestureDetector.SimpleOnGestureListener() {
-            private static final int SWIPE_MIN_DISTANCE = 120;
-            private static final int SWIPE_MAX_OFF_PATH = 320;
-            private static final int SWIPE_THRESHOLD_VELOCITY = 200;
-
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                try {
-                    if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
-                        return false;
-
-                    if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
-                        reLoad();
-
-                        return true;
-                    }
-
-                } catch (Exception e) {
-                    Log.e(TAG, "There was an error processing the Fling event:" + e);
-                }
-
-                return true;
-            }
-
-            @Override
-            public boolean onDown(MotionEvent e) {
-                return true;
-            }
-        });
-
         loading_view = (AVLoadingIndicatorView) v.findViewById(R.id.loading_view);
 
         textView = (TextView) v.findViewById(R.id.lyrics);
@@ -127,39 +98,53 @@ public class LyricsViewFragment extends Fragment {
                 if (music == null)
                     return false;
 
-                try {
-                    Context context = getActivity().getApplicationContext();
+                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.AppTheme_AlertDialogStyle));
+                builder.setTitle("Select the action");
+                builder.setItems(new CharSequence[]{
+                        "Reload",
+                        "Edit"
+                }, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int itemIndex) {
+                        try {
+                            switch (itemIndex) {
+                                case 0:
+                                    reLoad();
+                                    break;
+                                case 1:
+                                    try {
+                                        Context context = getActivity().getApplicationContext();
 
-                    File file = music.getLyricsFile(getActivity().getApplicationContext());
-                    Uri contentUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
+                                        File file = music.getLyricsFile(getActivity().getApplicationContext());
+                                        Uri contentUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
 
-                    Intent intent = new Intent(Intent.ACTION_EDIT);
-                    intent.setDataAndType(contentUri, "text/plain");
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                                        Intent intent = new Intent(Intent.ACTION_EDIT);
+                                        intent.setDataAndType(contentUri, "text/plain");
+                                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-                    List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-                    for (ResolveInfo resolveInfo : resInfoList) {
-                        String packageName = resolveInfo.activityInfo.packageName;
-                        context.grantUriPermission(packageName, contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                        List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                                        for (ResolveInfo resolveInfo : resInfoList) {
+                                            String packageName = resolveInfo.activityInfo.packageName;
+                                            context.grantUriPermission(packageName, contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                        }
+
+                                        context.startActivity(Intent.createChooser(intent, "Edit lyrics for " + music.getText()));
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+
+                                        Toast.makeText(getActivity().getApplicationContext(), "Please install a text editor first!", Toast.LENGTH_LONG).show();
+                                    }
+                                    break;
+                            }
+                        } catch (Exception e) {
+                            Log.w(TAG, e);
+                        }
                     }
-
-                    context.startActivity(Intent.createChooser(intent, "Edit lyrics for " + music.getText()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    Toast.makeText(getActivity().getApplicationContext(), "Please install a text editor first!", Toast.LENGTH_LONG).show();
-                }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
 
                 return true;
-            }
-        });
-
-        textView.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (gestureDetector.onTouchEvent(event)) {
-                    return false;
-                }
-                return false;
             }
         });
 
