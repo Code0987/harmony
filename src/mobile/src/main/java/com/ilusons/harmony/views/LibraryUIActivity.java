@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
@@ -64,6 +65,7 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.ilusons.harmony.BuildConfig;
+import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
@@ -75,6 +77,8 @@ import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
+import com.ilusons.harmony.ref.ue.RateMe;
+import com.squareup.haha.perflib.Main;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
@@ -467,14 +471,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 		findViewById(R.id.feedback).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				Intent intent = new Intent(Intent.ACTION_SENDTO);
-				intent.setType("text/plain");
-				intent.putExtra(Intent.EXTRA_SUBJECT, "[#harmony #feedback #android #" + BuildConfig.VERSION_NAME + "]");
-				intent.putExtra(Intent.EXTRA_TEXT, "");
-				intent.setData(Uri.parse("mailto:"));
-				intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"harmony@ilusons.com", "7b56b759@opayq.com"});
-				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				startActivity(intent);
+				MainActivity.gotoFeedback(LibraryUIActivity.this);
 			}
 		});
 
@@ -482,6 +479,9 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 		// Load playlist
 		setFromCurrentPlaylist();
+
+		// Ratings
+		MainActivity.initRateMe(new WeakReference<FragmentActivity>(this));
 
 	}
 
@@ -648,7 +648,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 	private void showGuide() {
 		final String tag_release_notes = TAG + ".release_notes";
 
-		if (!Once.beenDone(Once.THIS_APP_VERSION, tag_release_notes)) {
+		if (!BuildConfig.DEBUG && !Once.beenDone(Once.THIS_APP_VERSION, tag_release_notes)) {
 			SettingsActivity.showReleaseNotesDialog(this);
 
 			Once.markDone(tag_release_notes);
@@ -656,8 +656,11 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 		final String tag_guide = TAG + ".guide";
 
-		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))
+		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide)){
+			MainActivity.initTips(new WeakReference<FragmentActivity>(this));
+
 			return;
+		}
 
 		final MaterialIntroView.Builder guide_start = new MaterialIntroView.Builder(this)
 				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
@@ -1370,7 +1373,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						// Add ads
 						// TODO: Fix ads later
 						/*if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
-					        final int n = Math.min(dataFiltered.size(), 7);
+						    final int n = Math.min(dataFiltered.size(), 7);
                             for (int i = 0; i <= n; i += ITEMS_PER_AD)
                                 try {
                                     final NativeExpressAdView adView = new NativeExpressAdView(LibraryUIActivity.this);
