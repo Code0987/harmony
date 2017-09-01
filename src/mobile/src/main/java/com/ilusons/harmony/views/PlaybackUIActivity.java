@@ -996,7 +996,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to open editor. Pull down on text to reload.")
+				.setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to options menu.")
 				.setTarget(lyrics_layout == null ? root : lyrics_layout)
 				.setUsageId(UUID.randomUUID().toString());
 
