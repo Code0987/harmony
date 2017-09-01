@@ -664,12 +664,14 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide)) {
 
-			MainActivity.initTips(new WeakReference<FragmentActivity>(this));
-
 			final String tag_release_notes = TAG + ".release_notes";
 			if (!BuildConfig.DEBUG && !Once.beenDone(Once.THIS_APP_VERSION, tag_release_notes)) {
 				SettingsActivity.showReleaseNotesDialog(this);
 				Once.markDone(tag_release_notes);
+			} else {
+
+				MainActivity.initTips(new WeakReference<FragmentActivity>(this));
+
 			}
 
 			return;
