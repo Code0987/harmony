@@ -39,6 +39,7 @@ public class PlaybackUIMiniFragment extends Fragment {
 	private TextView info;
 
 	private ImageView play_pause_stop;
+	private ImageView next_random;
 	private ImageView jump;
 
 	private WeakReference<View.OnClickListener> jumpOnClickListenerReference;
@@ -79,6 +80,27 @@ public class PlaybackUIMiniFragment extends Fragment {
 				if (musicService == null) return false;
 
 				musicService.stop();
+
+				return true;
+			}
+		});
+
+		next_random = (ImageView) v.findViewById(R.id.next_random);
+
+		next_random.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (musicService == null) return;
+
+				musicService.next();
+			}
+		});
+		next_random.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (musicService == null) return false;
+
+				musicService.random();
 
 				return true;
 			}
