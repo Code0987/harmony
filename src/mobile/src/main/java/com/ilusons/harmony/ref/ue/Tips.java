@@ -80,7 +80,7 @@ public class Tips {
 
 	public String getPositiveText() {
 		if (positiveText == null) {
-			return "Understood!";
+			return "Got it!";
 		} else {
 			return positiveText;
 		}
@@ -94,7 +94,7 @@ public class Tips {
 
 	public String getNegativeText() {
 		if (negativeText == null) {
-			return "Don't tell me again!";
+			return "Not again";
 		} else {
 			return negativeText;
 		}
@@ -102,6 +102,20 @@ public class Tips {
 
 	public void setNegativeText(String s) {
 		negativeText = s;
+	}
+
+	private String more;
+
+	public String getMore() {
+		if (more == null) {
+			return "More ...";
+		} else {
+			return more;
+		}
+	}
+
+	public void setMore(String s) {
+		more = s;
 	}
 
 	public static void reset(Context context) {
@@ -211,9 +225,20 @@ public class Tips {
 				}
 			});
 
+			TextView more = v.findViewById(R.id.tips_dialog_more);
+			more.setText(owner.getMore());
+			more.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					message.setText(owner.getMessage());
+				}
+			});
+
 			builder.setOnCancelListener(this);
 
 			AlertDialog alert = builder.create();
+
+			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
 
 			return alert;
 		}

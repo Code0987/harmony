@@ -5,22 +5,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="24dp"
-            android:background="@color/transparent"
+            android:layout_margin="36dp"
+            android:background="@drawable/rounded_rectangle"
             android:gravity="center_horizontal"
-            android:padding="16dp">
+            android:padding="3dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:animateLayoutChanges="true"
-        android:background="@drawable/rounded_rectangle">
+        android:animateLayoutChanges="true">
 
         <ImageView
             android:id="@+id/tips_dialog_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:src="@drawable/ic_live_help_black"
             android:tint="@android:color/holo_blue_light"
@@ -30,11 +29,11 @@
             android:id="@+id/tips_dialog_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
+            android:layout_marginEnd="8dp"
             android:layout_toEndOf="@id/tips_dialog_icon"
             android:gravity="center"
             android:padding="8dp"
-            android:textSize="15sp"
+            android:textSize="14sp"
             tools:text="Title"/>
 
         <TextView
@@ -43,18 +42,20 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/tips_dialog_title"
             android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"
+            android:layout_marginTop="16dp"
             android:gravity="center"
             android:padding="8dp"
-            android:textSize="14sp"
+            android:textSize="15sp"
             tools:text="Message"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/tips_dialog_message"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <TextView
@@ -64,10 +65,24 @@
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
+                android:focusable="true"
                 android:gravity="center"
                 android:padding="12dp"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 tools:text="Negative"/>
+
+            <TextView
+                android:id="@+id/tips_dialog_more"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:padding="12dp"
+                android:textSize="14sp"
+                tools:text="More ..."/>
 
             <TextView
                 android:id="@+id/tips_dialog_positive"
@@ -76,9 +91,11 @@
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
+                android:focusable="true"
                 android:gravity="center"
                 android:padding="12dp"
-                android:textSize="15sp"
+                android:textSize="14sp"
+                android:tint="@android:color/holo_green_light"
                 tools:text="Positive"/>
 
         </LinearLayout>

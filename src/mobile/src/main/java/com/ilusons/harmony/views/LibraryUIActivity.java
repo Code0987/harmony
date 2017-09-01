@@ -135,7 +135,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 	private AVLoadingIndicatorView loading_view;
 	private RecyclerView recyclerView;
 	private SearchView search_view;
-	private PlaybackUIMiniFragment playbackUIMiniFragment;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -450,17 +449,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 		});
 		playlistRecyclerViewAdapter.setData(playlists);
 
-		// Guide
-		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-
-			@Override
-			public void onGlobalLayout() {
-				root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-				showGuide();
-			}
-		});
-
 		// Extra
 		UIGroup();
 
@@ -482,6 +470,17 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 		// Ratings
 		MainActivity.initRateMe(new WeakReference<FragmentActivity>(this));
+
+		// Help
+		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+			@Override
+			public void onGlobalLayout() {
+				root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+				initHelp();
+			}
+		});
 
 	}
 
@@ -609,11 +608,17 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	@Override
 	public void OnMusicServiceLibraryUpdateBegins() {
+		loading_view.smoothToShow();
+
 		info("Library update is in progress!", true);
 	}
 
 	@Override
 	public void OnMusicServiceLibraryUpdated() {
+		loading_view.smoothToHide();
+
+		setFromCurrentPlaylist();
+
 		info("Library updated!");
 	}
 
@@ -622,7 +627,13 @@ public class LibraryUIActivity extends BaseUIActivity {
 		setFromCurrentPlaylist();
 	}
 
+	//region PlaybackUIMini
+
+	private PlaybackUIMiniFragment playbackUIMiniFragment;
+	private View playbackUIMini;
+
 	private void createPlaybackUIMini() {
+		playbackUIMini = findViewById(R.id.playbackUIMiniFragment);
 		playbackUIMiniFragment = PlaybackUIMiniFragment.create();
 		getFragmentManager()
 				.beginTransaction()
@@ -645,19 +656,22 @@ public class LibraryUIActivity extends BaseUIActivity {
 			}
 	}
 
-	private void showGuide() {
-		final String tag_release_notes = TAG + ".release_notes";
+	//endregion
 
-		if (!BuildConfig.DEBUG && !Once.beenDone(Once.THIS_APP_VERSION, tag_release_notes)) {
-			SettingsActivity.showReleaseNotesDialog(this);
+	//region Help
 
-			Once.markDone(tag_release_notes);
-		}
-
+	private void initHelp() {
 		final String tag_guide = TAG + ".guide";
 
-		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide)){
+		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide)) {
+
 			MainActivity.initTips(new WeakReference<FragmentActivity>(this));
+
+			final String tag_release_notes = TAG + ".release_notes";
+			if (!BuildConfig.DEBUG && !Once.beenDone(Once.THIS_APP_VERSION, tag_release_notes)) {
+				SettingsActivity.showReleaseNotesDialog(this);
+				Once.markDone(tag_release_notes);
+			}
 
 			return;
 		}
@@ -737,6 +751,21 @@ public class LibraryUIActivity extends BaseUIActivity {
 				.setTarget(search_view)
 				.setUsageId(UUID.randomUUID().toString());
 
+		final MaterialIntroView.Builder guide_mini = new MaterialIntroView.Builder(this)
+				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
+				.setDelayMillis(500)
+				.enableFadeAnimation(true)
+				.enableDotAnimation(false)
+				.setFocusType(Focus.MINIMUM)
+				.setFocusGravity(FocusGravity.CENTER)
+				.setTargetPadding(32)
+				.dismissOnTouch(true)
+				.enableIcon(true)
+				.performClick(true)
+				.setInfoText("This mini playback ui, for quick view of now playing. Buttons in it have long-press functions.")
+				.setTarget(playbackUIMini)
+				.setUsageId(UUID.randomUUID().toString());
+
 		final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
 				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
 				.setDelayMillis(500)
@@ -762,11 +791,21 @@ public class LibraryUIActivity extends BaseUIActivity {
 				}
 			}
 		});
-		guide_search.setListener(new MaterialIntroListener() {
+		guide_mini.setListener(new MaterialIntroListener() {
 			@Override
 			public void onUserClicked(String usageId) {
 				try {
 					guide_final.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		guide_search.setListener(new MaterialIntroListener() {
+			@Override
+			public void onUserClicked(String usageId) {
+				try {
+					guide_mini.show();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -826,6 +865,10 @@ public class LibraryUIActivity extends BaseUIActivity {
 		}
 
 	}
+
+	//endregion
+
+	//region Playlists
 
 	private void setFromCurrentPlaylist() {
 		loading_view.smoothToShow();
@@ -1010,6 +1053,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 			setFromTask.execute();
 		}
 	}
+
+	//endregion
 
 	//region Library view
 
@@ -1282,7 +1327,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 											getMusicService().moveUp(item.Path);
 											break;
 										case 7:
-											item.delete(getMusicService(), item, true);
+											item.delete(getMusicService(), item.Path, true);
 											break;
 									}
 								} catch (Exception e) {
@@ -1297,7 +1342,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						if (!Once.beenDone(Once.THIS_APP_VERSION, tag_pl_cstm)) {
 							(new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle))
 									.setTitle("Playlist customization")
-									.setMessage("Next, Ok, will open a list of actions to allow you to customize current playlist or Now playing playlist. If you have enabled sorting, you won't see changes, just set it to Default/Custom. Example: Add will add the select music to current playlist from visible playlist.")
+									.setMessage("Next, Ok, will open a list of actions to allow you to customize current playlist or Now playing playlist. If you have enabled sorting, you won't see changes, just set it to Default/Custom. Example: Add will add the selected music to current playlist from visible playlist.")
 									.setCancelable(false)
 									.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 										@Override
