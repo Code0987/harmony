@@ -181,6 +181,9 @@ public class MainActivity extends BaseActivity {
 		messages.add("Long press cover art to fade it.");
 		messages.add("Long press visualization button to change styles.");
 		messages.add("If songs are not shown,\nLeft drawer -> Refresh\nOr\nLeft drawer -> Settings -> Library -> Add scan location -> (previous step)");
+		messages.add("Beta version will have some of the premium features unlocked.");
+		messages.add("Visit our YouTube Channel/Playlist (Left drawer -> Help...) for demos and videos.");
+		messages.add("Visit our website http://harmony.ilusons.com for latest updates and more information.");
 
 		Tips tips = new Tips(contextRef.get());
 

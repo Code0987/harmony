@@ -15,6 +15,8 @@ import android.widget.FrameLayout;
 
 import com.cleveroad.audiovisualization.DbmHandler;
 import com.cleveroad.audiovisualization.GLAudioVisualizationView;
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.h6ah4i.android.media.audiofx.IHQVisualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.ilusons.harmony.R;
@@ -310,16 +312,20 @@ public class AudioVFXViewFragment extends Fragment {
 	}
 
 	private void cleanupVisualizer() {
-		if (visualizerHQ != null) {
-			visualizerHQ.setEnabled(false);
+		try {
+			if (visualizerHQ != null) {
+				visualizerHQ.setEnabled(false);
 
-			visualizerHQ.setDataCaptureListener(null, 0, false, false);
-		}
+				visualizerHQ.setDataCaptureListener(null, 0, false, false);
+			}
 
-		if (visualizer != null) {
-			visualizer.setEnabled(false);
+			if (visualizer != null) {
+				visualizer.setEnabled(false);
 
-			visualizer.setDataCaptureListener(null, 0, false, false);
+				visualizer.setDataCaptureListener(null, 0, false, false);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -491,6 +497,13 @@ public class AudioVFXViewFragment extends Fragment {
 				.edit()
 				.putString(TAG_SPREF_AVFXTYPE, String.valueOf(value))
 				.apply();
+
+		try {
+			Answers.getInstance().logCustom(new CustomEvent(TAG)
+					.putCustomAttribute(AVFXType.class.getSimpleName(), String.valueOf(value)));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static AVFXType getNextAVFXType(Context context) {

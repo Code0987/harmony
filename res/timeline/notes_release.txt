@@ -1,5 +1,5 @@
 ﻿◾️ Work in progress, please leave feedback.
-✔️ Fixed: Bugs.
+✔️ Fixed: Bugs, some recent crashes, tune related some bugs.
 ✔️ Updates: Playlist/library related.
 ✔️ Updates: Library scanner related.
 ✔️ New: Added next/random button in mini playback ui.

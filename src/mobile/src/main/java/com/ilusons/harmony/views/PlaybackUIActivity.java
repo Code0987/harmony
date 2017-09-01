@@ -29,6 +29,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.ContentViewEvent;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
@@ -550,7 +552,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			public void onGlobalLayout() {
 				root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
-				showGuide();
+				initHelp();
 			}
 		});
 	}
@@ -782,9 +784,13 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			return;
 
 		// Refresh system bindings
-		Intent musicServiceIntent = new Intent(PlaybackUIActivity.this, MusicService.class);
-		musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
-		startService(musicServiceIntent);
+		try {
+			Intent musicServiceIntent = new Intent(PlaybackUIActivity.this, MusicService.class);
+			musicServiceIntent.setAction(MusicService.ACTION_REFRESH_SYSTEM_BINDINGS);
+			startService(musicServiceIntent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		Palette palette = Palette.from(bitmap).generate();
 		color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
@@ -919,7 +925,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	}
 
-	private void showGuide() {
+	private void initHelp() {
 		final String tag_guide = TAG + ".guide";
 
 		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))

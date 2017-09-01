@@ -29,6 +29,8 @@ import android.widget.MediaController;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.google.android.vending.licensing.AESObfuscator;
 import com.google.android.vending.licensing.LicenseChecker;
 import com.google.android.vending.licensing.LicenseCheckerCallback;
@@ -1370,6 +1372,14 @@ public class MusicService extends Service {
 						e.printStackTrace();
 					}
 
+					try {
+						Answers.getInstance().logCustom(new CustomEvent(ACTION_PLAY)
+								.putCustomAttribute("title", currentMusic.Title)
+								.putCustomAttribute("artist", currentMusic.Artist));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
 					nextSmart(false);
 				}
 			});
@@ -1544,8 +1554,10 @@ public class MusicService extends Service {
 			musicRealm.executeTransaction(new Realm.Transaction() {
 				@Override
 				public void execute(Realm realm) {
-					currentMusic.Skipped++;
-					currentMusic.TimeLastSkipped = System.currentTimeMillis();
+					if (((float) getPosition() / (float) getDuration()) < 0.65) {
+						currentMusic.Skipped++;
+						currentMusic.TimeLastSkipped = System.currentTimeMillis();
+					}
 					currentMusic.TotalDurationPlayed += getPosition();
 
 					realm.insertOrUpdate(currentMusic);
