@@ -795,14 +795,17 @@ public class Music extends RealmObject {
 				}
 			}
 
-			if (TextUtils.isEmpty(data.Title) || TextUtils.isEmpty(data.Artist)) try {
-				ArrayList<String> at = SongsEx.getArtistAndTitle((new File(data.Path)).getName());
+			if (TextUtils.isEmpty(data.Title)
+					|| TextUtils.isEmpty(data.Artist)
+					|| data.Artist.contains("unknown")) // TODO: Handle this better
+				try {
+					ArrayList<String> at = SongsEx.getArtistAndTitle((new File(data.Path)).getName());
 
-				data.Artist = at.get(0);
-				data.Title = at.get(1);
-			} catch (Exception e) {
-				data.Title = (new File(data.Path)).getName().replaceFirst("[.][^.]+$", "");
-			}
+					data.Artist = at.get(0);
+					data.Title = at.get(1);
+				} catch (Exception e) {
+					data.Title = (new File(data.Path)).getName().replaceFirst("[.][^.]+$", "");
+				}
 
 			// Save to db
 

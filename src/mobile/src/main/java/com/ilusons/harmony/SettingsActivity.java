@@ -798,7 +798,13 @@ public class SettingsActivity extends BaseActivity {
 	}
 
 	public static UIStyle getUIStyle(Context context) {
-		return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.LUI12)));
+		try {
+			return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.LUI12)));
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return UIStyle.Default;
+		}
 	}
 
 	public static void setUIStyle(Context context, UIStyle value) {
