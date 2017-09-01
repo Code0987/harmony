@@ -86,7 +86,7 @@ public class LyricsViewFragment extends Fragment {
         textView = (TextView) v.findViewById(R.id.lyrics);
         scrollView = (ScrollView) v.findViewById(R.id.scrollView);
 
-        textView.setOnLongClickListener(new View.OnLongClickListener() {
+        root.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 if (!MusicService.IsPremium) {

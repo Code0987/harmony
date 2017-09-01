@@ -1,31 +1,37 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 buildscript {
+
     repositories {
         jcenter()
         maven { url "https://plugins.gradle.org/m2/" }
         maven { url 'https://maven.fabric.io/public' }
         maven { url "https://maven.google.com" }
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.0-beta2'
         classpath 'com.google.gms:google-services:3.1.0'
-        classpath 'io.fabric.tools:gradle:1.22.2'
+        classpath 'io.fabric.tools:gradle:1.24.1'
         classpath "io.realm:realm-gradle-plugin:3.5.0"
+        classpath 'com.netflix.nebula:gradle-lint-plugin:7.5.0'
     }
-}
 
-plugins {
-    id 'nebula.lint' version '7.5.0'
 }
 
 allprojects {
+
     repositories {
         jcenter()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+        maven { url 'https://maven.fabric.io/public' }
+        maven { url "https://maven.google.com" }
     }
+
+    apply plugin: 'nebula.lint'
 
     gradleLint {
         rules  = ['dependency-parentheses']
         criticalRules = ['unused-dependency']
     }
+
 }

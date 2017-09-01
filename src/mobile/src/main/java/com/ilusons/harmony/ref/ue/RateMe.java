@@ -24,7 +24,10 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.R;
+
+import java.util.Map;
 
 public class RateMe {
 
@@ -158,7 +161,7 @@ public class RateMe {
 
 	public String getPositiveForLowRatings() {
 		if (positiveForLowRatings == null)
-			return "Leave feedback!";
+			return "Send Feedback";
 		return positiveForLowRatings;
 	}
 
@@ -248,6 +251,13 @@ public class RateMe {
 	}
 
 	public void run() {
+		if (BuildConfig.DEBUG) {
+			Map<String, ?> keys = spref.getAll();
+			for (Map.Entry<String, ?> entry : keys.entrySet()) {
+				Log.d(TAG, "spref:\t" + entry.getKey() + ": " + entry.getValue().toString());
+			}
+		}
+
 		if (spref.getBoolean(DONT_SHOW_AGAIN, false)) {
 			return;
 		}
@@ -466,6 +476,8 @@ public class RateMe {
 			});
 
 			AlertDialog alert = builder.create();
+
+			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
 
 			return alert;
 		}

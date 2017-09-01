@@ -747,7 +747,7 @@ public class MusicService extends Service {
 		return presetReverb;
 	}
 
-	private MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
+	private static MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
 	private Music currentMusic;
 	private ArrayList<String> playlist = new ArrayList<>(25);
 	private int playlistPosition = -1;
@@ -1203,7 +1203,7 @@ public class MusicService extends Service {
 		}
 	}
 
-	public void skip(int position) {
+	public void skip(int position, boolean autoPlay) {
 		synchronized (this) {
 			if (playlist.size() <= 0)
 				return;
@@ -1229,39 +1229,62 @@ public class MusicService extends Service {
 			e.printStackTrace();
 		}
 
-		prepare(new JavaEx.Action() {
-			@Override
-			public void execute() {
-				play();
-			}
-		});
+		if (autoPlay)
+			prepare(new JavaEx.Action() {
+				@Override
+				public void execute() {
+					play();
+				}
+			});
+		else
+			prepare(null);
+	}
+
+	public void skip(int position) {
+		skip(position, true);
+	}
+
+	public void random(boolean autoPlay) {
+		skip((int) Math.round(Math.random() * playlist.size()), autoPlay);
 	}
 
 	public void random() {
-		skip((int) Math.round(Math.random() * playlist.size()));
+		random(true);
+	}
+
+	public void next(boolean autoPlay) {
+		playlistPosition++;
+
+		skip(playlistPosition, autoPlay);
 	}
 
 	public void next() {
-		playlistPosition++;
+		next(true);
+	}
 
-		skip(playlistPosition);
+	public void prev(boolean autoPlay) {
+		playlistPosition--;
+
+		skip(playlistPosition, autoPlay);
 	}
 
 	public void prev() {
-		playlistPosition--;
-
-		skip(playlistPosition);
+		prev(true);
 	}
 
-	private void nextSmart(boolean forceNext) {
+	private void nextSmart(boolean forceNext, boolean autoPlay) {
 		if (!forceNext && getPlayerRepeatMusicEnabled(this)) {
 			play();
 		} else {
 			if (getPlayerShuffleMusicEnabled(this))
-				random();
+				random(autoPlay);
 			else
-				next();
+				next(autoPlay);
 		}
+	}
+
+	public void nextSmart(boolean forceNext) {
+		nextSmart(forceNext, true);
 	}
 
 	private static final int NOTIFICATION_ID = 4524;
@@ -1319,7 +1342,7 @@ public class MusicService extends Service {
 				.setCustomHeadsUpContentView(customNotificationViewS)
 				.setCustomBigContentView(customNotificationView)
 				/*.setStyle(new NotificationCompat.DecoratedMediaCustomViewStyle()
-	                    .setShowCancelButton(true)
+				        .setShowCancelButton(true)
                         .setCancelButtonIntent(createActionIntent(this, ACTION_STOP))
                         .setMediaSession(mediaSession.getSessionToken())
                         .setShowActionsInCompactView(1, 2, 0))*/;
@@ -1512,14 +1535,7 @@ public class MusicService extends Service {
 			Boolean force = intent.getBooleanExtra(KEY_LIBRARY_UPDATE_FORCE, false);
 			Boolean fastMode = intent.getBooleanExtra(KEY_LIBRARY_UPDATE_FASTMODE, SPrefEx.get(this).getBoolean(TAG_SPREF_LIBRARY_UPDATE_FASTMODE, LIBRARY_UPDATE_FASTMODE_DEFAULT));
 
-			libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this, force, fastMode) {
-				@Override
-				protected void onPostExecute(Result result) {
-					super.onPostExecute(result);
-
-					libraryUpdater = null;
-				}
-			};
+			libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this, force, fastMode);
 			libraryUpdater.execute();
 
 		} else if (action.equals(ACTION_LIBRARY_UPDATED)) {

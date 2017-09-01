@@ -14,28 +14,35 @@ public class TimeIt implements AutoCloseable {
 	private String tag = TimeIt.class.getSimpleName();
 
 	private ArrayList<Long> splits = new ArrayList<>();
+	private ArrayList<String> splitTags = new ArrayList<>();
 
 	public void reset(String tag) {
 		splits.clear();
 
 		this.tag = tag;
 
-		split();
+		split("[Initial]");
 	}
 
-	public void split() {
+	public void split(String tag) {
 		splits.add(System.nanoTime());
+		splitTags.add(tag);
 	}
 
 	public String print() {
-		split();
+		split("[Final]");
 
 		StringBuilder sb = new StringBuilder();
 
 		for (int i = 1; i < splits.size(); i++) {
 			long seconds = ((splits.get(i) - splits.get(i - 1)) / 1000) % 60;
 
-			sb.append(tag).append(":\t").append(String.format(Locale.ENGLISH, "0.%d seconds", seconds)).append(System.lineSeparator());
+			sb.append(tag)
+					.append(":\t")
+					.append(String.format(Locale.ENGLISH, "0.%d seconds", seconds))
+					.append("\t")
+					.append(splitTags.get(i))
+					.append(System.lineSeparator());
 		}
 
 		return sb.toString();
@@ -46,7 +53,7 @@ public class TimeIt implements AutoCloseable {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		printToLog();
 	}
 

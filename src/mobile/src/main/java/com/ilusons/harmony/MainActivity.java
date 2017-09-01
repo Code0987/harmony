@@ -136,7 +136,7 @@ public class MainActivity extends BaseActivity {
 
 				RateMe rateMe = new RateMe(contextRef.get());
 				rateMe.setConstraints(
-						5,
+						7,
 						2,
 						14,
 						5);
@@ -160,7 +160,7 @@ public class MainActivity extends BaseActivity {
 
 					}
 				});
-				rateMe.forceShow();
+				rateMe.run();
 			}
 		}, (int) (1.5 * 60 * 1000));
 	}
@@ -172,13 +172,15 @@ public class MainActivity extends BaseActivity {
 		ArrayList<String> messages = new ArrayList<>();
 
 		messages.add("You can play videos in background, just open any video.");
-		messages.add("Automatic headset play/pause can stopped from settings.");
+		messages.add("Automatic headset play/pause can be adjusted from settings.");
 		messages.add("In default playback ui, you can rotate screen. It's specifically designed for video playback.");
-		messages.add("Long press play button to stop/reset.");
+		messages.add("Long press play/pause button to stop/reset.");
+		messages.add("Long press skip/next/previous button to skip to random item in playlist.");
 		messages.add("Long press jump/open button to open playback ui.");
-		messages.add("Long press to open lyrics menu.");
-		messages.add("Long press cover art, to fade it.");
+		messages.add("Long press to open lyrics menu on lyrics view.");
+		messages.add("Long press cover art to fade it.");
 		messages.add("Long press visualization button to change styles.");
+		messages.add("If songs are not shown,\nLeft drawer -> Refresh\nOr\nLeft drawer -> Settings -> Library -> Add scan location -> (previous step)");
 
 		Tips tips = new Tips(contextRef.get());
 

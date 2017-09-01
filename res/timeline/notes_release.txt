@@ -1,6 +1,9 @@
 ﻿◾️ Work in progress, please leave feedback.
 ✔️ Fixed: Bugs.
 ✔️ Updates: Playlist/library related.
+✔️ Updates: Library scanner related.
+✔️ New: Added next/random button in mini playback ui.
+✔️ New: Added helpful random tips.
 ✔️ New: Added long press menu in lyrics view!
 ✔️ New: Added EQ presets!
 ✔️ Updates: Allowed 3rd party installation of app.

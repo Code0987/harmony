@@ -25,6 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/lomo"
+        android:baselineAligned="false"
         android:orientation="horizontal"
         >
 
@@ -75,7 +76,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginStart="0dp"
             android:layout_marginTop="4dp"
-            android:layout_weight="2"
+            android:layout_weight="3"
             android:gravity="end|center_vertical"
             android:orientation="horizontal"
             >
@@ -83,8 +84,8 @@
             <ImageView
                 android:id="@+id/play_pause_stop"
                 style="@android:style/Widget.Material.Light.Button.Borderless.Small"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_margin="0dp"
                 android:background="@null"
                 android:ellipsize="end"
@@ -97,11 +98,27 @@
                 />
 
             <ImageView
+                android:id="@+id/next_random"
+                style="@android:style/Widget.Material.Light.Button.Borderless.Small"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_margin="0dp"
+                android:background="@null"
+                android:ellipsize="end"
+                android:gravity="start|center_vertical"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_skip_next_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageView
                 android:id="@+id/jump"
                 style="@android:style/Widget.Material.Light.Button.Borderless.Small"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:layout_margin="6dp"
+                android:layout_margin="3dp"
                 android:background="@null"
                 android:ellipsize="end"
                 android:gravity="start|center_vertical"

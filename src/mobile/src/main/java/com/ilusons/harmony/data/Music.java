@@ -32,6 +32,7 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.SongsEx;
+import com.ilusons.harmony.ref.TimeIt;
 import com.ilusons.harmony.views.LyricsViewFragment;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 
@@ -556,17 +557,15 @@ public class Music extends RealmObject {
 
 	//region Decoding
 
-	public static Music decode(Realm realm, Context context, String path, boolean fastMode, Music oldData) {
+	public static Music decode(Realm realm, Context context, final String path, final Uri contentUri, boolean fastMode, Music oldData) {
 		Music data = oldData;
 
-		realm.beginTransaction();
 		try {
 			// Get data
 			if (data == null) {
-				RealmResults<Music> realmResults = get(realm, path);
-				if (!(realmResults == null || realmResults.size() == 0))
-					data = realmResults.get(0);
-				else
+				if (path != null)
+					data = get(realm, path);
+				if (data == null)
 					data = new Music();
 
 				data.TimeAdded = System.currentTimeMillis();
@@ -588,8 +587,7 @@ public class Music extends RealmObject {
 
 			if (Looper.myLooper() != null) {
 
-				if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("audio")) {
-					Uri contentUri = Uri.parse(path);
+				if (contentUri != null && contentUri.toString().startsWith(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI.toString())) {
 					Cursor cursor = null;
 
 					try {
@@ -643,13 +641,11 @@ public class Music extends RealmObject {
 								// Eat
 							}
 
-							path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
-
-							data.Path = path;
+							data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
 
 							MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 							try {
-								mmr.setDataSource(path);
+								mmr.setDataSource(data.Path);
 
 								byte[] cover = mmr.getEmbeddedPicture();
 								if (cover != null && cover.length > 0) {
@@ -672,8 +668,7 @@ public class Music extends RealmObject {
 					}
 				}
 
-				if (path.toLowerCase().startsWith("content") && path.toLowerCase().contains("video")) {
-					Uri contentUri = Uri.parse(path);
+				if (contentUri != null && contentUri.toString().startsWith(MediaStore.Video.Media.EXTERNAL_CONTENT_URI.toString())) {
 					Cursor cursor = null;
 
 					try {
@@ -712,14 +707,12 @@ public class Music extends RealmObject {
 							// Eat
 						}
 
-						path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
-
-						data.Path = path;
+						data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
 
 						if (!fastMode) {
 							MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 							try {
-								mmr.setDataSource(path);
+								mmr.setDataSource(data.Path);
 
 								Bitmap bmp = mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
 								if (bmp != null)
@@ -742,7 +735,7 @@ public class Music extends RealmObject {
 			}
 
 			// Metadata from tags
-			if (!fastMode && !path.toLowerCase().startsWith("content")) {
+			if (!fastMode && path != null && contentUri == null) {
 				File file = new File(path);
 				if (file.length() < 100 * 1024 * 1024)
 					try {
@@ -763,6 +756,8 @@ public class Music extends RealmObject {
 						} catch (Exception e) {
 							// Ignore
 						}
+
+						data.Path = path;
 
 						if (data.getCover(context) == null) {
 							Artwork artwork = tag.getFirstArtwork();
@@ -801,45 +796,45 @@ public class Music extends RealmObject {
 			}
 
 			if (TextUtils.isEmpty(data.Title) || TextUtils.isEmpty(data.Artist)) try {
-				ArrayList<String> at = SongsEx.getArtistAndTitle((new File(path)).getName());
+				ArrayList<String> at = SongsEx.getArtistAndTitle((new File(data.Path)).getName());
 
 				data.Artist = at.get(0);
 				data.Title = at.get(1);
 			} catch (Exception e) {
-				data.Title = (new File(path)).getName().replaceFirst("[.][^.]+$", "");
+				data.Title = (new File(data.Path)).getName().replaceFirst("[.][^.]+$", "");
 			}
 
-			Log.d(TAG, "added to library\n" + path);
+			// Save to db
 
-			// HACK: Calling the devil
-			System.gc();
-			Runtime.getRuntime().gc();
-
-			data.Path = path;
-
+			realm.beginTransaction();
 			realm.copyToRealmOrUpdate(data);
+			realm.commitTransaction();
 
 			// Check constraints
 			if (!(data.hasAudio() || data.hasVideo())) {
 				try {
+					realm.beginTransaction();
 					data.deleteFromRealm();
+					realm.commitTransaction();
+
+					data = null;
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-
-				data = null;
 			}
-
-			realm.commitTransaction();
 
 			if (data != null)
 				try {
-					RealmResults<Music> realmResults = get(realm, data.Path);
-					if (!(realmResults == null || realmResults.size() == 0))
-						data = realm.copyFromRealm(realmResults.get(0));
+					Music dbData = get(realm, data.Path);
+					if (dbData != null)
+						data = realm.copyFromRealm(dbData);
 				} catch (Exception e) {
 					Log.w(TAG, e);
 				}
+
+			// HACK: Calling the devil
+			System.gc();
+			Runtime.getRuntime().gc();
 
 		} catch (Throwable e) {
 			if (realm.isInTransaction()) {
@@ -850,12 +845,15 @@ public class Music extends RealmObject {
 			throw e;
 		}
 
+		if (data != null)
+			Log.d(TAG, "added to library\n" + data.Path);
+
 		return data;
 	}
 
 	public void refresh(Context context) {
 		try (Realm realm = getDB()) {
-			Music.decode(realm, context, Path, false, this);
+			Music.decode(realm, context, Path, null, false, this);
 		}
 	}
 
@@ -922,6 +920,20 @@ public class Music extends RealmObject {
 			return false;
 		}
 	}
+
+	public static boolean isValid(String path) {
+		int index = path.lastIndexOf(".");
+		if (index > 0) {
+			String ext = path.substring(index);
+			if (Music.isAudio(ext) || Music.isVideo(ext)) {
+				return true;
+			}
+		}
+		if (path.startsWith(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI.toString()) || path.startsWith(MediaStore.Video.Media.EXTERNAL_CONTENT_URI.toString()))
+			return true;
+		return false;
+	}
+
 	//endregion
 
 	//region Playlist
@@ -1099,12 +1111,12 @@ public class Music extends RealmObject {
 			return;
 
 		for (String audioId : audioIds) {
-			String path = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId)).toString();
+			Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId));
 
-			Music m = decode(realm, context, path, true, null);
+			Music data = decode(realm, context, null, contentUri, true, null);
 
-			if (m != null)
-				action.execute(m);
+			if (data != null)
+				action.execute(data);
 		}
 	}
 
@@ -1164,15 +1176,15 @@ public class Music extends RealmObject {
 	}
 
 	public static RealmResults<Music> getAll(Realm realm) {
-		RealmResults<Music> result = realm.where(Music.class).findAll();
-
-		return result;
+		return realm.where(Music.class).findAll();
 	}
 
-	public static RealmResults<Music> get(Realm realm, String path) {
-		RealmResults<Music> result = realm.where(Music.class).equalTo("Path", path).findAll();
+	public static RealmResults<Music> getAll(Realm realm, String path) {
+		return realm.where(Music.class).equalTo("Path", path).findAll();
+	}
 
-		return result;
+	public static Music get(Realm realm, String path) {
+		return realm.where(Music.class).equalTo("Path", path).findFirst();
 	}
 
 	public static final String KEY_PLAYLIST_MEDIASTORE = "mediastore";
@@ -1189,15 +1201,13 @@ public class Music extends RealmObject {
 	}
 
 	public static Music load(Realm realm, Context context, String path) {
-		RealmResults<Music> realmResults = get(realm, path);
-
-		Music m = null;
-		if (realmResults == null || realmResults.size() == 0)
-			m = decode(realm, context, path, false, null);
+		Music data = get(realm, path);
+		if (data == null)
+			data = decode(realm, context, path, null, false, null);
 		else
-			m = realm.copyFromRealm(realmResults.get(0));
+			data = realm.copyFromRealm(data);
 
-		return m;
+		return data;
 	}
 
 	public static Music load(Context context, String path) {
@@ -1385,27 +1395,40 @@ public class Music extends RealmObject {
 		return data;
 	}
 
-	public static void delete(final MusicService musicService, final Realm realm, final Music data, boolean notify) {
+	public static void delete(final MusicService musicService, final Realm realm, final String path, boolean notify) {
 		try {
-			if (musicService.getCurrentPlaylistItemMusic().Path.equals(data.Path))
-				musicService.next();
+			if (musicService.getCurrentPlaylistItemMusic().Path.equals(path))
+				musicService.next(musicService.isPlaying());
 
 			realm.executeTransaction(new Realm.Transaction() {
 				@Override
 				public void execute(Realm realm) {
 					realm.where(Music.class)
-							.equalTo("Path", data.Path, Case.INSENSITIVE)
+							.equalTo("Path", path, Case.INSENSITIVE)
 							.findAll()
 							.deleteAllFromRealm();
 				}
 			});
 
-			(new File(data.Path)).deleteOnExit();
+			(new File(path)).deleteOnExit();
 
 			List<String> playlistCurrentSortOrder = getPlaylistCurrentSortOrder(musicService);
 			if (playlistCurrentSortOrder != null) {
-				playlistCurrentSortOrder.remove(data.Path);
+				playlistCurrentSortOrder.remove(path);
 				setPlaylistCurrentSortOrder(musicService, playlistCurrentSortOrder, notify, notify);
+			}
+
+			if (notify) {
+				final Context context = musicService;
+
+				Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
+				LocalBroadcastManager
+						.getInstance(context)
+						.sendBroadcast(broadcastIntent);
+
+				Intent musicServiceIntent = new Intent(context, MusicService.class);
+				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
+				context.startService(musicServiceIntent);
 			}
 
 		} catch (Exception e) {
@@ -1413,9 +1436,9 @@ public class Music extends RealmObject {
 		}
 	}
 
-	public static void delete(final MusicService musicService, final Music data, boolean notify) {
+	public static void delete(final MusicService musicService, final String path, boolean notify) {
 		try (Realm realm = getDB()) {
-			delete(musicService, realm, data, notify);
+			delete(musicService, realm, path, notify);
 		}
 	}
 
