@@ -78,7 +78,6 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ue.RateMe;
-import com.squareup.haha.perflib.Main;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
