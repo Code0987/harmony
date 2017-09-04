@@ -422,7 +422,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 	private long lastNotificationUpdateTimestamp = 0;
 
 	private void updateNotification(String msg) {
-		if ((System.currentTimeMillis() - lastNotificationUpdateTimestamp) < 15000)
+		if ((System.currentTimeMillis() - lastNotificationUpdateTimestamp) < 1000)
 			return;
 		lastNotificationUpdateTimestamp = System.currentTimeMillis();
 

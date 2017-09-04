@@ -150,13 +150,16 @@ public class Tips {
 		if (listener != null)
 			try {
 				listener.onNegative(this);
-
-				Editor editor = spref.edit();
-				editor.putBoolean(DONT_SHOW_AGAIN, true);
-				editor.apply();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		try {
+			Editor editor = spref.edit();
+			editor.putBoolean(DONT_SHOW_AGAIN, true);
+			editor.apply();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void onPositive() {

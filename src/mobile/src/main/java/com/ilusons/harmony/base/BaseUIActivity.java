@@ -99,7 +99,7 @@ public abstract class BaseUIActivity extends BaseActivity {
         bindService(intent, musicServiceConnection, Context.BIND_AUTO_CREATE);
 
         // Acquire wake lock
-        wakeLockForScreenOn.acquire();
+        wakeLockForScreenOn.acquire(11000);
 
         // Events
         broadcastReceiver.register(this);

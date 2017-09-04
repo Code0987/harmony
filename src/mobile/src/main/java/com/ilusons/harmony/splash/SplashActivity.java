@@ -97,14 +97,18 @@ public class SplashActivity extends Activity {
 	}
 
 	private void executePermissionsTask() {
-		if (!checkPermissions()) {
-			requestPermissions();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (!checkPermissions()) {
+				requestPermissions();
 
-			return;
+				return;
+			}
 		}
 
 		Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+
 		startActivity(intent);
+
 		finish();
 	}
 
