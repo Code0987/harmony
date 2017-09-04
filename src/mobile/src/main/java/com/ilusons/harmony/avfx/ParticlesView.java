@@ -8,10 +8,12 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.support.v4.graphics.ColorUtils;
 import android.util.AttributeSet;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ParticlesView extends BaseAVFXCanvasView {
 
@@ -33,7 +35,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 	private Paint paint;
 	private Paint pathPaint;
 	private Path path;
-	private static final int N = 95;
+	private static final int N = 165;
 	private ArrayList<Particle> particles;
 
 	@Override
@@ -60,12 +62,22 @@ public class ParticlesView extends BaseAVFXCanvasView {
 		path = new Path();
 
 		particles = new ArrayList<>(N);
-		while (particles.size() < N)
+		for (int n = 0; n < N; n++) {
 			particles.add(new Particle());
+		}
 
 	}
 
 	public void setColor(int color) {
+		float[] hsl = new float[3];
+		ColorUtils.colorToHSL(color, hsl);
+
+		hsl[0] += (ThreadLocalRandom.current().nextInt(30 + 1 + 30) - 30);
+		hsl[1] += (ThreadLocalRandom.current().nextDouble(0.1 + 1 + 0.1) - 0.1);
+		hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f);
+
+		color = ColorUtils.HSLToColor(hsl);
+
 		paint.setColor(color);
 	}
 
@@ -144,8 +156,8 @@ public class ParticlesView extends BaseAVFXCanvasView {
 		public Particle() {
 			X = (float) Math.random() * width;
 			Y = (float) Math.random() * height;
-			Vx = ((float) Math.random() - 0.5f) * 5;
-			Vy = ((float) Math.random() - 0.5f) * 5;
+			Vx = ((float) Math.random() - 0.5f) * 7;
+			Vy = ((float) Math.random() - 0.5f) * 15;
 			Proximity = ((float) Math.random() * 0.24f * (float) Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)));
 		}
 
@@ -175,7 +187,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 			}
 
 			if (Math.abs(y) < 1) {
-				X += Vx;
+				X -= Vx;
 				Y += Vy;
 			} else {
 				X += Vx;

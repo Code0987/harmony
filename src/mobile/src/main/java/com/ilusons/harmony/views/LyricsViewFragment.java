@@ -35,305 +35,309 @@ import java.util.regex.Pattern;
 
 public class LyricsViewFragment extends Fragment {
 
-    // Logger TAG
-    private static final String TAG = LyricsViewFragment.class.getSimpleName();
-
-    public static String KEY_PATH = "path";
-    private String path = null;
-    private Music music = null;
-    public static String KEY_LENGTH = "length";
-    private Long length = -1L;
-
-    private boolean isContentProcessed = false;
-
-    private View root;
-
-    private AVLoadingIndicatorView loading_view;
-
-    private TextView textView;
-    private ScrollView scrollView;
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putString(KEY_PATH, path);
-        savedInstanceState.putLong(KEY_LENGTH, length);
-
-        super.onSaveInstanceState(savedInstanceState);
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            path = (String) savedInstanceState.get(KEY_PATH);
-            length = (Long) savedInstanceState.get(KEY_LENGTH);
-        } else {
-            path = (String) getArguments().get(KEY_PATH);
-            length = (Long) getArguments().get(KEY_LENGTH);
-        }
-
-        Music.setCurrentLyricsView(this);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.lyrics_view, container, false);
-
-        root = v;
-        loading_view = (AVLoadingIndicatorView) v.findViewById(R.id.loading_view);
-
-        textView = (TextView) v.findViewById(R.id.lyrics);
-        scrollView = (ScrollView) v.findViewById(R.id.scrollView);
-
-        root.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (!MusicService.IsPremium) {
-                    MusicService.showPremiumFeatureMessage(getActivity().getApplicationContext());
-
-                    return false;
-                }
-
-                if (music == null)
-                    return false;
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.AppTheme_AlertDialogStyle));
-                builder.setTitle("Select the action");
-                builder.setItems(new CharSequence[]{
-                        "Reload",
-                        "Edit"
-                }, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int itemIndex) {
-                        try {
-                            switch (itemIndex) {
-                                case 0:
-                                    reLoad();
-                                    break;
-                                case 1:
-                                    try {
-                                        Context context = getActivity().getApplicationContext();
-
-                                        File file = music.getLyricsFile(getActivity().getApplicationContext());
-                                        Uri contentUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
-
-                                        Intent intent = new Intent(Intent.ACTION_EDIT);
-                                        intent.setDataAndType(contentUri, "text/plain");
-                                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-                                        List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-                                        for (ResolveInfo resolveInfo : resInfoList) {
-                                            String packageName = resolveInfo.activityInfo.packageName;
-                                            context.grantUriPermission(packageName, contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                        }
-
-                                        context.startActivity(Intent.createChooser(intent, "Edit lyrics for " + music.getText()));
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-
-                                        Toast.makeText(getActivity().getApplicationContext(), "Please install a text editor first!", Toast.LENGTH_LONG).show();
-                                    }
-                                    break;
-                            }
-                        } catch (Exception e) {
-                            Log.w(TAG, e);
-                        }
-                    }
-                });
-                AlertDialog dialog = builder.create();
-                dialog.show();
+	// Logger TAG
+	private static final String TAG = LyricsViewFragment.class.getSimpleName();
+
+	public static String KEY_PATH = "path";
+	private String path = null;
+	private Music music = null;
+	public static String KEY_LENGTH = "length";
+	private Long length = -1L;
+
+	private boolean isContentProcessed = false;
+
+	private View root;
+
+	private AVLoadingIndicatorView loading_view;
+
+	private TextView textView;
+	private ScrollView scrollView;
+
+	@Override
+	public void onSaveInstanceState(Bundle savedInstanceState) {
+		savedInstanceState.putString(KEY_PATH, path);
+		savedInstanceState.putLong(KEY_LENGTH, length);
+
+		super.onSaveInstanceState(savedInstanceState);
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		if (savedInstanceState != null) {
+			path = (String) savedInstanceState.get(KEY_PATH);
+			length = (Long) savedInstanceState.get(KEY_LENGTH);
+		} else {
+			path = (String) getArguments().get(KEY_PATH);
+			length = (Long) getArguments().get(KEY_LENGTH);
+		}
+
+		Music.setCurrentLyricsView(this);
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		View v = inflater.inflate(R.layout.lyrics_view, container, false);
+
+		root = v;
+		loading_view = (AVLoadingIndicatorView) v.findViewById(R.id.loading_view);
+
+		textView = (TextView) v.findViewById(R.id.lyrics);
+		scrollView = (ScrollView) v.findViewById(R.id.scrollView);
+
+		View.OnLongClickListener longClickListener = new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (!MusicService.IsPremium) {
+					MusicService.showPremiumFeatureMessage(getActivity().getApplicationContext());
+
+					return false;
+				}
+
+				if (music == null)
+					return false;
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.AppTheme_AlertDialogStyle));
+				builder.setTitle("Select the action");
+				builder.setItems(new CharSequence[]{
+						"Reload",
+						"Edit"
+				}, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int itemIndex) {
+						try {
+							switch (itemIndex) {
+								case 0:
+									reLoad();
+									break;
+								case 1:
+									try {
+										Context context = getActivity().getApplicationContext();
+
+										File file = music.getLyricsFile(getActivity().getApplicationContext());
+										Uri contentUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", file);
+
+										Intent intent = new Intent(Intent.ACTION_EDIT);
+										intent.setDataAndType(contentUri, "text/plain");
+										intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+										List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+										for (ResolveInfo resolveInfo : resInfoList) {
+											String packageName = resolveInfo.activityInfo.packageName;
+											context.grantUriPermission(packageName, contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+										}
+
+										context.startActivity(Intent.createChooser(intent, "Edit lyrics for " + music.getText()));
+									} catch (Exception e) {
+										e.printStackTrace();
+
+										Toast.makeText(getActivity().getApplicationContext(), "Please install a text editor first!", Toast.LENGTH_LONG).show();
+									}
+									break;
+							}
+						} catch (Exception e) {
+							Log.w(TAG, e);
+						}
+					}
+				});
+				AlertDialog dialog = builder.create();
+				dialog.show();
 
-                return true;
-            }
-        });
+				return true;
+			}
+		};
 
-        reset(path, length);
+		root.setOnLongClickListener(longClickListener);
+		textView.setOnLongClickListener(longClickListener);
+		scrollView.setOnLongClickListener(longClickListener);
 
-        return v;
-    }
+		reset(path, length);
 
-    public void reLoad() {
-        loading_view.smoothToShow();
-        try {
-            Music.getLyricsOrDownload(music);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+		return v;
+	}
 
-    public void onReloaded(String s) {
-        loading_view.smoothToHide();
+	public void reLoad() {
+		loading_view.smoothToShow();
+		try {
+			Music.getLyricsOrDownload(music);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-        processContent();
-    }
+	public void onReloaded(String s) {
+		loading_view.smoothToHide();
 
-    private String contentFormatted = null;
-    private TreeMap<Long, String> contentProcessed = new TreeMap<>();
+		processContent();
+	}
 
-    private static Pattern ts = Pattern.compile("(\\d+):(\\d+).(\\d+)", Pattern.CASE_INSENSITIVE);
-    private static Pattern lf = Pattern.compile("((\\[(.*)\\])+)(.*)", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+	private String contentFormatted = null;
+	private TreeMap<Long, String> contentProcessed = new TreeMap<>();
 
-    private void processContent() {
-        // If no data loaded return
-        if (music == null)
-            return;
+	private static Pattern ts = Pattern.compile("(\\d+):(\\d+).(\\d+)", Pattern.CASE_INSENSITIVE);
+	private static Pattern lf = Pattern.compile("((\\[(.*)\\])+)(.*)", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
-        if (getActivity() == null || getActivity().getApplicationContext() == null)
-            return;
+	private void processContent() {
+		// If no data loaded return
+		if (music == null)
+			return;
 
-        loading_view.show();
+		if (getActivity() == null || getActivity().getApplicationContext() == null)
+			return;
 
-        textView.setText(music.getTextDetailedMultiLine());
+		loading_view.show();
 
-        // Load lyrics
-        String content = music.getLyrics(getActivity().getApplicationContext());
-        // Check if need to download or not
-        if (content == null) {
-            // If download required, postpone function to later
-            reLoad();
-            return;
-        }
+		textView.setText(music.getTextDetailedMultiLine());
 
-        int lines = content.split(System.getProperty("line.separator")).length + 3;
+		// Load lyrics
+		String content = music.getLyrics(getActivity().getApplicationContext());
+		// Check if need to download or not
+		if (content == null) {
+			// If download required, postpone function to later
+			reLoad();
+			return;
+		}
 
-        // Format content
-        String nl = System.getProperty("line.separator");
+		int lines = content.split(System.getProperty("line.separator")).length + 3;
 
-        contentProcessed.clear();
+		// Format content
+		String nl = System.getProperty("line.separator");
 
-        Matcher m = lf.matcher(content);
-        while (m.find()) {
-            String c = m.group(4).trim();
+		contentProcessed.clear();
 
-            Matcher mts = ts.matcher(m.group(3));
-            while (mts.find()) { // Decode multiple time lines
+		Matcher m = lf.matcher(content);
+		while (m.find()) {
+			String c = m.group(4).trim();
 
-                long ts = Long.parseLong(mts.group(1)) * 60000
-                        + Long.parseLong(mts.group(2)) * 1000
-                        + Long.parseLong(mts.group(3));
+			Matcher mts = ts.matcher(m.group(3));
+			while (mts.find()) { // Decode multiple time lines
 
-                contentProcessed.put(ts, c);
-            }
-        }
+				long ts = Long.parseLong(mts.group(1)) * 60000
+						+ Long.parseLong(mts.group(2)) * 1000
+						+ Long.parseLong(mts.group(3));
 
-        if (contentProcessed.size() > 0) { // Re-build user friendly lyrics
-            StringBuilder sb = new StringBuilder();
+				contentProcessed.put(ts, c);
+			}
+		}
 
-            for (TreeMap.Entry entry : contentProcessed.entrySet()) {
-                sb.append(entry.getValue());
-                sb.append(System.lineSeparator());
-            }
+		if (contentProcessed.size() > 0) { // Re-build user friendly lyrics
+			StringBuilder sb = new StringBuilder();
 
-            contentFormatted = music.getTextDetailedMultiLine() + nl + nl + sb.toString();
+			for (TreeMap.Entry entry : contentProcessed.entrySet()) {
+				sb.append(entry.getValue());
+				sb.append(System.lineSeparator());
+			}
 
-            lines = sb.toString().split(System.getProperty("line.separator")).length + 3;
-        } else {
-            contentFormatted = music.getTextDetailedMultiLine() + nl + nl + content;
-        }
+			contentFormatted = music.getTextDetailedMultiLine() + nl + nl + sb.toString();
 
-        scrollBy = ((float) textView.getLineHeight() * lines) / ((float) length / 1000);
-        if (scrollBy < 1)
-            scrollBy = 1;
+			lines = sb.toString().split(System.getProperty("line.separator")).length + 3;
+		} else {
+			contentFormatted = music.getTextDetailedMultiLine() + nl + nl + content;
+		}
 
-        textView.setText(contentFormatted);
+		scrollBy = ((float) textView.getLineHeight() * lines) / ((float) length / 1000);
+		if (scrollBy < 1)
+			scrollBy = 1;
 
-        loading_view.hide();
+		textView.setText(contentFormatted);
 
-        isContentProcessed = true;
-    }
+		loading_view.hide();
 
-    private float scrollBy = 1;
-    private int lastPScroll;
-    private int lastP;
-    private long lastTS;
-    private int lastIndex;
+		isContentProcessed = true;
+	}
 
-    public void updateScroll(int p) {
-        if (!isContentProcessed)
-            return;
+	private float scrollBy = 1;
+	private int lastPScroll;
+	private int lastP;
+	private long lastTS;
+	private int lastIndex;
 
-        if (textView == null || textView.getLayout() == null)
-            return;
+	public void updateScroll(int p) {
+		if (!isContentProcessed)
+			return;
 
-        // Reset if seek-ed back
-        if (lastP > p) {
-            lastTS = 0;
-            lastIndex = -1;
-        }
-        lastP = p;
+		if (textView == null || textView.getLayout() == null)
+			return;
 
-        // For synced
-        if (contentProcessed.size() > 0) {
+		// Reset if seek-ed back
+		if (lastP > p) {
+			lastTS = 0;
+			lastIndex = -1;
+		}
+		lastP = p;
 
-            long ts = 0L;
-            String c = null;
+		// For synced
+		if (contentProcessed.size() > 0) {
 
-            for (Long k : contentProcessed.keySet())
-                if (k <= p) {
-                    ts = k;
-                    c = contentProcessed.get(k);
-                } else break;
+			long ts = 0L;
+			String c = null;
 
-            if (ts > lastTS && c != null) {
-                int index = contentFormatted.indexOf(c, lastIndex);
-                lastIndex = index;
+			for (Long k : contentProcessed.keySet())
+				if (k <= p) {
+					ts = k;
+					c = contentProcessed.get(k);
+				} else break;
 
-                int line = textView.getLayout().getLineForOffset(index);
-                int y = (int) ((line + 0.5) * textView.getLineHeight()) + textView.getTop();
+			if (ts > lastTS && c != null) {
+				int index = contentFormatted.indexOf(c, lastIndex);
+				lastIndex = index;
 
-                scrollView.smoothScrollTo(0, y - scrollView.getHeight() / 2);
+				int line = textView.getLayout().getLineForOffset(index);
+				int y = (int) ((line + 0.5) * textView.getLineHeight()) + textView.getTop();
 
-                lastTS = ts;
-            }
+				scrollView.smoothScrollTo(0, y - scrollView.getHeight() / 2);
 
-        }
+				lastTS = ts;
+			}
 
-        // For un-synced (no else to show little scroll always)
-        if (p - lastPScroll > 750) { // Scroll every 3/4 sec
-            scrollView.smoothScrollBy(0, Math.round(scrollBy));
-            lastPScroll = p;
-        }
+		}
 
-    }
+		// For un-synced (no else to show little scroll always)
+		if (p - lastPScroll > 750) { // Scroll every 3/4 sec
+			scrollView.smoothScrollBy(0, Math.round(scrollBy));
+			lastPScroll = p;
+		}
 
-    public void reset(String path, Long length) {
-        this.path = path;
-        this.music = Music.load(getActivity(), path);
-        this.length = length;
+	}
 
-        lastPScroll = 0;
-        lastP = 0;
-        lastTS = 0;
-        lastIndex = -1;
+	public void reset(String path, Long length) {
+		this.path = path;
+		this.music = Music.load(getActivity(), path);
+		this.length = length;
 
-        scrollView.smoothScrollTo(0, 0);
+		lastPScroll = 0;
+		lastP = 0;
+		lastTS = 0;
+		lastIndex = -1;
 
-        processContent();
-    }
+		scrollView.smoothScrollTo(0, 0);
 
-    public void reset(Music music, Long length) {
-        this.path = music.Path;
-        this.music = music;
-        this.length = length;
+		processContent();
+	}
 
-        lastPScroll = 0;
-        lastP = 0;
-        lastTS = 0;
-        lastIndex = -1;
+	public void reset(Music music, Long length) {
+		this.path = music.Path;
+		this.music = music;
+		this.length = length;
 
-        scrollView.smoothScrollTo(0, 0);
+		lastPScroll = 0;
+		lastP = 0;
+		lastTS = 0;
+		lastIndex = -1;
 
-        processContent();
-    }
+		scrollView.smoothScrollTo(0, 0);
 
-    public static LyricsViewFragment create(String path, Long length) {
-        LyricsViewFragment f = new LyricsViewFragment();
-        Bundle b = new Bundle();
-        b.putString(KEY_PATH, path);
-        b.putLong(KEY_LENGTH, length);
-        f.setArguments(b);
-        return f;
-    }
+		processContent();
+	}
+
+	public static LyricsViewFragment create(String path, Long length) {
+		LyricsViewFragment f = new LyricsViewFragment();
+		Bundle b = new Bundle();
+		b.putString(KEY_PATH, path);
+		b.putLong(KEY_LENGTH, length);
+		f.setArguments(b);
+		return f;
+	}
 
 }

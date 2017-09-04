@@ -31,6 +31,9 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
         if (ref == null)
             return;
 
+        if (action == null)
+            return;
+
         if (action.equals(MusicService.ACTION_PLAY)) {
             OnMusicServicePlay();
         }

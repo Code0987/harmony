@@ -570,6 +570,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 	@Override
 	protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
 		super.OnMusicServiceChanged(className, musicService, isBound);
+
+		updatePlaybackUIMini();
 	}
 
 	@Override
@@ -619,11 +621,15 @@ public class LibraryUIActivity extends BaseUIActivity {
 		setFromCurrentPlaylist();
 
 		info("Library updated!");
+
+		updatePlaybackUIMini();
 	}
 
 	@Override
 	public void OnMusicServicePlaylistCurrentUpdated() {
 		setFromCurrentPlaylist();
+
+		updatePlaybackUIMini();
 	}
 
 	//region PlaybackUIMini

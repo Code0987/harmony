@@ -797,14 +797,20 @@ public class Music extends RealmObject {
 
 			if (TextUtils.isEmpty(data.Title)
 					|| TextUtils.isEmpty(data.Artist)
-					|| data.Artist.contains("unknown")) // TODO: Handle this better
+					|| data.Artist.contains("unknown"))
 				try {
 					ArrayList<String> at = SongsEx.getArtistAndTitle((new File(data.Path)).getName());
 
 					data.Artist = at.get(0);
 					data.Title = at.get(1);
 				} catch (Exception e) {
-					data.Title = (new File(data.Path)).getName().replaceFirst("[.][^.]+$", "");
+					if (!TextUtils.isEmpty(path)) {
+						data.Path = path;
+
+						data.Title = (new File(data.Path)).getName().replaceFirst("[.][^.]+$", "");
+					} else {
+						throw new Exception("WTF happened!");
+					}
 				}
 
 			// Save to db
@@ -845,7 +851,6 @@ public class Music extends RealmObject {
 			} else {
 				Log.w(TAG, "Could not cancel transaction, not currently in a transaction.");
 			}
-			throw e;
 		}
 
 		if (data != null)

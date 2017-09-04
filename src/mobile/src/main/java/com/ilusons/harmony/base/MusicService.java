@@ -29,8 +29,6 @@ import android.widget.MediaController;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
 import com.google.android.vending.licensing.AESObfuscator;
 import com.google.android.vending.licensing.LicenseChecker;
 import com.google.android.vending.licensing.LicenseCheckerCallback;
@@ -1372,14 +1370,6 @@ public class MusicService extends Service {
 						e.printStackTrace();
 					}
 
-					try {
-						Answers.getInstance().logCustom(new CustomEvent(ACTION_PLAY)
-								.putCustomAttribute("title", currentMusic.Title)
-								.putCustomAttribute("artist", currentMusic.Artist));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
 					nextSmart(false);
 				}
 			});
@@ -1876,7 +1866,7 @@ public class MusicService extends Service {
 			libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this, force, fastMode);
 			libraryUpdater.execute();
 
-		} else if (action.equals(ACTION_LIBRARY_UPDATED)) {
+		} else if (action.equals(ACTION_LIBRARY_UPDATED) || action.equals(ACTION_PLAYLIST_CURRENT_UPDATED)) {
 
 			// Clear playlist
 			// also check if currently playing
@@ -1925,6 +1915,17 @@ public class MusicService extends Service {
 			update();
 		}
 
+	}
+
+	private void loadLastPlayedForCurrentPlaylist() {
+		String lp = getPlayerLastPlayed(this);
+		if (!TextUtils.isEmpty(lp)) {
+			int i = getPlaylist().indexOf(lp);
+			if (i >= 0) {
+				setPlaylistPosition(i);
+				prepare(null);
+			}
+		}
 	}
 
 	public class ServiceBinder extends Binder {

@@ -489,7 +489,13 @@ public class AudioVFXViewFragment extends Fragment {
 	public static final String TAG_SPREF_AVFXTYPE = SPrefEx.TAG_SPREF + ".avfx_type";
 
 	public static AVFXType getAVFXType(Context context) {
-		return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.Waves)));
+		try {
+			return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.Particles)));
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return AVFXType.Particles;
+		}
 	}
 
 	public static void setAVFXType(Context context, AVFXType value) {
@@ -499,7 +505,7 @@ public class AudioVFXViewFragment extends Fragment {
 				.apply();
 
 		try {
-			Answers.getInstance().logCustom(new CustomEvent(TAG)
+			Answers.getInstance().logCustom(new CustomEvent(AVFXType.class.getSimpleName())
 					.putCustomAttribute(AVFXType.class.getSimpleName(), String.valueOf(value)));
 		} catch (Exception e) {
 			e.printStackTrace();
