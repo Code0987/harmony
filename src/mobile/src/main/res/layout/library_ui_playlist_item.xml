@@ -15,6 +15,7 @@
     <ImageView
         android:layout_width="24dp"
         android:layout_height="24dp"
+        android:alpha="0.5"
         android:scaleType="fitXY"
         android:src="@drawable/ic_playlist_add_black"
         android:tint="@color/translucent_icons"

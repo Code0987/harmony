@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/nav_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:layout_gravity="start"
@@ -132,6 +132,35 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/analytics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            >
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_analytics"
+                />
+
+            <TextView
+                style="@style/TextAppearance.AppCompat.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:text="Analytics"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/ytpl"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -158,37 +187,6 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:text="Help &amp; Videos"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/refresh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            >
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_refresh_black"
-                android:tint="@android:color/holo_blue_dark"
-                android:tintMode="src_atop"
-                />
-
-            <TextView
-                style="@style/TextAppearance.AppCompat.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Refresh"
                 />
 
         </LinearLayout>
@@ -251,39 +249,6 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:text="Exit"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="8dp"
-            >
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_live_help_black"
-                android:tint="@android:color/holo_blue_light"
-                android:tintMode="src_atop"
-                />
-
-            <TextView
-                style="@style/TextAppearance.AppCompat.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="3dp"
-                android:layout_marginStart="3dp"
-                android:lines="2"
-                android:text="Long press for information on above items!"
-                android:textSize="10sp"
-                android:textStyle="italic"
                 />
 
         </LinearLayout>

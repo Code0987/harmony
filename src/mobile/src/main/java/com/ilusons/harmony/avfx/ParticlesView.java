@@ -35,7 +35,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 	private Paint paint;
 	private Paint pathPaint;
 	private Path path;
-	private static final int N = 165;
+	private static final int N = 99;
 	private ArrayList<Particle> particles;
 
 	@Override
@@ -122,6 +122,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 
 				p.draw(canvas);
 
+				/*
 				for (int j = particles.size() - 1; j > i; j--) {
 					float d = (float) Math.sqrt(
 							Math.pow(particles.get(i).X - particles.get(j).X, 2)
@@ -141,12 +142,13 @@ public class ParticlesView extends BaseAVFXCanvasView {
 
 					canvas.drawPath(path, pathPaint);
 				}
+				*/
 			}
 		}
 	}
 
 	class Particle {
-		public float R = 3.0f;
+		public float R = 5.0f;
 		public float X;
 		public float Y;
 		public float Vx;
@@ -157,7 +159,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 			X = (float) Math.random() * width;
 			Y = (float) Math.random() * height;
 			Vx = ((float) Math.random() - 0.5f) * 7;
-			Vy = ((float) Math.random() - 0.5f) * 15;
+			Vy = ((float) Math.random() - 0.5f) * 11;
 			Proximity = ((float) Math.random() * 0.24f * (float) Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)));
 		}
 

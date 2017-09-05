@@ -206,7 +206,7 @@ public class  ImageFormats
         {
             return false;
         }
-        //Read signature Intel
+        //Read signature Analytics
         return (
                 ((0x49 == (data[0] & 0xff)) && (0x49 == (data[1] & 0xff)) && (0x2a == (data[2] & 0xff)) && (0x00 == (data[3] & 0xff)))
                 ||

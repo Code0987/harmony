@@ -184,6 +184,7 @@ public class MainActivity extends BaseActivity {
 		messages.add("Beta version will have some of the premium features unlocked.");
 		messages.add("Visit our YouTube Channel/Playlist (Left drawer -> Help...) for demos and videos.");
 		messages.add("Visit our website http://harmony.ilusons.com for latest updates and more information.");
+		messages.add("Almost every button, ui, ... has long-press action. Be sure to find out.");
 
 		Tips tips = new Tips(contextRef.get());
 
