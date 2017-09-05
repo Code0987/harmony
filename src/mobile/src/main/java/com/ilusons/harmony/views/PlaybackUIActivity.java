@@ -31,9 +31,6 @@ import android.widget.VideoView;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.ContentViewEvent;
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.InterstitialAd;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -66,7 +63,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	private ImageView bg1;
 
-	private InterstitialAd iad;
+//	private InterstitialAd iad;
 
 	private ImageButton play_pause_stop;
 	private ImageButton prev;
@@ -505,6 +502,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		// Info
 		info = (TextView) findViewById(R.id.info);
 
+/*
 		// Set ads TODO: enable ads in final release
 		if (false && (BuildConfig.DEBUG || !MusicService.IsPremium))
 			handler.postDelayed(new Runnable() {
@@ -544,6 +542,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					});
 				}
 			}, 1 * 60 * 1000);
+*/
 
 		// Guide
 		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {

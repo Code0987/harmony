@@ -50,6 +50,7 @@ import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.ArrayEx;
 import com.ilusons.harmony.ref.JavaEx;
@@ -1370,6 +1371,13 @@ public class MusicService extends Service {
 						e.printStackTrace();
 					}
 
+					// Scrobbler
+					try {
+						Analytics.getInstance().scrobbleLastfm(MusicService.this, currentMusic);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
 					nextSmart(false);
 				}
 			});
@@ -1506,6 +1514,13 @@ public class MusicService extends Service {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
+			// Scrobbler
+			try {
+				Analytics.getInstance().nowPlayingLastfm(this, currentMusic);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -1540,21 +1555,30 @@ public class MusicService extends Service {
 				playlistPosition = 0;
 		}
 
-		if (currentMusic != null) try {
-			musicRealm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					if (((float) getPosition() / (float) getDuration()) < 0.65) {
-						currentMusic.Skipped++;
-						currentMusic.TimeLastSkipped = System.currentTimeMillis();
-					}
-					currentMusic.TotalDurationPlayed += getPosition();
+		if (currentMusic != null) {
+			try {
+				musicRealm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(Realm realm) {
+						if (((float) getPosition() / (float) getDuration()) < 0.65) {
+							currentMusic.Skipped++;
+							currentMusic.TimeLastSkipped = System.currentTimeMillis();
+						}
+						currentMusic.TotalDurationPlayed += getPosition();
 
-					realm.insertOrUpdate(currentMusic);
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
+						realm.insertOrUpdate(currentMusic);
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			// Scrobbler
+			try {
+				Analytics.getInstance().scrobbleLastfm(this, currentMusic);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		if (autoPlay)

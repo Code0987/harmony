@@ -33,7 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/translucent_primary_dark"
-                app:contentScrim="@color/translucent_primary_dark"
+                app:contentScrim="@color/primary_dark"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed"
                 app:titleEnabled="false"
                 >

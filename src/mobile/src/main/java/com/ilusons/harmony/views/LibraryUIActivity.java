@@ -57,10 +57,6 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.NativeExpressAdView;
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
@@ -289,6 +285,21 @@ public class LibraryUIActivity extends BaseUIActivity {
 			public void onClick(View view) {
 				if (MusicService.IsPremium) {
 					Intent intent = new Intent(LibraryUIActivity.this, SleepTimerActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					startActivity(intent);
+				} else {
+					MusicService.showPremiumFeatureMessage(getApplicationContext());
+				}
+
+				drawer_layout.closeDrawer(GravityCompat.START);
+			}
+		});
+
+		findViewById(R.id.analytics).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (MusicService.IsPremium) {
+					Intent intent = new Intent(LibraryUIActivity.this, AnalyticsActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 					startActivity(intent);
 				} else {
@@ -1068,7 +1079,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 	public class RecyclerViewAdapter extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder> {
 
 		private static final int ITEMS_PER_AD = 8;
-		private AdListener lastAdListener = null;
+//		private AdListener lastAdListener = null;
 
 		private final List<Music> data;
 		private final List<Pair<String, List<Object>>> dataFiltered;
@@ -1162,6 +1173,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 			// Bind data to view here!
 
+/*
 			// TODO: Fix ads later
 			if (false && ((BuildConfig.DEBUG || !MusicService.IsPremium) && (d instanceof NativeExpressAdView && lastAdListener == null))) {
 
@@ -1217,7 +1229,9 @@ public class LibraryUIActivity extends BaseUIActivity {
 					Log.w(TAG, e);
 				}
 
-			} else if (d instanceof Music) {
+			} else
+*/
+			if (d instanceof Music) {
 
 				final Music item = (Music) d;
 

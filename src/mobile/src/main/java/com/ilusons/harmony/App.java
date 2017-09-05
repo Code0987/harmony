@@ -8,8 +8,10 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
+import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.ref.RealmEx;
 import com.squareup.leakcanary.LeakCanary;
 
@@ -40,6 +42,7 @@ public class App extends Application {
 		}
 
 		// WTFs
+		/* TODO: WTF
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread thread, Throwable e) {
@@ -50,6 +53,7 @@ public class App extends Application {
 				Crashlytics.logException(e);
 			}
 		});
+		*/
 
 		// Fabric
 		if (!BuildConfig.DEBUG) {
@@ -63,10 +67,15 @@ public class App extends Application {
 			Fabric.with(fabric);
 		}
 
+		// Firebase
+
 		// DB
 		RealmEx.init(this);
 
 		Once.initialise(this);
+
+		Analytics.getInstance().initSettings(this);
+		Analytics.getInstance().initLastfm();
 
 		// Start scan
 		if (MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this)) {

@@ -143,7 +143,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:gravity="center_horizontal|bottom"
+                android:gravity="center_horizontal|top"
                 android:orientation="horizontal"
                 android:tag="Eq"
                 >
@@ -190,7 +190,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="PreAmp"
-                        android:textSize="8sp"
+                        android:textSize="14sp"
                         />
 
                 </LinearLayout>
@@ -198,7 +198,7 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
+                    android:background="@drawable/gradient_top_down_transparent"
                     android:gravity="center_horizontal|bottom"
                     android:orientation="vertical">
 
@@ -571,7 +571,6 @@
                         android:layout_marginEnd="1dp"
                         android:layout_marginStart="1dp"
                         android:layout_marginTop="8dp"
-                        android:background="@drawable/gradient_top_down_transparent"
                         android:orientation="horizontal"
                         android:paddingEnd="12dp"
                         android:paddingStart="12dp"
@@ -583,7 +582,7 @@
                             android:layout_gravity="center_vertical"
                             android:layout_weight="1"
                             android:text="Preset"
-                            android:textSize="12sp"
+                            android:textSize="14sp"
                             />
 
                         <Spinner
@@ -592,7 +591,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="2"
                             android:padding="5dp"
-                            android:textSize="13sp"
+                            android:textSize="14sp"
                             />
 
                     </LinearLayout>
