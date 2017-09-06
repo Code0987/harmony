@@ -9,6 +9,7 @@ import com.ilusons.harmony.ref.SecurePreferences;
 
 import org.apache.http.util.TextUtils;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,20 +64,39 @@ public class Analytics {
 		if (securePreferences == null)
 			return;
 
-		try {
-			String username = securePreferences.getString(KEY_LFM_USERNAME, null);
-			String password = securePreferences.getString(KEY_LFM_PASSWORD, null);
+		(new CreateLastfmSession(this)).execute();
+	}
 
-			if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password))
-				return;
+	private static class CreateLastfmSession extends AsyncTask<Void, Void, Void> {
+		private WeakReference<Analytics> contextRef;
 
-			lfm_session = Authenticator.getMobileSession(
-					username,
-					password,
-					"7f549d7402bd35d37f3711c40a84ec95",
-					"350215664ed8c4b13a27ed56a3da51d5");
-		} catch (Exception e) {
-			e.printStackTrace();
+		public CreateLastfmSession(Analytics context) {
+			this.contextRef = new WeakReference<>(context);
+		}
+
+		@Override
+		protected Void doInBackground(Void... voids) {
+			Analytics context = contextRef.get();
+			if (context == null)
+				return null;
+
+			try {
+				String username = context.securePreferences.getString(KEY_LFM_USERNAME, null);
+				String password = context.securePreferences.getString(KEY_LFM_PASSWORD, null);
+
+				if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password))
+					return null;
+
+				context.lfm_session = Authenticator.getMobileSession(
+						username,
+						password,
+						"7f549d7402bd35d37f3711c40a84ec95",
+						"350215664ed8c4b13a27ed56a3da51d5");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			return null;
 		}
 	}
 
@@ -107,20 +127,56 @@ public class Analytics {
 	}
 
 	public void nowPlayingLastfm(MusicService musicService, Music data) {
-		if (lfm_session == null && !isLastfmScrobbledEnabled())
-			return;
 
-		if (!canScrobble(musicService, data))
-			return;
+		(new RunNowPlayingLastfm(this, musicService, data)).execute();
 
-		ScrobbleData scrobbleData = new ScrobbleData();
-		scrobbleData.setArtist(data.Artist);
-		scrobbleData.setTrack(data.Title);
-		scrobbleData.setDuration(data.Length / 1000);
+	}
 
-		ScrobbleResult result = Track.updateNowPlaying(scrobbleData, lfm_session);
+	private static class RunNowPlayingLastfm extends AsyncTask<Void, Void, Void> {
+		private WeakReference<Analytics> contextRef;
+		private WeakReference<MusicService> musicServiceRef;
+		private WeakReference<Music> dataRef;
 
-		Log.d(TAG, "nowPlayingLastfm" + "\n" + result);
+		public RunNowPlayingLastfm(Analytics context, MusicService musicService, Music data) {
+			this.contextRef = new WeakReference<>(context);
+			this.musicServiceRef = new WeakReference<>(musicService);
+			this.dataRef = new WeakReference<>(data);
+		}
+
+		@Override
+		protected Void doInBackground(Void... voids) {
+			Analytics context = contextRef.get();
+			MusicService musicService = musicServiceRef.get();
+			Music data = dataRef.get();
+			if (context == null)
+				return null;
+			if (musicService == null)
+				return null;
+			if (data == null)
+				return null;
+
+			if (context.lfm_session == null && !context.isLastfmScrobbledEnabled())
+				return null;
+
+			if (context.lfm_session == null) try {
+				(new CreateLastfmSession(context)).execute().wait();
+			} catch (Exception e) {
+				e.printStackTrace();
+				if (context.lfm_session == null)
+					return null;
+			}
+
+			ScrobbleData scrobbleData = new ScrobbleData();
+			scrobbleData.setArtist(data.Artist);
+			scrobbleData.setTrack(data.Title);
+			scrobbleData.setDuration(data.Length / 1000);
+
+			ScrobbleResult result = Track.updateNowPlaying(scrobbleData, context.lfm_session);
+
+			Log.d(TAG, "nowPlayingLastfm" + "\n" + result);
+
+			return null;
+		}
 	}
 
 	public boolean canScrobble(MusicService musicService, Music data) {
@@ -129,53 +185,89 @@ public class Analytics {
 		boolean playedHalf = ((float) musicService.getPosition() / (float) musicService.getDuration()) >= 0.5f;
 		boolean played4min = musicService.getPosition() >= 4 * 60 * 1000;
 
-		return duration30s && playing && (playedHalf || played4min);
+		return duration30s && playing && (true || playedHalf || played4min);
 	}
 
 	public void scrobbleLastfm(MusicService musicService, Music data) {
-		if (lfm_session == null && !isLastfmScrobbledEnabled())
-			return;
 
-		if (!canScrobble(musicService, data))
-			return;
+		(new RunScrobbleLastfm(this, musicService, data)).execute();
 
-		ScrobbleData scrobbleData = new ScrobbleData();
-		scrobbleData.setArtist(data.Artist);
-		scrobbleData.setTrack(data.Title);
-		scrobbleData.setDuration(data.Length / 1000);
-		scrobbleData.setTimestamp((int) (System.currentTimeMillis() / 1000));
+	}
 
-		if (lfm_session == null) {
+	private static class RunScrobbleLastfm extends AsyncTask<Void, Void, Void> {
+		private WeakReference<Analytics> contextRef;
+		private WeakReference<MusicService> musicServiceRef;
+		private WeakReference<Music> dataRef;
 
-			scrobbleCache.add(scrobbleData);
+		public RunScrobbleLastfm(Analytics context, MusicService musicService, Music data) {
+			this.contextRef = new WeakReference<>(context);
+			this.musicServiceRef = new WeakReference<>(musicService);
+			this.dataRef = new WeakReference<>(data);
+		}
 
-			Log.d(TAG, "scrobbleLastfm\ncached" + "\n" + scrobbleCache);
+		@Override
+		protected Void doInBackground(Void... voids) {
+			Analytics context = contextRef.get();
+			MusicService musicService = musicServiceRef.get();
+			Music data = dataRef.get();
+			if (context == null)
+				return null;
+			if (musicService == null)
+				return null;
+			if (data == null)
+				return null;
 
-		} else {
+			if (context.lfm_session == null && !context.isLastfmScrobbledEnabled())
+				return null;
 
-			if (scrobbleCache.size() > 0) {
+			if (context.lfm_session == null) try {
+				(new CreateLastfmSession(context)).execute().wait();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
-				scrobbleCache.add(scrobbleData);
+			if (!context.canScrobble(musicService, data))
+				return null;
 
-				List<ScrobbleResult> result = Track.scrobble(scrobbleCache, lfm_session);
+			ScrobbleData scrobbleData = new ScrobbleData();
+			scrobbleData.setArtist(data.Artist);
+			scrobbleData.setTrack(data.Title);
+			scrobbleData.setDuration(data.Length / 1000);
+			scrobbleData.setTimestamp((int) (System.currentTimeMillis() / 1000));
 
-				scrobbleCache.clear();
+			if (context.lfm_session == null) {
 
-				scrobbleResults.addAll(result);
+				context.scrobbleCache.add(scrobbleData);
 
-				Log.d(TAG, "scrobbleLastfm" + "\n" + result);
+				Log.d(TAG, "scrobbleLastfm\ncached" + "\n" + context.scrobbleCache);
+
 			} else {
 
-				ScrobbleResult result = Track.scrobble(scrobbleData, lfm_session);
+				if (context.scrobbleCache.size() > 0) {
 
-				Log.d(TAG, "scrobbleLastfm" + "\n" + result);
+					context.scrobbleCache.add(scrobbleData);
 
-				scrobbleResults.add(result);
+					List<ScrobbleResult> result = Track.scrobble(context.scrobbleCache, context.lfm_session);
+
+					context.scrobbleCache.clear();
+
+					context.scrobbleResults.addAll(result);
+
+					Log.d(TAG, "scrobbleLastfm" + "\n" + result);
+				} else {
+
+					ScrobbleResult result = Track.scrobble(scrobbleData, context.lfm_session);
+
+					Log.d(TAG, "scrobbleLastfm" + "\n" + result);
+
+					context.scrobbleResults.add(result);
+
+				}
 
 			}
 
+			return null;
 		}
-
 	}
 
 	public List<ScrobbleResult> getScrobblerResultsForLastfm() {
