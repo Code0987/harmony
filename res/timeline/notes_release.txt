@@ -6,3 +6,4 @@
 ✔️ Updates: Library scanner related, it's little fast now.
 ✔️ Updates: Allowed 3rd party installation of app.
 ✔️ Updates: Updated overall UI, little bit.
+✔️ New: Added option to skip first run tutorial.
