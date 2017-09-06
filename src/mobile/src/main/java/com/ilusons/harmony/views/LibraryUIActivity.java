@@ -67,6 +67,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArrayEx;
@@ -492,6 +493,15 @@ public class LibraryUIActivity extends BaseUIActivity {
 				initHelp();
 			}
 		});
+
+		// Start scan
+		if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
+			Intent musicServiceIntent = new Intent(this, MusicService.class);
+			musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+			musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+			startService(musicServiceIntent);
+			Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
+		}
 
 	}
 
