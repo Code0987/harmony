@@ -1,7 +1,9 @@
 package com.ilusons.harmony.views;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -18,6 +20,7 @@ import android.support.v4.graphics.ColorUtils;
 import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -924,12 +927,50 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	}
 
+	//region Help
+
 	private void initHelp() {
 		final String tag_guide = TAG + ".guide";
 
 		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))
 			return;
 
+		(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
+				.setTitle("Tour?")
+				.setMessage("Would you like a short tour, highlighting the basic usage of this screen?")
+				.setCancelable(true)
+				.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i) {
+						tour(new MaterialIntroListener() {
+							@Override
+							public void onUserClicked(String usageId) {
+								try {
+									Once.markDone(tag_guide);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						});
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i) {
+						try {
+							Once.markDone(tag_guide);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						dialogInterface.dismiss();
+					}
+				}))
+				.show();
+
+	}
+
+	private void tour(MaterialIntroListener onFinal){
 		final MaterialIntroView.Builder guide_play_pause_stop = new MaterialIntroView.Builder(this)
 				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
 				.setDelayMillis(500)
@@ -1035,16 +1076,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.setTarget(play_pause_stop)
 				.setUsageId(UUID.randomUUID().toString());
 
-		guide_final.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					Once.markDone(tag_guide);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		guide_final.setListener(onFinal);
 		guide_cover.setListener(new MaterialIntroListener() {
 			@Override
 			public void onUserClicked(String usageId) {
@@ -1110,8 +1142,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
+
+	//endregion
 
 	public static final String TAG_SPREF_PLAYBACK_UI_AV_HIDDEN = SPrefEx.TAG_SPREF + ".playback_ui_av_hidden";
 

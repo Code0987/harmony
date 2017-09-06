@@ -3,6 +3,7 @@ package com.ilusons.harmony.views;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -694,6 +695,41 @@ public class LibraryUIActivity extends BaseUIActivity {
 			return;
 		}
 
+		(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
+				.setTitle("Tour?")
+				.setMessage("Would you like a short tour, highlighting the basic usage of this screen?")
+				.setCancelable(true)
+				.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i) {
+						tour(new MaterialIntroListener() {
+							@Override
+							public void onUserClicked(String usageId) {
+								try {
+									Once.markDone(tag_guide);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						});
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i) {
+						try {
+							Once.markDone(tag_guide);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						dialogInterface.dismiss();
+					}
+				}))
+				.show();
+	}
+
+	private void tour(MaterialIntroListener onFinal) {
 		final MaterialIntroView.Builder guide_start = new MaterialIntroView.Builder(this)
 				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
 				.setDelayMillis(500)
@@ -799,16 +835,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				.setTarget(collapse_toolbar)
 				.setUsageId(UUID.randomUUID().toString());
 
-		guide_final.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					Once.markDone(tag_guide);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		guide_final.setListener(onFinal);
 		guide_mini.setListener(new MaterialIntroListener() {
 			@Override
 			public void onUserClicked(String usageId) {
@@ -881,7 +908,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	//endregion
