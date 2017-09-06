@@ -135,8 +135,6 @@
             android:descendantFocusability="beforeDescendants"
             android:focusableInTouchMode="true"
             android:gravity="center"
-            android:scaleX="1.1"
-            android:scaleY="1.1"
             >
 
             <LinearLayout

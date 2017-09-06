@@ -22,6 +22,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -89,12 +90,15 @@ public class AnalyticsActivity extends BaseActivity {
 
 	//region LFM
 
+	private ImageView analytics_lfm_status;
 	private EditText analytics_lfm_username_editText;
 	private EditText analytics_lfm_password_editText;
 	private Button analytics_lfms_save;
-	private EditText analytics_lfms_logs;
+	private TextView analytics_lfms_logs;
 
 	private void createLFM() {
+		analytics_lfm_status = findViewById(R.id.analytics_lfm_status);
+
 		analytics_lfm_username_editText = findViewById(R.id.analytics_lfm_username_editText);
 		analytics_lfm_username_editText.setText(Analytics.getInstance().getLastfmUsername());
 
@@ -120,12 +124,26 @@ public class AnalyticsActivity extends BaseActivity {
 			sb.append(sr.toString()).append(System.lineSeparator());
 		}
 		analytics_lfms_logs.setText(sb.toString());
+
+		updateLFMState();
+		updateLFM();
 	}
 
 	private void updateLFM() {
 
 		(new RefreshLFM(this)).execute();
 
+	}
+
+	private void updateLFMState() {
+		Session session = Analytics.getInstance().getLastfmSession();
+		if (session == null) {
+			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_lfm_status.setImageResource(R.drawable.ic_error_outline_black);
+		} else {
+			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote_black);
+		}
 	}
 
 	private static class RefreshLFM extends AsyncTask<Void, Void, Void> {
@@ -172,6 +190,8 @@ public class AnalyticsActivity extends BaseActivity {
 			} else {
 				Toast.makeText(context, "Scrobbler is active now!", Toast.LENGTH_LONG).show();
 			}
+
+			context.updateLFMState();
 		}
 	}
 

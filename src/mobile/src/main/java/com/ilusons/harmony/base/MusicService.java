@@ -1358,24 +1358,26 @@ public class MusicService extends Service {
 				public void onCompletion(IBasicMediaPlayer mediaPlayer) {
 					Log.d(TAG, "onCompletion");
 
-					if (currentMusic != null) try {
-						musicRealm.executeTransaction(new Realm.Transaction() {
-							@Override
-							public void execute(Realm realm) {
-								currentMusic.TotalDurationPlayed += getPosition();
+					if (currentMusic != null) {
+						try {
+							musicRealm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(Realm realm) {
+									currentMusic.TotalDurationPlayed += getPosition();
 
-								realm.insertOrUpdate(currentMusic);
-							}
-						});
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+									realm.insertOrUpdate(currentMusic);
+								}
+							});
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 
-					// Scrobbler
-					try {
-						Analytics.getInstance().scrobbleLastfm(MusicService.this, currentMusic);
-					} catch (Exception e) {
-						e.printStackTrace();
+						// Scrobbler
+						try {
+							Analytics.getInstance().scrobbleLastfm(MusicService.this, currentMusic);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 
 					nextSmart(false);

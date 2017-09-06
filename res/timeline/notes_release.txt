@@ -1,9 +1,8 @@
 ﻿◾️ Work in progress, please leave feedback.
-✔️ Fixed: Bugs, some recent crashes, tune related some bugs.
+✔️ New: Added Analytics 🎉, last.fm scrobbler 😍.
+✔️ Fixed: Bugs, crashes, tune related some bugs, mini bar bugs.
+✔️ Fixed: Last version specific issues.
 ✔️ Updates: Playlist/library related.
-✔️ Updates: Library scanner related.
-✔️ New: Added next/random button in mini playback ui.
-✔️ New: Added helpful random tips.
-✔️ New: Added long press menu in lyrics view!
-✔️ New: Added EQ presets!
+✔️ Updates: Library scanner related, it's little fast now.
 ✔️ Updates: Allowed 3rd party installation of app.
+✔️ Updates: Updated overall UI, little bit.

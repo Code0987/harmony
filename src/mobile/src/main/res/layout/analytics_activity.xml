@@ -165,6 +165,18 @@
                     android:layout_height="wrap_content"
                     >
 
+                    <ImageView
+                        android:id="@+id/analytics_lfm_status"
+                        xmlns:res="http://schemas.android.com/apk/res-auto"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_error_outline_black"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        />
+
                     <android.support.design.widget.TextInputLayout
                         android:id="@+id/analytics_lfm_username"
                         xmlns:res="http://schemas.android.com/apk/res-auto"
@@ -172,11 +184,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:layout_marginStart="8dp"
-                        android:layout_marginTop="32dp"
+                        android:layout_marginTop="8dp"
                         android:textColorHint="@color/secondary_text"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_status"
                         res:hintTextAppearance="@style/AppTheme.Text"
                         >
 
@@ -272,20 +284,77 @@
                         app:layout_constraintTop_toBottomOf="@id/analytics_lfms_info1"
                         />
 
-                    <EditText
+                    <TextView
                         android:id="@+id/analytics_lfms_logs"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:layout_marginStart="8dp"
                         android:layout_marginTop="8dp"
+                        android:fontFamily="monospace"
+                        android:overScrollMode="always"
+                        android:scrollHorizontally="true"
+                        android:scrollbarFadeDuration="0"
+                        android:selectAllOnFocus="true"
                         android:text=""
                         android:textColorHint="@color/secondary_text"
+                        android:textIsSelectable="true"
+                        android:textSize="8dp"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/analytics_lfms_logs_info"
                         />
 
+                </android.support.constraint.ConstraintLayout>
+
+            </ScrollView>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="true"
+                android:clipToPadding="true"
+                android:descendantFocusability="beforeDescendants"
+                android:fadeScrollbars="false"
+                android:focusableInTouchMode="true"
+                android:orientation="vertical"
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:scrollbarFadeDuration="0"
+                android:scrollbars="vertical"
+                android:tag="Data collection"
+                >
+
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    >
+
+                    <ImageView
+                        android:id="@+id/analytics_dc_status"
+                        xmlns:res="http://schemas.android.com/apk/res-auto"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_check_black"
+                        android:tint="@color/icons"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        />
+
+                    <TextView
+                        android:id="@+id/analytics_dc_info"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:text="Data collection, for smart functions. [COMING SOON]"
+                        android:textColorHint="@color/secondary_text"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_dc_status"
+                        />
 
                 </android.support.constraint.ConstraintLayout>
 

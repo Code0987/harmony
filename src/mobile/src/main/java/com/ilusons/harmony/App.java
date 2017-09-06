@@ -74,6 +74,7 @@ public class App extends Application {
 
 		Once.initialise(this);
 
+		// Analytics
 		Analytics.getInstance().initSettings(this);
 		Analytics.getInstance().initLastfm();
 
