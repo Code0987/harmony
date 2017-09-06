@@ -73,8 +73,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 		ColorUtils.colorToHSL(color, hsl);
 
 		hsl[0] += (ThreadLocalRandom.current().nextInt(30 + 1 + 30) - 30);
-		hsl[1] += (ThreadLocalRandom.current().nextDouble(0.1 + 1 + 0.1) - 0.1);
-		hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f);
+		hsl[2] = Math.max(hsl[2], hsl[2] + 0.1f);
 
 		color = ColorUtils.HSLToColor(hsl);
 
