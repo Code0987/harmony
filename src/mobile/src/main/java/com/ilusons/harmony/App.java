@@ -79,13 +79,9 @@ public class App extends Application {
 		Analytics.getInstance().initLastfm();
 
 		// Start scan
-		if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG) || MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this)) {
+		if (MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this)) {
 			Intent musicServiceIntent = new Intent(this, MusicService.class);
 			musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-			if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
-				musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
-				Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
-			}
 			startService(musicServiceIntent);
 		}
 

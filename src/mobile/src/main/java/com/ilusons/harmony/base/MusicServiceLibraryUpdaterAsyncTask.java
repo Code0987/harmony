@@ -58,11 +58,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				if (context == null)
 					throw new Exception("Context lost!");
 
-				// Check permissions
-				if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) == -1) {
-					return new Result();
-				}
-
 				// To keep single instance active only
 				if (instance != null)
 					wait();
