@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
@@ -109,14 +110,22 @@ public class MainActivity extends BaseActivity {
 	}
 
 	public static void gotoFeedback(final Context context) {
-		Intent intent = new Intent(Intent.ACTION_SENDTO);
-		intent.setType("text/plain");
-		intent.putExtra(Intent.EXTRA_SUBJECT, "[#" + context.getString(R.string.app_name) + " #feedback #android #" + BuildConfig.VERSION_NAME + "]");
-		intent.putExtra(Intent.EXTRA_TEXT, "");
-		intent.setData(Uri.parse("mailto:"));
-		intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"harmony@ilusons.com", "7b56b759@opayq.com"});
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		context.startActivity(intent);
+		try {
+			Intent intent = new Intent(Intent.ACTION_SENDTO);
+			intent.setType("text/plain");
+			intent.putExtra(Intent.EXTRA_SUBJECT, "[#" + context.getString(R.string.app_name) + " #feedback #android #" + BuildConfig.VERSION_NAME + "]");
+			intent.putExtra(Intent.EXTRA_TEXT, "");
+			intent.setData(Uri.parse("mailto:"));
+			intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"harmony@ilusons.com", "7b56b759@opayq.com"});
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			context.startActivity(intent);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			Toast.makeText(context, "Unable to open your email handler. Please follow the alternate (Plays store page) instead.", Toast.LENGTH_LONG).show();
+
+			context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + context.getPackageName())));
+		}
 	}
 
 	public static void gotoPlayStore(final Context context) {
@@ -134,33 +143,37 @@ public class MainActivity extends BaseActivity {
 				if (contextRef.get() == null)
 					return;
 
-				RateMe rateMe = new RateMe(contextRef.get());
-				rateMe.setConstraints(
-						7,
-						2,
-						14,
-						5);
-				rateMe.setListener(new RateMe.Listener() {
-					@Override
-					public void onPositive(RateMe rateMe, boolean lessRating) {
-						if (lessRating) {
-							MainActivity.gotoFeedback(rateMe.getActivity());
-						} else {
-							MainActivity.gotoPlayStore(rateMe.getActivity());
+				try {
+					RateMe rateMe = new RateMe(contextRef.get());
+					rateMe.setConstraints(
+							7,
+							2,
+							14,
+							5);
+					rateMe.setListener(new RateMe.Listener() {
+						@Override
+						public void onPositive(RateMe rateMe, boolean lessRating) {
+							if (lessRating) {
+								MainActivity.gotoFeedback(rateMe.getActivity());
+							} else {
+								MainActivity.gotoPlayStore(rateMe.getActivity());
+							}
 						}
-					}
 
-					@Override
-					public void onNeutral(RateMe rateMe) {
+						@Override
+						public void onNeutral(RateMe rateMe) {
 
-					}
+						}
 
-					@Override
-					public void onNegative(RateMe rateMe) {
+						@Override
+						public void onNegative(RateMe rateMe) {
 
-					}
-				});
-				rateMe.run();
+						}
+					});
+					rateMe.run();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}, (int) (1.5 * 60 * 1000));
 	}

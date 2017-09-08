@@ -1609,7 +1609,10 @@ public class MusicService extends Service {
 	public void next(boolean autoPlay) {
 		playlistPosition++;
 
-		skip(playlistPosition, autoPlay);
+		if (getPlayerShuffleMusicEnabled(this))
+			random(autoPlay);
+		else
+			skip(playlistPosition, autoPlay);
 	}
 
 	public void next() {
@@ -1619,7 +1622,10 @@ public class MusicService extends Service {
 	public void prev(boolean autoPlay) {
 		playlistPosition--;
 
-		skip(playlistPosition, autoPlay);
+		if (((float) getPosition() / (float) getDuration()) < 0.55)
+			skip(playlistPosition, autoPlay);
+		else
+			seek(0);
 	}
 
 	public void prev() {
@@ -1839,6 +1845,7 @@ public class MusicService extends Service {
 		filter.addAction(ACTION_LIBRARY_UPDATE_BEGINS);
 		filter.addAction(ACTION_LIBRARY_UPDATED);
 		filter.addAction(ACTION_LIBRARY_UPDATE_CANCEL);
+		filter.addAction(ACTION_PLAYLIST_CURRENT_UPDATED);
 
 		filter.addAction(Intent.ACTION_HEADSET_PLUG);
 

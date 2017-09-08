@@ -1,9 +1,7 @@
 ﻿◾️ Work in progress, please leave feedback.
-✔️ New: Added Analytics 🎉, last.fm scrobbler 😍.
-✔️ Fixed: Bugs, crashes, tune related some bugs, mini bar bugs.
-✔️ Fixed: Last version specific issues.
+✔️ New: Added Analytics 🎉, last.fm scrobbler (free for limited time) 😍.
+✔️ Fixed: Bugs, crashes.
 ✔️ Updates: Playlist/library related.
-✔️ Updates: Library scanner related, it's little fast now.
-✔️ Updates: Allowed 3rd party installation of app.
-✔️ Updates: Updated overall UI, little bit.
-✔️ New: Added option to skip first run tutorial.
+✔️ Fixed: Shuffle bug.
+✔️ Updates: Updated prev to smartly go to start or previous song.
+✔️ Updates: Particles audio vis. updated.
