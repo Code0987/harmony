@@ -260,7 +260,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
 				startService(musicServiceIntent);
 
-				drawer_layout.closeDrawer(GravityCompat.START);
+				drawer_layout.closeDrawer(GravityCompat.END);
 			}
 		});
 		findViewById(R.id.refresh).setOnLongClickListener(new View.OnLongClickListener() {
@@ -305,7 +305,11 @@ public class LibraryUIActivity extends BaseUIActivity {
 					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 					startActivity(intent);
 				} else {
-					MusicService.showPremiumFeatureMessage(getApplicationContext());
+					// TODO: Free for sometime.
+					Intent intent = new Intent(LibraryUIActivity.this, AnalyticsActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					startActivity(intent);
+					// MusicService.showPremiumFeatureMessage(getApplicationContext());
 				}
 
 				drawer_layout.closeDrawer(GravityCompat.START);
@@ -724,7 +728,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						});
 					}
 				})
-				.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+				.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialogInterface, int i) {
 						try {

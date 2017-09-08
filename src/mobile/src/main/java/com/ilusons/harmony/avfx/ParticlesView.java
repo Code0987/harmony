@@ -10,6 +10,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.support.v4.graphics.ColorUtils;
 import android.util.AttributeSet;
+import android.view.SurfaceHolder;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 	private Path path;
 	private static final int N = 99;
 	private ArrayList<Particle> particles;
+	private final int[] colors = new int[N];
 
 	@Override
 	public void setup() {
@@ -63,21 +65,39 @@ public class ParticlesView extends BaseAVFXCanvasView {
 
 		particles = new ArrayList<>(N);
 		for (int n = 0; n < N; n++) {
-			particles.add(new Particle());
+			particles.add(new Particle(n));
 		}
 
+	}
+
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+		super.surfaceChanged(holder, format, width, height);
+
+		float x = (float) width / (float) particles.size();
+		for (int i = 0; i < particles.size(); i++) {
+			Particle p = particles.get(i);
+
+			p.X = x * i;
+		}
 	}
 
 	public void setColor(int color) {
 		float[] hsl = new float[3];
 		ColorUtils.colorToHSL(color, hsl);
-
 		hsl[0] += (ThreadLocalRandom.current().nextInt(30 + 1 + 30) - 30);
+		hsl[0] = hsl[0] % 360;
 		hsl[2] = Math.max(hsl[2], hsl[2] + 0.1f);
+		paint.setColor(ColorUtils.HSLToColor(hsl));
 
-		color = ColorUtils.HSLToColor(hsl);
+		for (int n = 0; n < N; n++) {
+			int h = (int) (15 + (float) n / 15f);
+			ColorUtils.colorToHSL(color, hsl);
+			hsl[0] += (ThreadLocalRandom.current().nextInt(h + 1 + h) - h);
+			hsl[0] = hsl[0] % 360;
+			colors[n] = ColorUtils.HSLToColor(hsl);
+		}
 
-		paint.setColor(color);
 	}
 
 	@Override
@@ -114,52 +134,29 @@ public class ParticlesView extends BaseAVFXCanvasView {
 			canvas.drawPaint(fadePaint);
 
 			for (int i = 0; i < particles.size(); i++) {
-
 				Particle p = particles.get(i);
 
 				p.update();
 
 				p.draw(canvas);
-
-				/*
-				for (int j = particles.size() - 1; j > i; j--) {
-					float d = (float) Math.sqrt(
-							Math.pow(particles.get(i).X - particles.get(j).X, 2)
-									+
-									Math.pow(particles.get(i).Y - particles.get(j).Y, 2)
-					);
-
-					if (d > p.Proximity)
-						continue;
-
-					pathPaint.setAlpha((int) (((p.Proximity - d) / p.Proximity) * 255));
-
-					path.reset();
-					path.moveTo(particles.get(i).X, particles.get(i).Y);
-					path.lineTo(particles.get(j).X, particles.get(j).Y);
-					path.close();
-
-					canvas.drawPath(path, pathPaint);
-				}
-				*/
 			}
 		}
 	}
 
 	class Particle {
+		public int Index;
 		public float R = 5.0f;
 		public float X;
 		public float Y;
 		public float Vx;
 		public float Vy;
-		public float Proximity;
 
-		public Particle() {
+		public Particle(int n) {
+			Index = n;
 			X = (float) Math.random() * width;
 			Y = (float) Math.random() * height;
-			Vx = ((float) Math.random() - 0.5f) * 7;
-			Vy = ((float) Math.random() - 0.5f) * 11;
-			Proximity = ((float) Math.random() * 0.24f * (float) Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)));
+			Vx = ((float) Math.random() - 0.5f) * 17;
+			Vy = ((float) Math.random() - 0.5f) * 17;
 		}
 
 		public void update() {
@@ -187,18 +184,20 @@ public class ParticlesView extends BaseAVFXCanvasView {
 				y = amp * 10000;
 			}
 
-			if (Math.abs(y) < 1) {
-				X -= Vx;
+			if (Math.abs(y) < 15) {
+				X += Vx;
 				Y += Vy;
 			} else {
-				X += Vx;
 				Y += ((height - R - y) - Y);
 			}
 
 		}
 
 		public void draw(Canvas c) {
+			int cb = paint.getColor();
+			paint.setColor(colors[Index]);
 			c.drawCircle(X + R, Y + R, R, paint);
+			paint.setColor(cb);
 		}
 	}
 }

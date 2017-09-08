@@ -832,7 +832,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					Blurry.with(this)
 							.radius(25)
 							.sampling(1)
-							.color(Color.argb(112, 0, 0, 0))
+							.color(Color.argb(160, 0, 0, 0))
 							.animate(450)
 							.async()
 							.from(bitmap)
@@ -850,7 +850,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				Blurry.with(this)
 						.radius(25)
 						.sampling(1)
-						.color(Color.argb(112, 0, 0, 0))
+						.color(Color.argb(160, 0, 0, 0))
 						.async()
 						.animate(450)
 						.from(bitmap)
@@ -954,7 +954,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 						});
 					}
 				})
-				.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+				.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialogInterface, int i) {
 						try {

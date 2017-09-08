@@ -317,7 +317,7 @@ public class Music extends RealmObject {
 									.getAsJsonObject()
 									.get("artworkUrl60")
 									.getAsString()
-									.replace("60x60bb.jpg", "1000x1000bb.jpg");
+									.replace("60x60bb.jpg", "600x600bb.jpg");
 
 							BufferedInputStream in = null;
 							FileOutputStream out = null;

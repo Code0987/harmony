@@ -4,6 +4,11 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.SecurePreferences;
 
@@ -145,35 +150,39 @@ public class Analytics {
 
 		@Override
 		protected Void doInBackground(Void... voids) {
-			Analytics context = contextRef.get();
-			MusicService musicService = musicServiceRef.get();
-			Music data = dataRef.get();
-			if (context == null)
-				return null;
-			if (musicService == null)
-				return null;
-			if (data == null)
-				return null;
+			try {
+				Analytics context = contextRef.get();
+				MusicService musicService = musicServiceRef.get();
+				Music data = dataRef.get();
+				if (context == null)
+					return null;
+				if (musicService == null)
+					return null;
+				if (data == null)
+					return null;
 
-			if (context.lfm_session == null && !context.isLastfmScrobbledEnabled())
-				return null;
+				if (context.lfm_session == null && !context.isLastfmScrobbledEnabled())
+					return null;
 
-			if (context.lfm_session == null) try {
-				(new CreateLastfmSession(context)).execute().wait();
+				if (context.lfm_session == null) try {
+					(new CreateLastfmSession(context)).execute().wait();
+				} catch (Exception e) {
+					e.printStackTrace();
+					if (context.lfm_session == null)
+						return null;
+				}
+
+				ScrobbleData scrobbleData = new ScrobbleData();
+				scrobbleData.setArtist(data.Artist);
+				scrobbleData.setTrack(data.Title);
+				scrobbleData.setDuration(data.Length / 1000);
+
+				ScrobbleResult result = Track.updateNowPlaying(scrobbleData, context.lfm_session);
+
+				Log.d(TAG, "nowPlayingLastfm" + "\n" + result);
 			} catch (Exception e) {
 				e.printStackTrace();
-				if (context.lfm_session == null)
-					return null;
 			}
-
-			ScrobbleData scrobbleData = new ScrobbleData();
-			scrobbleData.setArtist(data.Artist);
-			scrobbleData.setTrack(data.Title);
-			scrobbleData.setDuration(data.Length / 1000);
-
-			ScrobbleResult result = Track.updateNowPlaying(scrobbleData, context.lfm_session);
-
-			Log.d(TAG, "nowPlayingLastfm" + "\n" + result);
 
 			return null;
 		}
@@ -207,63 +216,67 @@ public class Analytics {
 
 		@Override
 		protected Void doInBackground(Void... voids) {
-			Analytics context = contextRef.get();
-			MusicService musicService = musicServiceRef.get();
-			Music data = dataRef.get();
-			if (context == null)
-				return null;
-			if (musicService == null)
-				return null;
-			if (data == null)
-				return null;
+			try {
+				Analytics context = contextRef.get();
+				MusicService musicService = musicServiceRef.get();
+				Music data = dataRef.get();
+				if (context == null)
+					return null;
+				if (musicService == null)
+					return null;
+				if (data == null)
+					return null;
 
-			if (context.lfm_session == null && !context.isLastfmScrobbledEnabled())
-				return null;
+				if (context.lfm_session == null && !context.isLastfmScrobbledEnabled())
+					return null;
 
-			if (context.lfm_session == null) try {
-				(new CreateLastfmSession(context)).execute().wait();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+				if (context.lfm_session == null) try {
+					(new CreateLastfmSession(context)).execute().wait();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 
-			if (!context.canScrobble(musicService, data))
-				return null;
+				if (!context.canScrobble(musicService, data))
+					return null;
 
-			ScrobbleData scrobbleData = new ScrobbleData();
-			scrobbleData.setArtist(data.Artist);
-			scrobbleData.setTrack(data.Title);
-			scrobbleData.setDuration(data.Length / 1000);
-			scrobbleData.setTimestamp((int) (System.currentTimeMillis() / 1000));
+				ScrobbleData scrobbleData = new ScrobbleData();
+				scrobbleData.setArtist(data.Artist);
+				scrobbleData.setTrack(data.Title);
+				scrobbleData.setDuration(data.Length / 1000);
+				scrobbleData.setTimestamp((int) (System.currentTimeMillis() / 1000));
 
-			if (context.lfm_session == null) {
-
-				context.scrobbleCache.add(scrobbleData);
-
-				Log.d(TAG, "scrobbleLastfm\ncached" + "\n" + context.scrobbleCache);
-
-			} else {
-
-				if (context.scrobbleCache.size() > 0) {
+				if (context.lfm_session == null) {
 
 					context.scrobbleCache.add(scrobbleData);
 
-					List<ScrobbleResult> result = Track.scrobble(context.scrobbleCache, context.lfm_session);
+					Log.d(TAG, "scrobbleLastfm\ncached" + "\n" + context.scrobbleCache);
 
-					context.scrobbleCache.clear();
-
-					context.scrobbleResults.addAll(result);
-
-					Log.d(TAG, "scrobbleLastfm" + "\n" + result);
 				} else {
 
-					ScrobbleResult result = Track.scrobble(scrobbleData, context.lfm_session);
+					if (context.scrobbleCache.size() > 0) {
 
-					Log.d(TAG, "scrobbleLastfm" + "\n" + result);
+						context.scrobbleCache.add(scrobbleData);
 
-					context.scrobbleResults.add(result);
+						List<ScrobbleResult> result = Track.scrobble(context.scrobbleCache, context.lfm_session);
+
+						context.scrobbleCache.clear();
+
+						context.scrobbleResults.addAll(result);
+
+						Log.d(TAG, "scrobbleLastfm" + "\n" + result);
+					} else {
+
+						ScrobbleResult result = Track.scrobble(scrobbleData, context.lfm_session);
+
+						Log.d(TAG, "scrobbleLastfm" + "\n" + result);
+
+						context.scrobbleResults.add(result);
+
+					}
 
 				}
-
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 
 			return null;
@@ -272,6 +285,48 @@ public class Analytics {
 
 	public List<ScrobbleResult> getScrobblerResultsForLastfm() {
 		return scrobbleResults;
+	}
+
+	//endregion
+
+	//region Firebase
+
+	private static final String firebase_db_ref = "analytics";
+
+	private static final String firebase_db_tracks = "tracks";
+	private static final String firebase_db_tracks_title = "title";
+	private static final String firebase_db_tracks_artist = "artist";
+	private static final String firebase_db_tracks_name = "name";
+	private static final String firebase_db_tracks_timestamp = "timestamp";
+	private static final String firebase_db_tracks_user = "user";
+
+	public static void logTrack(MusicService musicService, Music data){
+		FirebaseDatabase.getInstance()
+				.getReference(firebase_db_ref)
+				.child(firebase_db_tracks)
+				.push()
+				.runTransaction(new Transaction.Handler() {
+					@Override
+					public Transaction.Result doTransaction(MutableData currentData) {
+
+
+						if (currentData.getValue() == null) {
+							currentData.setValue(0);
+						} else {
+							currentData.setValue((Long) currentData.getValue() - 1);
+						}
+						return Transaction.success(currentData);
+					}
+
+					@Override
+					public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot currentData) {
+						if (databaseError == null) {
+							Log.w(TAG, "onComplete:" + committed + "," + currentData);
+						} else {
+							Log.w(TAG, "onComplete:" + committed + "," + currentData, databaseError.toException());
+						}
+					}
+				});
 	}
 
 	//endregion
