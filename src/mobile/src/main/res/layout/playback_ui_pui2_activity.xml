@@ -94,17 +94,6 @@
                 android:src="@drawable/logo"
                 />
 
-            <VideoView
-                android:id="@+id/video"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentStart="true"
-                android:layout_centerInParent="true"
-                android:background="@color/translucent"
-                android:visibility="invisible"
-                />
-
         </RelativeLayout>
 
         <RelativeLayout

@@ -445,16 +445,16 @@ public class TuneActivity extends BaseActivity {
 	//region PreAmp
 
 	private CheckBox preamp_checkBox;
-	private VerticalSeekBar preamp_seekBar;
+	private CircularSeekBar preamp_seekBar;
 
 	private void createPreAmp() {
 		preamp_checkBox = (CheckBox) findViewById(R.id.preamp_checkBox);
 
-		preamp_seekBar = (VerticalSeekBar) findViewById(R.id.preamp_seekBar);
+		preamp_seekBar = (CircularSeekBar) findViewById(R.id.preamp_seekBar);
 		preamp_seekBar.setMax(SEEKBAR_MAX);
-		preamp_seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+		preamp_seekBar.setOnSeekBarChangeListener(new CircularSeekBar.OnCircularSeekBarChangeListener() {
 			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+			public void onProgressChanged(CircularSeekBar seekBar, float progress, boolean fromUser) {
 				if (!fromUser)
 					return;
 
@@ -473,12 +473,12 @@ public class TuneActivity extends BaseActivity {
 			}
 
 			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
+			public void onStartTrackingTouch(CircularSeekBar seekBar) {
 
 			}
 
 			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
+			public void onStopTrackingTouch(CircularSeekBar seekBar) {
 
 			}
 		});

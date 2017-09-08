@@ -54,6 +54,10 @@ Summary
             http://www.apache.org/licenses/LICENSE-2.0
         Blurry
             http://www.apache.org/licenses/LICENSE-2.0
+        lastfm-java
+            https://github.com/jkovacs/lastfm-java/blob/master/license.txt
+        java-aes-crypto
+            https://github.com/tozny/java-aes-crypto/blob/master/LICENSE
 
 harmony - Terms and conditions
 
