@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.FragmentActivity;
@@ -1353,6 +1354,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
 						builder.setTitle("Select the action");
 						builder.setItems(new CharSequence[]{
+								"Share",
 								"Add next",
 								"Add at start",
 								"Add at last",
@@ -1367,27 +1369,41 @@ public class LibraryUIActivity extends BaseUIActivity {
 								try {
 									switch (itemIndex) {
 										case 0:
-											getMusicService().add(item.Path, getMusicService().getPlaylistPosition() + 1);
+											Intent shareIntent = new Intent();
+											shareIntent.setAction(Intent.ACTION_SEND);
+											shareIntent.putExtra(Intent.EXTRA_TEXT, item.getTextDetailedMultiLine());
+											shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(item.Path)));
+											if (item.Path.toLowerCase().endsWith("mp3"))
+												shareIntent.setType("audio/mp3");
+											else if (item.hasVideo())
+												shareIntent.setType("video/*");
+											else
+												shareIntent.setType("audio/*");
+											shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+											startActivity(Intent.createChooser(shareIntent, "Share " + item.getText() + " ..."));
 											break;
 										case 1:
-											getMusicService().add(item.Path, 0);
+											getMusicService().add(item.Path, getMusicService().getPlaylistPosition() + 1);
 											break;
 										case 2:
-											getMusicService().add(item.Path, getMusicService().getPlaylist().size());
+											getMusicService().add(item.Path, 0);
 											break;
 										case 3:
-											getMusicService().remove(item.Path);
+											getMusicService().add(item.Path, getMusicService().getPlaylist().size());
 											break;
 										case 4:
-											getMusicService().clearExceptCurrent();
+											getMusicService().remove(item.Path);
 											break;
 										case 5:
-											getMusicService().moveDown(item.Path);
+											getMusicService().clearExceptCurrent();
 											break;
 										case 6:
-											getMusicService().moveUp(item.Path);
+											getMusicService().moveDown(item.Path);
 											break;
 										case 7:
+											getMusicService().moveUp(item.Path);
+											break;
+										case 8:
 											item.delete(getMusicService(), item.Path, true);
 											break;
 									}

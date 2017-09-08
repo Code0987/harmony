@@ -138,21 +138,422 @@
             >
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:gravity="center_horizontal|top"
-                android:orientation="horizontal"
+                android:background="@drawable/gradient_top_down_transparent"
+                android:gravity="center_horizontal|bottom"
+                android:orientation="vertical"
                 android:tag="Eq"
                 >
 
                 <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center_horizontal|bottom"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/band0_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <CheckBox
+                            android:id="@+id/eq_checkBox"
+                            style="@style/Widget.AppCompat.CompoundButton.CheckBox"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="false"
+                            android:gravity="center"
+                            android:minHeight="0dp"
+                            android:minWidth="0dp"
+                            android:padding="0dp"
+                            android:scaleX="0.7"
+                            android:scaleY="0.7"
+                            />
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band0_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band0_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band1_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band1_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band1_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band2_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band2_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band2_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band3_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band3_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band3_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band4_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band4_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band4_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band5_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band5_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band5_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band6_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band6_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band6_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band7_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band7_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band7_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band8_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band8_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band8_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/band9_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="1dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        >
+
+                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+                            android:layout_width="wrap_content"
+                            android:layout_height="220dp"
+                            >
+
+                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                                android:id="@+id/band9_seekBar"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:splitTrack="false"
+                                app:seekBarRotation="CW270"
+                                />
+
+                        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+                        <TextView
+                            android:id="@+id/band9_textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="8sp"
+                            tools:text="000Hz"
+                            />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:paddingEnd="12dp"
+                    android:paddingStart="12dp"
+                    >
+
+                    <Spinner
+                        android:id="@+id/eq_preset_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:textSize="14sp"
+                        />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <android.support.constraint.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="6dp"
+                android:gravity="center_horizontal|center_vertical"
+                android:tag="SFX"
+                >
+
+                <LinearLayout
+                    android:id="@+id/preamp_layout"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="1dp"
                     android:background="@drawable/gradient_top_down_transparent"
                     android:gravity="center_horizontal"
                     android:orientation="vertical"
+                    android:padding="5dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/loudness_layout"
+                    app:layout_constraintTop_toTopOf="parent"
                     >
 
                     <CheckBox
@@ -169,470 +570,8 @@
                         android:textSize="0dp"
                         />
 
-                    <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                        android:layout_width="wrap_content"
-                        android:layout_height="250dp"
-                        >
-
-                        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                            android:id="@+id/preamp_seekBar"
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:splitTrack="false"
-                            app:seekBarRotation="CW270"
-                            />
-
-                    </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="PreAmp"
-                        android:textSize="14sp"
-                        />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/gradient_top_down_transparent"
-                    android:gravity="center_horizontal|bottom"
-                    android:orientation="vertical">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:gravity="center_horizontal|bottom"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:id="@+id/band0_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <CheckBox
-                                android:id="@+id/eq_checkBox"
-                                style="@style/Widget.AppCompat.CompoundButton.CheckBox"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:checked="false"
-                                android:gravity="center"
-                                android:minHeight="0dp"
-                                android:minWidth="0dp"
-                                android:padding="0dp"
-                                android:scaleX="0.7"
-                                android:scaleY="0.7"
-                                />
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band0_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band0_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band1_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band1_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band1_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band2_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band2_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band2_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band3_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band3_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band3_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band4_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band4_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band4_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band5_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band5_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band5_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band6_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band6_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band6_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band7_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band7_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band7_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band8_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band8_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band8_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/band9_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="1dp"
-                            android:gravity="center_horizontal"
-                            android:orientation="vertical"
-                            >
-
-                            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
-                                android:layout_width="wrap_content"
-                                android:layout_height="220dp"
-                                >
-
-                                <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
-                                    android:id="@+id/band9_seekBar"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:splitTrack="false"
-                                    app:seekBarRotation="CW270"
-                                    />
-
-                            </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
-
-                            <TextView
-                                android:id="@+id/band9_textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="8sp"
-                                tools:text="000Hz"
-                                />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="1dp"
-                        android:layout_marginStart="1dp"
-                        android:layout_marginTop="8dp"
-                        android:orientation="horizontal"
-                        android:paddingEnd="12dp"
-                        android:paddingStart="12dp"
-                        >
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="1"
-                            android:text="Preset"
-                            android:textSize="14sp"
-                            />
-
-                        <Spinner
-                            android:id="@+id/eq_preset_spinner"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="2"
-                            android:padding="5dp"
-                            android:textSize="14sp"
-                            />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="6dp"
-                android:gravity="center_horizontal|center_vertical"
-                android:orientation="horizontal"
-                android:tag="SFX"
-                >
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="1dp"
-                    android:background="@drawable/gradient_top_down_transparent"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical"
-                    >
-
-                    <CheckBox
-                        android:id="@+id/bassboost_checkBox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="false"
-                        android:gravity="center"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:padding="0dp"
-                        android:scaleX="0.7"
-                        android:scaleY="0.7"
-                        android:textSize="0dp"
-                        />
-
                     <me.tankery.lib.circularseekbar.CircularSeekBar
-                        android:id="@+id/bassboost_seekBar"
+                        android:id="@+id/preamp_seekBar"
                         android:layout_width="110dp"
                         android:layout_height="110dp"
                         app:cs_circle_color="@color/translucent_accent"
@@ -652,19 +591,24 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bassboost"
+                        android:text="PreAmp"
                         android:textSize="12sp"
                         />
 
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:id="@+id/loudness_layout"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="1dp"
                     android:background="@drawable/gradient_top_down_transparent"
                     android:gravity="center_horizontal"
                     android:orientation="vertical"
+                    android:padding="5dp"
+                    app:layout_constraintLeft_toRightOf="@id/preamp_layout"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     >
 
                     <CheckBox
@@ -709,12 +653,72 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:id="@+id/bassboost_layout"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="1dp"
                     android:background="@drawable/gradient_top_down_transparent"
                     android:gravity="center_horizontal"
                     android:orientation="vertical"
+                    android:padding="5dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/virtualizer_layout"
+                    app:layout_constraintTop_toBottomOf="@id/preamp_layout"
+                    >
+
+                    <CheckBox
+                        android:id="@+id/bassboost_checkBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="false"
+                        android:gravity="center"
+                        android:minHeight="0dp"
+                        android:minWidth="0dp"
+                        android:padding="0dp"
+                        android:scaleX="0.7"
+                        android:scaleY="0.7"
+                        android:textSize="0dp"
+                        />
+
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/bassboost_seekBar"
+                        android:layout_width="110dp"
+                        android:layout_height="110dp"
+                        app:cs_circle_color="@color/translucent_accent"
+                        app:cs_circle_progress_color="@color/translucent_accent"
+                        app:cs_circle_stroke_width="1dp"
+                        app:cs_circle_style="round"
+                        app:cs_end_angle="90"
+                        app:cs_maintain_equal_circle="false"
+                        app:cs_max="100"
+                        app:cs_negative_enabled="false"
+                        app:cs_pointer_color="@color/accent"
+                        app:cs_pointer_stroke_width="12dp"
+                        app:cs_progress="50"
+                        app:cs_start_angle="-180"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bassboost"
+                        android:textSize="12sp"
+                        />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/virtualizer_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="1dp"
+                    android:background="@drawable/gradient_top_down_transparent"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:padding="5dp"
+                    app:layout_constraintLeft_toRightOf="@id/bassboost_layout"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/loudness_layout"
                     >
 
                     <CheckBox
@@ -758,7 +762,7 @@
 
                 </LinearLayout>
 
-            </LinearLayout>
+            </android.support.constraint.ConstraintLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

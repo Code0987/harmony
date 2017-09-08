@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -100,7 +101,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		@Override
 		public void run() {
 
-			if (video.getVisibility() == View.VISIBLE)
+			if (video != null && video.getVisibility() == View.VISIBLE)
 				video.seekTo(getMusicService().getPosition());
 
 			handler.removeCallbacks(videoSyncTask);
@@ -157,15 +158,18 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		switch (SettingsActivity.getPlaybackUIStyle(this)) {
 			case PUI2:
 				layoutId = R.layout.playback_ui_pui2_activity;
+				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 				break;
 
 			case PUI3:
 				layoutId = R.layout.playback_ui_pui3_activity;
+				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 				break;
 
 			case Default:
 			default:
 				layoutId = R.layout.playback_ui_default_activity;
+				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 				break;
 		}
 		setContentView(layoutId);
@@ -224,60 +228,62 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		});
 
 		// Video, if loaded is on mute
-		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-			video.setZOrderOnTop(false);
-		} else {
-			video.setZOrderOnTop(true);
+		if (video != null) {
+			if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+				video.setZOrderOnTop(false);
+			} else {
+				video.setZOrderOnTop(true);
+			}
+			video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+				public void onPrepared(MediaPlayer mediaPlayer) {
+					mediaPlayer.setVolume(0, 0);
+
+					if (getMusicService() != null)
+						getMusicService().play();
+
+					handler.postDelayed(videoSyncTask, 1000);
+
+					handler.postDelayed(new Runnable() {
+						@Override
+						public void run() {
+							toggleUI(true);
+						}
+					}, 3500);
+				}
+			});
+			video.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+				@Override
+				public void onCompletion(MediaPlayer mediaPlayer) {
+					video.setVisibility(View.INVISIBLE);
+
+					handler.removeCallbacks(videoSyncTask);
+
+					handler.post(new Runnable() {
+						@Override
+						public void run() {
+							toggleUI(false);
+						}
+					});
+				}
+			});
+			video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+				@Override
+				public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+					video.setVisibility(View.INVISIBLE);
+
+					handler.removeCallbacks(videoSyncTask);
+
+					handler.post(new Runnable() {
+						@Override
+						public void run() {
+							toggleUI(false);
+						}
+					});
+
+					return false;
+				}
+			});
 		}
-		video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-			public void onPrepared(MediaPlayer mediaPlayer) {
-				mediaPlayer.setVolume(0, 0);
-
-				if (getMusicService() != null)
-					getMusicService().play();
-
-				handler.postDelayed(videoSyncTask, 1000);
-
-				handler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						toggleUI(true);
-					}
-				}, 3500);
-			}
-		});
-		video.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-			@Override
-			public void onCompletion(MediaPlayer mediaPlayer) {
-				video.setVisibility(View.INVISIBLE);
-
-				handler.removeCallbacks(videoSyncTask);
-
-				handler.post(new Runnable() {
-					@Override
-					public void run() {
-						toggleUI(false);
-					}
-				});
-			}
-		});
-		video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-			@Override
-			public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-				video.setVisibility(View.INVISIBLE);
-
-				handler.removeCallbacks(videoSyncTask);
-
-				handler.post(new Runnable() {
-					@Override
-					public void run() {
-						toggleUI(false);
-					}
-				});
-
-				return false;
-			}
-		});
 
 		color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
 		colorLight = ContextCompat.getColor(getApplicationContext(), R.color.accent);
@@ -291,7 +297,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				if (getMusicService() != null) {
 					getMusicService().seek(i);
 
-					if (video.getVisibility() == View.VISIBLE)
+					if (video != null && video.getVisibility() == View.VISIBLE)
 						video.seekTo(getMusicService().getPosition());
 				}
 
@@ -445,53 +451,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			}
 		});
 
-		final View avfx_layout = findViewById(R.id.avfx_layout);
-		avfx.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (audioVFXViewFragment != null) {
-					getFragmentManager()
-							.beginTransaction()
-							.remove(audioVFXViewFragment)
-							.commit();
-
-					audioVFXViewFragment = null;
-
-					avfx_layout.setVisibility(View.INVISIBLE);
-
-					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, false);
-
-				} else if (!isFinishing() && audioVFXViewFragment == null) {
-					avfx_layout.setVisibility(View.VISIBLE);
-
-					audioVFXViewFragment = AudioVFXViewFragment.create();
-					getFragmentManager()
-							.beginTransaction()
-							.replace(R.id.avfx_layout, audioVFXViewFragment)
-							.commit();
-
-					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-
-					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
-
-				}
-			}
-		});
-		avfx.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
-				if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-
-					AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.getNextAVFXType(getApplicationContext()));
-
-					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-
-					info("Now using " + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + " fx!");
-				}
-
-				return true;
-			}
-		});
+		createAVFX();
 
 		tune.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -571,6 +531,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		super.onResume();
 
 		handler.postDelayed(updateSystemUITask, 500);
+
+		// Restore audio vis.
+		updateAVFX();
 	}
 
 	@Override
@@ -611,10 +574,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			}
 		});
 
-		if (avfx != null) {
-			if (AudioVFXViewFragment.getAVFXEnabled(this))
-				avfx.performClick();
-		}
+		// Restore audio vis.
+		updateAVFX();
 	}
 
 	@Override
@@ -630,7 +591,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			e.printStackTrace();
 		}
 
-		if (video.getVisibility() == View.VISIBLE)
+		if (video != null && video.getVisibility() == View.VISIBLE)
 			video.start();
 	}
 
@@ -643,7 +604,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		if (getMusicService() != null)
 			resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
 
-		if (video.getVisibility() == View.VISIBLE)
+		if (video != null && video.getVisibility() == View.VISIBLE)
 			video.pause();
 	}
 
@@ -653,7 +614,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
 
-		if (video.getVisibility() == View.VISIBLE) {
+		if (video != null && video.getVisibility() == View.VISIBLE) {
 			video.stopPlayback();
 			video.setVisibility(View.INVISIBLE);
 		}
@@ -705,7 +666,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		loadingView.smoothToShow();
 
-		if (video.getVisibility() == View.VISIBLE) {
+		if (video != null && video.getVisibility() == View.VISIBLE) {
 			video.stopPlayback();
 			video.setVisibility(View.INVISIBLE);
 		}
@@ -723,14 +684,14 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				Music.getCoverOrDownload(cover.getWidth(), music);
 
 				// Load video
-				if (music.hasVideo()) {
+				if (video != null && music.hasVideo()) {
 					video.setVisibility(View.VISIBLE);
 					video.setVideoPath(music.Path);
 					video.requestFocus();
 					video.start();
 				}
 
-				if (music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+				if (video != null && music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
 					root.setBackground(null);
 				}
 
@@ -927,6 +888,71 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	}
 
+	//region AVFX
+
+	private View avfx_layout;
+
+	private void createAVFX() {
+		avfx_layout = findViewById(R.id.avfx_layout);
+
+		avfx.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (audioVFXViewFragment != null) {
+					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, false);
+				} else {
+					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
+				}
+				updateAVFX();
+			}
+		});
+		avfx.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+
+					AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.getNextAVFXType(getApplicationContext()));
+
+					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+
+					info("Now using " + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + " fx!");
+				}
+
+				return true;
+			}
+		});
+	}
+
+	private void updateAVFX() {
+		if (AudioVFXViewFragment.getAVFXEnabled(this)) {
+			if (!isFinishing() && audioVFXViewFragment == null) {
+				avfx_layout.setVisibility(View.VISIBLE);
+
+				audioVFXViewFragment = AudioVFXViewFragment.create();
+				getFragmentManager()
+						.beginTransaction()
+						.replace(R.id.avfx_layout, audioVFXViewFragment)
+						.commit();
+
+				audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+			}
+		} else {
+			if (audioVFXViewFragment != null) {
+				getFragmentManager()
+						.beginTransaction()
+						.remove(audioVFXViewFragment)
+						.commit();
+
+				audioVFXViewFragment = null;
+
+				avfx_layout.setVisibility(View.INVISIBLE);
+			}
+		}
+
+	}
+
+	//endregion
+
 	//region Help
 
 	private void initHelp() {
@@ -970,7 +996,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	}
 
-	private void tour(MaterialIntroListener onFinal){
+	private void tour(MaterialIntroListener onFinal) {
 		final MaterialIntroView.Builder guide_play_pause_stop = new MaterialIntroView.Builder(this)
 				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
 				.setDelayMillis(500)

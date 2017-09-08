@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
@@ -102,7 +103,8 @@ public class LyricsViewFragment extends Fragment {
 				builder.setTitle("Select the action");
 				builder.setItems(new CharSequence[]{
 						"Reload",
-						"Edit"
+						"Edit",
+						"Share"
 				}, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int itemIndex) {
@@ -134,6 +136,16 @@ public class LyricsViewFragment extends Fragment {
 
 										Toast.makeText(getActivity().getApplicationContext(), "Please install a text editor first!", Toast.LENGTH_LONG).show();
 									}
+									break;
+								case 2:
+									String shareCoverPath = MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), music.getCover(getActivity()), music.getText(), null);
+									Intent shareIntent = new Intent();
+									shareIntent.setAction(Intent.ACTION_SEND);
+									shareIntent.putExtra(Intent.EXTRA_TEXT, textView.getText().toString());
+									shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(shareCoverPath));
+									shareIntent.setType("image/*");
+									shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+									startActivity(Intent.createChooser(shareIntent, "Share lyrics for " + music.getText() + " ..."));
 									break;
 							}
 						} catch (Exception e) {
