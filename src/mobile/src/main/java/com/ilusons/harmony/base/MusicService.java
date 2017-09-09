@@ -1523,6 +1523,12 @@ public class MusicService extends Service {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			// Analytics
+			try {
+				Analytics.getInstance().logNowPlaying(this, currentMusic);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

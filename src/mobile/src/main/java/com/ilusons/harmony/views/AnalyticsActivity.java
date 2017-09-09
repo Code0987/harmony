@@ -81,12 +81,50 @@ public class AnalyticsActivity extends BaseActivity {
 		TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
 		tabs.setupWithViewPager(viewPager);
 
+		// DC
+		createDC();
+
 		// last.fm Scrobbler
 		createLFM();
 
 		loading.smoothToHide();
 
 	}
+
+	//region DC
+
+	private ImageView analytics_dc_status;
+
+	private void createDC() {
+		analytics_dc_status = findViewById(R.id.analytics_dc_status);
+
+		analytics_dc_status.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (Analytics.getInstance().getDCEnabled()) {
+					Analytics.getInstance().setDCEnabled(false);
+				} else {
+					Analytics.getInstance().setDCEnabled(true);
+				}
+
+				updateDCState();
+			}
+		});
+
+		updateDCState();
+	}
+
+	private void updateDCState() {
+		if (Analytics.getInstance().getDCEnabled()) {
+			analytics_dc_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_dc_status.setImageResource(R.drawable.ic_settings_remote_black);
+		} else {
+			analytics_dc_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_dc_status.setImageResource(R.drawable.ic_error_outline_black);
+		}
+	}
+
+	//endregion
 
 	//region LFM
 
@@ -126,7 +164,6 @@ public class AnalyticsActivity extends BaseActivity {
 		analytics_lfms_logs.setText(sb.toString());
 
 		updateLFMState();
-		updateLFM();
 	}
 
 	private void updateLFM() {
@@ -144,6 +181,8 @@ public class AnalyticsActivity extends BaseActivity {
 			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
 			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote_black);
 		}
+
+		updateLFM();
 	}
 
 	private static class RefreshLFM extends AsyncTask<Void, Void, Void> {
