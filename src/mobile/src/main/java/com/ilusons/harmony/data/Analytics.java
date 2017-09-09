@@ -2,12 +2,15 @@ package com.ilusons.harmony.data;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.Transaction;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.SecurePreferences;
@@ -16,6 +19,7 @@ import org.apache.http.util.TextUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import de.umass.lastfm.Authenticator;
@@ -293,40 +297,62 @@ public class Analytics {
 
 	private static final String firebase_db_ref = "analytics";
 
-	private static final String firebase_db_tracks = "tracks";
-	private static final String firebase_db_tracks_title = "title";
-	private static final String firebase_db_tracks_artist = "artist";
-	private static final String firebase_db_tracks_name = "name";
-	private static final String firebase_db_tracks_timestamp = "timestamp";
-	private static final String firebase_db_tracks_user = "user";
+	private static final String firebase_db_now_playing = "now_playing";
+	private static final String firebase_db_now_playing_title = "title";
+	private static final String firebase_db_now_playing_artist = "artist";
+	private static final String firebase_db_now_playing_text = "text";
+	private static final String firebase_db_now_playing_timestamp = "timestamp";
+	private static final String firebase_db_now_playing_user = "user";
 
-	public static void logTrack(MusicService musicService, Music data){
-		FirebaseDatabase.getInstance()
-				.getReference(firebase_db_ref)
-				.child(firebase_db_tracks)
-				.push()
-				.runTransaction(new Transaction.Handler() {
-					@Override
-					public Transaction.Result doTransaction(MutableData currentData) {
+	public void logNowPlaying(MusicService musicService, Music data) {
+		if (!getDCEnabled())
+			return;
 
+		try {
+			HashMap<String, Object> values = new HashMap<>();
 
-						if (currentData.getValue() == null) {
-							currentData.setValue(0);
-						} else {
-							currentData.setValue((Long) currentData.getValue() - 1);
+			values.put(firebase_db_now_playing_title, data.Title);
+			values.put(firebase_db_now_playing_artist, data.Artist);
+			values.put(firebase_db_now_playing_text, data.getText());
+			values.put(firebase_db_now_playing_timestamp, ServerValue.TIMESTAMP);
+			values.put(firebase_db_now_playing_user, Settings.Secure.getString(musicService.getContentResolver(), Settings.Secure.ANDROID_ID));
+
+			FirebaseDatabase.getInstance()
+					.getReference(firebase_db_ref)
+					.child(firebase_db_now_playing)
+					.push()
+					.updateChildren(values, new DatabaseReference.CompletionListener() {
+						@Override
+						public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+							if (databaseError != null) {
+								Log.e(TAG, "firebase rdb push error", databaseError.toException());
+							}
 						}
-						return Transaction.success(currentData);
-					}
+					});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-					@Override
-					public void onComplete(DatabaseError databaseError, boolean committed, DataSnapshot currentData) {
-						if (databaseError == null) {
-							Log.w(TAG, "onComplete:" + committed + "," + currentData);
-						} else {
-							Log.w(TAG, "onComplete:" + committed + "," + currentData, databaseError.toException());
-						}
-					}
-				});
+	public static final String KEY_DC_ENABLED = "dc_enabled";
+
+	public boolean getDCEnabled() {
+		try {
+			return securePreferences.getBoolean(KEY_DC_ENABLED, false);
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public void setDCEnabled(boolean value) {
+		try {
+			securePreferences
+					.edit()
+					.putBoolean(KEY_DC_ENABLED, value)
+					.apply();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	//endregion
