@@ -71,6 +71,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.annotations.PrimaryKey;
 
 public class Music extends RealmObject {
@@ -85,22 +86,22 @@ public class Music extends RealmObject {
 	public String Title = "";
 	public String Artist = "";
 	public String Album = "";
-	public Integer Length = -1;
-	public Integer Track = -1;
+	public int Length = -1;
+	public int Track = -1;
 	@PrimaryKey
 	public String Path;
 	public String Playlists = "";
 
 	// Stats
-	public Integer Played = 0;
-	public Long TimeLastPlayed = -1L;
-	public Long TotalDurationPlayed = 0L;
-	public Integer Skipped = 0;
-	public Long TimeLastSkipped = -1L;
-	public Long TimeAdded = -1L;
+	public int Played = 0;
+	public long TimeLastPlayed = -1L;
+	public long TotalDurationPlayed = 0L;
+	public int Skipped = 0;
+	public long TimeLastSkipped = -1L;
+	public long TimeAdded = -1L;
 	public String Mood = "";
 
-	public Double Score = 0.0;
+	public double Score = 0.0;
 
 	@Override
 	public boolean equals(Object obj) {
@@ -1461,6 +1462,8 @@ public class Music extends RealmObject {
 		int daysSinceLastSkipped = (int) ((System.currentTimeMillis() - music.TimeLastSkipped) / (1000 * 60 * 60 * 24));
 		int daysSinceAdded = (int) ((System.currentTimeMillis() - music.TimeAdded) / (1000 * 60 * 60 * 24));
 		int length = music.Length;
+		if (length < 1)
+			return 0;
 		double lengthFixed = Math.round((length + 540) / 4) + Math.round((length * length) / ((length > 3599) ? Math.round((9000 * length) / 3600) : 9000));
 		double played = Math.pow(music.Played, 2) * lengthFixed;
 
@@ -1496,6 +1499,26 @@ public class Music extends RealmObject {
 		Log.d(TAG, "Score generated for [" + music.Path + "], " + score);
 
 		return score;
+	}
+
+	private static Music atTopByScore;
+
+	public static Music getAtTopByScore() {
+		try {
+			if (atTopByScore == null)
+				try (Realm realm = getDB()) {
+					RealmResults<Music> result = realm
+							.where(Music.class)
+							.findAllSorted("Score", Sort.DESCENDING);
+
+					if (!(result == null || result.size() == 0))
+						atTopByScore = realm.copyFromRealm(result.first());
+				}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return atTopByScore;
 	}
 
 	//endregion

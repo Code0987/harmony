@@ -10,7 +10,8 @@
 
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowBackground">@color/translucent</item>
-        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
 
         <item name="android:colorForeground">@color/translucent_primary_light</item>
         <item name="android:colorBackground">@color/translucent_primary_dark</item>

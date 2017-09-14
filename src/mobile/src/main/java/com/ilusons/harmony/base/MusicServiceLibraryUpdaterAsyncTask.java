@@ -159,7 +159,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (isCancelled())
 			return;
 
-		updateNotification(path);
+		updateNotification(path, false);
 
 		// Check if valid
 		if (!Music.isValid(path))
@@ -168,13 +168,15 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		// Ignore if already present
 		final Music oldData = Music.get(realm, path);
 		if (oldData != null) {
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					oldData.addPlaylist(playlist);
-					realm.copyToRealmOrUpdate(oldData);
-				}
-			});
+			if (!oldData.isInPlaylist(playlist)) {
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(Realm realm) {
+						oldData.addPlaylist(playlist);
+						realm.copyToRealmOrUpdate(oldData);
+					}
+				});
+			}
 
 			return;
 		}
@@ -416,8 +418,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 	private long lastNotificationUpdateTimestamp = 0;
 
-	private void updateNotification(String msg) {
-		if ((System.currentTimeMillis() - lastNotificationUpdateTimestamp) < 1000)
+	private void updateNotification(String msg, boolean force) {
+		if (!force && (System.currentTimeMillis() - lastNotificationUpdateTimestamp) < 1000)
 			return;
 		lastNotificationUpdateTimestamp = System.currentTimeMillis();
 

@@ -251,58 +251,61 @@ public class RateMe {
 	}
 
 	public void run() {
-		if (BuildConfig.DEBUG) {
-			Map<String, ?> keys = spref.getAll();
-			for (Map.Entry<String, ?> entry : keys.entrySet()) {
-				Log.d(TAG, "spref:\t" + entry.getKey() + ": " + entry.getValue().toString());
+		try {
+			if (BuildConfig.DEBUG) {
+				Map<String, ?> keys = spref.getAll();
+				for (Map.Entry<String, ?> entry : keys.entrySet()) {
+					Log.d(TAG, "spref:\t" + entry.getKey() + ": " + entry.getValue().toString());
+				}
 			}
-		}
 
-		if (spref.getBoolean(DONT_SHOW_AGAIN, false)) {
-			return;
-		}
-
-		if (!isPlayStoreInstalled()) {
-			Log.d(TAG, "No Play Store installed on device.");
-
-			if (!runWithoutPlayStore) {
+			if (spref.getBoolean(DONT_SHOW_AGAIN, false)) {
 				return;
 			}
-		}
 
-		Editor editor = spref.edit();
+			if (!isPlayStoreInstalled()) {
+				Log.d(TAG, "No Play Store installed on device.");
 
-		int totalLaunchCount = spref.getInt(TOTAL_LAUNCH_COUNT, 0) + 1;
-		editor.putInt(TOTAL_LAUNCH_COUNT, totalLaunchCount);
+				if (!runWithoutPlayStore) {
+					return;
+				}
+			}
 
-		long currentMillis = System.currentTimeMillis();
+			Editor editor = spref.edit();
 
-		long timeOfAbsoluteFirstLaunch = spref.getLong(TIME_OF_ABSOLUTE_FIRST_LAUNCH, 0);
-		if (timeOfAbsoluteFirstLaunch == 0) {
-			timeOfAbsoluteFirstLaunch = currentMillis;
-			editor.putLong(TIME_OF_ABSOLUTE_FIRST_LAUNCH, timeOfAbsoluteFirstLaunch);
-		}
+			int totalLaunchCount = spref.getInt(TOTAL_LAUNCH_COUNT, 0) + 1;
+			editor.putInt(TOTAL_LAUNCH_COUNT, totalLaunchCount);
 
-		long timeOfLastPrompt = spref.getLong(TIME_OF_LAST_PROMPT, 0);
+			long currentMillis = System.currentTimeMillis();
 
-		int launchesSinceLastPrompt = spref.getInt(LAUNCHES_SINCE_LAST_PROMPT, 0) + 1;
-		editor.putInt(LAUNCHES_SINCE_LAST_PROMPT, launchesSinceLastPrompt);
+			long timeOfAbsoluteFirstLaunch = spref.getLong(TIME_OF_ABSOLUTE_FIRST_LAUNCH, 0);
+			if (timeOfAbsoluteFirstLaunch == 0) {
+				timeOfAbsoluteFirstLaunch = currentMillis;
+				editor.putLong(TIME_OF_ABSOLUTE_FIRST_LAUNCH, timeOfAbsoluteFirstLaunch);
+			}
 
-		if (totalLaunchCount >= minLaunchesUntilInitialPrompt
-				&& ((currentMillis - timeOfAbsoluteFirstLaunch)) >= (minDaysUntilInitialPrompt * DateUtils.DAY_IN_MILLIS)) {
-			if (timeOfLastPrompt == 0 || (launchesSinceLastPrompt >= minLaunchesUntilNextPrompt && ((currentMillis - timeOfLastPrompt) >= (minDaysUntilNextPrompt * DateUtils.DAY_IN_MILLIS)))) {
-				editor.putLong(TIME_OF_LAST_PROMPT, currentMillis);
-				editor.putInt(LAUNCHES_SINCE_LAST_PROMPT, 0);
-				editor.apply();
+			long timeOfLastPrompt = spref.getLong(TIME_OF_LAST_PROMPT, 0);
 
-				showDialog();
+			int launchesSinceLastPrompt = spref.getInt(LAUNCHES_SINCE_LAST_PROMPT, 0) + 1;
+			editor.putInt(LAUNCHES_SINCE_LAST_PROMPT, launchesSinceLastPrompt);
+
+			if (totalLaunchCount >= minLaunchesUntilInitialPrompt
+					&& ((currentMillis - timeOfAbsoluteFirstLaunch)) >= (minDaysUntilInitialPrompt * DateUtils.DAY_IN_MILLIS)) {
+				if (timeOfLastPrompt == 0 || (launchesSinceLastPrompt >= minLaunchesUntilNextPrompt && ((currentMillis - timeOfLastPrompt) >= (minDaysUntilNextPrompt * DateUtils.DAY_IN_MILLIS)))) {
+					editor.putLong(TIME_OF_LAST_PROMPT, currentMillis);
+					editor.putInt(LAUNCHES_SINCE_LAST_PROMPT, 0);
+					editor.apply();
+
+					showDialog();
+				} else {
+					editor.commit();
+				}
 			} else {
 				editor.commit();
 			}
-		} else {
-			editor.commit();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
 	}
 
 	private void onCancel() {

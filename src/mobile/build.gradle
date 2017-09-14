@@ -175,6 +175,7 @@ dependencies {
 	api 'com.squareup.okhttp3:okhttp:3.8.1'
 	api 'de.u-mass:lastfm-java:0.1.2'
 	api 'com.github.tozny:java-aes-crypto:1.1.0'
+	api 'com.github.PhilJay:MPAndroidChart:v3.0.2'
 	debugApi 'com.squareup.leakcanary:leakcanary-android:1.5.1'
 	releaseApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 	releaseAlphaApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
@@ -192,6 +193,10 @@ android {
 	configurations.all {
 		resolutionStrategy.force 'com.google.code.findbugs:jsr305:2.0.1'
 	}
+}
+
+realm {
+	syncEnabled = true;
 }
 
 apply plugin: 'com.google.gms.google-services'

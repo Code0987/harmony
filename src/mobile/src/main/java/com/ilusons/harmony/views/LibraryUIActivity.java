@@ -46,6 +46,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
@@ -498,6 +499,9 @@ public class LibraryUIActivity extends BaseUIActivity {
 				initHelp();
 			}
 		});
+
+		// Smart functions
+		initSmartFunctions();
 
 		// Start scan
 		if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
@@ -2081,7 +2085,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return x.Played.compareTo(y.Played);
+						return Integer.compare(x.Played, y.Played);
 					}
 				});
 				Collections.reverse(data);
@@ -2090,7 +2094,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return x.Skipped.compareTo(y.Skipped);
+						return Integer.compare(x.Skipped, y.Skipped);
 					}
 				});
 				Collections.reverse(data);
@@ -2099,7 +2103,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return x.TimeAdded.compareTo(y.TimeAdded);
+						return Long.compare(x.TimeAdded, y.TimeAdded);
 					}
 				});
 				Collections.reverse(data);
@@ -2108,7 +2112,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return x.Score.compareTo(y.Score);
+						return Double.compare(x.Score, y.Score);
 					}
 				});
 				Collections.reverse(data);
@@ -2117,7 +2121,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return x.Track.compareTo(y.Track);
+						return Integer.compare(x.Track, y.Track);
 					}
 				});
 				break;
@@ -2399,6 +2403,37 @@ public class LibraryUIActivity extends BaseUIActivity {
 					}
 				});
 				break;
+		}
+	}
+
+	//endregion
+
+	//region Smart functions
+
+	private void initSmartFunctions() {
+		ImageView image_ui_nav_left = findViewById(R.id.image_ui_nav_left);
+
+		Music atTop = Music.getAtTopByScore();
+
+		if (atTop != null) {
+			Bitmap cover = atTop.getCover(this);
+
+			if (cover != null) {
+				if (image_ui_nav_left.getDrawable() != null) {
+					TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+							image_ui_nav_left.getDrawable(),
+							new BitmapDrawable(getResources(), cover)
+					});
+
+					image_ui_nav_left.setImageDrawable(d);
+
+					d.setCrossFadeEnabled(true);
+					d.startTransition(3300);
+				} else {
+					image_ui_nav_left.setImageDrawable(new BitmapDrawable(getResources(), cover));
+				}
+			}
+
 		}
 	}
 

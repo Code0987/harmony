@@ -139,11 +139,15 @@ public class Tips {
 	}
 
 	public void run() {
-		if (spref.getBoolean(DONT_SHOW_AGAIN, false)) {
-			return;
-		}
+		try {
+			if (spref.getBoolean(DONT_SHOW_AGAIN, false)) {
+				return;
+			}
 
-		showDialog();
+			showDialog();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void onNegative() {
