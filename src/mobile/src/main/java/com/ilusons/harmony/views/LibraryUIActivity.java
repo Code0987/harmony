@@ -500,9 +500,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 			}
 		});
 
-		// Smart functions
-		initSmartFunctions();
-
 		// Start scan
 		if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
 			Intent musicServiceIntent = new Intent(this, MusicService.class);
@@ -1285,7 +1282,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				final ImageView cover = (ImageView) v.findViewById(R.id.cover);
 				if (cover != null) {
 					cover.setImageBitmap(null);
-					// HACK: This animates aw well as reduces load on image view
+					// HACK: This animates as well as reduces load on image view
 					final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
 					(new AsyncTask<Void, Void, Bitmap>() {
 						@Override
@@ -2239,6 +2236,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 			case Album:
 				for (Music d : data) {
 					String key = d.Album;
+					if (TextUtils.isEmpty(key))
+						key = "*";
 					if (result.containsKey(key)) {
 						List<Music> list = result.get(key);
 						list.add(d);
@@ -2253,6 +2252,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 			case Artist:
 				for (Music d : data) {
 					String key = d.Artist;
+					if (TextUtils.isEmpty(key))
+						key = "*";
 					if (result.containsKey(key)) {
 						List<Music> list = result.get(key);
 						list.add(d);
@@ -2385,7 +2386,17 @@ public class LibraryUIActivity extends BaseUIActivity {
 				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
 					@Override
 					public int getSpanSize(int position) {
-						return RecyclerViewExpandableItemManager.isGroupItemId(adapter.getItemId(position)) ? 2 : 1;
+						if (RecyclerViewExpandableItemManager
+								.getPackedPositionChild(recyclerViewExpandableItemManager
+										.getExpandablePosition(position))
+								==
+								RecyclerView.NO_POSITION) {
+							// group item
+							return 2;
+						} else {
+							// child item
+							return 1;
+						}
 					}
 				});
 				recyclerView.setLayoutManager(layoutManager);
@@ -2403,37 +2414,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 					}
 				});
 				break;
-		}
-	}
-
-	//endregion
-
-	//region Smart functions
-
-	private void initSmartFunctions() {
-		ImageView image_ui_nav_left = findViewById(R.id.image_ui_nav_left);
-
-		Music atTop = Music.getAtTopByScore();
-
-		if (atTop != null) {
-			Bitmap cover = atTop.getCover(this);
-
-			if (cover != null) {
-				if (image_ui_nav_left.getDrawable() != null) {
-					TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-							image_ui_nav_left.getDrawable(),
-							new BitmapDrawable(getResources(), cover)
-					});
-
-					image_ui_nav_left.setImageDrawable(d);
-
-					d.setCrossFadeEnabled(true);
-					d.startTransition(3300);
-				} else {
-					image_ui_nav_left.setImageDrawable(new BitmapDrawable(getResources(), cover));
-				}
-			}
-
 		}
 	}
 

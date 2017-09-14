@@ -82,7 +82,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				setupNotification();
 
 				// Process
-				try (Realm realm = Music.getDB()) {
+				try {
 					if (isCancelled())
 						throw new Exception("Canceled by user");
 
@@ -92,19 +92,28 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 					// Scan media store
 					if (getScanMediaStoreEnabled(context)) {
 
-						scanMediaStoreAudio(realm);
-						scanMediaStoreVideo(realm);
+						scanMediaStoreAudio();
+
+						updateNotification("Media store audio scan completed.", true);
+
+						scanMediaStoreVideo();
+
+						updateNotification("Media store video scan completed.", true);
 
 						Log.d(TAG, "Library update from media store took " + (System.currentTimeMillis() - time) + "ms");
 					}
 
 					// Scan storage
-					scanStorage(realm);
+					scanStorage();
+
+					updateNotification("Storage scan completed.", true);
 
 					Log.d(TAG, "Library update from storage took " + (System.currentTimeMillis() - time) + "ms");
 
 					// Scan current
-					scanCurrent(realm);
+					scanCurrent();
+
+					updateNotification("Final scan completed.", true);
 
 					Log.d(TAG, "Library update from current took " + (System.currentTimeMillis() - time) + "ms");
 
@@ -133,6 +142,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 			return new Result();
 		} finally {
+			cancelNotification();
+
 			instance = null;
 		}
 	}
@@ -159,7 +170,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (isCancelled())
 			return;
 
-		updateNotification(path, false);
+		updateNotification(playlist + "@..." + path.substring(Math.min(path.length() - 34, path.length())), false);
 
 		// Check if valid
 		if (!Music.isValid(path))
@@ -206,7 +217,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		}
 	}
 
-	private void scanMediaStoreAudio(Realm realm) throws Exception {
+	private void scanMediaStoreAudio() throws Exception {
 		if (isCancelled())
 			return;
 
@@ -214,110 +225,168 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
-		final ArrayList<String> toRemove = new ArrayList<>();
+		try (Realm realm = Music.getDB()) {
+			if (realm == null)
+				return;
 
-		for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_MEDIASTORE)) {
-			File file = (new File(music.Path));
-			if (!file.exists())
-				toRemove.add(music.Path);
-		}
+			final ArrayList<String> toRemove = new ArrayList<>();
 
-		if (toRemove.size() > 0)
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-				}
-			});
+			for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_MEDIASTORE)) {
+				File file = (new File(music.Path));
+				if (!file.exists())
+					toRemove.add(music.Path);
+			}
 
-		ContentResolver cr = context.getContentResolver();
-
-		Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-		String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
-		String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
-
-		Cursor cursor = cr.query(uri, null, selection, null, sortOrder);
-		int count = 0;
-		if (cursor != null) {
-			count = cursor.getCount();
-
-			if (count > 0) {
-				while (cursor.moveToNext()) {
-					if (isCancelled())
-						throw new Exception("Canceled by user");
-
-					String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-
-					if ((new File(path)).exists()) {
-						Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
-
-						add(realm, context, path, contentUri, Music.KEY_PLAYLIST_MEDIASTORE);
+			if (toRemove.size() > 0)
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(Realm realm) {
+						realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
 					}
+				});
+
+			ContentResolver cr = context.getContentResolver();
+
+			Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+			String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
+			String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
+
+			Cursor cursor = cr.query(uri, null, selection, null, sortOrder);
+			int count = 0;
+			if (cursor != null) {
+				count = cursor.getCount();
+
+				if (count > 0) {
+					while (cursor.moveToNext()) {
+						if (isCancelled())
+							throw new Exception("Canceled by user");
+
+						String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+
+						if ((new File(path)).exists()) {
+							Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
+
+							add(realm, context, path, contentUri, Music.KEY_PLAYLIST_MEDIASTORE);
+						}
+					}
+
 				}
+			}
+
+			if (cursor != null)
+				cursor.close();
+		}
+	}
+
+	private void scanMediaStoreVideo() throws Exception {
+		if (isCancelled())
+			return;
+
+		Context context = contextRef.get();
+		if (context == null)
+			return;
+
+		try (Realm realm = Music.getDB()) {
+			if (realm == null)
+				return;
+			final ArrayList<String> toRemove = new ArrayList<>();
+
+			for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_MEDIASTORE)) {
+				File file = (new File(music.Path));
+				if (!file.exists())
+					toRemove.add(music.Path);
+			}
+
+			if (toRemove.size() > 0)
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(Realm realm) {
+						realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
+					}
+				});
+
+			ContentResolver cr = context.getContentResolver();
+
+			Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+			String sortOrder = MediaStore.Video.Media.TITLE + " ASC";
+
+			Cursor cursor = cr.query(uri, null, null, null, sortOrder);
+			int count = 0;
+			if (cursor != null) {
+				count = cursor.getCount();
+
+				if (count > 0) {
+					while (cursor.moveToNext()) {
+						if (isCancelled())
+							throw new Exception("Canceled by user");
+
+						String path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
+
+						if ((new File(path)).exists()) {
+							Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
+
+							add(realm, context, path, contentUri, Music.KEY_PLAYLIST_MEDIASTORE);
+						}
+					}
+
+				}
+			}
+
+			if (cursor != null)
+				cursor.close();
+		}
+	}
+
+	private void scanStorage() throws Exception {
+		if (isCancelled())
+			return;
+
+		Context context = contextRef.get();
+		if (context == null)
+			return;
+
+		try (Realm realm = Music.getDB()) {
+			if (realm == null)
+				return;
+			final Set<String> scanLocations = getScanLocations(context);
+
+			final ArrayList<String> toRemove = new ArrayList<>();
+
+			for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_STORAGE)) {
+				if (isCancelled())
+					throw new Exception("Canceled by user");
+
+				File file = (new File(music.Path));
+
+				if (!file.exists())
+					toRemove.add(music.Path);
+
+				boolean shouldRemove = true;
+				for (String scanLocation : scanLocations)
+					if (music.Path.contains(scanLocation)) {
+						shouldRemove = false;
+						break;
+					}
+				if (shouldRemove)
+					toRemove.add(music.Path);
 
 			}
-		}
 
-		if (cursor != null)
-			cursor.close();
-	}
-
-	private void scanMediaStoreVideo(Realm realm) throws Exception {
-		if (isCancelled())
-			return;
-
-		Context context = contextRef.get();
-		if (context == null)
-			return;
-
-		final ArrayList<String> toRemove = new ArrayList<>();
-
-		for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_MEDIASTORE)) {
-			File file = (new File(music.Path));
-			if (!file.exists())
-				toRemove.add(music.Path);
-		}
-
-		if (toRemove.size() > 0)
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-				}
-			});
-
-		ContentResolver cr = context.getContentResolver();
-
-		Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-		String sortOrder = MediaStore.Video.Media.TITLE + " ASC";
-
-		Cursor cursor = cr.query(uri, null, null, null, sortOrder);
-		int count = 0;
-		if (cursor != null) {
-			count = cursor.getCount();
-
-			if (count > 0) {
-				while (cursor.moveToNext()) {
-					if (isCancelled())
-						throw new Exception("Canceled by user");
-
-					String path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
-
-					if ((new File(path)).exists()) {
-						Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
-
-						add(realm, context, path, contentUri, Music.KEY_PLAYLIST_MEDIASTORE);
+			if (toRemove.size() > 0)
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(Realm realm) {
+						realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
 					}
-				}
+				});
 
+			for (String location : scanLocations) {
+				addFromDirectory(realm, context, new File(location), Music.KEY_PLAYLIST_STORAGE);
 			}
 		}
-
-		if (cursor != null)
-			cursor.close();
 	}
 
-	private void scanStorage(Realm realm) throws Exception {
+	private void scanCurrent() {
 		if (isCancelled())
 			return;
 
@@ -325,70 +394,27 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
-		final Set<String> scanLocations = getScanLocations(context);
+		try (Realm realm = Music.getDB()) {
+			if (realm == null)
+				return;
+			final ArrayList<String> toRemove = new ArrayList<>();
 
-		final ArrayList<String> toRemove = new ArrayList<>();
+			for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_CURRENT)) {
+				File file = (new File(music.Path));
+				if (!file.exists())
+					toRemove.add(music.Path);
+			}
 
-		for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_STORAGE)) {
-			if (isCancelled())
-				throw new Exception("Canceled by user");
+			if (toRemove.size() > 0)
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(Realm realm) {
+						realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
+					}
+				});
 
-			File file = (new File(music.Path));
-
-			if (!file.exists())
-				toRemove.add(music.Path);
-
-			boolean shouldRemove = true;
-			for (String scanLocation : scanLocations)
-				if (music.Path.contains(scanLocation)) {
-					shouldRemove = false;
-					break;
-				}
-			if (shouldRemove)
-				toRemove.add(music.Path);
-
+			Music.saveCurrent(realm, context, Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_CURRENT), false);
 		}
-
-		if (toRemove.size() > 0)
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-				}
-			});
-
-		for (String location : scanLocations) {
-			addFromDirectory(realm, context, new File(location), Music.KEY_PLAYLIST_STORAGE);
-		}
-
-	}
-
-	private void scanCurrent(Realm realm) {
-		if (isCancelled())
-			return;
-
-		Context context = contextRef.get();
-		if (context == null)
-			return;
-
-		final ArrayList<String> toRemove = new ArrayList<>();
-
-		for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_CURRENT)) {
-			File file = (new File(music.Path));
-			if (!file.exists())
-				toRemove.add(music.Path);
-		}
-
-		if (toRemove.size() > 0)
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-				}
-			});
-
-		Music.saveCurrent(realm, context, Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_CURRENT), false);
-
 	}
 
 	NotificationManager notificationManager = null;
