@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -33,6 +34,19 @@ import android.widget.Toast;
 import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
+import com.github.mikephil.charting.animation.Easing;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.utils.ColorTemplate;
+import com.github.mikephil.charting.utils.MPPointF;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
@@ -43,9 +57,12 @@ import com.ilusons.harmony.ref.ViewEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import de.umass.lastfm.Session;
 import de.umass.lastfm.scrobble.ScrobbleResult;
+import io.realm.Realm;
 
 public class AnalyticsActivity extends BaseActivity {
 
@@ -102,7 +119,78 @@ public class AnalyticsActivity extends BaseActivity {
 	//region Charts
 
 	private void createCharts() {
-		
+		PieChart chart = (PieChart) findViewById(R.id.analytics_charts_c1);
+		chart.setUsePercentValues(true);
+		chart.getDescription().setEnabled(false);
+		chart.setExtraOffsets(5, 10, 5, 5);
+
+		chart.setDragDecelerationFrictionCoef(0.95f);
+
+		chart.setDrawHoleEnabled(true);
+		chart.setHoleColor(Color.WHITE);
+
+		chart.setTransparentCircleColor(Color.WHITE);
+		chart.setTransparentCircleAlpha(72);
+
+		chart.setHoleRadius(58f);
+		chart.setTransparentCircleRadius(61f);
+
+		chart.setDrawCenterText(true);
+
+		chart.setRotationAngle(0);
+		// enable rotation of the chart by touch
+		chart.setRotationEnabled(true);
+		chart.setHighlightPerTapEnabled(true);
+
+		// entry label styling
+		chart.setEntryLabelColor(Color.BLACK);
+		chart.setEntryLabelTextSize(12f);
+
+		final int N = 10;
+
+		List<Music> allSortedByScore = Music.getAllSortedByScore(N);
+		float score_total = 0;
+		for (Music one : allSortedByScore)
+			score_total += one.Score;
+
+		ArrayList<PieEntry> rawData = new ArrayList<>();
+		for (Music one : allSortedByScore)
+			rawData.add(new PieEntry((float) (one.Score * 100f / score_total), one.getText()));
+
+		PieDataSet dataSet = new PieDataSet(rawData, "Top 10");
+		dataSet.setDrawIcons(false);
+		dataSet.setSliceSpace(3f);
+		dataSet.setIconsOffset(new MPPointF(0, 40));
+		dataSet.setSelectionShift(5f);
+
+		ArrayList<Integer> colors = new ArrayList<Integer>();
+		for (int c : ColorTemplate.VORDIPLOM_COLORS)
+			colors.add(c);
+		for (int c : ColorTemplate.JOYFUL_COLORS)
+			colors.add(c);
+		for (int c : ColorTemplate.COLORFUL_COLORS)
+			colors.add(c);
+		for (int c : ColorTemplate.LIBERTY_COLORS)
+			colors.add(c);
+		for (int c : ColorTemplate.PASTEL_COLORS)
+			colors.add(c);
+		colors.add(ColorTemplate.getHoloBlue());
+
+		dataSet.setColors(colors);
+
+		PieData data = new PieData();
+		data.addDataSet(dataSet);
+		data.setValueFormatter(new PercentFormatter());
+		data.setValueTextSize(11f);
+		data.setValueTextColor(R.color.primary_text);
+
+		chart.setData(data);
+		chart.highlightValues(null);
+		chart.invalidate();
+
+		chart.animateY(1400, Easing.EasingOption.EaseInOutQuad);
+		// chart.spin(2000, 0, 360);
+
 	}
 
 	//endregion
@@ -180,6 +268,10 @@ public class AnalyticsActivity extends BaseActivity {
 		analytics_lfms_logs.setText(sb.toString());
 
 		updateLFMState();
+		Session session = Analytics.getInstance().getLastfmSession();
+		if (session == null && Analytics.getInstance().isLastfmScrobbledEnabled()) {
+			updateLFM();
+		}
 	}
 
 	private void updateLFM() {
@@ -197,8 +289,6 @@ public class AnalyticsActivity extends BaseActivity {
 			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
 			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote_black);
 		}
-
-		updateLFM();
 	}
 
 	private static class RefreshLFM extends AsyncTask<Void, Void, Void> {
