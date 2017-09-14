@@ -196,8 +196,10 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 						sv.postInvalidate();
 					}
 				} finally {
-					if (canvas != null) {
+					if (canvas != null) try {
 						sh.unlockCanvasAndPost(canvas);
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 

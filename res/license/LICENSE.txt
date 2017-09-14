@@ -58,6 +58,8 @@ Summary
             https://github.com/jkovacs/lastfm-java/blob/master/license.txt
         java-aes-crypto
             https://github.com/tozny/java-aes-crypto/blob/master/LICENSE
+        MPAndroidChart
+            http://www.apache.org/licenses/LICENSE-2.0
 
 harmony - Terms and conditions
 
