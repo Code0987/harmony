@@ -177,7 +177,7 @@
                         app:layout_constraintTop_toTopOf="parent"
                         />
 
-                    <com.github.mikephil.charting.charts.BarChart
+                    <com.github.mikephil.charting.charts.PieChart
                         android:id="@+id/analytics_charts_c1"
                         android:layout_width="0dp"
                         android:layout_height="256dp"

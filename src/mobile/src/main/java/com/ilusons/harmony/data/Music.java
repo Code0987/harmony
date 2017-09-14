@@ -1541,6 +1541,30 @@ public class Music extends RealmObject {
 		return atTopByScore;
 	}
 
+	public static List<Music> getAllSorted(int count, String field, Sort order) {
+		ArrayList<Music> result = new ArrayList<>();
+
+		try {
+			try (Realm realm = getDB()) {
+				RealmResults<Music> realmResults = realm
+						.where(Music.class)
+						.findAllSorted(field, order);
+
+				if (!(realmResults.size() == 0)) {
+					result.addAll(realm.copyFromRealm(realmResults.subList(0, Math.min(count, realmResults.size()))));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return result;
+	}
+
+	public static List<Music> getAllSortedByScore(int count) {
+		return getAllSorted(count, "Score", Sort.DESCENDING);
+	}
+
 	//endregion
 
 }
