@@ -8,7 +8,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -33,6 +37,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
+import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.ViewEx;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -81,6 +86,9 @@ public class AnalyticsActivity extends BaseActivity {
 		TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
 		tabs.setupWithViewPager(viewPager);
 
+		// Charts
+		createCharts();
+
 		// DC
 		createDC();
 
@@ -90,6 +98,14 @@ public class AnalyticsActivity extends BaseActivity {
 		loading.smoothToHide();
 
 	}
+
+	//region Charts
+
+	private void createCharts() {
+		
+	}
+
+	//endregion
 
 	//region DC
 

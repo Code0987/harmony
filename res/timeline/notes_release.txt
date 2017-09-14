@@ -1,10 +1,7 @@
 ﻿◾️ Work in progress, please leave feedback.
 ✔️ New: Added Analytics 🎉, last.fm scrobbler (free for limited time) 😍.
 ✔️ Fixed: Bugs, crashes.
-✔️ Updates: Playlist/library related.
 ✔️ Fixed: Shuffle bug.
-✔️ Fixed: Playback UI AVFX bug.
-✔️ Updates: Updated prev to smartly go to start or previous song.
-✔️ Updates: Particles audio vis. updated.
 ✔️ New: Added share option in lyrics long-press menu.
 ✔️ New: Added share option in library item long-press menu.
+✔️ Updates: Library ui, group mode updated.

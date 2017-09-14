@@ -62,8 +62,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
 import io.realm.Case;
@@ -711,13 +717,27 @@ public class Music extends RealmObject {
 						data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
 
 						if (!fastMode) {
-							MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+							final MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 							try {
 								mmr.setDataSource(data.Path);
 
-								Bitmap bmp = mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-								if (bmp != null)
-									putCover(context, data, bmp);
+								ExecutorService executor = Executors.newCachedThreadPool();
+								Callable<Bitmap> task = new Callable<Bitmap>() {
+									public Bitmap call() {
+										return mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+									}
+								};
+								Future<Bitmap> future = executor.submit(task);
+								try {
+									Bitmap bmp = future.get(2500, TimeUnit.MILLISECONDS);
+									if (bmp != null)
+										putCover(context, data, bmp);
+								} catch (Exception e) {
+									e.printStackTrace();
+								} finally {
+									future.cancel(true);
+								}
+
 							} catch (Exception e) {
 								Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
 							} finally {
