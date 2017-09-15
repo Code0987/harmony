@@ -127,24 +127,22 @@ public class AnalyticsActivity extends BaseActivity {
 		chart.setDragDecelerationFrictionCoef(0.95f);
 
 		chart.setDrawHoleEnabled(true);
-		chart.setHoleColor(Color.WHITE);
+		chart.setHoleColor(R.color.translucent_accent);
 
-		chart.setTransparentCircleColor(Color.WHITE);
+		chart.setTransparentCircleColor(R.color.translucent_accent);
 		chart.setTransparentCircleAlpha(72);
 
-		chart.setHoleRadius(58f);
-		chart.setTransparentCircleRadius(61f);
+		chart.setHoleRadius(36f);
+		chart.setTransparentCircleRadius(72f);
 
-		chart.setDrawCenterText(true);
+		chart.setDrawCenterText(false);
 
 		chart.setRotationAngle(0);
-		// enable rotation of the chart by touch
 		chart.setRotationEnabled(true);
 		chart.setHighlightPerTapEnabled(true);
 
-		// entry label styling
-		chart.setEntryLabelColor(Color.BLACK);
-		chart.setEntryLabelTextSize(12f);
+		chart.setDrawEntryLabels(false);
+		chart.setEntryLabelColor(R.color.primary_text);
 
 		final int N = 10;
 
@@ -155,11 +153,18 @@ public class AnalyticsActivity extends BaseActivity {
 
 		ArrayList<PieEntry> rawData = new ArrayList<>();
 		for (Music one : allSortedByScore)
-			rawData.add(new PieEntry((float) (one.Score * 100f / score_total), one.getText()));
+			try {
+				rawData.add(new PieEntry(
+						(float) (one.Score * 100f / score_total),
+						one.getText(),
+						new BitmapDrawable(one.getCover(this))));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 		PieDataSet dataSet = new PieDataSet(rawData, "Top 10");
 		dataSet.setDrawIcons(false);
-		dataSet.setSliceSpace(3f);
+		dataSet.setSliceSpace(1f);
 		dataSet.setIconsOffset(new MPPointF(0, 40));
 		dataSet.setSelectionShift(5f);
 
@@ -188,7 +193,7 @@ public class AnalyticsActivity extends BaseActivity {
 		chart.highlightValues(null);
 		chart.invalidate();
 
-		chart.animateY(1400, Easing.EasingOption.EaseInOutQuad);
+		chart.animateY(3600, Easing.EasingOption.EaseInOutQuad);
 		// chart.spin(2000, 0, 360);
 
 	}
