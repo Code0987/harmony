@@ -78,6 +78,9 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ue.RateMe;
+import com.turingtechnologies.materialscrollbar.CustomIndicator;
+import com.turingtechnologies.materialscrollbar.DragScrollBar;
+import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
@@ -98,6 +101,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
@@ -1118,7 +1122,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	//region Library view
 
-	public class RecyclerViewAdapter extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder> {
+	public class RecyclerViewAdapter extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder> implements ICustomAdapter {
 
 		private static final int ITEMS_PER_AD = 8;
 //		private AdListener lastAdListener = null;
@@ -1206,6 +1210,36 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 			TextView title = ((TextView) v.findViewById(R.id.title));
 			title.setText(d);
+
+			try {
+				final Music item0 = ((Music) dataFiltered.get(groupPosition).second.get(ThreadLocalRandom.current().nextInt(dataFiltered.get(groupPosition).second.size())));
+				final ImageView cover = (ImageView) v.findViewById(R.id.cover);
+				if (cover != null) {
+					cover.setImageBitmap(null);
+					final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
+					(new AsyncTask<Void, Void, Bitmap>() {
+						@Override
+						protected Bitmap doInBackground(Void... voids) {
+							return item0.getCover(LibraryUIActivity.this, coverSize);
+						}
+
+						@Override
+						protected void onPostExecute(Bitmap bitmap) {
+							TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+									cover.getDrawable(),
+									new BitmapDrawable(getResources(), bitmap)
+							});
+
+							cover.setImageDrawable(d);
+
+							d.setCrossFadeEnabled(true);
+							d.startTransition(200);
+						}
+					}).execute();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override
@@ -1318,8 +1352,16 @@ public class LibraryUIActivity extends BaseUIActivity {
 					album.setText(item.Album);
 
 				TextView info = (TextView) v.findViewById(R.id.info);
-				if (info != null) try {
-					info.setText(item.getTextExtraOnlySingleLine());
+				if (info != null) {
+					String s;
+					try {
+						s = item.getTextExtraOnlySingleLine(getMusicService().getPlaylist().indexOf(item.Path));
+					} catch (Exception e) {
+						e.printStackTrace();
+
+						s = item.getTextExtraOnlySingleLine();
+					}
+					info.setText(s);
 					info.setHorizontallyScrolling(true);
 					info.setSelected(true);
 					info.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -1331,8 +1373,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 							}
 						}
 					});
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
 
 				v.setOnClickListener(new View.OnClickListener() {
@@ -1572,6 +1612,18 @@ public class LibraryUIActivity extends BaseUIActivity {
 			bringInToView(k);
 		}
 
+		@Override
+		public String getCustomStringForElement(int element) {
+			try {
+				View v = recyclerView.getLayoutManager().getChildAt(element);
+
+				TextView info = v.findViewById(R.id.info);
+				return info.getText().toString();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
 	}
 
 	public class GroupViewHolder extends AbstractExpandableItemViewHolder {

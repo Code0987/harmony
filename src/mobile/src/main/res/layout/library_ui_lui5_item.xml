@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <android.support.constraint.ConstraintLayout
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
@@ -13,6 +13,7 @@
     android:layout_marginTop="12dp"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
+    android:focusable="true"
     >
 
     <TextView
@@ -21,6 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="2dp"
+        android:layout_marginEnd="16dp"
         android:ellipsize="end"
         android:textColor="@color/secondary_text"
         android:textSize="14sp"
@@ -39,8 +41,8 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:marqueeRepeatLimit="marquee_forever"
-        android:singleLine="true"
         android:scrollHorizontally="true"
+        android:singleLine="true"
         android:textColor="@color/secondary_text"
         android:textSize="12sp"
         android:textStyle="italic"

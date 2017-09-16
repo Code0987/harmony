@@ -20,6 +20,8 @@ import android.os.CountDownTimer;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.support.v4.graphics.ColorUtils;
+import android.support.v7.graphics.Palette;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -41,10 +43,13 @@ import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.MPPointF;
 import com.ilusons.harmony.R;
@@ -120,77 +125,111 @@ public class AnalyticsActivity extends BaseActivity {
 
 	private void createCharts() {
 		PieChart chart = (PieChart) findViewById(R.id.analytics_charts_c1);
+
+		final int N = 5;
+
 		chart.setUsePercentValues(true);
 		chart.getDescription().setEnabled(false);
-		chart.setExtraOffsets(5, 10, 5, 5);
-
+		chart.setExtraOffsets(3, 3, 3, 3);
 		chart.setDragDecelerationFrictionCoef(0.95f);
 
 		chart.setDrawHoleEnabled(true);
-		chart.setHoleColor(R.color.translucent_accent);
+		chart.setHoleColor(ContextCompat.getColor(this, R.color.transparent));
 
-		chart.setTransparentCircleColor(R.color.translucent_accent);
-		chart.setTransparentCircleAlpha(72);
+		chart.setTransparentCircleColor(ContextCompat.getColor(this, R.color.translucent_icons));
+		chart.setTransparentCircleAlpha(110);
 
-		chart.setHoleRadius(36f);
-		chart.setTransparentCircleRadius(72f);
-
-		chart.setDrawCenterText(false);
+		chart.setHoleRadius(24f);
+		chart.setTransparentCircleRadius(27f);
 
 		chart.setRotationAngle(0);
 		chart.setRotationEnabled(true);
 		chart.setHighlightPerTapEnabled(true);
 
-		chart.setDrawEntryLabels(false);
-		chart.setEntryLabelColor(R.color.primary_text);
+		chart.setDrawCenterText(true);
+		chart.setCenterText("Top " + N);
+		chart.setCenterTextColor(ContextCompat.getColor(this, R.color.primary_text));
+		chart.setCenterTextSize(16f);
 
-		final int N = 10;
+		chart.setDrawEntryLabels(true);
+		chart.setEntryLabelColor(ContextCompat.getColor(this, R.color.primary_text));
+		chart.setEntryLabelTextSize(10f);
+
+		Legend l = chart.getLegend();
+		l.setEnabled(false);
 
 		List<Music> allSortedByScore = Music.getAllSortedByScore(N);
 		float score_total = 0;
 		for (Music one : allSortedByScore)
 			score_total += one.Score;
 
-		ArrayList<PieEntry> rawData = new ArrayList<>();
+		ArrayList<Integer> colors = new ArrayList<Integer>();
+		int defaultColor = ContextCompat.getColor(getApplicationContext(), R.color.accent);
+		ArrayList<PieEntry> data = new ArrayList<>();
 		for (Music one : allSortedByScore)
 			try {
-				rawData.add(new PieEntry(
+				Bitmap cover = one.getCover(this, 64);
+
+				data.add(new PieEntry(
 						(float) (one.Score * 100f / score_total),
 						one.getText(),
-						new BitmapDrawable(one.getCover(this))));
+						new BitmapDrawable(getResources(), cover),
+						one.Path));
+				int color = defaultColor;
+				try {
+					Palette palette = Palette.from(cover).generate();
+					int colorBackup = color;
+					color = palette.getVibrantColor(color);
+					if (color == colorBackup)
+						color = palette.getDarkVibrantColor(color);
+					if (color == colorBackup)
+						color = palette.getDarkMutedColor(color);
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+				colors.add(ColorUtils.setAlphaComponent(color, 160));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
-		PieDataSet dataSet = new PieDataSet(rawData, "Top 10");
-		dataSet.setDrawIcons(false);
+		PieDataSet dataSet = new PieDataSet(data, "Top " + N);
 		dataSet.setSliceSpace(1f);
-		dataSet.setIconsOffset(new MPPointF(0, 40));
 		dataSet.setSelectionShift(5f);
-
-		ArrayList<Integer> colors = new ArrayList<Integer>();
-		for (int c : ColorTemplate.VORDIPLOM_COLORS)
-			colors.add(c);
-		for (int c : ColorTemplate.JOYFUL_COLORS)
-			colors.add(c);
-		for (int c : ColorTemplate.COLORFUL_COLORS)
-			colors.add(c);
-		for (int c : ColorTemplate.LIBERTY_COLORS)
-			colors.add(c);
-		for (int c : ColorTemplate.PASTEL_COLORS)
-			colors.add(c);
-		colors.add(ColorTemplate.getHoloBlue());
-
+		dataSet.setHighlightEnabled(true);
+		dataSet.setDrawValues(true);
+		dataSet.setDrawIcons(true);
+		dataSet.setIconsOffset(new MPPointF(0, 42));
 		dataSet.setColors(colors);
 
-		PieData data = new PieData();
-		data.addDataSet(dataSet);
-		data.setValueFormatter(new PercentFormatter());
-		data.setValueTextSize(11f);
-		data.setValueTextColor(R.color.primary_text);
+		PieData chartData = new PieData();
+		chartData.addDataSet(dataSet);
+		chartData.setDrawValues(true);
+		chartData.setValueFormatter(new PercentFormatter());
+		chartData.setValueTextSize(10f);
+		chartData.setValueTextColor(ContextCompat.getColor(this, R.color.primary_text));
 
-		chart.setData(data);
+		chart.setData(chartData);
 		chart.highlightValues(null);
+		chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+			@Override
+			public void onValueSelected(Entry e, Highlight h) {
+				try {
+					Intent i = new Intent(AnalyticsActivity.this, MusicService.class);
+
+					i.setAction(MusicService.ACTION_OPEN);
+					i.putExtra(MusicService.KEY_URI, (String) e.getData());
+
+					startService(i);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+
+			@Override
+			public void onNothingSelected() {
+
+			}
+		});
 		chart.invalidate();
 
 		chart.animateY(3600, Easing.EasingOption.EaseInOutQuad);

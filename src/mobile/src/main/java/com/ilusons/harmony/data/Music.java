@@ -140,10 +140,16 @@ public class Music extends RealmObject {
 		return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
 	}
 
-	public String getTextExtraOnly(String del) {
+	public String getTextExtraOnly(String del, int position) {
 		StringBuilder sb = new StringBuilder();
 
+		if (position > -1) {
+			sb.append("⌖");
+			sb.append(position + 1);
+		}
 		if (Track > -1) {
+			if (sb.length() > 0)
+				sb.append(del);
 			sb.append("#");
 			sb.append(Track);
 		}
@@ -161,14 +167,24 @@ public class Music extends RealmObject {
 		return sb.toString();
 	}
 
-	public String getTextExtraOnlySingleLine() {
-		return getTextExtraOnly(" • ");
+	public String getTextExtraOnlySingleLine(int position) {
+		return getTextExtraOnly(" • ", position);
 	}
 
-	public String getTextDetailed(String del) {
+	public String getTextExtraOnlySingleLine() {
+		return getTextExtraOnly(" • ", -1);
+	}
+
+	public String getTextDetailed(String del, int position) {
 		StringBuilder sb = new StringBuilder();
 
+		if (position > -1) {
+			sb.append("⌖");
+			sb.append(position + 1);
+		}
 		if (Track > -1) {
+			if (sb.length() > 0)
+				sb.append(del);
 			sb.append("#");
 			sb.append(Track);
 			sb.append(del);
@@ -199,12 +215,20 @@ public class Music extends RealmObject {
 		return sb.toString();
 	}
 
+	public String getTextDetailedSingleLine(int position) {
+		return getTextDetailed(" • ", position);
+	}
+
 	public String getTextDetailedSingleLine() {
-		return getTextDetailed(" • ");
+		return getTextDetailed(" • ", -1);
+	}
+
+	public String getTextDetailedMultiLine(int position) {
+		return getTextDetailed(System.getProperty("line.separator"), position);
 	}
 
 	public String getTextDetailedMultiLine() {
-		return getTextDetailed(System.getProperty("line.separator"));
+		return getTextDetailed(System.getProperty("line.separator"), -1);
 	}
 
 	//region Cover art
@@ -281,115 +305,125 @@ public class Music extends RealmObject {
 			}
 			getCoverOrDownloadTask = null;
 		}
-		getCoverOrDownloadTask = (new AsyncTask<Object, Object, Bitmap>() {
-			@Override
-			protected void onPostExecute(Bitmap bitmap) {
-				if (getCurrentCoverView() != null)
-					getCurrentCoverView().onCoverReloaded(bitmap);
-			}
-
-			@Override
-			protected Bitmap doInBackground(Object... objects) {
-				try {
-					if (isCancelled() || getCurrentCoverView() == null)
-						throw new CancellationException();
-
-					Bitmap result = data.getCover(getCurrentCoverView(), size);
-
-					// File
-					File file = IOEx.getDiskCacheFile(getCurrentCoverView(), KEY_CACHE_DIR_COVER, data.Path);
-
-					if (isCancelled())
-						throw new CancellationException();
-
-					// Download and cache to folder then load
-					if (result == null) {
-						try {
-							URL url = new URL(String.format(
-									"https://itunes.apple.com/search?term=%s&entity=song&media=music",
-									URLEncoder.encode(data.getText(), "UTF-8")));
-
-							Connection connection = Jsoup.connect(url.toExternalForm())
-									.timeout(3 * 1000)
-									.ignoreContentType(true);
-
-							Document document = connection.get();
-
-							JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
-
-							JsonArray results = response.getAsJsonArray("results");
-
-							String downloadUrl = results
-									.get(0)
-									.getAsJsonObject()
-									.get("artworkUrl60")
-									.getAsString()
-									.replace("60x60bb.jpg", "600x600bb.jpg");
-
-							BufferedInputStream in = null;
-							FileOutputStream out = null;
-							try {
-								in = new BufferedInputStream(new URL(downloadUrl).openStream());
-								out = new FileOutputStream(file.getAbsoluteFile());
-
-								final byte data[] = new byte[1024];
-								int count;
-								while ((count = in.read(data, 0, 1024)) != -1) {
-									out.write(data, 0, count);
-								}
-							} finally {
-								if (in != null) {
-									in.close();
-								}
-								if (out != null) {
-									out.close();
-								}
-							}
-
-						} catch (Exception e) {
-							Log.w(TAG, e);
-						}
-
-						if (file.exists())
-							result = BitmapFactory.decodeFile(file.getAbsolutePath());
-
-						// Refresh once more
-						if (result == null && getCurrentCoverView() != null) {
-							data.refresh(getCurrentCoverView());
-
-							result = data.getCover(getCurrentCoverView(), size);
-						}
-
-						// Resample
-						if (result != null) {
-							try {
-								Bitmap.Config config = result.getConfig();
-								if (config == null) {
-									config = Bitmap.Config.ARGB_8888;
-								}
-								result = result.copy(config, false);
-							} catch (Exception e) {
-								Log.w(TAG, e);
-							}
-
-							// Put in cache
-							CacheEx.getInstance().putBitmap(data.Path, result);
-						}
-
-					}
-
-					return result;
-				} catch (Exception e) {
-					Log.w(TAG, e);
-				}
-				return null;
-			}
-		});
+		getCoverOrDownloadTask = (new CoverArtDownloaderAsyncTask(data, size));
 		getCoverOrDownloadTask.execute();
 	}
 
 	public static void putCover(Context context, Music data, Bitmap bmp) {
 		IOEx.putBitmapInDiskCache(context, KEY_CACHE_DIR_COVER, data.Path, bmp);
+	}
+
+	private static class CoverArtDownloaderAsyncTask extends AsyncTask<Object, Object, Bitmap> {
+		private final Music data;
+		private final int size;
+
+		public CoverArtDownloaderAsyncTask(Music data, int size) {
+			this.data = data;
+			this.size = size;
+		}
+
+		@Override
+		protected void onPostExecute(Bitmap bitmap) {
+			if (getCurrentCoverView() != null)
+				getCurrentCoverView().onCoverReloaded(bitmap);
+		}
+
+		@Override
+		protected Bitmap doInBackground(Object... objects) {
+			try {
+				if (isCancelled() || getCurrentCoverView() == null)
+					throw new CancellationException();
+
+				Bitmap result = data.getCover(getCurrentCoverView(), size);
+
+				// File
+				File file = IOEx.getDiskCacheFile(getCurrentCoverView(), KEY_CACHE_DIR_COVER, data.Path);
+
+				if (isCancelled())
+					throw new CancellationException();
+
+				// Download and cache to folder then load
+				if (result == null) {
+					try {
+						URL url = new URL(String.format(
+								"https://itunes.apple.com/search?term=%s&entity=song&media=music",
+								URLEncoder.encode(data.getText(), "UTF-8")));
+
+						Connection connection = Jsoup.connect(url.toExternalForm())
+								.timeout(3 * 1000)
+								.ignoreContentType(true);
+
+						Document document = connection.get();
+
+						JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
+
+						JsonArray results = response.getAsJsonArray("results");
+
+						String downloadUrl = results
+								.get(0)
+								.getAsJsonObject()
+								.get("artworkUrl60")
+								.getAsString()
+								.replace("60x60bb.jpg", "600x600bb.jpg");
+
+						BufferedInputStream in = null;
+						FileOutputStream out = null;
+						try {
+							in = new BufferedInputStream(new URL(downloadUrl).openStream());
+							out = new FileOutputStream(file.getAbsoluteFile());
+
+							final byte data[] = new byte[1024];
+							int count;
+							while ((count = in.read(data, 0, 1024)) != -1) {
+								out.write(data, 0, count);
+							}
+						} finally {
+							if (in != null) {
+								in.close();
+							}
+							if (out != null) {
+								out.close();
+							}
+						}
+
+					} catch (Exception e) {
+						Log.w(TAG, e);
+					}
+
+					if (file.exists())
+						result = BitmapFactory.decodeFile(file.getAbsolutePath());
+
+					// Refresh once more
+					if (result == null && getCurrentCoverView() != null) {
+						data.refresh(getCurrentCoverView());
+
+						result = data.getCover(getCurrentCoverView(), size);
+					}
+
+					// Resample
+					if (result != null) {
+						try {
+							Bitmap.Config config = result.getConfig();
+							if (config == null) {
+								config = Bitmap.Config.ARGB_8888;
+							}
+							result = result.copy(config, false);
+						} catch (Exception e) {
+							Log.w(TAG, e);
+						}
+
+						// Put in cache
+						CacheEx.getInstance().putBitmap(data.Path, result);
+					}
+
+				}
+
+				return result;
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+			return null;
+		}
 	}
 
 	//endregion
