@@ -1,7 +1,6 @@
 ﻿◾️ Work in progress, please leave feedback.
-✔️ New: Added Analytics 🎉, last.fm scrobbler (free for limited time) 😍.
+✔️ New: Added Analytics 🎉, Charts, Data collection, last.fm scrobbler (free for limited time) 😍.
 ✔️ Fixed: Bugs, crashes.
-✔️ Fixed: Shuffle bug.
 ✔️ New: Added share option in lyrics long-press menu.
 ✔️ New: Added share option in library item long-press menu.
-✔️ Updates: Library ui, group mode updated.
+✔️ Updates: Library ui, group mode updated, added playlist position indicator.

@@ -678,8 +678,17 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 				loadingView.smoothToShow();
 
-				if (info != null)
-					info.setText(music.getTextDetailedMultiLine());
+				if (info != null) {
+					String s;
+					try {
+						s = music.getTextDetailedMultiLine(getMusicService().getPlaylist().indexOf(music.Path));
+					} catch (Exception e) {
+						e.printStackTrace();
+
+						s = music.getTextDetailedMultiLine();
+					}
+					info.setText(s);
+				}
 
 				Music.getCoverOrDownload(cover.getWidth(), music);
 

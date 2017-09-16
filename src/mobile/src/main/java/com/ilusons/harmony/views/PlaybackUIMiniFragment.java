@@ -146,7 +146,15 @@ public class PlaybackUIMiniFragment extends Fragment {
 		Music m = ms.getCurrentPlaylistItemMusic();
 
 		title.setText(m.Title);
-		info.setText(m.getTextExtraOnlySingleLine());
+		String s;
+		try {
+			s = m.getTextExtraOnlySingleLine(ms.getPlaylist().indexOf(m.Path));
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			s = m.getTextExtraOnlySingleLine();
+		}
+		info.setText(s);
 
 		progressBar.setMax(ms.getDuration());
 
