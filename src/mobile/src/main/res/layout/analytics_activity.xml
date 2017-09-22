@@ -343,7 +343,7 @@
                     </android.support.design.widget.TextInputLayout>
 
                     <android.support.design.widget.TextInputLayout
-                        android:id="@+id/analytics_lfms_password"
+                        android:id="@+id/analytics_lfm_password"
                         xmlns:res="http://schemas.android.com/apk/res-auto"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -368,7 +368,7 @@
                     </android.support.design.widget.TextInputLayout>
 
                     <Button
-                        android:id="@+id/analytics_lfms_save"
+                        android:id="@+id/analytics_lfm_save"
                         style="@style/TextAppearance.AppCompat.Widget.Button.Inverse"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -379,11 +379,11 @@
                         android:text="Save and Apply"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_lfms_password"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_password"
                         />
 
                     <TextView
-                        android:id="@+id/analytics_lfms_info"
+                        android:id="@+id/analytics_lfm_info"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -393,11 +393,11 @@
                         android:textColorHint="@color/secondary_text"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_lfms_save"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_save"
                         />
 
                     <TextView
-                        android:id="@+id/analytics_lfms_info1"
+                        android:id="@+id/analytics_lfm_info1"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -407,11 +407,11 @@
                         android:textColorHint="@color/secondary_text"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_lfms_info"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_info"
                         />
 
                     <TextView
-                        android:id="@+id/analytics_lfms_logs_info"
+                        android:id="@+id/analytics_lfm_logs_info"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -421,11 +421,11 @@
                         android:textColorHint="@color/secondary_text"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_lfms_info1"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_info1"
                         />
 
                     <TextView
-                        android:id="@+id/analytics_lfms_logs"
+                        android:id="@+id/analytics_lfm_logs"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -442,7 +442,7 @@
                         android:textSize="8dp"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_lfms_logs_info"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_logs_info"
                         />
 
                 </android.support.constraint.ConstraintLayout>

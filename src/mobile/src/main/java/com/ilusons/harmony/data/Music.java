@@ -1512,12 +1512,13 @@ public class Music extends RealmObject {
 	public static double getScore(Music music) {
 		double score;
 
-		int daysSinceLastPlayed = (int) ((System.currentTimeMillis() - music.TimeLastPlayed) / (1000 * 60 * 60 * 24));
-		int daysSinceLastSkipped = (int) ((System.currentTimeMillis() - music.TimeLastSkipped) / (1000 * 60 * 60 * 24));
-		int daysSinceAdded = (int) ((System.currentTimeMillis() - music.TimeAdded) / (1000 * 60 * 60 * 24));
 		int length = music.Length;
 		if (length < 1)
 			return 0;
+
+		int daysSinceLastPlayed = (int) ((System.currentTimeMillis() - music.TimeLastPlayed) / (1000 * 60 * 60 * 24));
+		int daysSinceLastSkipped = (int) ((System.currentTimeMillis() - music.TimeLastSkipped) / (1000 * 60 * 60 * 24));
+		int daysSinceAdded = (int) ((System.currentTimeMillis() - music.TimeAdded) / (1000 * 60 * 60 * 24));
 		double lengthFixed = Math.round((length + 540) / 4) + Math.round((length * length) / ((length > 3599) ? Math.round((9000 * length) / 3600) : 9000));
 		double played = Math.pow(music.Played, 2) * lengthFixed;
 
