@@ -18,6 +18,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.design.widget.TabLayout;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.support.v4.graphics.ColorUtils;
@@ -60,6 +61,8 @@ import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.ViewEx;
 import com.wang.avi.AVLoadingIndicatorView;
+
+import org.w3c.dom.Text;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -279,10 +282,16 @@ public class AnalyticsActivity extends BaseActivity {
 	private ImageView analytics_lfm_status;
 	private EditText analytics_lfm_username_editText;
 	private EditText analytics_lfm_password_editText;
-	private Button analytics_lfms_save;
-	private TextView analytics_lfms_logs;
+	private Button analytics_lfm_save;
+	private TextView analytics_lfm_logs;
+	private TextInputLayout analytics_lfm_username;
+	private TextInputLayout analytics_lfm_password;
 
 	private void createLFM() {
+		analytics_lfm_username = findViewById(R.id.analytics_lfm_username);
+		analytics_lfm_password = findViewById(R.id.analytics_lfm_password);
+		analytics_lfm_save = findViewById(R.id.analytics_lfm_save);
+
 		analytics_lfm_status = findViewById(R.id.analytics_lfm_status);
 
 		analytics_lfm_username_editText = findViewById(R.id.analytics_lfm_username_editText);
@@ -291,8 +300,8 @@ public class AnalyticsActivity extends BaseActivity {
 		analytics_lfm_password_editText = findViewById(R.id.analytics_lfm_password_editText);
 		analytics_lfm_password_editText.setText(Analytics.getInstance().getLastfmPassword());
 
-		analytics_lfms_save = findViewById(R.id.analytics_lfms_save);
-		analytics_lfms_save.setOnClickListener(new View.OnClickListener() {
+		analytics_lfm_save = findViewById(R.id.analytics_lfm_save);
+		analytics_lfm_save.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				String username = analytics_lfm_username_editText.getText().toString();
@@ -304,14 +313,14 @@ public class AnalyticsActivity extends BaseActivity {
 			}
 		});
 
-		analytics_lfms_logs = findViewById(R.id.analytics_lfms_logs);
+		analytics_lfm_logs = findViewById(R.id.analytics_lfm_logs);
 		StringBuilder sb = new StringBuilder();
 		for (ScrobbleResult sr : Analytics.getInstance().getScrobblerResultsForLastfm()) {
 			sb.append(sr.toString()).append(System.lineSeparator());
 		}
-		analytics_lfms_logs.setText(sb.toString());
+		analytics_lfm_logs.setText(sb.toString());
 
-		updateLFMState();
+		updatelfmtate();
 		Session session = Analytics.getInstance().getLastfmSession();
 		if (session == null && Analytics.getInstance().isLastfmScrobbledEnabled()) {
 			updateLFM();
@@ -324,14 +333,22 @@ public class AnalyticsActivity extends BaseActivity {
 
 	}
 
-	private void updateLFMState() {
+	private void updatelfmtate() {
 		Session session = Analytics.getInstance().getLastfmSession();
 		if (session == null) {
 			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
 			analytics_lfm_status.setImageResource(R.drawable.ic_error_outline_black);
+
+			analytics_lfm_username.setVisibility(View.VISIBLE);
+			analytics_lfm_password.setVisibility(View.VISIBLE);
+			analytics_lfm_save.setVisibility(View.VISIBLE);
 		} else {
 			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
 			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote_black);
+
+			analytics_lfm_username.setVisibility(View.GONE);
+			analytics_lfm_password.setVisibility(View.GONE);
+			analytics_lfm_save.setVisibility(View.GONE);
 		}
 	}
 
@@ -380,7 +397,7 @@ public class AnalyticsActivity extends BaseActivity {
 				Toast.makeText(context, "Scrobbler is active now!", Toast.LENGTH_LONG).show();
 			}
 
-			context.updateLFMState();
+			context.updatelfmtate();
 		}
 	}
 
