@@ -1,0 +1,1 @@
+{"spref.uistyle":"Default","spref.player_type":"AndroidOS","spref.library_ui_group_mode":"Artist","spref.library_ui_sort_mode":"Default","spref.avfx_type":"Waves","spref.playback_ui_style":"PUI2","spref.library_ui_view_mode":"Default"}

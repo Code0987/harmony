@@ -1241,7 +1241,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 					final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
 
 					if (!TextUtils.isEmpty(d) && d.length() > 5) {
-						ArtworkEx.ArtworkType artworkType = ArtworkEx.ArtworkType.Song;
+						ArtworkEx.ArtworkType artworkType;
 						switch (getUIGroupMode(LibraryUIActivity.this)) {
 							case Album:
 								artworkType = ArtworkEx.ArtworkType.Album;
@@ -1668,7 +1668,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 			try {
 				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
 					ImageView cover = v.findViewById(R.id.cover);
-					if (cover != null && cover.getDrawable() != null) {
+					if (cover != null && !hasNullOrEmptyDrawable(cover)) {
 						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
 						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 286, getResources().getDisplayMetrics());
 						v.setLayoutParams(params);
@@ -1684,7 +1684,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 			try {
 				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
 					ImageView cover = v.findViewById(R.id.cover);
-					if (cover != null && cover.getDrawable() != null) {
+					if (cover != null && !hasNullOrEmptyDrawable(cover)) {
 						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
 						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
 						v.setLayoutParams(params);
@@ -1707,6 +1707,14 @@ public class LibraryUIActivity extends BaseUIActivity {
 				e.printStackTrace();
 			}
 			return null;
+		}
+
+		public boolean hasNullOrEmptyDrawable(ImageView iv) {
+			Drawable drawable = iv.getDrawable();
+			BitmapDrawable bitmapDrawable = drawable instanceof BitmapDrawable ? (BitmapDrawable) drawable : null;
+			TransitionDrawable transitionDrawable = drawable instanceof TransitionDrawable ? (TransitionDrawable) drawable : null;
+
+			return drawable == null || transitionDrawable == null || (bitmapDrawable == null || bitmapDrawable.getBitmap() == null);
 		}
 	}
 
@@ -2554,5 +2562,12 @@ public class LibraryUIActivity extends BaseUIActivity {
 	}
 
 	//endregion
+
+	public static String[] ExportableSPrefKeys = new String[]{
+			TAG_SPREF_LIBRARY_UI_SORT_MODE,
+			TAG_SPREF_LIBRARY_UI_GROUP_MODE,
+			TAG_SPREF_LIBRARY_UI_VIEW_MODE,
+			TAG_SPREF_LIBRARY_UI_SORT_MODE
+	};
 
 }

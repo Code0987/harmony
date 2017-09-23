@@ -48,6 +48,7 @@ import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.HeadsetMediaButtonIntentReceiver;
 import com.ilusons.harmony.base.MusicService;
@@ -63,6 +64,8 @@ import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.views.AudioVFXViewFragment;
+import com.ilusons.harmony.views.LibraryUIActivity;
+import com.ilusons.harmony.views.PlaybackUIActivity;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -76,11 +79,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -428,7 +434,7 @@ public class SettingsActivity extends BaseActivity {
 				uri = data.getData();
 
 				try {
-					ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+					ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "r");
 					FileInputStream fileInputStream = new FileInputStream(pfd.getFileDescriptor());
 
 					if (importCurrentPreset(fileInputStream, uri))
@@ -693,9 +699,9 @@ public class SettingsActivity extends BaseActivity {
 			@Override
 			public void onClick(View view) {
 				Intent intent = new Intent();
-				String[] mimes = new String[]{"text/xml"};
+				String[] mimes = new String[]{"text/plain"};
 				intent.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
-				intent.putExtra(Intent.EXTRA_TITLE, "harmony.xml");
+				intent.putExtra(Intent.EXTRA_TITLE, "harmony.txt");
 				intent.setType(StringUtils.join(mimes, '|'));
 				intent.setAction(Intent.ACTION_GET_CONTENT);
 				startActivityForResult(intent, REQUEST_PRESETS_IMPORT_LOCATION_PICK_SAF);
@@ -719,9 +725,9 @@ public class SettingsActivity extends BaseActivity {
 			public void onClick(View view) {
 				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
 				intent.addCategory(Intent.CATEGORY_OPENABLE);
-				String[] mimes = new String[]{"text/xml"};
+				String[] mimes = new String[]{"text/plain"};
 				intent.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
-				intent.putExtra(Intent.EXTRA_TITLE, "harmony.xml");
+				intent.putExtra(Intent.EXTRA_TITLE, "harmony.txt");
 				intent.setType(StringUtils.join(mimes, '|'));
 				if (intent.resolveActivity(getPackageManager()) != null) {
 					startActivityForResult(intent, REQUEST_PRESETS_EXPORT_LOCATION_PICK_SAF);
@@ -736,10 +742,7 @@ public class SettingsActivity extends BaseActivity {
 	private boolean exportCurrentPreset(OutputStream os, Uri uri) {
 		boolean r = false;
 
-		ObjectOutputStream output = null;
 		try {
-			output = new ObjectOutputStream(os);
-
 			SharedPreferences pref = SPrefEx.get(this);
 
 			ArrayList<String> keys = new ArrayList<>();
@@ -747,26 +750,22 @@ public class SettingsActivity extends BaseActivity {
 			keys.addAll(Arrays.asList(MusicService.ExportableSPrefKeys));
 			keys.addAll(Arrays.asList(ExportableSPrefKeys));
 			keys.addAll(Arrays.asList(AudioVFXViewFragment.ExportableSPrefKeys));
+			keys.addAll(Arrays.asList(LibraryUIActivity.ExportableSPrefKeys));
+			keys.addAll(Arrays.asList(PlaybackUIActivity.ExportableSPrefKeys));
 
 			Map<String, ?> map = pref.getAll();
 			map.keySet().retainAll(keys);
 
-			Log.i(TAG, "Export\n" + new Gson().toJson(map));
+			String data = (new Gson()).toJson(map, new TypeToken<Map<String, ?>>() {
+			}.getType());
 
-			output.writeObject(map);
+			Log.d(TAG, "Export\n" + data);
+
+			IOUtils.write(data, os, StandardCharsets.UTF_8);
 
 			r = true;
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			try {
-				if (output != null) {
-					output.flush();
-					output.close();
-				}
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
 		}
 
 		return r;
@@ -776,13 +775,13 @@ public class SettingsActivity extends BaseActivity {
 	private boolean importCurrentPreset(InputStream is, Uri uri) {
 		boolean r = false;
 
-		ObjectInputStream input = null;
 		try {
-			input = new ObjectInputStream(is);
+			String data = IOUtils.toString(is, StandardCharsets.UTF_8);
 
 			SharedPreferences.Editor prefEdit = SPrefEx.get(this).edit();
 
-			Map<String, ?> entries = (Map<String, ?>) input.readObject();
+			Map<String, ?> entries = (new Gson()).fromJson(data, new TypeToken<Map<String, ?>>() {
+			}.getType());
 			for (Map.Entry<String, ?> entry : entries.entrySet()) {
 				Object v = entry.getValue();
 				String key = entry.getKey();
@@ -804,14 +803,6 @@ public class SettingsActivity extends BaseActivity {
 			r = true;
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			try {
-				if (input != null) {
-					input.close();
-				}
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
 		}
 
 		return r;
