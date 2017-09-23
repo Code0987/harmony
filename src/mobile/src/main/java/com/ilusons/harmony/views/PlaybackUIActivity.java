@@ -1194,4 +1194,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.apply();
 	}
 
+	public static String[] ExportableSPrefKeys = new String[]{
+			TAG_SPREF_PLAYBACK_UI_AV_HIDDEN
+	};
+
 }
