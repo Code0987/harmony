@@ -14,6 +14,7 @@
     android:clickable="true"
     android:focusable="true"
     android:padding="0dp"
+    android:tag="group"
     >
 
     <RelativeLayout
@@ -27,7 +28,7 @@
             android:id="@+id/cover"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:alpha="0.15"
+            android:alpha="0.25"
             android:elevation="9dp"
             android:scaleType="centerCrop"
             android:transitionName="action_image"

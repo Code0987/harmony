@@ -2053,4 +2053,15 @@ public class MusicService extends Service {
 				.apply();
 	}
 
+	public static String[] ExportableSPrefKeys = new String[]{
+			TAG_SPREF_PLAYER_EQ,
+			TAG_SPREF_PLAYER_PREAMP,
+			TAG_SPREF_PLAYER_BASSBOOST,
+			TAG_SPREF_PLAYER_LOUDNESS,
+			TAG_SPREF_PLAYER_VIRTUALIZER,
+			TAG_SPREF_PLAYER_REVERB_ENV,
+			TAG_SPREF_PLAYER_REVERB_PRESET,
+			TAG_SPREF_PLAYER_TYPE,
+	};
+
 }

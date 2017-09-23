@@ -9,18 +9,21 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.ArraySet;
 import android.util.Log;
+import android.util.Pair;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -30,6 +33,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
@@ -43,6 +47,7 @@ import android.widget.TextView;
 import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
+import com.google.gson.Gson;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.HeadsetMediaButtonIntentReceiver;
 import com.ilusons.harmony.base.MusicService;
@@ -50,6 +55,7 @@ import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ViewEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
 import com.ilusons.harmony.ref.inappbilling.IabHelper;
@@ -62,14 +68,25 @@ import com.nononsenseapps.filepicker.Utils;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.ilusons.harmony.base.MusicService.SKU_PREMIUM;
@@ -280,6 +297,9 @@ public class SettingsActivity extends BaseActivity {
 		// About section
 		onCreateBindAboutSection();
 
+		// Presets section
+		onCreateBindPresetsSection();
+
 		// UI section
 		onCreateBindUISection();
 
@@ -400,6 +420,49 @@ public class SettingsActivity extends BaseActivity {
 				File file = Utils.getFileForUri(uri);
 
 				scanLocationsRecyclerViewAdapter.addData(file.getAbsolutePath());
+			}
+
+		} else if (requestCode == REQUEST_PRESETS_IMPORT_LOCATION_PICK_SAF && resultCode == Activity.RESULT_OK) {
+			Uri uri = null;
+			if (data != null) {
+				uri = data.getData();
+
+				try {
+					ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+					FileInputStream fileInputStream = new FileInputStream(pfd.getFileDescriptor());
+
+					if (importCurrentPreset(fileInputStream, uri))
+						info("Preset successfully imported to current profile. Please restart to apply.");
+					else
+						info("Some problem while importing current preset.");
+
+					fileInputStream.close();
+					pfd.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			}
+		} else if (requestCode == REQUEST_PRESETS_EXPORT_LOCATION_PICK_SAF && resultCode == Activity.RESULT_OK) {
+			Uri uri = null;
+			if (data != null) {
+				uri = data.getData();
+
+				try {
+					ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+					FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+
+					if (exportCurrentPreset(fileOutputStream, uri))
+						info("Current preset successfully exported.");
+					else
+						info("Some problem while exporting selected preset.");
+
+					fileOutputStream.close();
+					pfd.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
 			}
 
 		} else {
@@ -613,6 +676,228 @@ public class SettingsActivity extends BaseActivity {
 				showReleaseNotesDialog(SettingsActivity.this);
 			}
 		});
+
+	}
+
+	//endregion
+
+	//region Presets section
+
+	private static final int REQUEST_PRESETS_IMPORT_LOCATION_PICK_SAF = 58;
+	private static final int REQUEST_PRESETS_EXPORT_LOCATION_PICK_SAF = 59;
+
+	private void onCreateBindPresetsSection() {
+
+		Button settings_presets_import = findViewById(R.id.settings_presets_import);
+		settings_presets_import.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent();
+				String[] mimes = new String[]{"text/xml"};
+				intent.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
+				intent.putExtra(Intent.EXTRA_TITLE, "harmony.xml");
+				intent.setType(StringUtils.join(mimes, '|'));
+				intent.setAction(Intent.ACTION_GET_CONTENT);
+				startActivityForResult(intent, REQUEST_PRESETS_IMPORT_LOCATION_PICK_SAF);
+			}
+		});
+
+		RecyclerView settings_presets_import_recyclerView = (RecyclerView) findViewById(R.id.settings_presets_import_recyclerView);
+		settings_presets_import_recyclerView.setHasFixedSize(true);
+		settings_presets_import_recyclerView.setItemViewCacheSize(3);
+		settings_presets_import_recyclerView.setDrawingCacheEnabled(true);
+		settings_presets_import_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+
+		RawPresetsAdapter adapter = new RawPresetsAdapter();
+		settings_presets_import_recyclerView.setAdapter(adapter);
+
+		adapter.refresh();
+
+		Button settings_presets_export = findViewById(R.id.settings_presets_export);
+		settings_presets_export.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+				intent.addCategory(Intent.CATEGORY_OPENABLE);
+				String[] mimes = new String[]{"text/xml"};
+				intent.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
+				intent.putExtra(Intent.EXTRA_TITLE, "harmony.xml");
+				intent.setType(StringUtils.join(mimes, '|'));
+				if (intent.resolveActivity(getPackageManager()) != null) {
+					startActivityForResult(intent, REQUEST_PRESETS_EXPORT_LOCATION_PICK_SAF);
+				} else {
+					info("SAF not found!");
+				}
+			}
+		});
+
+	}
+
+	private boolean exportCurrentPreset(OutputStream os, Uri uri) {
+		boolean r = false;
+
+		ObjectOutputStream output = null;
+		try {
+			output = new ObjectOutputStream(os);
+
+			SharedPreferences pref = SPrefEx.get(this);
+
+			ArrayList<String> keys = new ArrayList<>();
+
+			keys.addAll(Arrays.asList(MusicService.ExportableSPrefKeys));
+			keys.addAll(Arrays.asList(ExportableSPrefKeys));
+			keys.addAll(Arrays.asList(AudioVFXViewFragment.ExportableSPrefKeys));
+
+			Map<String, ?> map = pref.getAll();
+			map.keySet().retainAll(keys);
+
+			Log.i(TAG, "Export\n" + new Gson().toJson(map));
+
+			output.writeObject(map);
+
+			r = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (output != null) {
+					output.flush();
+					output.close();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		return r;
+	}
+
+	@SuppressWarnings({"unchecked"})
+	private boolean importCurrentPreset(InputStream is, Uri uri) {
+		boolean r = false;
+
+		ObjectInputStream input = null;
+		try {
+			input = new ObjectInputStream(is);
+
+			SharedPreferences.Editor prefEdit = SPrefEx.get(this).edit();
+
+			Map<String, ?> entries = (Map<String, ?>) input.readObject();
+			for (Map.Entry<String, ?> entry : entries.entrySet()) {
+				Object v = entry.getValue();
+				String key = entry.getKey();
+
+				if (v instanceof Boolean)
+					prefEdit.putBoolean(key, (Boolean) v);
+				else if (v instanceof Float)
+					prefEdit.putFloat(key, (Float) v);
+				else if (v instanceof Integer)
+					prefEdit.putInt(key, (Integer) v);
+				else if (v instanceof Long)
+					prefEdit.putLong(key, (Long) v);
+				else if (v instanceof String)
+					prefEdit.putString(key, ((String) v));
+			}
+
+			prefEdit.apply();
+
+			r = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (input != null) {
+					input.close();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		return r;
+	}
+
+	public class RawPresetsAdapter extends RecyclerView.Adapter<RawPresetsAdapter.ViewHolder> {
+
+		private final ArrayList<Pair<Integer, String>> data;
+
+		public RawPresetsAdapter() {
+			data = new ArrayList<>();
+		}
+
+		@Override
+		public int getItemCount() {
+			return data.size();
+		}
+
+		@Override
+		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+			View view = inflater.inflate(R.layout.settings_presets_import_item, parent, false);
+
+			return new ViewHolder(view);
+		}
+
+		@Override
+		public void onBindViewHolder(final ViewHolder holder, int position) {
+			final Pair<Integer, String> d = data.get(position);
+			final View v = holder.view;
+
+			TextView text = (TextView) v.findViewById(R.id.text);
+			text.setText(d.second);
+
+			View.OnClickListener listener = new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					try {
+						InputStream is = getResources().openRawResource(d.first);
+
+						if (importCurrentPreset(is, null))
+							info("Preset successfully imported to current profile. Please restart to apply.");
+						else
+							info("Some problem while importing preset.");
+
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			};
+
+			v.setOnClickListener(listener);
+			text.setOnClickListener(listener);
+
+		}
+
+		public class ViewHolder extends RecyclerView.ViewHolder {
+			public View view;
+
+			public ViewHolder(View view) {
+				super(view);
+
+				this.view = view;
+			}
+
+		}
+
+		public void refresh() {
+			data.clear();
+
+			Field[] fields = R.raw.class.getFields();
+			for (int count = 0; count < fields.length; count++)
+				try {
+					Integer id = (Integer) fields[count].get(null);
+					String name = fields[count].getName();
+
+					if (name.startsWith("preset_"))
+						data.add(Pair.create(id, name));
+
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+
+			notifyDataSetChanged();
+		}
 
 	}
 
@@ -1043,5 +1328,10 @@ public class SettingsActivity extends BaseActivity {
 	}
 
 	//endregion
+
+	public static String[] ExportableSPrefKeys = new String[]{
+			TAG_SPREF_PlaybackUIStyle,
+			TAG_SPREF_UISTYLE,
+	};
 
 }

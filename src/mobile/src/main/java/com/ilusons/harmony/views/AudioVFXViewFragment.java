@@ -593,6 +593,9 @@ public class AudioVFXViewFragment extends Fragment {
 		}
 	}
 
+	public static String[] ExportableSPrefKeys = new String[]{
+			TAG_SPREF_AVFXTYPE,
+	};
 
 }
 

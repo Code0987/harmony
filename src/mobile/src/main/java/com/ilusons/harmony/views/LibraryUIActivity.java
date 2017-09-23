@@ -17,6 +17,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.design.widget.AppBarLayout;
@@ -73,6 +74,7 @@ import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArrayEx;
+import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -85,6 +87,7 @@ import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -127,7 +130,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 	RecyclerViewAdapter adapter;
 	RecyclerViewExpandableItemManager recyclerViewExpandableItemManager;
 
-	private static final int RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW = 8;
+	private static final int RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW = 5;
 
 	// UI
 	private DrawerLayout drawer_layout;
@@ -137,6 +140,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 	private View root;
 	private AVLoadingIndicatorView loading_view;
 	private RecyclerView recyclerView;
+	private RecyclerView.OnChildAttachStateChangeListener onChildAttachStateChangeListener;
 	private SearchView search_view;
 
 	@Override
@@ -234,6 +238,20 @@ public class LibraryUIActivity extends BaseUIActivity {
 		recyclerView.setAdapter(recyclerViewExpandableItemManager.createWrappedAdapter(adapter));
 		((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 		recyclerViewExpandableItemManager.attachRecyclerView(recyclerView);
+		recyclerViewExpandableItemManager.setDefaultGroupsExpandedState(true);
+
+		onChildAttachStateChangeListener = new RecyclerView.OnChildAttachStateChangeListener() {
+			@Override
+			public void onChildViewAttachedToWindow(View view) {
+				adapter.onGroupItemInView(view);
+			}
+
+			@Override
+			public void onChildViewDetachedFromWindow(View view) {
+				adapter.onGroupItemOutOfView(view);
+			}
+		};
+		recyclerView.addOnChildAttachStateChangeListener(onChildAttachStateChangeListener);
 
 		// Set search
 
@@ -517,6 +535,9 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	@Override
 	protected void onDestroy() {
+		if (onChildAttachStateChangeListener != null)
+			recyclerView.removeOnChildAttachStateChangeListener(onChildAttachStateChangeListener);
+
 		super.onDestroy();
 	}
 
@@ -1124,6 +1145,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	public class RecyclerViewAdapter extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder> implements ICustomAdapter {
 
+		private static final String TAG_GROUP = "group";
+
 		private static final int ITEMS_PER_AD = 8;
 //		private AdListener lastAdListener = null;
 
@@ -1212,34 +1235,63 @@ public class LibraryUIActivity extends BaseUIActivity {
 			title.setText(d);
 
 			try {
-				final Music item0 = ((Music) dataFiltered.get(groupPosition).second.get(ThreadLocalRandom.current().nextInt(dataFiltered.get(groupPosition).second.size())));
 				final ImageView cover = (ImageView) v.findViewById(R.id.cover);
 				if (cover != null) {
 					cover.setImageBitmap(null);
 					final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
-					(new AsyncTask<Void, Void, Bitmap>() {
-						@Override
-						protected Bitmap doInBackground(Void... voids) {
-							return item0.getCover(LibraryUIActivity.this, coverSize);
+
+					if (!TextUtils.isEmpty(d) && d.length() > 5) {
+						ArtworkEx.ArtworkType artworkType = ArtworkEx.ArtworkType.Song;
+						switch (getUIGroupMode(LibraryUIActivity.this)) {
+							case Album:
+								artworkType = ArtworkEx.ArtworkType.Album;
+								break;
+							case Artist:
+								artworkType = ArtworkEx.ArtworkType.Artist;
+								break;
+							case Default:
+							default:
+								artworkType = ArtworkEx.ArtworkType.Song;
+								break;
 						}
 
-						@Override
-						protected void onPostExecute(Bitmap bitmap) {
-							TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-									cover.getDrawable(),
-									new BitmapDrawable(getResources(), bitmap)
-							});
+						ArtworkEx.getArtworkDownloaderTask(
+								LibraryUIActivity.this,
+								d,
+								artworkType,
+								-1,
+								d,
+								Music.KEY_CACHE_DIR_COVER,
+								d,
+								new JavaEx.ActionT<Bitmap>() {
+									@Override
+									public void execute(Bitmap bitmap) {
+										TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+												cover.getDrawable(),
+												new BitmapDrawable(getResources(), bitmap)
+										});
 
-							cover.setImageDrawable(d);
+										cover.setImageDrawable(d);
 
-							d.setCrossFadeEnabled(true);
-							d.startTransition(200);
-						}
-					}).execute();
+										d.setCrossFadeEnabled(true);
+										d.startTransition(200);
+									}
+								},
+								new JavaEx.ActionT<Exception>() {
+									@Override
+									public void execute(Exception e) {
+										Log.w(TAG, e);
+
+										cover.setImageDrawable(null);
+									}
+								},
+								1500);
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
 		}
 
 		@Override
@@ -1610,6 +1662,38 @@ public class LibraryUIActivity extends BaseUIActivity {
 			long ppc = RecyclerViewExpandableItemManager.getPackedPositionForChild(pg, pc);
 			int k = recyclerViewExpandableItemManager.getFlatPosition(ppc);
 			bringInToView(k);
+		}
+
+		public void onGroupItemInView(View v) {
+			try {
+				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
+					ImageView cover = v.findViewById(R.id.cover);
+					if (cover != null && cover.getDrawable() != null) {
+						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
+						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 286, getResources().getDisplayMetrics());
+						v.setLayoutParams(params);
+						cover.setAlpha(0.85f);
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void onGroupItemOutOfView(View v) {
+			try {
+				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
+					ImageView cover = v.findViewById(R.id.cover);
+					if (cover != null && cover.getDrawable() != null) {
+						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
+						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
+						v.setLayoutParams(params);
+						cover.setAlpha(0.25f);
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override
