@@ -293,6 +293,16 @@ public class AnalyticsActivity extends BaseActivity {
 		analytics_lfm_save = findViewById(R.id.analytics_lfm_save);
 
 		analytics_lfm_status = findViewById(R.id.analytics_lfm_status);
+		analytics_lfm_status.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Session session = Analytics.getInstance().getLastfmSession();
+				if (session != null) {
+					Analytics.getInstance().setLastfmCredentials("", "");
+				}
+				updateLFM();
+			}
+		});
 
 		analytics_lfm_username_editText = findViewById(R.id.analytics_lfm_username_editText);
 		analytics_lfm_username_editText.setText(Analytics.getInstance().getLastfmUsername());
@@ -320,7 +330,7 @@ public class AnalyticsActivity extends BaseActivity {
 		}
 		analytics_lfm_logs.setText(sb.toString());
 
-		updatelfmtate();
+		updateLFMState();
 		Session session = Analytics.getInstance().getLastfmSession();
 		if (session == null && Analytics.getInstance().isLastfmScrobbledEnabled()) {
 			updateLFM();
@@ -333,19 +343,20 @@ public class AnalyticsActivity extends BaseActivity {
 
 	}
 
-	private void updatelfmtate() {
+	private void updateLFMState() {
 		Session session = Analytics.getInstance().getLastfmSession();
 		if (session == null) {
 			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
 			analytics_lfm_status.setImageResource(R.drawable.ic_error_outline_black);
-
+		} else {
+			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote_black);
+		}
+		if (session == null) {
 			analytics_lfm_username.setVisibility(View.VISIBLE);
 			analytics_lfm_password.setVisibility(View.VISIBLE);
 			analytics_lfm_save.setVisibility(View.VISIBLE);
 		} else {
-			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
-			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote_black);
-
 			analytics_lfm_username.setVisibility(View.GONE);
 			analytics_lfm_password.setVisibility(View.GONE);
 			analytics_lfm_save.setVisibility(View.GONE);
@@ -397,7 +408,7 @@ public class AnalyticsActivity extends BaseActivity {
 				Toast.makeText(context, "Scrobbler is active now!", Toast.LENGTH_LONG).show();
 			}
 
-			context.updatelfmtate();
+			context.updateLFMState();
 		}
 	}
 

@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.provider.Settings;
 import android.support.v4.content.IntentCompat;
+import android.view.MotionEvent;
+import android.view.View;
 
 
 public class AndroidEx {
@@ -43,4 +45,19 @@ public class AndroidEx {
         }
         return null;
     }
+
+    public static void disableEventBubbling(View... views){
+        for(View view : views){
+            if(view != null){
+                view.setOnTouchListener(new View.OnTouchListener(){
+                    @Override
+                    public boolean onTouch(View view, MotionEvent event){
+                        view.getParent().requestDisallowInterceptTouchEvent(true);
+                        return false;
+                    }
+                });
+            }
+        }
+    }
+
 }

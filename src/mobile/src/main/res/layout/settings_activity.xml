@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <android.support.constraint.ConstraintLayout
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/translucent_accent"
@@ -145,8 +145,8 @@
         >
 
         <android.support.design.widget.TabLayout
-            xmlns:res="http://schemas.android.com/apk/res-auto"
             android:id="@+id/tabs"
+            xmlns:res="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             res:tabGravity="fill"
@@ -274,6 +274,136 @@
                     />
 
             </LinearLayout>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="true"
+                android:clipToPadding="true"
+                android:descendantFocusability="beforeDescendants"
+                android:fadeScrollbars="false"
+                android:focusableInTouchMode="true"
+                android:orientation="vertical"
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:scrollbarFadeDuration="0"
+                android:scrollbars="vertical"
+                android:tag="Presets"
+                >
+
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    >
+
+                    <ImageView
+                        android:id="@+id/settings_presets_status"
+                        xmlns:res="http://schemas.android.com/apk/res-auto"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_tune_black"
+                        android:tint="@android:color/holo_green_light"
+                        android:tintMode="src_atop"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        />
+
+                    <TextView
+                        android:id="@+id/settings_presets_info"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:text="Pre-defined presets to customize app components in one go."
+                        android:textColorHint="@color/secondary_text"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/settings_presets_status"
+                        />
+
+                    <Button
+                        android:id="@+id/settings_presets_import"
+                        style="@style/TextAppearance.AppCompat.Widget.Button.Inverse"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@null"
+                        android:text="Import"
+                        android:textColor="@android:color/holo_orange_light"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/settings_presets_info"
+                        />
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/settings_presets_import_recyclerView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:animateLayoutChanges="false"
+                        android:animationCache="true"
+                        android:clipToPadding="false"
+                        android:maxHeight="80dp"
+                        android:nestedScrollingEnabled="false"
+                        android:scrollbars="vertical"
+                        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/settings_presets_import"
+                        tools:layout_height="60dp"
+                        />
+
+                    <Button
+                        android:id="@+id/settings_presets_export"
+                        style="@style/TextAppearance.AppCompat.Widget.Button.Inverse"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@null"
+                        android:text="Export"
+                        android:textColor="@android:color/holo_green_light"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/settings_presets_import_recyclerView"
+                        />
+
+                    <TextView
+                        android:id="@+id/settings_presets_info1"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:text="The preset file includes Tune*, UI* configurations. Not all will work, due to in-compatibility in hardware."
+                        android:textColorHint="@color/secondary_text"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/settings_presets_export"
+                        />
+
+
+                    <TextView
+                        android:id="@+id/settings_presets_info2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:text="You can also e-mail us your own preset, by exporting. If we like it, you'll see it in next update and get a surprise*."
+                        android:textColorHint="@color/secondary_text"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/settings_presets_info1"
+                        />
+
+                </android.support.constraint.ConstraintLayout>
+
+            </ScrollView>
 
             <LinearLayout
                 android:layout_width="match_parent"
