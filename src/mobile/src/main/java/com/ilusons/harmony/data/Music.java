@@ -237,6 +237,9 @@ public class Music extends RealmObject {
 	public Bitmap getCover(final Context context, int size) {
 		Bitmap result;
 
+		if (size > 600 || size < 0)
+			size = 600;
+
 		String key = Path;
 		if (size > 0)
 			key = key + size;
@@ -278,10 +281,6 @@ public class Music extends RealmObject {
 		}
 
 		return result;
-	}
-
-	public Bitmap getCover(final Context context) {
-		return getCover(context, -1);
 	}
 
 	private static WeakReference<PlaybackUIActivity> currentCoverView = null;
@@ -723,7 +722,7 @@ public class Music extends RealmObject {
 
 						data.Path = path;
 
-						if (data.getCover(context) == null) {
+						if (data.getCover(context, -1) == null) {
 							Artwork artwork = tag.getFirstArtwork();
 							if (artwork != null) {
 								byte[] cover = artwork.getBinaryData();

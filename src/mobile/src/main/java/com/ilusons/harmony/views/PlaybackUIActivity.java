@@ -1184,7 +1184,12 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	public static final String TAG_SPREF_PLAYBACK_UI_AV_HIDDEN = SPrefEx.TAG_SPREF + ".playback_ui_av_hidden";
 
 	public static boolean getPlaybackUIAVHidden(Context context) {
-		return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYBACK_UI_AV_HIDDEN, false);
+		try {
+			return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYBACK_UI_AV_HIDDEN, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	public static void setPlaybackUIAVHidden(Context context, boolean value) {

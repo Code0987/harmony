@@ -1,9 +1,17 @@
 ﻿◾️ Work in progress, please leave feedback.
-✔️ New: Album/Artist cover arts, in group mode.
-✔️ New: Added new preset import/export in Settings.
-✔️ New: Provided few preset for quick customization.
-✔️ New: Added Analytics 🎉, Charts, Data collection, last.fm scrobbler (free for limited time) 😍.
+
+🆕️ New: Album/Artist cover arts, in group mode.
+🆕 New: Added new preset import/export in Settings.
+🆕️ New: Provided few preset for quick customization.
+🆕️ New: Added Analytics 🎉, Charts, Data collection, last.fm scrobbler (free for limited time) 😍.
 ✔️ Fixed: Bugs, crashes.
-✔️ New: Added share option in lyrics long-press menu.
-✔️ New: Added share option in library item long-press menu.
+🆕 New: Added share option in lyrics long-press menu.
+🆕 New: Added share option in library item long-press menu.
 ✔️ Updates: Library ui, group mode updated, added playlist position indicator.
+
+🔮️ Future: More charts and stats.
+🔮️ Future: Smart playlist generator.
+🔮️ Future: Song recognizer (+mic, +audio files, +automatic).
+🔮️ Future: YouTube integration.
+🔮️ Future: Spotify integration.
+🔮 Future: Soundcloud integration.

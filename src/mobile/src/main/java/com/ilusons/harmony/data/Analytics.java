@@ -94,8 +94,10 @@ public class Analytics {
 				String username = context.securePreferences.getString(KEY_LFM_USERNAME, null);
 				String password = context.securePreferences.getString(KEY_LFM_PASSWORD, null);
 
-				if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password))
+				if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+					context.lfm_session = null;
 					return null;
+				}
 
 				context.lfm_session = Authenticator.getMobileSession(
 						username,
