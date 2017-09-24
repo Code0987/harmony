@@ -138,7 +138,7 @@ public class LyricsViewFragment extends Fragment {
 									}
 									break;
 								case 2:
-									String shareCoverPath = MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), music.getCover(getActivity()), music.getText(), null);
+									String shareCoverPath = MediaStore.Images.Media.insertImage(getActivity().getContentResolver(), music.getCover(getActivity(), -1), music.getText(), null);
 									Intent shareIntent = new Intent();
 									shareIntent.setAction(Intent.ACTION_SEND);
 									shareIntent.putExtra(Intent.EXTRA_TEXT, textView.getText().toString());

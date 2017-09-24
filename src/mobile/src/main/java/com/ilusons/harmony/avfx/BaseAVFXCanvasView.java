@@ -64,6 +64,9 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 	}
 
 	private void surfaceUpdated() {
+		if (width <= 0 || height <= 0)
+			return;
+
 		bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 
 		if (bitmapCanvas == null) {
@@ -92,6 +95,9 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 		this.height = height;
 		this.width = width;
+
+		if (width <= 0 || height <= 0)
+			return;
 
 		surfaceUpdated();
 

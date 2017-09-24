@@ -1,1 +1,1 @@
-{"spref.uistyle":"LUI2","spref.player_type":"AndroidOS","spref.library_ui_group_mode":"Artist","spref.library_ui_sort_mode":"Default","spref.playback_ui_style":"PUI3","spref.avfx_type":"Waves","spref.playback_ui_av_hidden":"true","spref.library_ui_view_mode":"Default"}
+{"spref.uistyle":"LUI2","spref.player_type":"AndroidOS","spref.library_ui_group_mode":"Artist","spref.library_ui_sort_mode":"Default","spref.playback_ui_style":"PUI3","spref.avfx_type":"Waves","spref.playback_ui_av_hidden":true,"spref.library_ui_view_mode":"Default"}

@@ -298,6 +298,8 @@ public class AnalyticsActivity extends BaseActivity {
 			public void onClick(View view) {
 				Session session = Analytics.getInstance().getLastfmSession();
 				if (session != null) {
+					analytics_lfm_username_editText.setText("");
+					analytics_lfm_password_editText.setText("");
 					Analytics.getInstance().setLastfmCredentials("", "");
 				}
 				updateLFM();
@@ -373,9 +375,7 @@ public class AnalyticsActivity extends BaseActivity {
 		@Override
 		protected Void doInBackground(Void... voids) {
 
-			Session session = Analytics.getInstance().getLastfmSession();
-			if (session == null)
-				Analytics.getInstance().initLastfm();
+			Analytics.getInstance().initLastfm();
 
 			return null;
 		}

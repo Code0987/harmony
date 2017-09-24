@@ -1408,7 +1408,7 @@ public class MusicService extends Service {
 					.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
 					.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, getPlaylistPosition() + 1)
 					.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlaylist().size())
-					.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this))
+					.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this, -1))
 					.build());
 
 			// Update effects
@@ -1726,7 +1726,7 @@ public class MusicService extends Service {
 				return;
 
 			Bitmap cover = currentMusic.getCover(this, 128);
-			if (cover == null)
+			if (cover == null || cover.getWidth() <= 0 || cover.getHeight() <= 0)
 				cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 
 			customNotificationView.setImageViewBitmap(R.id.cover, cover);
