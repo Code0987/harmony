@@ -548,19 +548,22 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 		} else if (requestCode == REQUEST_PLAYLIST_ADD_PICK && resultCode == Activity.RESULT_OK) {
 			if (data != null) {
-				try (Realm realm = DB.getDB()) {
-					if (realm == null)
-						return;
-
+				try {
 					ClipData clipData = data.getClipData();
-					for (int i = 0; i < clipData.getItemCount(); i++)
-						try {
-							String path = StorageEx.getPath(this, clipData.getItemAt(i).getUri());
-							if (path != null)
-								Playlist.scanNew(realm, this, viewPlaylist, path, null, false);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
+
+					try (Realm realm = DB.getDB()) {
+						if (realm == null)
+							return;
+						for (int i = 0; i < clipData.getItemCount(); i++)
+							try {
+								String path = StorageEx.getPath(this, clipData.getItemAt(i).getUri());
+								if (path != null)
+									Playlist.scanNew(realm, this, viewPlaylist, path, null, false);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						Playlist.savePlaylist(realm, viewPlaylist);
+					}
 
 					adapter.setData(viewPlaylist.getItems());
 
@@ -932,22 +935,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 	private PlaylistsRecyclerViewAdapter playlistsRecyclerViewAdapter;
 
 	private void createPlaylists() {
-		findViewById(R.id.load_library).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				setFromLibrary();
-
-				drawer_layout.closeDrawer(GravityCompat.END);
-			}
-		});
-		findViewById(R.id.load_library).setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
-				infoDialog("Loads all the library media into view playlist.");
-				return true;
-			}
-		});
-
 		findViewById(R.id.new_playlist).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -1056,14 +1043,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 		playlists_recyclerView.setAdapter(playlistsRecyclerViewAdapter);
 		playlistsRecyclerViewAdapter.refresh();
 
-	}
-
-	private void setFromLibrary() {
-		loading_view.smoothToShow();
-		if (getMusicService() != null) {
-			adapter.setData(Music.loadAll());
-		}
-		loading_view.smoothToHide();
 	}
 
 	private void setFromPlaylist(Long playlistId, final String playlist) {
@@ -1209,8 +1188,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 									refresh();
 									break;
 								case 2:
-									Playlist.deletePlaylist(getContentResolver(), d.first);
-									removeData(d.first);
+									Playlist.delete(LibraryUIActivity.this, d.second, d.first, true);
+									refresh();
 									break;
 							}
 
@@ -1244,28 +1223,16 @@ public class LibraryUIActivity extends BaseUIActivity {
 			notifyDataSetChanged();
 		}
 
-		public void removeData(final Long id) {
-			Pair<Long, String> d = null;
-			for (Pair<Long, String> pair : data) {
-				if (pair.first.equals(id)) {
-					d = pair;
-					break;
-				}
-			}
-			if (d != null) {
-				data.remove(d);
-				notifyDataSetChanged();
-			}
-		}
-
 		public void refresh() {
 			final ArrayList<Pair<Long, String>> playlists = new ArrayList<>();
 			for (Playlist playlist : Playlist.loadAllPlaylists())
-				playlists.add(Pair.create(-1L, playlist.getName()));
+				playlists.add(Pair.create(playlist.getLinkedAndroidOSPlaylistId(), playlist.getName()));
 			Playlist.allPlaylist(getContentResolver(), new JavaEx.ActionTU<Long, String>() {
 				@Override
 				public void execute(Long id, String name) {
-					playlists.add(new Pair<Long, String>(id, name));
+					Pair<Long, String> item = new Pair<Long, String>(id, name);
+					if (!playlists.contains(item))
+						playlists.add(item);
 				}
 			});
 			setData(playlists, Playlist.getActivePlaylist(getApplicationContext()));

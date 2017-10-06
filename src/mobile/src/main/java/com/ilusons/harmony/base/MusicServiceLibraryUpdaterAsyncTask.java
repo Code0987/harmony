@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.ArraySet;
 import android.util.Log;
@@ -30,7 +29,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.realm.Realm;
-import io.realm.RealmResults;
 
 public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, MusicServiceLibraryUpdaterAsyncTask.Result> {
 
@@ -348,9 +346,22 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 			if (realm == null)
 				return;
 
-			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_CURRENT);
+			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_ALL);
 
 			Playlist.update(realm, playlist);
+
+			try {
+				for (Music item : Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_MEDIASTORE).getItems())
+					playlist.addIfNot(item);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				for (Music item : Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_STORAGE).getItems())
+					playlist.addIfNot(item);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			Playlist.savePlaylist(realm, playlist);
 		}
