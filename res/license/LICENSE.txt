@@ -62,6 +62,8 @@ Summary
             http://www.apache.org/licenses/LICENSE-2.0
         MaterialScrollBar
             http://www.apache.org/licenses/LICENSE-2.0
+        Croller
+            https://github.com/harjot-oberai/Croller/blob/master/LICENSE.md
 
 harmony - Terms and conditions
 

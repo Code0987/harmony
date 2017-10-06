@@ -12,10 +12,20 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
+import com.ilusons.harmony.data.DB;
+import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.RealmEx;
+import com.scand.realmbrowser.RealmBrowser;
 import com.squareup.leakcanary.LeakCanary;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.fabric.sdk.android.Fabric;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmObject;
 import jonathanfinerty.once.Once;
 
 public class App extends Application {
@@ -71,6 +81,17 @@ public class App extends Application {
 
 		// DB
 		RealmEx.init(this);
+		if (BuildConfig.DEBUG)
+			try {
+				List<Class<? extends RealmObject>> classes = new ArrayList<>();
+				classes.add(Music.class);
+				classes.add(Playlist.class);
+				new RealmBrowser.Builder(this)
+						.add(DB.getDBConfig(), classes)
+						.showNotification();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 		Once.initialise(this);
 

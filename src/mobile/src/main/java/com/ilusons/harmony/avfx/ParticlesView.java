@@ -28,6 +28,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 
 	private float[] dbs;
 	private float[] amps;
+	private float dbMax = 0f;
 
 	float[] buffer;
 	public FloatBuffer nativeBuffer;
@@ -120,6 +121,8 @@ public class ParticlesView extends BaseAVFXCanvasView {
 				float sq = re * re + im * im;
 
 				dbs[i] = (float) (sq > 0 ? 20 * Math.log10(sq) : 0);
+				if (dbs[i] > dbMax)
+					dbMax = dbs[i];
 
 				float k = 1;
 				if (i == 0 || i == dataSize - 1) {
@@ -181,15 +184,28 @@ public class ParticlesView extends BaseAVFXCanvasView {
 				db = dbs[k];
 				amp = amps[k];
 
-				y = amp * 10000;
+				db = db % height;
+				if (db < 0) {
+					db += height;
+				}
+
+				if (db < -7) {
+					db *= 1.5 + Math.random();
+				} else if (db < -15) {
+					db *= 1.3;
+				} else if (db < -30) {
+					db *= 1.2;
+				}
+
+				y = db * (height / dbMax);
 			}
 
-			if (Math.abs(y) < 15) {
+			if (Math.abs(y) < 75) {
 				X += Vx;
 				Y += Vy;
-			} else {
-				Y += ((height - R - y) - Y);
 			}
+
+			Y = (height - R - y);
 
 		}
 

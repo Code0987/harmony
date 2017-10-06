@@ -14,4 +14,3 @@
 🔮️ Future: Song recognizer (+mic, +audio files, +automatic).
 🔮️ Future: YouTube integration.
 🔮️ Future: Spotify integration.
-🔮 Future: Soundcloud integration.

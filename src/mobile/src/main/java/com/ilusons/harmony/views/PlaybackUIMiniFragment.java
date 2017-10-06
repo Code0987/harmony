@@ -134,8 +134,17 @@ public class PlaybackUIMiniFragment extends Fragment {
 		return v;
 	}
 
+	@Override
+	public void onDestroyView() {
+		if (progressHandlerRunnable != null)
+			handler.removeCallbacks(progressHandlerRunnable);
+		handler.removeMessages(0);
+
+		super.onDestroyView();
+	}
+
 	public void reset(MusicService ms) {
-		if (ms == null || ms.getCurrentPlaylistItemMusic() == null)
+		if (ms == null || ms.getMusic() == null)
 			return;
 
 		if (!isAdded())
@@ -143,12 +152,12 @@ public class PlaybackUIMiniFragment extends Fragment {
 
 		musicService = ms;
 
-		Music m = ms.getCurrentPlaylistItemMusic();
+		Music m = ms.getMusic();
 
-		title.setText(m.Title);
+		title.setText(m.getTitle());
 		String s;
 		try {
-			s = m.getTextExtraOnlySingleLine(ms.getPlaylist().indexOf(m.Path));
+			s = m.getTextExtraOnlySingleLine(ms.getPlaylist().getItemIndex());
 		} catch (Exception e) {
 			e.printStackTrace();
 

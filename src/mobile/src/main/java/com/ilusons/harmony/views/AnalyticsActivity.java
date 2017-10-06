@@ -57,6 +57,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
+import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.ViewEx;
@@ -164,7 +165,7 @@ public class AnalyticsActivity extends BaseActivity {
 		List<Music> allSortedByScore = Music.getAllSortedByScore(N);
 		float score_total = 0;
 		for (Music one : allSortedByScore)
-			score_total += one.Score;
+			score_total += one.getScore();
 
 		ArrayList<Integer> colors = new ArrayList<Integer>();
 		int defaultColor = ContextCompat.getColor(getApplicationContext(), R.color.accent);
@@ -174,10 +175,10 @@ public class AnalyticsActivity extends BaseActivity {
 				Bitmap cover = one.getCover(this, 64);
 
 				data.add(new PieEntry(
-						(float) (one.Score * 100f / score_total),
+						(float) (one.getScore() * 100f / score_total),
 						one.getText(),
 						new BitmapDrawable(getResources(), cover),
-						one.Path));
+						one.getPath()));
 				int color = defaultColor;
 				try {
 					Palette palette = Palette.from(cover).generate();

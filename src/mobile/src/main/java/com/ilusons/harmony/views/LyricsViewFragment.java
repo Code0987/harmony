@@ -329,7 +329,7 @@ public class LyricsViewFragment extends Fragment {
 	}
 
 	public void reset(Music music, Long length) {
-		this.path = music.Path;
+		this.path = music.getPath();
 		this.music = music;
 		this.length = length;
 

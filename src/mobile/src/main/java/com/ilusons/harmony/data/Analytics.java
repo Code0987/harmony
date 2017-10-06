@@ -180,9 +180,9 @@ public class Analytics {
 				}
 
 				ScrobbleData scrobbleData = new ScrobbleData();
-				scrobbleData.setArtist(data.Artist);
-				scrobbleData.setTrack(data.Title);
-				scrobbleData.setDuration(data.Length / 1000);
+				scrobbleData.setArtist(data.getArtist());
+				scrobbleData.setTrack(data.getTitle());
+				scrobbleData.setDuration(data.getLength() / 1000);
 
 				ScrobbleResult result = Track.updateNowPlaying(scrobbleData, context.lfm_session);
 
@@ -196,7 +196,7 @@ public class Analytics {
 	}
 
 	public boolean canScrobble(MusicService musicService, Music data) {
-		boolean duration30s = data.Length > 30 * 1000;
+		boolean duration30s = data.getLength() > 30 * 1000;
 		boolean playing = musicService.isPlaying();
 		boolean playedHalf = ((float) musicService.getPosition() / (float) musicService.getDuration()) >= 0.5f;
 		boolean played4min = musicService.getPosition() >= 4 * 60 * 1000;
@@ -247,9 +247,9 @@ public class Analytics {
 					return null;
 
 				ScrobbleData scrobbleData = new ScrobbleData();
-				scrobbleData.setArtist(data.Artist);
-				scrobbleData.setTrack(data.Title);
-				scrobbleData.setDuration(data.Length / 1000);
+				scrobbleData.setArtist(data.getArtist());
+				scrobbleData.setTrack(data.getTitle());
+				scrobbleData.setDuration(data.getLength() / 1000);
 				scrobbleData.setTimestamp((int) (System.currentTimeMillis() / 1000));
 
 				if (context.lfm_session == null) {
@@ -314,8 +314,8 @@ public class Analytics {
 		try {
 			HashMap<String, Object> values = new HashMap<>();
 
-			values.put(firebase_db_now_playing_title, data.Title);
-			values.put(firebase_db_now_playing_artist, data.Artist);
+			values.put(firebase_db_now_playing_title, data.getTitle());
+			values.put(firebase_db_now_playing_artist, data.getArtist());
 			values.put(firebase_db_now_playing_text, data.getText());
 			values.put(firebase_db_now_playing_timestamp, ServerValue.TIMESTAMP);
 			values.put(firebase_db_now_playing_user, Settings.Secure.getString(musicService.getContentResolver(), Settings.Secure.ANDROID_ID));

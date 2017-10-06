@@ -69,8 +69,8 @@ public abstract class BaseUIActivity extends BaseActivity {
 			}
 
 			@Override
-			public void OnMusicServicePlaylistCurrentUpdated() {
-				BaseUIActivity.this.OnMusicServicePlaylistCurrentUpdated();
+			public void OnMusicServicePlaylistChanged(String name) {
+				BaseUIActivity.this.OnMusicServicePlaylistChanged(name);
 			}
 		};
 
@@ -161,7 +161,7 @@ public abstract class BaseUIActivity extends BaseActivity {
 
 	}
 
-	public void OnMusicServicePlaylistCurrentUpdated() {
+	public void OnMusicServicePlaylistChanged(String name) {
 
 	}
 
