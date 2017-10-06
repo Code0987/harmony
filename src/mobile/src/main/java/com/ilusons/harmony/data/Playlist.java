@@ -27,8 +27,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -41,9 +39,9 @@ public class Playlist extends RealmObject {
 	// Logger TAG
 	private static final String TAG = Playlist.class.getSimpleName();
 
+	public static final String KEY_PLAYLIST_ALL = "all";
 	public static final String KEY_PLAYLIST_MEDIASTORE = "mediastore";
 	public static final String KEY_PLAYLIST_STORAGE = "storage";
-	public static final String KEY_PLAYLIST_CURRENT = "current";
 
 	@PrimaryKey
 	private String Name;
@@ -111,6 +109,10 @@ public class Playlist extends RealmObject {
 	public void remove(Music item) {
 		if (Items.contains(item))
 			Items.remove(item);
+	}
+
+	public void clear() {
+		Items.clear();
 	}
 
 	public void removeAll(Music item) {
@@ -332,13 +334,13 @@ public class Playlist extends RealmObject {
 		try {
 			String s = SPrefEx.get(context).getString(TAG_SPREF_PLAYLISTS_ACTIVE, null);
 			if (TextUtils.isEmpty(s)) {
-				return KEY_PLAYLIST_CURRENT;
+				return KEY_PLAYLIST_ALL;
 			}
 			return s;
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			return KEY_PLAYLIST_CURRENT;
+			return KEY_PLAYLIST_ALL;
 		}
 	}
 
@@ -399,10 +401,12 @@ public class Playlist extends RealmObject {
 				}
 
 				Playlist playlist = loadOrCreatePlaylist(name);
+				playlist.setLinkedAndroidOSPlaylistId(playlistId);
+				playlist.clear();
 				playlist.addAll(osDatas);
 				savePlaylist(playlist);
 
-				setActivePlaylist(context, KEY_PLAYLIST_CURRENT, notify);
+				setActivePlaylist(context, name, notify);
 				if (onSuccess != null) {
 					onSuccess.execute(playlist);
 				}
@@ -420,6 +424,39 @@ public class Playlist extends RealmObject {
 
 			if (onError != null)
 				onError.execute(e);
+		}
+	}
+
+	public static void delete(
+			final Context context,
+			final String name,
+			final Long playlistId,
+			final boolean notify) {
+		try {
+			if (!(playlistId <= -1L)) {
+				deletePlaylist(context.getContentResolver(), playlistId);
+			} else {
+				try (Realm realm = DB.getDB()) {
+					if (realm != null)
+						realm.executeTransaction(new Realm.Transaction() {
+							@Override
+							public void execute(@NonNull Realm realm) {
+								try {
+									Playlist playlist = realm.where(Playlist.class).equalTo("Name", name).findFirst();
+									if (playlist != null)
+										playlist.deleteFromRealm();
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						});
+				}
+			}
+
+			if (getActivePlaylist(context).equalsIgnoreCase(name))
+				setActivePlaylist(context, KEY_PLAYLIST_ALL, notify);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
