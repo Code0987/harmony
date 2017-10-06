@@ -21,32 +21,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:paddingBottom="24dp"
+        android:paddingTop="24dp"
         >
-
-        <FrameLayout
-            android:layout_width="220dp"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:id="@+id/image_ui_nav_right"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="-32dp"
-                android:layout_marginTop="-96dp"
-                android:scaleType="centerCrop"
-                android:adjustViewBounds="true"
-                android:src="@drawable/logo"
-                />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="bottom"
-                android:background="@drawable/lomo_25"
-                android:scaleType="fitXY"
-                />
-
-        </FrameLayout>
 
         <LinearLayout
             android:id="@+id/load_library"
@@ -111,9 +88,9 @@
         </LinearLayout>
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/playlist_recyclerView"
+            android:id="@+id/playlists_recyclerView"
             android:layout_width="match_parent"
-            android:layout_height="120dp"
+            android:layout_height="250dp"
             android:animateLayoutChanges="false"
             android:animationCache="true"
             android:clipToPadding="false"
@@ -127,7 +104,7 @@
             />
 
         <LinearLayout
-            android:id="@+id/load_current"
+            android:id="@+id/new_playlist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackground"
@@ -142,7 +119,7 @@
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_playlist_add_black"
-                android:tint="@android:color/holo_orange_dark"
+                android:tint="@android:color/holo_red_light"
                 android:tintMode="src_atop"
                 />
 
@@ -152,13 +129,45 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
-                android:text="Load current playlist"
+                android:text="New playlist"
                 />
 
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/save_current"
+            android:id="@+id/add_to_playlist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            >
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_playlist_add_black"
+                android:tint="@android:color/holo_purple"
+                android:tintMode="src_atop"
+                />
+
+            <TextView
+                style="@style/TextAppearance.AppCompat.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:text="Add music"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/save_active_playlist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackground"
@@ -183,13 +192,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
-                android:text="Save to current playlist"
+                android:text="Save changes"
                 />
 
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/export_playlist"
+            android:id="@+id/export_active_playlist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackground"
@@ -214,7 +223,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
-                android:text="Export"
+                android:text="Export to m3u"
                 />
 
         </LinearLayout>

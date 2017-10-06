@@ -51,7 +51,9 @@ import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Analytics;
+import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.ArrayEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -98,7 +100,8 @@ public class MusicService extends Service {
 
 	public static final String ACTION_REFRESH_SYSTEM_BINDINGS = TAG + ".refresh_system_bindings";
 
-	public static final String ACTION_PLAYLIST_CURRENT_UPDATED = TAG + ".playlist_current_updated";
+	public static final String ACTION_PLAYLIST_CHANGED = TAG + ".playlist_changed";
+	public static final String KEY_PLAYLIST_CHANGED_PLAYLIST = "playlist";
 
 	// Threads
 	private Handler handler = new Handler();
@@ -319,7 +322,11 @@ public class MusicService extends Service {
 
 		initializeLicensing();
 
-		musicRealm = Music.getDB();
+		// Load realm
+		musicRealm = DB.getDB();
+
+		// Load playlist
+		getPlaylist();
 
 		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		headsetMediaButtonIntentReceiverComponent = new ComponentName(getPackageName(), HeadsetMediaButtonIntentReceiver.class.getName());
@@ -1140,120 +1147,27 @@ public class MusicService extends Service {
 	//endregion
 
 	private static MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
+
 	private Music currentMusic;
-	private ArrayList<String> playlist = new ArrayList<>(25);
-	private int playlistPosition = -1;
+	private Playlist currentPlaylist;
 
-	public int add(String path, int position) {
-		playlist.add(position, path);
-
-		try {
-			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return position;
+	public Playlist getPlaylist() {
+		if (currentPlaylist == null)
+			try {
+				currentPlaylist = Playlist.loadOrCreatePlaylist(Playlist.getActivePlaylist(this));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		return currentPlaylist;
 	}
 
-	public int add(String path) {
-		if (playlist.contains(path))
-			return playlist.indexOf(path);
-
-		playlist.add(path);
-
-		try {
-			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return playlist.size() - 1;
-	}
-
-	public void clearExceptCurrent() {
-		stop();
-
-		playlist.clear();
-		if (currentMusic != null)
-			playlist.add(currentMusic.Path);
-
-		try {
-			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void remove(String path) {
-		playlist.remove(path);
-
-		try {
-			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void remove(int position) {
-		playlist.remove(position);
-
-		try {
-			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void moveDown(String item) {
-		int i = getPlaylist().indexOf(item);
-		if (i > -1) {
-			ArrayEx.move(i, i + 1, getPlaylist());
-		}
-
-		try {
-			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void moveUp(String item) {
-		int i = getPlaylist().indexOf(item);
-		if (i > -1) {
-			ArrayEx.move(i, i - 1, getPlaylist());
-		}
-
-		try {
-			Music.setPlaylistCurrentSortOrder(this, getPlaylist(), true, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public int getPlaylistPosition() {
-		return playlistPosition;
-	}
-
-	public void setPlaylistPosition(int position) {
-		playlistPosition = position;
-		if (playlistPosition < 0 || playlistPosition >= playlist.size())
-			playlistPosition = -1;
-	}
-
-	public ArrayList<String> getPlaylist() {
-		return playlist;
-	}
-
-	public String getCurrentPlaylistItem() {
-		if (playlistPosition < 0 || playlistPosition >= playlist.size())
-			return null;
-		return playlist.get(playlistPosition);
-	}
-
-	public Music getCurrentPlaylistItemMusic() {
+	public Music getMusic() {
+		if (currentMusic == null)
+			try {
+				currentMusic = currentPlaylist.getItem();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		return currentMusic;
 	}
 
@@ -1262,9 +1176,7 @@ public class MusicService extends Service {
 	}
 
 	public boolean canPlay() {
-		if (playlistPosition < 0 || playlistPosition >= playlist.size())
-			playlistPosition = 0;
-		if (playlistPosition < playlist.size())
+		if (currentPlaylist != null && currentPlaylist.getItems().size() >= 0)
 			return true;
 		return false;
 	}
@@ -1313,10 +1225,9 @@ public class MusicService extends Service {
 		}
 
 		synchronized (this) {
-			String path = playlist.get(playlistPosition);
-
 			// Decode file
-			currentMusic = Music.load(musicRealm, this, path);
+			currentMusic = currentPlaylist.getItem();
+
 			if (currentMusic == null)
 				return;
 
@@ -1347,7 +1258,7 @@ public class MusicService extends Service {
 								.sendBroadcast(new Intent(ACTION_PREPARED));
 					}
 				});
-				mediaPlayer.setDataSource(path);
+				mediaPlayer.setDataSource(currentMusic.getPath());
 				mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 				mediaPlayer.prepare();
 			} catch (Exception e) {
@@ -1363,7 +1274,7 @@ public class MusicService extends Service {
 							musicRealm.executeTransaction(new Realm.Transaction() {
 								@Override
 								public void execute(Realm realm) {
-									currentMusic.TotalDurationPlayed += getPosition();
+									currentMusic.setTotalDurationPlayed(currentMusic.getTotalDurationPlayed() + getPosition());
 
 									realm.insertOrUpdate(currentMusic);
 								}
@@ -1389,7 +1300,7 @@ public class MusicService extends Service {
 					Log.w(TAG, "onError\nwhat = " + what + "\nextra = " + extra);
 
 					try {
-						Toast.makeText(MusicService.this, "There was a problem while playing [" + getCurrentPlaylistItem() + "]!", Toast.LENGTH_LONG).show();
+						Toast.makeText(MusicService.this, "There was a problem while playing [" + currentMusic.getPath() + "]!", Toast.LENGTH_LONG).show();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -1402,12 +1313,12 @@ public class MusicService extends Service {
 
 			// Update media session
 			mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-					.putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.Title)
-					.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.Artist)
-					.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.Album)
+					.putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.getTitle())
+					.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.getArtist())
+					.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.getAlbum())
 					.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
-					.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, getPlaylistPosition() + 1)
-					.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlaylist().size())
+					.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, currentPlaylist.getItemIndex() + 1)
+					.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, currentPlaylist.getItems().size())
 					.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this, -1))
 					.build());
 
@@ -1499,16 +1410,14 @@ public class MusicService extends Service {
 					.getInstance(MusicService.this)
 					.sendBroadcast(new Intent(ACTION_PLAY));
 
-			setPlayerLastPlayed(this, getCurrentPlaylistItem());
-
 			try {
 				musicRealm.executeTransaction(new Realm.Transaction() {
 					@Override
 					public void execute(Realm realm) {
-						currentMusic.Played++;
-						currentMusic.TimeLastPlayed = System.currentTimeMillis();
+						currentMusic.setPlayed(currentMusic.getPlayed() + 1);
+						currentMusic.setTimeLastPlayed(System.currentTimeMillis());
 
-						currentMusic.Score = Music.getScore(currentMusic);
+						currentMusic.setScore(Music.getScore(currentMusic));
 
 						realm.insertOrUpdate(currentMusic);
 					}
@@ -1554,13 +1463,16 @@ public class MusicService extends Service {
 
 	public void skip(int position, boolean autoPlay) {
 		synchronized (this) {
-			if (playlist.size() <= 0)
+			if (currentPlaylist.getItems().size() <= 0)
 				return;
+		}
 
-			playlistPosition = position;
+		try {
+			currentPlaylist.setItemIndex(position);
 
-			if (playlistPosition < 0 || playlistPosition >= playlist.size())
-				playlistPosition = 0;
+			Playlist.savePlaylist(currentPlaylist);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		if (currentMusic != null) {
@@ -1569,10 +1481,10 @@ public class MusicService extends Service {
 					@Override
 					public void execute(Realm realm) {
 						if (((float) getPosition() / (float) getDuration()) < 0.65) {
-							currentMusic.Skipped++;
-							currentMusic.TimeLastSkipped = System.currentTimeMillis();
+							currentMusic.setSkipped(currentMusic.getSkipped() + 1);
+							currentMusic.setTimeLastSkipped(System.currentTimeMillis());
 						}
-						currentMusic.TotalDurationPlayed += getPosition();
+						currentMusic.setTotalDurationPlayed(currentMusic.getTotalDurationPlayed() + getPosition());
 
 						realm.insertOrUpdate(currentMusic);
 					}
@@ -1605,7 +1517,7 @@ public class MusicService extends Service {
 	}
 
 	public void random(boolean autoPlay) {
-		skip((int) Math.round(Math.random() * playlist.size()), autoPlay);
+		skip((int) Math.round(Math.random() * currentPlaylist.getItems().size()), autoPlay);
 	}
 
 	public void random() {
@@ -1613,12 +1525,12 @@ public class MusicService extends Service {
 	}
 
 	public void next(boolean autoPlay) {
-		playlistPosition++;
+		currentPlaylist.setItemIndex(currentPlaylist.getItemIndex() + 1);
 
 		if (getPlayerShuffleMusicEnabled(this))
 			random(autoPlay);
 		else
-			skip(playlistPosition, autoPlay);
+			skip(currentPlaylist.getItemIndex(), autoPlay);
 	}
 
 	public void next() {
@@ -1626,10 +1538,10 @@ public class MusicService extends Service {
 	}
 
 	public void prev(boolean autoPlay) {
-		playlistPosition--;
+		currentPlaylist.setItemIndex(currentPlaylist.getItemIndex() - 1);
 
 		if (((float) getPosition() / (float) getDuration()) < 0.55)
-			skip(playlistPosition, autoPlay);
+			skip(currentPlaylist.getItemIndex(), autoPlay);
 		else
 			seek(0);
 	}
@@ -1730,25 +1642,25 @@ public class MusicService extends Service {
 				cover = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 
 			customNotificationView.setImageViewBitmap(R.id.cover, cover);
-			customNotificationView.setTextViewText(R.id.title, currentMusic.Title);
-			customNotificationView.setTextViewText(R.id.album, currentMusic.Album);
-			customNotificationView.setTextViewText(R.id.artist, currentMusic.Artist);
-			customNotificationView.setTextViewText(R.id.info, (getPlaylistPosition() + 1) + "/" + getPlaylist().size());
+			customNotificationView.setTextViewText(R.id.title, currentMusic.getTitle());
+			customNotificationView.setTextViewText(R.id.album, currentMusic.getAlbum());
+			customNotificationView.setTextViewText(R.id.artist, currentMusic.getArtist());
+			customNotificationView.setTextViewText(R.id.info, (currentPlaylist.getItemIndex() + 1) + "/" + currentPlaylist.getItems().size());
 			customNotificationView.setImageViewResource(R.id.play_pause, isPlaying()
 					? android.R.drawable.ic_media_pause
 					: android.R.drawable.ic_media_play);
 
 			customNotificationViewS.setImageViewBitmap(R.id.cover, cover);
-			customNotificationViewS.setTextViewText(R.id.title, currentMusic.Title);
-			customNotificationViewS.setTextViewText(R.id.album, currentMusic.Album);
-			customNotificationViewS.setTextViewText(R.id.artist, currentMusic.Artist);
+			customNotificationViewS.setTextViewText(R.id.title, currentMusic.getTitle());
+			customNotificationViewS.setTextViewText(R.id.album, currentMusic.getAlbum());
+			customNotificationViewS.setTextViewText(R.id.artist, currentMusic.getArtist());
 			customNotificationViewS.setImageViewResource(R.id.play_pause, isPlaying()
 					? android.R.drawable.ic_media_pause
 					: android.R.drawable.ic_media_play);
 
-			builder.setContentTitle(currentMusic.Title)
-					.setContentText(currentMusic.Album)
-					.setSubText(currentMusic.Artist)
+			builder.setContentTitle(currentMusic.getTitle())
+					.setContentText(currentMusic.getAlbum())
+					.setSubText(currentMusic.getArtist())
 					.setLargeIcon(cover)
 					.setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
 					.setTicker(currentMusic.getText())
@@ -1851,7 +1763,7 @@ public class MusicService extends Service {
 		filter.addAction(ACTION_LIBRARY_UPDATE_BEGINS);
 		filter.addAction(ACTION_LIBRARY_UPDATED);
 		filter.addAction(ACTION_LIBRARY_UPDATE_CANCEL);
-		filter.addAction(ACTION_PLAYLIST_CURRENT_UPDATED);
+		filter.addAction(ACTION_PLAYLIST_CHANGED);
 
 		filter.addAction(Intent.ACTION_HEADSET_PLUG);
 
@@ -1890,7 +1802,18 @@ public class MusicService extends Service {
 			if (TextUtils.isEmpty(file))
 				return;
 
-			skip(add(file));
+			Music itemToOpen = null;
+			for (Music item : currentPlaylist.getItems())
+				if (item.getPath().equalsIgnoreCase(file))
+					itemToOpen = item;
+			if (itemToOpen != null) {
+				skip(currentPlaylist.getItems().lastIndexOf(itemToOpen));
+			} else {
+				itemToOpen = Music.load(this, file);
+				currentMusic = itemToOpen;
+				currentPlaylist.add(itemToOpen);
+				skip(currentPlaylist.getItems().size() - 1);
+			}
 
 			Intent broadcastIntent = new Intent(ACTION_OPEN);
 			broadcastIntent.putExtra(KEY_URI, file);
@@ -1905,32 +1828,27 @@ public class MusicService extends Service {
 			libraryUpdater = new MusicServiceLibraryUpdaterAsyncTask(this, force, fastMode);
 			libraryUpdater.execute();
 
-		} else if (action.equals(ACTION_LIBRARY_UPDATED) || action.equals(ACTION_PLAYLIST_CURRENT_UPDATED)) {
+		} else if (action.equals(ACTION_PLAYLIST_CHANGED) || action.equals(ACTION_LIBRARY_UPDATED)) {
+			String playlist;
+			try {
+				playlist = intent.getStringExtra(KEY_PLAYLIST_CHANGED_PLAYLIST);
+			} catch (Exception e) {
+				e.printStackTrace();
 
-			// Clear playlist
-			// also check if currently playing
-			// if so, then set current item to front
-			String c = getCurrentPlaylistItem();
-			getPlaylist().clear();
-			if (!TextUtils.isEmpty(c) && isPlaying()) {
-				getPlaylist().add(c);
-				setPlaylistPosition(0);
+				playlist = Playlist.getActivePlaylist(this);
 			}
 
-			// Load playlist
-			for (Music music : Music.loadCurrentSorted(musicRealm, this))
-				getPlaylist().add(music.Path);
+			if (!TextUtils.isEmpty(playlist)) {
+				// Load playlist
+				currentPlaylist = Playlist.loadOrCreatePlaylist(playlist);
 
-			// Check last played
-			// play, if it's not currently playing
-			String lp = getPlayerLastPlayed(this);
-			if (!TextUtils.isEmpty(lp) && !(!TextUtils.isEmpty(c) && lp.equalsIgnoreCase(c))) {
-				int i = getPlaylist().indexOf(lp);
-				if (i >= 0) {
-					setPlaylistPosition(i);
-					prepare(null);
-					// update();
-				}
+				// Check last played
+				// play, if it's not currently playing
+				if (!isPlaying())
+					if (currentPlaylist.getItemIndex() > -1) {
+						prepare(null);
+						// update();
+					}
 			}
 
 		} else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {
@@ -1952,18 +1870,6 @@ public class MusicService extends Service {
 
 		} else if (action.equals(ACTION_REFRESH_SYSTEM_BINDINGS)) {
 			update();
-		}
-
-	}
-
-	private void loadLastPlayedForCurrentPlaylist() {
-		String lp = getPlayerLastPlayed(this);
-		if (!TextUtils.isEmpty(lp)) {
-			int i = getPlaylist().indexOf(lp);
-			if (i >= 0) {
-				setPlaylistPosition(i);
-				prepare(null);
-			}
 		}
 	}
 
@@ -1999,19 +1905,6 @@ public class MusicService extends Service {
 		public String getFriendlyName() {
 			return friendlyName;
 		}
-	}
-
-	public static final String TAG_SPREF_PLAYER_LAST_PLAYED = SPrefEx.TAG_SPREF + ".player_last_played";
-
-	public static String getPlayerLastPlayed(Context context) {
-		return SPrefEx.get(context).getString(TAG_SPREF_PLAYER_LAST_PLAYED, null);
-	}
-
-	public static void setPlayerLastPlayed(Context context, String value) {
-		SPrefEx.get(context)
-				.edit()
-				.putString(TAG_SPREF_PLAYER_LAST_PLAYED, value)
-				.apply();
 	}
 
 	public static final String TAG_SPREF_PLAYER_REPEAT_MUSIC_ENABLED = SPrefEx.TAG_SPREF + ".player_repeat_music_enabled";

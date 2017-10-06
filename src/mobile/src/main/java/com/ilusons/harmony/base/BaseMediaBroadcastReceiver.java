@@ -12,117 +12,120 @@ import java.lang.ref.WeakReference;
 
 public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 
-    // Logger TAG
-    private static final String TAG = BaseMediaBroadcastReceiver.class.getSimpleName();
+	// Logger TAG
+	private static final String TAG = BaseMediaBroadcastReceiver.class.getSimpleName();
 
-    private final WeakReference<Context> reference;
+	private final WeakReference<Context> reference;
 
-    public BaseMediaBroadcastReceiver(final Context ref) {
-        reference = new WeakReference<>(ref);
-    }
+	public BaseMediaBroadcastReceiver(final Context ref) {
+		reference = new WeakReference<>(ref);
+	}
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        Context ref = reference.get();
-        String action = intent.getAction();
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		Context ref = reference.get();
+		String action = intent.getAction();
 
-        Log.d(TAG, "onReceive\nintent = " + intent + "\nref = ");
+		Log.d(TAG, "onReceive\nintent = " + intent + "\nref = ");
 
-        if (ref == null)
-            return;
+		if (ref == null)
+			return;
 
-        if (action == null)
-            return;
+		if (action == null)
+			return;
 
-        if (action.equals(MusicService.ACTION_PLAY)) {
-            OnMusicServicePlay();
-        }
+		if (action.equals(MusicService.ACTION_PLAY)) {
+			OnMusicServicePlay();
+		}
 
-        if (action.equals(MusicService.ACTION_PAUSE)) {
-            OnMusicServicePause();
-        }
+		if (action.equals(MusicService.ACTION_PAUSE)) {
+			OnMusicServicePause();
+		}
 
-        if (action.equals(MusicService.ACTION_STOP)) {
-            OnMusicServiceStop();
-        }
+		if (action.equals(MusicService.ACTION_STOP)) {
+			OnMusicServiceStop();
+		}
 
-        if (action.equals(MusicService.ACTION_OPEN)) {
-            String uri = intent.getStringExtra(MusicService.KEY_URI);
+		if (action.equals(MusicService.ACTION_OPEN)) {
+			String uri = intent.getStringExtra(MusicService.KEY_URI);
 
-            if (!TextUtils.isEmpty(uri))
-                OnMusicServiceOpen(uri);
-        }
+			if (!TextUtils.isEmpty(uri))
+				OnMusicServiceOpen(uri);
+		}
 
-        if (action.equals(MusicService.ACTION_PREPARED)) {
-            OnMusicServicePrepared();
-        }
+		if (action.equals(MusicService.ACTION_PREPARED)) {
+			OnMusicServicePrepared();
+		}
 
-        if (action.equals(MusicService.ACTION_LIBRARY_UPDATE_BEGINS)) {
-            OnMusicServiceLibraryUpdateBegins();
-        }
+		if (action.equals(MusicService.ACTION_LIBRARY_UPDATE_BEGINS)) {
+			OnMusicServiceLibraryUpdateBegins();
+		}
 
-        if (action.equals(MusicService.ACTION_LIBRARY_UPDATED)) {
-            OnMusicServiceLibraryUpdated();
-        }
+		if (action.equals(MusicService.ACTION_LIBRARY_UPDATED)) {
+			OnMusicServiceLibraryUpdated();
+		}
 
-        if (action.equals(MusicService.ACTION_PLAYLIST_CURRENT_UPDATED)) {
-            OnMusicServicePlaylistCurrentUpdated();
-        }
-    }
+		if (action.equals(MusicService.ACTION_PLAYLIST_CHANGED)) {
+			String name = intent.getStringExtra(MusicService.KEY_PLAYLIST_CHANGED_PLAYLIST);
 
-    LocalBroadcastManager broadcastManager;
+			if (!TextUtils.isEmpty(name))
+				OnMusicServicePlaylistChanged(name);
+		}
+	}
 
-    public void register(Context context) {
-        broadcastManager = LocalBroadcastManager.getInstance(context);
+	LocalBroadcastManager broadcastManager;
 
-        IntentFilter intentFilter = new IntentFilter();
+	public void register(Context context) {
+		broadcastManager = LocalBroadcastManager.getInstance(context);
 
-        intentFilter.addAction(MusicService.ACTION_PLAY);
-        intentFilter.addAction(MusicService.ACTION_PAUSE);
-        intentFilter.addAction(MusicService.ACTION_STOP);
-        intentFilter.addAction(MusicService.ACTION_OPEN);
-        intentFilter.addAction(MusicService.ACTION_PREPARED);
-        intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATE_BEGINS);
-        intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATED);
-        intentFilter.addAction(MusicService.ACTION_PLAYLIST_CURRENT_UPDATED);
+		IntentFilter intentFilter = new IntentFilter();
 
-        broadcastManager.registerReceiver(this, intentFilter);
-    }
+		intentFilter.addAction(MusicService.ACTION_PLAY);
+		intentFilter.addAction(MusicService.ACTION_PAUSE);
+		intentFilter.addAction(MusicService.ACTION_STOP);
+		intentFilter.addAction(MusicService.ACTION_OPEN);
+		intentFilter.addAction(MusicService.ACTION_PREPARED);
+		intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATE_BEGINS);
+		intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATED);
+		intentFilter.addAction(MusicService.ACTION_PLAYLIST_CHANGED);
 
-    public void unRegister() {
-        broadcastManager.unregisterReceiver(this);
-    }
+		broadcastManager.registerReceiver(this, intentFilter);
+	}
 
-    protected void OnMusicServicePlay() {
+	public void unRegister() {
+		broadcastManager.unregisterReceiver(this);
+	}
 
-    }
+	protected void OnMusicServicePlay() {
 
-    protected void OnMusicServicePause() {
+	}
 
-    }
+	protected void OnMusicServicePause() {
 
-    protected void OnMusicServiceStop() {
+	}
 
-    }
+	protected void OnMusicServiceStop() {
 
-    public void OnMusicServiceOpen(String uri) {
+	}
 
-    }
+	public void OnMusicServiceOpen(String uri) {
 
-    public void OnMusicServicePrepared() {
+	}
 
-    }
+	public void OnMusicServicePrepared() {
 
-    public void OnMusicServiceLibraryUpdateBegins() {
+	}
 
-    }
+	public void OnMusicServiceLibraryUpdateBegins() {
 
-    public void OnMusicServiceLibraryUpdated() {
+	}
 
-    }
+	public void OnMusicServiceLibraryUpdated() {
 
-    public void OnMusicServicePlaylistCurrentUpdated() {
+	}
 
-    }
+	public void OnMusicServicePlaylistChanged(String name) {
+
+	}
 
 }

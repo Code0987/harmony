@@ -18,7 +18,9 @@ import android.util.ArraySet;
 import android.util.Log;
 
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.SPrefEx;
 
 import java.io.File;
@@ -148,7 +150,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		}
 	}
 
-	private void addFromDirectory(Realm realm, Context context, File path, String playlist) throws Exception {
+	private void addFromDirectory(Realm realm, Context context, File path, Playlist playlist) throws Exception {
 		if (isCancelled())
 			return;
 
@@ -166,55 +168,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		}
 	}
 
-	private void add(Realm realm, Context context, final String path, final Uri contentUri, final String playlist) {
+	private void add(Realm realm, Context context, final String path, final Uri contentUri, final Playlist playlist) {
 		if (isCancelled())
 			return;
 
-		updateNotification(playlist + "@..." + path.substring(Math.min(path.length() - 34, path.length())), false);
+		updateNotification(playlist.getName() + "@..." + path.substring(Math.min(path.length() - 34, path.length())), false);
 
-		// Check if valid
-		if (!Music.isValid(path))
-			return;
-
-		// Ignore if already present
-		final Music oldData = Music.get(realm, path);
-		if (oldData != null) {
-			if (!oldData.isInPlaylist(playlist)) {
-				realm.executeTransaction(new Realm.Transaction() {
-					@Override
-					public void execute(Realm realm) {
-						oldData.addPlaylist(playlist);
-						realm.copyToRealmOrUpdate(oldData);
-					}
-				});
-			}
-
-			return;
-		}
-
-		try {
-			final Music newData = Music.decode(realm, context, path, contentUri, fastMode, null);
-
-			if (newData == null)
-				return;
-
-			// Check constraints
-			if (newData.Length > 0 && getScanConstraintMinDuration(context) > newData.Length) {
-				return;
-			}
-
-			// Save
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					newData.addPlaylist(playlist);
-					realm.copyToRealmOrUpdate(newData);
-				}
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Playlist.scanNew(realm, context, playlist, path, contentUri, fastMode);
 	}
 
 	private void scanMediaStoreAudio() throws Exception {
@@ -225,25 +185,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
-		try (Realm realm = Music.getDB()) {
+		try (Realm realm = DB.getDB()) {
 			if (realm == null)
 				return;
 
-			final ArrayList<String> toRemove = new ArrayList<>();
+			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_MEDIASTORE);
 
-			for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_MEDIASTORE)) {
-				File file = (new File(music.Path));
-				if (!file.exists())
-					toRemove.add(music.Path);
-			}
-
-			if (toRemove.size() > 0)
-				realm.executeTransaction(new Realm.Transaction() {
-					@Override
-					public void execute(Realm realm) {
-						realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-					}
-				});
+			Playlist.update(realm, playlist);
 
 			ContentResolver cr = context.getContentResolver();
 
@@ -266,7 +214,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 						if ((new File(path)).exists()) {
 							Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
 
-							add(realm, context, path, contentUri, Music.KEY_PLAYLIST_MEDIASTORE);
+							add(realm, context, path, contentUri, playlist);
 						}
 					}
 
@@ -275,6 +223,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 			if (cursor != null)
 				cursor.close();
+
+			Playlist.savePlaylist(realm, playlist);
 		}
 	}
 
@@ -286,24 +236,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
-		try (Realm realm = Music.getDB()) {
+		try (Realm realm = DB.getDB()) {
 			if (realm == null)
 				return;
-			final ArrayList<String> toRemove = new ArrayList<>();
 
-			for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_MEDIASTORE)) {
-				File file = (new File(music.Path));
-				if (!file.exists())
-					toRemove.add(music.Path);
-			}
+			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_MEDIASTORE);
 
-			if (toRemove.size() > 0)
-				realm.executeTransaction(new Realm.Transaction() {
-					@Override
-					public void execute(Realm realm) {
-						realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-					}
-				});
+			Playlist.update(realm, playlist);
 
 			ContentResolver cr = context.getContentResolver();
 
@@ -325,7 +264,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 						if ((new File(path)).exists()) {
 							Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
 
-							add(realm, context, path, contentUri, Music.KEY_PLAYLIST_MEDIASTORE);
+							add(realm, context, path, contentUri, playlist);
 						}
 					}
 
@@ -334,6 +273,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 			if (cursor != null)
 				cursor.close();
+
+			Playlist.savePlaylist(realm, playlist);
 		}
 	}
 
@@ -345,44 +286,53 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
-		try (Realm realm = Music.getDB()) {
+		try (Realm realm = DB.getDB()) {
 			if (realm == null)
 				return;
+
+			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_STORAGE);
+
+			// Remove all not matching scan locations
 			final Set<String> scanLocations = getScanLocations(context);
-
-			final ArrayList<String> toRemove = new ArrayList<>();
-
-			for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_STORAGE)) {
+			final ArrayList<Music> toRemove = new ArrayList<>();
+			for (Music music : playlist.getItems()) {
 				if (isCancelled())
 					throw new Exception("Canceled by user");
-
-				File file = (new File(music.Path));
-
-				if (!file.exists())
-					toRemove.add(music.Path);
-
 				boolean shouldRemove = true;
 				for (String scanLocation : scanLocations)
-					if (music.Path.contains(scanLocation)) {
+					if (music.getPath().contains(scanLocation)) {
 						shouldRemove = false;
 						break;
 					}
 				if (shouldRemove)
-					toRemove.add(music.Path);
-
+					toRemove.add(music);
 			}
+			if (toRemove.size() > 0) {
+				realm.beginTransaction();
+				try {
+					playlist.removeAll(toRemove);
 
-			if (toRemove.size() > 0)
-				realm.executeTransaction(new Realm.Transaction() {
-					@Override
-					public void execute(Realm realm) {
-						realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
+					realm.commitTransaction();
+				} catch (Throwable e) {
+					if (realm.isInTransaction()) {
+						realm.cancelTransaction();
+					} else {
+						Log.w(TAG, e);
 					}
-				});
-
-			for (String location : scanLocations) {
-				addFromDirectory(realm, context, new File(location), Music.KEY_PLAYLIST_STORAGE);
+					throw e;
+				}
 			}
+
+			// Update
+			Playlist.update(realm, playlist);
+
+			// Scan new
+			for (String location : scanLocations) {
+				addFromDirectory(realm, context, new File(location), playlist);
+			}
+
+			// Save
+			Playlist.savePlaylist(realm, playlist);
 		}
 	}
 
@@ -394,26 +344,15 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
-		try (Realm realm = Music.getDB()) {
+		try (Realm realm = DB.getDB()) {
 			if (realm == null)
 				return;
-			final ArrayList<String> toRemove = new ArrayList<>();
 
-			for (Music music : Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_CURRENT)) {
-				File file = (new File(music.Path));
-				if (!file.exists())
-					toRemove.add(music.Path);
-			}
+			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_CURRENT);
 
-			if (toRemove.size() > 0)
-				realm.executeTransaction(new Realm.Transaction() {
-					@Override
-					public void execute(Realm realm) {
-						realm.where(Music.class).in("Path", toRemove.toArray(new String[toRemove.size()])).findAll().deleteAllFromRealm();
-					}
-				});
+			Playlist.update(realm, playlist);
 
-			Music.saveCurrent(realm, context, Music.getAllInPlaylist(realm, Music.KEY_PLAYLIST_CURRENT), false);
+			Playlist.savePlaylist(realm, playlist);
 		}
 	}
 

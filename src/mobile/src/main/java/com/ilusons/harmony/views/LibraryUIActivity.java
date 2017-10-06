@@ -3,23 +3,22 @@ package com.ilusons.harmony.views;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.ParcelFileDescriptor;
-import android.provider.MediaStore;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.FragmentActivity;
@@ -28,9 +27,7 @@ import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -47,13 +44,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -71,27 +68,22 @@ import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
+import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.ref.AndroidEx;
-import com.ilusons.harmony.ref.ArrayEx;
+import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
-import com.ilusons.harmony.ref.ue.RateMe;
-import com.turingtechnologies.materialscrollbar.CustomIndicator;
-import com.turingtechnologies.materialscrollbar.DragScrollBar;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,7 +96,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
@@ -125,6 +116,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 	// Request codes
 	private static final int REQUEST_FILE_PICK = 4684;
 	private static final int REQUEST_EXPORT_LOCATION_PICK_SAF = 59;
+	private static final int REQUEST_PLAYLIST_ADD_PICK = 564;
 
 	// Data
 	RecyclerViewAdapter adapter;
@@ -404,92 +396,10 @@ public class LibraryUIActivity extends BaseUIActivity {
 		// Set right drawer
 		drawer_layout.closeDrawer(GravityCompat.END);
 
-		findViewById(R.id.load_library).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				setFromLibrary();
+		// Playlists
+		createPlaylists();
 
-				drawer_layout.closeDrawer(GravityCompat.END);
-			}
-		});
-		findViewById(R.id.load_library).setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
-				infoDialog("Loads all the library media into view playlist.");
-				return true;
-			}
-		});
-
-		findViewById(R.id.load_current).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				setFromCurrentPlaylist();
-
-				drawer_layout.closeDrawer(GravityCompat.END);
-			}
-		});
-		findViewById(R.id.load_current).setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
-				infoDialog("Loads the current playlist.");
-				return true;
-			}
-		});
-
-		findViewById(R.id.save_current).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				setCurrent();
-
-				drawer_layout.closeDrawer(GravityCompat.END);
-			}
-		});
-		findViewById(R.id.save_current).setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
-				infoDialog("Saves the current view playlist as current playlist.");
-				return true;
-			}
-		});
-
-		findViewById(R.id.export_playlist).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-
-				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-				intent.addCategory(Intent.CATEGORY_OPENABLE);
-				intent.putExtra(Intent.EXTRA_TITLE, "Playlist.m3u");
-				intent.setType("*/*");
-				if (intent.resolveActivity(getPackageManager()) != null) {
-					startActivityForResult(intent, REQUEST_EXPORT_LOCATION_PICK_SAF);
-				} else {
-					info("SAF not found!");
-				}
-
-				drawer_layout.closeDrawer(GravityCompat.END);
-			}
-		});
-
-		// Set playlist(s)
-		RecyclerView playlist_recyclerView = (RecyclerView) findViewById(R.id.playlist_recyclerView);
-		playlist_recyclerView.setHasFixedSize(true);
-		playlist_recyclerView.setItemViewCacheSize(5);
-		playlist_recyclerView.setDrawingCacheEnabled(true);
-		playlist_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
-
-		PlaylistRecyclerViewAdapter playlistRecyclerViewAdapter = new PlaylistRecyclerViewAdapter();
-		playlist_recyclerView.setAdapter(playlistRecyclerViewAdapter);
-
-		final ArrayList<Pair<Long, String>> playlists = new ArrayList<>();
-		Music.allPlaylist(getContentResolver(), new JavaEx.ActionTU<Long, String>() {
-			@Override
-			public void execute(Long id, String name) {
-				playlists.add(new Pair<Long, String>(id, name));
-			}
-		});
-		playlistRecyclerViewAdapter.setData(playlists);
-
-		// Extra
+		// Group
 		UIGroup();
 
 		// PlaybackUIMini
@@ -504,9 +414,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 		});
 
 		loading_view.smoothToHide();
-
-		// Load playlist
-		setFromCurrentPlaylist();
 
 		// Ratings
 		MainActivity.initRateMe(new WeakReference<FragmentActivity>(this));
@@ -531,6 +438,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 			Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
 		}
 
+		// Load playlist
+		loadActivePlaylist();
 	}
 
 	@Override
@@ -605,7 +514,29 @@ public class LibraryUIActivity extends BaseUIActivity {
 					ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
 					FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
 
-					exportCurrent(fileOutputStream, uri);
+					boolean result = true;
+
+					//noinspection ConstantConditions
+					String base = (new File(StorageEx.getPath(this, uri))).getParent();
+					String nl = System.getProperty("line.separator");
+					StringBuilder sb = new StringBuilder();
+					for (Music music : viewPlaylist.getItems()) {
+						String url = IOEx.getRelativePath(base, music.getPath());
+						sb.append(url).append(nl);
+					}
+
+					try {
+						IOUtils.write(sb.toString(), fileOutputStream, "utf-8");
+					} catch (Exception e) {
+						result = false;
+
+						e.printStackTrace();
+					}
+
+					if (result)
+						info("Current playlist exported!");
+					else
+						info("Export failed!", true);
 
 					fileOutputStream.close();
 					pfd.close();
@@ -615,6 +546,32 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 			}
 
+		} else if (requestCode == REQUEST_PLAYLIST_ADD_PICK && resultCode == Activity.RESULT_OK) {
+			if (data != null) {
+				try (Realm realm = DB.getDB()) {
+					if (realm == null)
+						return;
+
+					ClipData clipData = data.getClipData();
+					for (int i = 0; i < clipData.getItemCount(); i++)
+						try {
+							String path = StorageEx.getPath(this, clipData.getItemAt(i).getUri());
+							if (path != null)
+								Playlist.scanNew(realm, this, viewPlaylist, path, null, false);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+					adapter.setData(viewPlaylist.getItems());
+
+					info("Playlist updated!");
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					info("Unable to add selected items to the playlist!");
+				}
+
+			}
 		}
 
 		super.onActivityResult(requestCode, resultCode, data);
@@ -671,7 +628,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 	public void OnMusicServiceLibraryUpdated() {
 		loading_view.smoothToHide();
 
-		setFromCurrentPlaylist();
+		// Load playlist
+		loadActivePlaylist();
 
 		info("Library updated!");
 
@@ -679,10 +637,24 @@ public class LibraryUIActivity extends BaseUIActivity {
 	}
 
 	@Override
-	public void OnMusicServicePlaylistCurrentUpdated() {
-		setFromCurrentPlaylist();
+	public void OnMusicServicePlaylistChanged(String name) {
+		try {
+			// Refresh list of playlists
+			playlistsRecyclerViewAdapter.refresh();
 
-		updatePlaybackUIMini();
+			// Refresh view playlist
+			if (viewPlaylist != null) {
+				adapter.setData(viewPlaylist.getItems());
+			} else {
+				if (!TextUtils.isEmpty(name))
+					setFromPlaylist(-1L, name);
+			}
+
+			// Update mini now playing ui
+			updatePlaybackUIMini();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	//region PlaybackUIMini
@@ -955,188 +927,354 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	//region Playlists
 
-	private void setFromCurrentPlaylist() {
-		loading_view.smoothToShow();
+	private Playlist viewPlaylist;
 
-		if (adapter != null)
-			adapter.setData(Music.loadCurrentSorted(this));
+	private PlaylistsRecyclerViewAdapter playlistsRecyclerViewAdapter;
 
-		loading_view.smoothToHide();
-	}
-
-	private void setCurrent() {
-		if (getMusicService() == null)
-			return;
-
-		ArrayList<Music> data = new ArrayList<Music>();
-
-		for (Pair<String, List<Object>> item : adapter.dataFiltered)
-			for (Object o : item.second) {
-				if (o instanceof Music)
-					data.add((Music) o);
-			}
-
-		Music.saveCurrent(LibraryUIActivity.this, data, true);
-
-		info("Current playlist saved!");
-	}
-
-	private void exportCurrent(OutputStream os, Uri uri) {
-		ArrayList<Music> data = new ArrayList<Music>();
-
-		for (Object o : adapter.dataFiltered) {
-			if (o instanceof Music)
-				data.add((Music) o);
-		}
-
-		boolean result = true;
-
-		//noinspection ConstantConditions
-		String base = (new File(StorageEx.getPath(this, uri))).getParent();
-		String nl = System.getProperty("line.separator");
-		StringBuilder sb = new StringBuilder();
-		for (Music music : data) {
-			String url = IOEx.getRelativePath(base, music.Path);
-			sb.append(url).append(nl);
-		}
-
-		try {
-			IOUtils.write(sb.toString(), os, "utf-8");
-		} catch (Exception e) {
-			result = false;
-
-			e.printStackTrace();
-		}
-
-		if (result)
-			info("Current playlist exported!");
-		else
-			info("Export failed!", true);
-	}
-
-	private static AsyncTask<Void, Void, Void> setFromTask = null;
-
-	private void setFromLibrary() {
-		if (setFromTask != null) {
-			try {
-				setFromTask.get(1, TimeUnit.MILLISECONDS);
-			} catch (Exception e) {
-				Log.w(TAG, e);
-			}
-			setFromTask = null;
-		}
-
-		loading_view.smoothToShow();
-
-		setFromTask = (new AsyncTask<Void, Void, Void>() {
+	private void createPlaylists() {
+		findViewById(R.id.load_library).setOnClickListener(new View.OnClickListener() {
 			@Override
-			protected void onCancelled() {
-				super.onCancelled();
+			public void onClick(View view) {
+				setFromLibrary();
 
-				setFromTask = null;
-
-				loading_view.smoothToHide();
+				drawer_layout.closeDrawer(GravityCompat.END);
 			}
-
+		});
+		findViewById(R.id.load_library).setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
-			protected void onPostExecute(Void aVoid) {
-				super.onPostExecute(aVoid);
-
-				setFromTask = null;
-
-				loading_view.smoothToHide();
-
-				info("Loaded library!");
-			}
-
-			@Override
-			protected Void doInBackground(Void... voids) {
-				info("Do not refresh until library is fully loaded!", true);
-
-				if (getMusicService() != null) {
-					final ArrayList<Music> data = Music.loadAll();
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							adapter.setData(data);
-						}
-					});
-				}
-
-				return null;
+			public boolean onLongClick(View view) {
+				infoDialog("Loads all the library media into view playlist.");
+				return true;
 			}
 		});
 
-		setFromTask.execute();
+		findViewById(R.id.new_playlist).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				try {
+					final EditText editText = new EditText(LibraryUIActivity.this);
+
+					editText.setHint("http://www.librarising.com/astrology/celebs/images2/QR/queenelizabethii.jpg");
+
+					new AlertDialog.Builder(LibraryUIActivity.this)
+							.setTitle("Create new playlist")
+							.setMessage("Enter name for new playlist ...")
+							.setView(editText)
+							.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+									try {
+										String name = editText.getText().toString().trim();
+
+										Playlist playlist = Playlist.loadOrCreatePlaylist(name);
+
+										if (playlist != null) {
+											Playlist.setActivePlaylist(LibraryUIActivity.this, name, true);
+											viewPlaylist = playlist;
+											playlistsRecyclerViewAdapter.refresh();
+											info("Playlist created!");
+										} else
+											throw new Exception("Some error.");
+									} catch (Exception e) {
+										e.printStackTrace();
+
+										info("Playlist creation failed!");
+									}
+								}
+							})
+							.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+								}
+							})
+							.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				drawer_layout.closeDrawer(GravityCompat.END);
+			}
+		});
+
+		findViewById(R.id.add_to_playlist).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				try {
+					Intent i = new Intent();
+					String[] mimes = new String[]{"audio/*", "video/*"};
+					i.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
+					i.setType(StringUtils.join(mimes, '|'));
+					i.setAction(Intent.ACTION_OPEN_DOCUMENT);
+					i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+					startActivityForResult(i, REQUEST_PLAYLIST_ADD_PICK);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				drawer_layout.closeDrawer(GravityCompat.END);
+			}
+		});
+
+		findViewById(R.id.save_active_playlist).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				try {
+					Playlist.savePlaylist(viewPlaylist);
+
+					info("Playlist updated!");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				drawer_layout.closeDrawer(GravityCompat.END);
+			}
+		});
+
+		findViewById(R.id.export_active_playlist).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+				intent.addCategory(Intent.CATEGORY_OPENABLE);
+				intent.putExtra(Intent.EXTRA_TITLE, "Playlist.m3u");
+				intent.setType("*/*");
+				if (intent.resolveActivity(getPackageManager()) != null) {
+					startActivityForResult(intent, REQUEST_EXPORT_LOCATION_PICK_SAF);
+				} else {
+					info("SAF not found!");
+				}
+
+				drawer_layout.closeDrawer(GravityCompat.END);
+			}
+		});
+
+		// Set playlist(s)
+		RecyclerView playlists_recyclerView = (RecyclerView) findViewById(R.id.playlists_recyclerView);
+		playlists_recyclerView.setHasFixedSize(true);
+		playlists_recyclerView.setItemViewCacheSize(5);
+		playlists_recyclerView.setDrawingCacheEnabled(true);
+		playlists_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+
+		playlistsRecyclerViewAdapter = new PlaylistsRecyclerViewAdapter();
+		playlists_recyclerView.setAdapter(playlistsRecyclerViewAdapter);
+		playlistsRecyclerViewAdapter.refresh();
+
 	}
 
-	private void setFromPlaylist(String playlistId) {
-		if (setFromTask != null) {
-			try {
-				setFromTask.get(1, TimeUnit.MILLISECONDS);
-			} catch (Exception e) {
-				Log.w(TAG, e);
-			}
-			setFromTask = null;
+	private void setFromLibrary() {
+		loading_view.smoothToShow();
+		if (getMusicService() != null) {
+			adapter.setData(Music.loadAll());
 		}
+		loading_view.smoothToHide();
+	}
 
-		final Collection<String> audioIds = Music.getAllAudioIdsInPlaylist(getContentResolver(), Long.parseLong(playlistId));
+	private void setFromPlaylist(Long playlistId, final String playlist) {
+		loading_view.smoothToShow();
 
-		if (audioIds.size() > 0) {
-			loading_view.smoothToShow();
+		info("Do not refresh until this playlist is fully loaded!", true);
 
-			setFromTask = (new AsyncTask<Void, Void, Void>() {
-				@Override
-				protected void onCancelled() {
-					super.onCancelled();
+		Playlist.setActivePlaylist(
+				this,
+				playlist,
+				playlistId,
+				new JavaEx.ActionT<Collection<Music>>() {
+					@Override
+					public void execute(Collection<Music> data) {
+						if (data.size() % RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW == 0)
+							adapter.setData(data);
+					}
+				},
+				new JavaEx.ActionT<Playlist>() {
+					@Override
+					public void execute(final Playlist playlist) {
+						viewPlaylist = playlist;
 
-					setFromTask = null;
-
-					loading_view.smoothToHide();
-				}
-
-				@Override
-				protected void onPostExecute(Void aVoid) {
-					super.onPostExecute(aVoid);
-
-					setFromTask = null;
-
-					loading_view.smoothToHide();
-
-					info("Loaded playlist!");
-				}
-
-				@Override
-				protected Void doInBackground(Void... voids) {
-					if (getMusicService() != null) {
-						info("Do not refresh until this playlist is fully loaded!", true);
-
-						final ArrayList<Music> data = new ArrayList<>();
-						final JavaEx.ActionT<Music> action = new JavaEx.ActionT<Music>() {
-							@Override
-							public void execute(final Music music) {
-								data.add(music);
-
-								if (data.size() % RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW == 0)
-									adapter.setData(data);
-							}
-						};
-						try (Realm musicRealm = Music.getDB()) {
-							Music.getAllMusicForIds(musicRealm, LibraryUIActivity.this, audioIds, action);
-						}
 						runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
-								adapter.setData(data);
+								adapter.setData(playlist.getItems());
 							}
 						});
+
+						loading_view.smoothToHide();
+
+						info("Loaded playlist!");
 					}
-					return null;
+				},
+				new JavaEx.ActionT<Exception>() {
+					@Override
+					public void execute(Exception e) {
+						loading_view.smoothToHide();
+
+						info("Playlist load failed!");
+					}
+				},
+				false);
+	}
+
+	public class PlaylistsRecyclerViewAdapter extends RecyclerView.Adapter<PlaylistsRecyclerViewAdapter.ViewHolder> {
+
+		private final ArrayList<Pair<Long, String>> data;
+		private String dataActive;
+
+		public PlaylistsRecyclerViewAdapter() {
+			data = new ArrayList<>();
+		}
+
+		@Override
+		public int getItemCount() {
+			return data.size();
+		}
+
+		@Override
+		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+			View view = inflater.inflate(R.layout.library_ui_playlist_item, parent, false);
+
+			return new ViewHolder(view);
+		}
+
+		@Override
+		public void onBindViewHolder(final ViewHolder holder, int position) {
+			final Pair<Long, String> d = data.get(position);
+			final View v = holder.view;
+
+			v.setTag(d.first);
+
+			ImageView icon = v.findViewById(R.id.icon);
+
+			TextView text = (TextView) v.findViewById(R.id.text);
+			text.setText(d.second);
+
+			ImageView menu = v.findViewById(R.id.menu);
+
+			int c;
+			if (!TextUtils.isEmpty(dataActive) && dataActive.equals(d.second)) {
+				c = ContextCompat.getColor(getApplicationContext(), android.R.color.holo_green_light);
+			} else {
+				c = ContextCompat.getColor(getApplicationContext(), R.color.translucent_icons);
+			}
+			icon.setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
+			text.setTextColor(c);
+			menu.setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
+
+			View.OnClickListener onClickListener = new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+					builder.setTitle("Are you sure?");
+					builder.setMessage("This will replace the visible playlist with this one.");
+					builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							setFromPlaylist(d.first, d.second);
+							refresh();
+
+							dialog.dismiss();
+
+							drawer_layout.closeDrawer(GravityCompat.END);
+						}
+					});
+					builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.dismiss();
+
+							drawer_layout.closeDrawer(GravityCompat.END);
+						}
+					});
+					AlertDialog dialog = builder.create();
+					dialog.show();
+				}
+			};
+			icon.setOnClickListener(onClickListener);
+			text.setOnClickListener(onClickListener);
+
+			menu.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+					builder.setTitle("Select the action");
+					builder.setItems(new CharSequence[]{
+							"Set active",
+							"Edit / Open in view",
+							"Delete"
+					}, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int item) {
+							switch (item) {
+								case 0:
+									Playlist.setActivePlaylist(LibraryUIActivity.this, d.second, true);
+									refresh();
+									break;
+								case 1:
+									setFromPlaylist(d.first, d.second);
+									refresh();
+									break;
+								case 2:
+									Playlist.deletePlaylist(getContentResolver(), d.first);
+									removeData(d.first);
+									break;
+							}
+
+							dialog.dismiss();
+
+							drawer_layout.closeDrawer(GravityCompat.END);
+						}
+					});
+					AlertDialog dialog = builder.create();
+					dialog.show();
 				}
 			});
 
-			setFromTask.execute();
 		}
+
+		public class ViewHolder extends RecyclerView.ViewHolder {
+			public View view;
+
+			public ViewHolder(View view) {
+				super(view);
+
+				this.view = view;
+			}
+
+		}
+
+		public void setData(Collection<Pair<Long, String>> d, String active) {
+			data.clear();
+			data.addAll(d);
+			dataActive = active;
+			notifyDataSetChanged();
+		}
+
+		public void removeData(final Long id) {
+			Pair<Long, String> d = null;
+			for (Pair<Long, String> pair : data) {
+				if (pair.first.equals(id)) {
+					d = pair;
+					break;
+				}
+			}
+			if (d != null) {
+				data.remove(d);
+				notifyDataSetChanged();
+			}
+		}
+
+		public void refresh() {
+			final ArrayList<Pair<Long, String>> playlists = new ArrayList<>();
+			for (Playlist playlist : Playlist.loadAllPlaylists())
+				playlists.add(Pair.create(-1L, playlist.getName()));
+			Playlist.allPlaylist(getContentResolver(), new JavaEx.ActionTU<Long, String>() {
+				@Override
+				public void execute(Long id, String name) {
+					playlists.add(new Pair<Long, String>(id, name));
+				}
+			});
+			setData(playlists, Playlist.getActivePlaylist(getApplicationContext()));
+		}
+
+	}
+
+	private void loadActivePlaylist() {
+		setFromPlaylist(-1L, Playlist.getActivePlaylist(this));
 	}
 
 	//endregion
@@ -1393,21 +1531,21 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 				TextView title = (TextView) v.findViewById(R.id.title);
 				if (title != null)
-					title.setText(item.Title);
+					title.setText(item.getTitle());
 
 				TextView artist = (TextView) v.findViewById(R.id.artist);
 				if (artist != null)
-					artist.setText(item.Artist);
+					artist.setText(item.getArtist());
 
 				TextView album = (TextView) v.findViewById(R.id.album);
 				if (album != null)
-					album.setText(item.Album);
+					album.setText(item.getAlbum());
 
 				TextView info = (TextView) v.findViewById(R.id.info);
 				if (info != null) {
 					String s;
 					try {
-						s = item.getTextExtraOnlySingleLine(getMusicService().getPlaylist().indexOf(item.Path));
+						s = item.getTextExtraOnlySingleLine(getMusicService().getPlaylist().getItems().lastIndexOf(item));
 					} catch (Exception e) {
 						e.printStackTrace();
 
@@ -1433,7 +1571,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						Intent i = new Intent(LibraryUIActivity.this, MusicService.class);
 
 						i.setAction(MusicService.ACTION_OPEN);
-						i.putExtra(MusicService.KEY_URI, item.Path);
+						i.putExtra(MusicService.KEY_URI, item.getPath());
 
 						startService(i);
 
@@ -1444,6 +1582,11 @@ public class LibraryUIActivity extends BaseUIActivity {
 				v.setOnLongClickListener(new View.OnLongClickListener() {
 					@Override
 					public boolean onLongClick(View view) {
+						if (viewPlaylist == null) {
+							info("Open a playlist into view first!");
+							return true;
+						}
+
 						AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
 						builder.setTitle("Select the action");
 						builder.setItems(new CharSequence[]{
@@ -1465,8 +1608,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 											Intent shareIntent = new Intent();
 											shareIntent.setAction(Intent.ACTION_SEND);
 											shareIntent.putExtra(Intent.EXTRA_TEXT, item.getTextDetailedMultiLine());
-											shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(item.Path)));
-											if (item.Path.toLowerCase().endsWith("mp3"))
+											shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(item.getPath())));
+											if (item.getPath().toLowerCase().endsWith("mp3"))
 												shareIntent.setType("audio/mp3");
 											else if (item.hasVideo())
 												shareIntent.setType("video/*");
@@ -1476,30 +1619,33 @@ public class LibraryUIActivity extends BaseUIActivity {
 											startActivity(Intent.createChooser(shareIntent, "Share " + item.getText() + " ..."));
 											break;
 										case 1:
-											getMusicService().add(item.Path, getMusicService().getPlaylistPosition() + 1);
+											viewPlaylist.add(item, viewPlaylist.getItems().lastIndexOf(item) + 1);
 											break;
 										case 2:
-											getMusicService().add(item.Path, 0);
+											viewPlaylist.add(item, 0);
+											playlistsRecyclerViewAdapter.refresh();
 											break;
 										case 3:
-											getMusicService().add(item.Path, getMusicService().getPlaylist().size());
+											viewPlaylist.add(item, viewPlaylist.getItems().size());
 											break;
 										case 4:
-											getMusicService().remove(item.Path);
+											viewPlaylist.remove(item);
 											break;
 										case 5:
-											getMusicService().clearExceptCurrent();
+											viewPlaylist.removeAllExceptCurrent();
 											break;
 										case 6:
-											getMusicService().moveDown(item.Path);
+											viewPlaylist.moveDown(item);
 											break;
 										case 7:
-											getMusicService().moveUp(item.Path);
+											viewPlaylist.moveUp(item);
 											break;
 										case 8:
-											item.delete(getMusicService(), item.Path, true);
+											viewPlaylist.delete(item, getMusicService(), true);
 											break;
 									}
+
+									adapter.setData(viewPlaylist.getItems());
 								} catch (Exception e) {
 									Log.w(TAG, e);
 								}
@@ -1645,23 +1791,27 @@ public class LibraryUIActivity extends BaseUIActivity {
 		}
 
 		public void jumpToCurrentlyPlayingItem() {
-			int pg = -1;
-			int pc = -1;
-			String current = getMusicService().getCurrentPlaylistItem();
-			for (int gi = 0; gi < dataFiltered.size(); gi++) {
-				Pair<String, List<Object>> group = dataFiltered.get(gi);
-				for (int ci = 0; ci < group.second.size(); ci++) {
-					Music child = (Music) group.second.get(ci);
-					if (child != null && child.Path.equals(current)) {
-						pg = gi;
-						pc = ci;
-						break;
+			try {
+				int pg = -1;
+				int pc = -1;
+				String current = getMusicService().getMusic().getPath();
+				for (int gi = 0; gi < dataFiltered.size(); gi++) {
+					Pair<String, List<Object>> group = dataFiltered.get(gi);
+					for (int ci = 0; ci < group.second.size(); ci++) {
+						Music child = (Music) group.second.get(ci);
+						if (child != null && child.getPath().equals(current)) {
+							pg = gi;
+							pc = ci;
+							break;
+						}
 					}
 				}
+				long ppc = RecyclerViewExpandableItemManager.getPackedPositionForChild(pg, pc);
+				int k = recyclerViewExpandableItemManager.getFlatPosition(ppc);
+				bringInToView(k);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			long ppc = RecyclerViewExpandableItemManager.getPackedPositionForChild(pg, pc);
-			int k = recyclerViewExpandableItemManager.getFlatPosition(ppc);
-			bringInToView(k);
 		}
 
 		public void onGroupItemInView(View v) {
@@ -1764,136 +1914,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 			public float getPosition() {
 				return getProgress();
-			}
-		}
-
-	}
-
-	public class PlaylistRecyclerViewAdapter extends RecyclerView.Adapter<PlaylistRecyclerViewAdapter.ViewHolder> {
-
-		private final ArrayList<Pair<Long, String>> data;
-
-		public PlaylistRecyclerViewAdapter() {
-			data = new ArrayList<>();
-		}
-
-		@Override
-		public int getItemCount() {
-			return data.size();
-		}
-
-		@Override
-		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
-			View view = inflater.inflate(R.layout.library_ui_playlist_item, parent, false);
-
-			return new ViewHolder(view);
-		}
-
-		@Override
-		public void onBindViewHolder(final ViewHolder holder, int position) {
-			final Pair<Long, String> d = data.get(position);
-			final View v = holder.view;
-
-			TextView text = (TextView) v.findViewById(R.id.text);
-			text.setText(d.second);
-
-			v.setTag(d.first);
-			v.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
-					builder.setTitle("Are you sure?");
-					builder.setMessage("This will replace current playlist with selected one.");
-					builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							setFromPlaylist(Long.toString(d.first));
-
-							dialog.dismiss();
-
-							drawer_layout.closeDrawer(GravityCompat.END);
-						}
-					});
-					builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.dismiss();
-
-							drawer_layout.closeDrawer(GravityCompat.END);
-						}
-					});
-					AlertDialog dialog = builder.create();
-					dialog.show();
-				}
-			});
-			v.setOnLongClickListener(new View.OnLongClickListener() {
-				@Override
-				public boolean onLongClick(View view) {
-
-					AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(LibraryUIActivity.this, R.style.AppTheme_AlertDialogStyle));
-					builder.setTitle("Select the action");
-					builder.setItems(new CharSequence[]{
-							"Delete"
-					}, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int item) {
-							switch (item) {
-								case 0:
-									Music.deletePlaylist(getContentResolver(), d.first);
-									removeData(d.first);
-									break;
-							}
-						}
-					});
-					AlertDialog dialog = builder.create();
-					dialog.show();
-
-					return true;
-				}
-			});
-
-		}
-
-		public class ViewHolder extends RecyclerView.ViewHolder {
-			public View view;
-
-			public ViewHolder(View view) {
-				super(view);
-
-				this.view = view;
-			}
-
-		}
-
-		public void setData(Collection<Pair<Long, String>> d) {
-			data.clear();
-			data.addAll(d);
-			notifyDataSetChanged();
-		}
-
-		public void addData(Pair<Long, String> d) {
-			data.add(d);
-
-			notifyDataSetChanged();
-		}
-
-		public void removeData(Pair<Long, String> d) {
-			data.remove(d);
-
-			notifyDataSetChanged();
-		}
-
-		public void removeData(final Long id) {
-			Pair<Long, String> d = null;
-			for (Pair<Long, String> pair : data) {
-				if (pair.first.equals(id)) {
-					d = pair;
-					break;
-				}
-			}
-			if (d != null) {
-				data.remove(d);
-				notifyDataSetChanged();
 			}
 		}
 
@@ -2056,12 +2076,14 @@ public class LibraryUIActivity extends BaseUIActivity {
 	public synchronized List<Music> UIFilter(Collection<Music> data, String q) {
 		ArrayList<Music> result = new ArrayList<>();
 
+		q = q.toLowerCase();
+
 		for (Music m : data) {
 			boolean f = true;
 
 			SharedPreferences spref = SPrefEx.get(LibraryUIActivity.this);
 
-			String ext = m.Path.substring(m.Path.lastIndexOf(".")).toLowerCase();
+			String ext = m.getPath().substring(m.getPath().lastIndexOf(".")).toLowerCase();
 			for (UIFilters uiFilter : getUIFilters(LibraryUIActivity.this)) {
 				boolean uif = uiFilter == UIFilters.NoMP3 && ext.equals(".mp3")
 						|| uiFilter == UIFilters.NoM4A && ext.equals(".m4a")
@@ -2080,10 +2102,10 @@ public class LibraryUIActivity extends BaseUIActivity {
 			}
 
 			f &= TextUtils.isEmpty(q) || q.length() < 1 ||
-					(m.Path.toLowerCase().contains(q)
-							|| m.Title.toLowerCase().contains(q)
-							|| m.Artist.toLowerCase().contains(q)
-							|| m.Album.toLowerCase().contains(q));
+					(m.getPath().toLowerCase().contains(q)
+							|| m.getTitle().toLowerCase().contains(q)
+							|| m.getArtist().toLowerCase().contains(q)
+							|| m.getAlbum().toLowerCase().contains(q));
 
 			if (f)
 				result.add(m);
@@ -2202,7 +2224,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return x.Title.compareToIgnoreCase(y.Title);
+						return x.getTitle().compareToIgnoreCase(y.getTitle());
 					}
 				});
 				break;
@@ -2210,7 +2232,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return x.Album.compareToIgnoreCase(y.Album);
+						return x.getAlbum().compareToIgnoreCase(y.getAlbum());
 					}
 				});
 				break;
@@ -2218,7 +2240,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return x.Artist.compareToIgnoreCase(y.Artist);
+						return x.getArtist().compareToIgnoreCase(y.getArtist());
 					}
 				});
 				break;
@@ -2226,7 +2248,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return Integer.compare(x.Played, y.Played);
+						return Integer.compare(x.getPlayed(), y.getPlayed());
 					}
 				});
 				Collections.reverse(data);
@@ -2235,7 +2257,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return Integer.compare(x.Skipped, y.Skipped);
+						return Integer.compare(x.getSkipped(), y.getSkipped());
 					}
 				});
 				Collections.reverse(data);
@@ -2244,7 +2266,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return Long.compare(x.TimeAdded, y.TimeAdded);
+						return Long.compare(x.getTimeAdded(), y.getTimeAdded());
 					}
 				});
 				Collections.reverse(data);
@@ -2253,7 +2275,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return Double.compare(x.Score, y.Score);
+						return Double.compare(x.getScore(), y.getScore());
 					}
 				});
 				Collections.reverse(data);
@@ -2262,7 +2284,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				Collections.sort(data, new Comparator<Music>() {
 					@Override
 					public int compare(Music x, Music y) {
-						return Integer.compare(x.Track, y.Track);
+						return Integer.compare(x.getTrack(), y.getTrack());
 					}
 				});
 				break;
@@ -2379,7 +2401,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 		switch (uiGroupMode) {
 			case Album:
 				for (Music d : data) {
-					String key = d.Album;
+					String key = d.getAlbum();
 					if (TextUtils.isEmpty(key))
 						key = "*";
 					if (result.containsKey(key)) {
@@ -2395,7 +2417,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				break;
 			case Artist:
 				for (Music d : data) {
-					String key = d.Artist;
+					String key = d.getArtist();
 					if (TextUtils.isEmpty(key))
 						key = "*";
 					if (result.containsKey(key)) {

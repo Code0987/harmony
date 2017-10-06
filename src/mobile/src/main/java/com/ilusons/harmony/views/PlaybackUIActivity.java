@@ -563,14 +563,15 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
 		super.OnMusicServiceChanged(className, musicService, isBound);
 
-		final String item = musicService.getCurrentPlaylistItem();
-		if (item == null || TextUtils.isEmpty(item))
+		if (musicService.getMusic() == null)
 			return;
+
+		final String path = musicService.getMusic().getPath();
 
 		getWindow().getDecorView().post(new Runnable() {
 			@Override
 			public void run() {
-				resetForUriIfNeeded(item);
+				resetForUriIfNeeded(path);
 			}
 		});
 
@@ -585,8 +586,12 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
 
 		try {
-			if (getMusicService() != null)
-				resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+			if (getMusicService() != null) {
+				if (getMusicService().getMusic() == null)
+					return;
+				final String path = getMusicService().getMusic().getPath();
+				resetForUriIfNeeded(path);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -601,8 +606,16 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
 
-		if (getMusicService() != null)
-			resetForUriIfNeeded(getMusicService().getCurrentPlaylistItem());
+		try {
+			if (getMusicService() != null) {
+				if (getMusicService().getMusic() == null)
+					return;
+				final String path = getMusicService().getMusic().getPath();
+				resetForUriIfNeeded(path);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		if (video != null && video.getVisibility() == View.VISIBLE)
 			video.pause();
@@ -681,7 +694,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				if (info != null) {
 					String s;
 					try {
-						s = music.getTextDetailedMultiLine(getMusicService().getPlaylist().indexOf(music.Path));
+						s = music.getTextDetailedMultiLine(getMusicService().getPlaylist().getItemIndex());
 					} catch (Exception e) {
 						e.printStackTrace();
 
@@ -695,7 +708,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				// Load video
 				if (video != null && music.hasVideo()) {
 					video.setVisibility(View.VISIBLE);
-					video.setVideoPath(music.Path);
+					video.setVideoPath(music.getPath());
 					video.requestFocus();
 					video.start();
 				}
@@ -709,9 +722,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				if (lyrics_layout != null) {
 
 					if (lyricsViewFragment != null && lyricsViewFragment.isAdded()) {
-						lyricsViewFragment.reset(music, (long) Math.max(music.Length, getMusicService().getDuration()));
+						lyricsViewFragment.reset(music, (long) Math.max(music.getLength(), getMusicService().getDuration()));
 					} else if (!isFinishing()) {
-						lyricsViewFragment = LyricsViewFragment.create(music.Path, (long) Math.max(music.Length, getMusicService().getDuration()));
+						lyricsViewFragment = LyricsViewFragment.create(music.getPath(), (long) Math.max(music.getLength(), getMusicService().getDuration()));
 						getFragmentManager()
 								.beginTransaction()
 								.replace(R.id.lyrics_layout, lyricsViewFragment)

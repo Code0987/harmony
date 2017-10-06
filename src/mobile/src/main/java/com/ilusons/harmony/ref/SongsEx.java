@@ -11,7 +11,7 @@ public class SongsEx {
 	public static final String TAG = SongsEx.class.getSimpleName();
 
 	private static Pattern SongFileName1 = Pattern.compile(
-			"(.*)(\\s?-\\s?)(.*)",
+			"(.*)(\\s?[-|_]\\s?)(.*)",
 			Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
 	public static ArrayList<String> getArtistAndTitle(String filename) {
@@ -22,7 +22,7 @@ public class SongsEx {
 		Matcher m = SongFileName1.matcher(filename);
 		while (m.find()) {
 			String artist = m.group(1).trim();
-			String title = m.group(3).split("\\(|:|-|\\[|\\.")[0].trim();
+			String title = m.group(3).split("_|\\(|:|-|\\[|\\.")[0].trim();
 			if (TextUtils.isEmpty(title))
 				title = m.group(3).trim();
 

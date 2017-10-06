@@ -1,9 +1,6 @@
 package com.ilusons.harmony.data;
 
 import android.annotation.SuppressLint;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -11,19 +8,14 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
@@ -31,9 +23,7 @@ import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
-import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.SongsEx;
-import com.ilusons.harmony.ref.TimeIt;
 import com.ilusons.harmony.views.LyricsViewFragment;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 
@@ -45,37 +35,24 @@ import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.Artwork;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Predicate;
 
 import io.realm.Case;
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -90,25 +67,157 @@ public class Music extends RealmObject {
 	public static final String KEY_CACHE_DIR_LYRICS = "lyrics";
 
 	// Basic
-	public String Title = "";
-	public String Artist = "";
-	public String Album = "";
-	public int Length = -1;
-	public int Track = -1;
 	@PrimaryKey
-	public String Path;
-	public String Playlists = "";
+	private String Id = (UUID.randomUUID().toString());
+
+	public String getId() {
+		return Id;
+	}
+
+	public void setId(String id) {
+		Id = id;
+	}
+
+	private String Title = "";
+
+	public String getTitle() {
+		return Title;
+	}
+
+	public void setTitle(String title) {
+		Title = title;
+	}
+
+	private String Artist = "";
+
+	public String getArtist() {
+		return Artist;
+	}
+
+	public void setArtist(String artist) {
+		Artist = artist;
+	}
+
+	private String Album = "";
+
+	public String getAlbum() {
+		return Album;
+	}
+
+	public void setAlbum(String album) {
+		Album = album;
+	}
+
+	private int Length = -1;
+
+	public int getLength() {
+		return Length;
+	}
+
+	public void setLength(int length) {
+		Length = length;
+	}
+
+	private int Track = -1;
+
+	public int getTrack() {
+		return Track;
+	}
+
+	public void setTrack(int track) {
+		Track = track;
+	}
+
+	private String Path;
+
+	public String getPath() {
+		return Path;
+	}
+
+	public void setPath(String path) {
+		Path = path;
+	}
 
 	// Stats
-	public int Played = 0;
-	public long TimeLastPlayed = -1L;
-	public long TotalDurationPlayed = 0L;
-	public int Skipped = 0;
-	public long TimeLastSkipped = -1L;
-	public long TimeAdded = -1L;
-	public String Mood = "";
+	private int Played = 0;
 
-	public double Score = 0.0;
+	public int getPlayed() {
+		return Played;
+	}
+
+	public void setPlayed(int value) {
+		Played = value;
+	}
+
+	private long TimeLastPlayed = -1L;
+
+	public long getTimeLastPlayed() {
+		return TimeLastPlayed;
+	}
+
+	public void setTimeLastPlayed(long value) {
+		TimeLastPlayed = value;
+	}
+
+	private long TotalDurationPlayed = 0L;
+
+	public long getTotalDurationPlayed() {
+		return TotalDurationPlayed;
+	}
+
+	public void setTotalDurationPlayed(long value) {
+		TotalDurationPlayed = value;
+	}
+
+	private int Skipped = 0;
+
+	public int getSkipped() {
+		return Played;
+	}
+
+	public void setSkipped(int value) {
+		Skipped = value;
+	}
+
+	private long TimeLastSkipped = -1L;
+
+	public long getTimeLastSkipped() {
+		return TimeLastSkipped;
+	}
+
+	public void setTimeLastSkipped(long value) {
+		TimeLastSkipped = value;
+	}
+
+	private long TimeAdded = -1L;
+
+	public long getTimeAdded() {
+		return TimeAdded;
+	}
+
+	public void setTimeAdded(long value) {
+		TimeAdded = value;
+	}
+
+	private String Mood = "";
+
+	public String getMood() {
+		return Mood;
+	}
+
+	public void setMood(String value) {
+		Mood = value;
+	}
+
+	private double Score = 0.0;
+
+	public double getScore() {
+		return Score;
+	}
+
+	public void setScore(double value) {
+		Score = value;
+	}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -121,20 +230,6 @@ public class Music extends RealmObject {
 			return true;
 
 		return false;
-	}
-
-	public void addPlaylist(String playlist) {
-		if (!Playlists.contains(playlist))
-			Playlists += playlist;
-	}
-
-	public void removePlaylist(String playlist) {
-		if (Playlists.contains(playlist))
-			Playlists = Playlists.replace(playlist, "");
-	}
-
-	public boolean isInPlaylist(String playlist) {
-		return Playlists.contains(playlist);
 	}
 
 	public String getText() {
@@ -188,8 +283,9 @@ public class Music extends RealmObject {
 				sb.append(del);
 			sb.append("#");
 			sb.append(Track);
-			sb.append(del);
 		}
+		if (sb.length() > 0)
+			sb.append(del);
 		sb.append(Title);
 		if (!TextUtils.isEmpty(Artist)) {
 			sb.append(del);
@@ -203,8 +299,10 @@ public class Music extends RealmObject {
 			sb.append(del);
 			sb.append("⏳ ");
 			sb.append(DurationFormatUtils.formatDuration(Length, "mm:ss", false));
-			sb.append("/");
-			sb.append(DurationFormatUtils.formatDuration(TotalDurationPlayed, "mm:ss", false));
+			if (TotalDurationPlayed > -1) {
+				sb.append("/");
+				sb.append(DurationFormatUtils.formatDuration(TotalDurationPlayed, "mm:ss", false));
+			}
 		}
 		sb.append(del);
 		sb.append("\uD83C\uDFB5 ").append(Played).append("/").append(Skipped);
@@ -512,8 +610,11 @@ public class Music extends RealmObject {
 		try {
 			// Get data
 			if (data == null) {
-				if (path != null)
-					data = get(realm, path);
+				if (path != null) {
+					data = realm.where(Music.class).equalTo("Path", path).findFirst();
+					if (data != null)
+						data = realm.copyFromRealm(data);
+				}
 				if (data == null)
 					data = new Music();
 
@@ -797,7 +898,7 @@ public class Music extends RealmObject {
 
 			if (data != null)
 				try {
-					Music dbData = get(realm, data.Path);
+					Music dbData = realm.where(Music.class).equalTo("Path", data.Path).findFirst();
 					if (dbData != null)
 						data = realm.copyFromRealm(dbData);
 				} catch (Exception e) {
@@ -812,19 +913,93 @@ public class Music extends RealmObject {
 			if (realm.isInTransaction()) {
 				realm.cancelTransaction();
 			} else {
-				Log.w(TAG, "Could not cancel transaction, not currently in a transaction.");
+				Log.w(TAG, e);
 			}
 		}
 
 		if (data != null)
-			Log.d(TAG, "added to library\n" + data.Path);
+			Log.d(TAG, "decode\n" + data.Path);
 
 		return data;
 	}
 
 	public void refresh(Context context) {
-		try (Realm realm = getDB()) {
+		try (Realm realm = DB.getDB()) {
 			Music.decode(realm, context, Path, null, false, this);
+		}
+	}
+
+	//endregion
+
+	//region DB
+
+	public static Collection<Music> loadAll() {
+		try {
+			try (Realm realm = DB.getDB()) {
+				if (realm == null)
+					throw new Exception("Realm error.");
+				return realm.copyFromRealm(realm.where(Music.class).findAll());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+
+	public static Music load(Realm realm, Context context, String path) {
+		Music data = realm.where(Music.class).equalTo("Path", path).findFirst();
+		if (data == null)
+			data = Music.decode(realm, context, path, null, false, null);
+		else
+			data = realm.copyFromRealm(data);
+
+		return data;
+	}
+
+	public static Music load(Context context, String path) {
+		try (Realm realm = DB.getDB()) {
+			return load(realm, context, path);
+		}
+	}
+
+	public static void delete(final MusicService musicService, final Realm realm, final String path, boolean notify) {
+		try {
+			if (musicService.getMusic().Path.equals(path))
+				musicService.next(musicService.isPlaying());
+
+			realm.executeTransaction(new Realm.Transaction() {
+				@Override
+				public void execute(Realm realm) {
+					realm.where(Music.class)
+							.equalTo("Path", path, Case.INSENSITIVE)
+							.findAll()
+							.deleteAllFromRealm();
+				}
+			});
+
+			(new File(path)).deleteOnExit();
+
+			if (notify) {
+				final Context context = musicService;
+
+				Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
+				LocalBroadcastManager
+						.getInstance(context)
+						.sendBroadcast(broadcastIntent);
+
+				Intent musicServiceIntent = new Intent(context, MusicService.class);
+				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
+				context.startService(musicServiceIntent);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void delete(final MusicService musicService, final String path, boolean notify) {
+		try (Realm realm = DB.getDB()) {
+			delete(musicService, realm, path, notify);
 		}
 	}
 
@@ -907,514 +1082,6 @@ public class Music extends RealmObject {
 
 	//endregion
 
-	//region Playlist
-
-	public static void allPlaylist(ContentResolver cr, final JavaEx.ActionTU<Long, String> action) {
-		if (action == null)
-			return;
-
-		try {
-			Cursor cursor = cr.query(
-					MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-					new String[]{
-							MediaStore.Audio.Playlists._ID,
-							MediaStore.Audio.Playlists.NAME
-					},
-					null,
-					null,
-					MediaStore.Audio.Playlists.NAME + " ASC");
-			if (cursor != null) {
-				int count = 0;
-				count = cursor.getCount();
-
-				if (count > 0) {
-					while (cursor.moveToNext()) {
-						Long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
-						String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME));
-
-						action.execute(id, name);
-					}
-
-				}
-
-				cursor.close();
-			}
-		} catch (Exception e) {
-			Log.w(TAG, e);
-		}
-	}
-
-	public static long createPlaylist(ContentResolver cr, String playlistName) {
-		long playlistId = -1;
-
-		ContentValues contentValues = new ContentValues();
-		contentValues.put(MediaStore.Audio.Playlists.NAME, playlistName);
-		contentValues.put(MediaStore.Audio.Playlists.DATE_ADDED, System.currentTimeMillis());
-		contentValues.put(MediaStore.Audio.Playlists.DATE_MODIFIED, System.currentTimeMillis());
-
-		Uri uri = cr.insert(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, contentValues);
-
-		if (uri != null) {
-			Cursor cursor;
-			cursor = cr.query(
-					uri,
-					new String[]{
-							MediaStore.Audio.Playlists._ID,
-							MediaStore.Audio.Playlists.NAME
-					},
-					null,
-					null,
-					null);
-			if (cursor != null) {
-				playlistId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
-
-				cursor.close();
-
-				Log.d(TAG, "Created playlist [" + playlistName + "], [" + playlistId + "].");
-			} else {
-				Log.w(TAG, "Creating playlist failed [" + playlistName + "], [" + playlistId + "].");
-			}
-		}
-
-		return playlistId;
-	}
-
-	public static void deletePlaylist(ContentResolver cr, Long playlistId) {
-		cr.delete(
-				MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-				MediaStore.Audio.Playlists._ID + "=?",
-				new String[]{
-						Long.toString(playlistId)
-				});
-	}
-
-	public static void renamePlaylist(ContentResolver cr, Long playlistId, String playlistName) {
-		ContentValues contentValues = new ContentValues();
-		contentValues.put(MediaStore.Audio.Playlists.NAME, playlistName);
-
-		cr.update(
-				MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-				contentValues,
-				MediaStore.Audio.Playlists._ID + " =? ",
-				new String[]{
-						Long.toString(playlistId)
-				});
-	}
-
-	public static long getPlaylistIdFor(ContentResolver cr, String playlistName, boolean autoCreate) {
-		long playlistId = -1;
-
-		Cursor cursor = cr.query(
-				MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-				new String[]{
-						MediaStore.Audio.Playlists._ID,
-						MediaStore.Audio.Playlists.NAME
-				},
-				null,
-				null,
-				MediaStore.Audio.Playlists.NAME + " ASC");
-		int count = 0;
-		if (cursor != null) {
-			count = cursor.getCount();
-
-			if (count > 0) {
-				while (cursor.moveToNext()) {
-					long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID));
-					String name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME));
-
-					if (name.equalsIgnoreCase(playlistName)) {
-						playlistId = id;
-
-						break;
-					}
-				}
-
-			}
-
-			cursor.close();
-		}
-
-		if (autoCreate && playlistId == -1) {
-			Log.d(TAG, "Creating playlist [" + playlistName + "], no previous record.");
-
-			playlistId = createPlaylist(cr, playlistName);
-		}
-
-		Log.d(TAG, "Playlist [" + playlistName + "], [" + playlistId + "].");
-
-
-		return playlistId;
-	}
-
-	public static Collection<String> getAllAudioIdsInPlaylist(ContentResolver cr, long playlistId) {
-		ArrayList<String> result = new ArrayList<>();
-
-		Cursor cursor = cr.query(
-				MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId),
-				new String[]{
-						MediaStore.Audio.Playlists.Members.AUDIO_ID
-				},
-				MediaStore.Audio.Media.IS_MUSIC + " != 0 ",
-				null,
-				null,
-				null);
-		if (cursor != null) {
-			int count = 0;
-			count = cursor.getCount();
-
-			if (count > 0) {
-				while (cursor.moveToNext()) {
-					String audio_id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.AUDIO_ID));
-
-					result.add(audio_id);
-				}
-
-			}
-
-			cursor.close();
-		}
-
-		return result;
-	}
-
-	public static void getAllMusicForIds(Realm realm, Context context, Collection<String> audioIds, JavaEx.ActionT<Music> action) {
-		if (action == null)
-			return;
-
-		for (String audioId : audioIds) {
-			Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId));
-
-			Music data = decode(realm, context, null, contentUri, true, null);
-
-			if (data != null)
-				action.execute(data);
-		}
-	}
-
-	public static void addToPlaylist(ContentResolver cr, long playlistId, Collection<Integer> audioIds) {
-		Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
-		Cursor cursor = cr.query(
-				uri,
-				new String[]{
-						MediaStore.Audio.Playlists.Members.PLAY_ORDER
-				},
-				null,
-				null,
-				null);
-		if (cursor != null) {
-			cursor.moveToLast();
-
-			final int base = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.PLAY_ORDER));
-
-			cursor.close();
-
-			int play_order = base;
-			for (int audioId : audioIds) {
-				ContentValues values = new ContentValues();
-				play_order++;
-				values.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, play_order);
-				values.put(MediaStore.Audio.Playlists.Members.AUDIO_ID, audioId);
-
-				cr.insert(uri, values);
-			}
-		}
-	}
-
-	public static void removeFromPlaylist(ContentResolver cr, long playlistId, Collection<Integer> audioIds) {
-		Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
-
-		for (int audioId : audioIds)
-			cr.delete(uri, MediaStore.Audio.Playlists.Members.AUDIO_ID + " = " + audioId, null);
-	}
-
-//endregion
-
-	//region DB
-
-	public static Realm getDB() {
-		try {
-			RealmConfiguration config = new RealmConfiguration.Builder()
-					.name("music.realm")
-					.deleteRealmIfMigrationNeeded()
-					.build();
-
-			return Realm.getInstance(config);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	}
-
-	public static RealmResults<Music> getAll(Realm realm) {
-		return realm.where(Music.class).findAll();
-	}
-
-	public static RealmResults<Music> getAll(Realm realm, String path) {
-		return realm.where(Music.class).equalTo("Path", path).findAll();
-	}
-
-	public static Music get(Realm realm, String path) {
-		return realm.where(Music.class).equalTo("Path", path).findFirst();
-	}
-
-	public static final String KEY_PLAYLIST_MEDIASTORE = "mediastore";
-	public static final String KEY_PLAYLIST_STORAGE = "storage";
-	public static final String KEY_PLAYLIST_CURRENT = "current";
-
-	public static RealmResults<Music> getAllInPlaylist(Realm realm, String playlist) {
-		RealmResults<Music> result = realm
-				.where(Music.class)
-				.contains("Playlists", playlist, Case.INSENSITIVE)
-				.findAll();
-
-		return result;
-	}
-
-	public static Music load(Realm realm, Context context, String path) {
-		Music data = get(realm, path);
-		if (data == null)
-			data = decode(realm, context, path, null, false, null);
-		else
-			data = realm.copyFromRealm(data);
-
-		return data;
-	}
-
-	public static Music load(Context context, String path) {
-		try (Realm realm = getDB()) {
-			return load(realm, context, path);
-		}
-	}
-
-	public static ArrayList<Music> loadAll(Realm realm) {
-		ArrayList<Music> result = new ArrayList<>();
-
-		result.addAll(realm.copyFromRealm(getAllInPlaylist(realm, KEY_PLAYLIST_MEDIASTORE)));
-		result.addAll(realm.copyFromRealm(getAllInPlaylist(realm, KEY_PLAYLIST_STORAGE)));
-
-		return result;
-	}
-
-	public static ArrayList<Music> loadAll() {
-		try (Realm realm = getDB()) {
-			return loadAll(realm);
-		}
-	}
-
-	public static ArrayList<Music> loadCurrent(Realm realm) {
-		ArrayList<Music> result = new ArrayList<>();
-
-		RealmResults<Music> realmResults = getAllInPlaylist(realm, KEY_PLAYLIST_CURRENT);
-
-		result.addAll(realm.copyFromRealm(realmResults));
-
-		if (result.size() == 0)
-			result.addAll(loadAll(realm));
-
-		return result;
-	}
-
-	public static ArrayList<Music> loadCurrent() {
-		try (Realm realm = getDB()) {
-			return loadCurrent(realm);
-		}
-	}
-
-	public static final String KEY_PLAYLIST_CURRENT_EXP_M3U = "harmony.m3u";
-
-	public static void saveCurrent(Realm realm, Context context, final Collection<Music> data, boolean notify) {
-		try {
-			try {
-				ArrayList<String> items = new ArrayList<>();
-				for (Music item : data)
-					items.add(item.Path);
-
-				setPlaylistCurrentSortOrder(context, items, notify, notify);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					for (Music item : data) {
-						if (!item.isInPlaylist(KEY_PLAYLIST_CURRENT))
-							item.addPlaylist(KEY_PLAYLIST_CURRENT);
-					}
-
-					realm.copyToRealmOrUpdate(data);
-				}
-			});
-
-			String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString();
-
-			//noinspection ConstantConditions
-			String base = (new File(root)).getAbsolutePath();
-			String nl = System.getProperty("line.separator");
-			StringBuilder sb = new StringBuilder();
-			for (Music music : data) {
-				String url = IOEx.getRelativePath(base, music.Path);
-				sb.append(url).append(nl);
-			}
-
-			File file = new File(root);
-			//noinspection ResultOfMethodCallIgnored
-			file.mkdirs();
-			file = new File(root + "/" + KEY_PLAYLIST_CURRENT_EXP_M3U);
-
-			FileUtils.writeStringToFile(file, sb.toString(), "utf-8", false);
-
-			MediaScannerConnection.scanFile(context,
-					new String[]{
-							file.toString()
-					},
-					null,
-					new MediaScannerConnection.OnScanCompletedListener() {
-						public void onScanCompleted(String path, Uri uri) {
-							Log.i(TAG, "Scanned " + path + ", uri=" + uri);
-						}
-					});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (notify) {
-			Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
-			LocalBroadcastManager
-					.getInstance(context)
-					.sendBroadcast(broadcastIntent);
-
-			Intent musicServiceIntent = new Intent(context, MusicService.class);
-			musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
-			context.startService(musicServiceIntent);
-		}
-	}
-
-	public static void saveCurrent(Context context, final Collection<Music> data, boolean notify) {
-		try (Realm realm = getDB()) {
-			saveCurrent(realm, context, data, notify);
-		}
-	}
-
-	public static void sort(List<Music> data, List<String> keys) {
-		if (keys == null)
-			return;
-		if (keys.size() == 0)
-			return;
-
-		Map<String, List<Music>> map = new HashMap<>();
-		for (String string : keys)
-			map.put(string, new ArrayList<Music>());
-		for (Music item : data) {
-			List<Music> value = map.get(item.Path);
-			if (value != null)
-				value.add(item);
-		}
-		data.clear();
-		for (String string : keys)
-			for (Music item : map.get(string))
-				data.add(item);
-	}
-
-	public static final String TAG_SPREF_PLAYLIST_CURRENT_SORT_ORDER = SPrefEx.TAG_SPREF + ".playlist_current_sort_order";
-
-	public static List<String> getPlaylistCurrentSortOrder(Context context) {
-		String s = SPrefEx.get(context).getString(TAG_SPREF_PLAYLIST_CURRENT_SORT_ORDER, null);
-		if (TextUtils.isEmpty(s))
-			return null;
-		return new ArrayList<String>(Arrays.asList(s.split(";")));
-	}
-
-	public static void setPlaylistCurrentSortOrder(Context context, Collection<String> data, boolean notifyUI, boolean notifyService) {
-		StringBuilder value = new StringBuilder();
-		for (String item : data)
-			value.append(item).append(";");
-
-		SPrefEx.get(context)
-				.edit()
-				.putString(TAG_SPREF_PLAYLIST_CURRENT_SORT_ORDER, value.toString())
-				.apply();
-
-		if (notifyUI) {
-			Intent broadcastIntent = new Intent(MusicService.ACTION_PLAYLIST_CURRENT_UPDATED);
-			LocalBroadcastManager
-					.getInstance(context)
-					.sendBroadcast(broadcastIntent);
-		}
-
-		if (notifyService) {
-			Intent musicServiceIntent = new Intent(context, MusicService.class);
-			musicServiceIntent.setAction(MusicService.ACTION_PLAYLIST_CURRENT_UPDATED);
-			context.startService(musicServiceIntent);
-		}
-	}
-
-	public static ArrayList<Music> loadCurrentSorted(Realm realm, Context context) {
-		ArrayList<Music> data = loadCurrent(realm);
-
-		sort(data, getPlaylistCurrentSortOrder(context));
-
-		return data;
-	}
-
-	public static ArrayList<Music> loadCurrentSorted(Context context) {
-		ArrayList<Music> data = loadCurrent();
-
-		sort(data, getPlaylistCurrentSortOrder(context));
-
-		return data;
-	}
-
-	public static void delete(final MusicService musicService, final Realm realm, final String path, boolean notify) {
-		try {
-			if (musicService.getCurrentPlaylistItemMusic().Path.equals(path))
-				musicService.next(musicService.isPlaying());
-
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					realm.where(Music.class)
-							.equalTo("Path", path, Case.INSENSITIVE)
-							.findAll()
-							.deleteAllFromRealm();
-				}
-			});
-
-			(new File(path)).deleteOnExit();
-
-			List<String> playlistCurrentSortOrder = getPlaylistCurrentSortOrder(musicService);
-			if (playlistCurrentSortOrder != null) {
-				playlistCurrentSortOrder.remove(path);
-				setPlaylistCurrentSortOrder(musicService, playlistCurrentSortOrder, notify, notify);
-			}
-
-			if (notify) {
-				final Context context = musicService;
-
-				Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
-				LocalBroadcastManager
-						.getInstance(context)
-						.sendBroadcast(broadcastIntent);
-
-				Intent musicServiceIntent = new Intent(context, MusicService.class);
-				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
-				context.startService(musicServiceIntent);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void delete(final MusicService musicService, final String path, boolean notify) {
-		try (Realm realm = getDB()) {
-			delete(musicService, realm, path, notify);
-		}
-	}
-
-	//endregion
-
 	//region Smart functions
 
 	public static double getScore(Music music) {
@@ -1469,7 +1136,7 @@ public class Music extends RealmObject {
 	public static Music getAtTopByScore() {
 		try {
 			if (atTopByScore == null)
-				try (Realm realm = getDB()) {
+				try (Realm realm = DB.getDB()) {
 					RealmResults<Music> result = realm
 							.where(Music.class)
 							.findAllSorted("Score", Sort.DESCENDING);
@@ -1488,7 +1155,7 @@ public class Music extends RealmObject {
 		ArrayList<Music> result = new ArrayList<>();
 
 		try {
-			try (Realm realm = getDB()) {
+			try (Realm realm = DB.getDB()) {
 				RealmResults<Music> realmResults = realm
 						.where(Music.class)
 						.findAllSorted(field, order);
