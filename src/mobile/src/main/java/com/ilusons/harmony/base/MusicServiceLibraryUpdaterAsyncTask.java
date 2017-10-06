@@ -110,12 +110,12 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 					Log.d(TAG, "Library update from storage took " + (System.currentTimeMillis() - time) + "ms");
 
-					// Scan current
-					scanCurrent();
+					// Scan all
+					scanAll();
 
 					updateNotification("Final scan completed.", true);
 
-					Log.d(TAG, "Library update from current took " + (System.currentTimeMillis() - time) + "ms");
+					Log.d(TAG, "Library update from all took " + (System.currentTimeMillis() - time) + "ms");
 
 					Log.d(TAG, "Library update took " + (System.currentTimeMillis() - time) + "ms");
 
@@ -334,7 +334,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		}
 	}
 
-	private void scanCurrent() {
+	private void scanAll() {
 		if (isCancelled())
 			return;
 
@@ -346,21 +346,23 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 			if (realm == null)
 				return;
 
+			updateNotification("Updating [" + Playlist.KEY_PLAYLIST_ALL + "] ...", true);
+
 			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_ALL);
 
 			Playlist.update(realm, playlist);
 
+			realm.beginTransaction();
 			try {
-				for (Music item : Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_MEDIASTORE).getItems())
+				for (Music item : realm.where(Music.class).findAll())
 					playlist.addIfNot(item);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			try {
-				for (Music item : Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_STORAGE).getItems())
-					playlist.addIfNot(item);
-			} catch (Exception e) {
-				e.printStackTrace();
+
+				realm.commitTransaction();
+			} catch (Throwable e) {
+				if (realm.isInTransaction()) {
+					realm.cancelTransaction();
+				}
+				Log.w(TAG, e);
 			}
 
 			Playlist.savePlaylist(realm, playlist);
