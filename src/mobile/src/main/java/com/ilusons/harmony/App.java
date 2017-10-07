@@ -81,17 +81,6 @@ public class App extends Application {
 
 		// DB
 		RealmEx.init(this);
-		if (BuildConfig.DEBUG)
-			try {
-				List<Class<? extends RealmObject>> classes = new ArrayList<>();
-				classes.add(Music.class);
-				classes.add(Playlist.class);
-				new RealmBrowser.Builder(this)
-						.add(DB.getDBConfig(), classes)
-						.showNotification();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 
 		Once.initialise(this);
 

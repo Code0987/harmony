@@ -76,6 +76,7 @@ import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
+import com.scand.realmbrowser.RealmBrowser;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -103,6 +104,7 @@ import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 import io.realm.Realm;
+import io.realm.RealmObject;
 import jonathanfinerty.once.Once;
 
 // TODO: See below
@@ -440,6 +442,19 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 		// Load playlist
 		loadActivePlaylist();
+
+		// Debug
+		if (BuildConfig.DEBUG)
+			try {
+				List<Class<? extends RealmObject>> classes = new ArrayList<>();
+				classes.add(Music.class);
+				classes.add(Playlist.class);
+				new RealmBrowser.Builder(this)
+						.add(DB.getDBConfig(), classes)
+						.showNotification();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 	}
 
 	@Override
@@ -2091,7 +2106,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 		Album("Album ▲"),
 		Artist("Artist ▲"),
 		Played("Times Played ▼"),
-		Skipped("Times skipped ▼"),
+		Skipped("Times Skipped ▼"),
 		Added("Added On ▼"),
 		Score("Smart score"),
 		Track("# Track"),;

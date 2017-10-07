@@ -96,7 +96,17 @@ android {
 		sourceCompatibility JavaVersion.VERSION_1_7
 		targetCompatibility JavaVersion.VERSION_1_7
 	}
-
+	externalNativeBuild {
+		ndkBuild {
+			path "../../res/libs/chromaprint-android/jni/Android.mk"
+		}
+	}
+	sourceSets {
+		main {
+			java.srcDirs += '../../res/libs/chromaprint-android/src'
+			jniLibs.srcDirs += '../../res/libs/chromaprint-android/libs'
+		}
+	}
 	applicationVariants.all { variant ->
 		// Git tag
 		if (variant.buildType.name == "release" || variant.buildType.name == "releaseAlpha" || variant.buildType.name == "releaseBeta") {

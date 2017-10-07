@@ -41,8 +41,11 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.data.Api;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -213,15 +216,85 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		av_layout.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View view) {
-				if (!getPlaybackUIAVHidden(PlaybackUIActivity.this)) {
-					cover.animate().alpha(0.3f).setDuration(666).start();
+				if (!MusicService.IsPremium) {
+					MusicService.showPremiumFeatureMessage(PlaybackUIActivity.this);
 
-					setPlaybackUIAVHidden(PlaybackUIActivity.this, true);
-				} else {
-					cover.animate().alpha(1.0f).setDuration(333).start();
-
-					setPlaybackUIAVHidden(PlaybackUIActivity.this, false);
+					return false;
 				}
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+				builder.setTitle("Select the action");
+				builder.setItems(new CharSequence[]{
+						"Fade / Show cover art",
+						"Re-download cover art",
+						"Fingerprint and update details"
+				}, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int itemIndex) {
+						try {
+							switch (itemIndex) {
+								case 0:
+									if (!getPlaybackUIAVHidden(PlaybackUIActivity.this)) {
+										cover.animate().alpha(0.3f).setDuration(666).start();
+
+										setPlaybackUIAVHidden(PlaybackUIActivity.this, true);
+									} else {
+										cover.animate().alpha(1.0f).setDuration(333).start();
+
+										setPlaybackUIAVHidden(PlaybackUIActivity.this, false);
+									}
+									break;
+								case 1:
+									Music data = getMusicService().getMusic();
+									ArtworkEx.getArtworkDownloaderTask(
+											PlaybackUIActivity.this,
+											data.getText(),
+											ArtworkEx.ArtworkType.Song,
+											-1,
+											data.getPath(),
+											Music.KEY_CACHE_DIR_COVER,
+											data.getPath(),
+											new JavaEx.ActionT<Bitmap>() {
+												@Override
+												public void execute(Bitmap bitmap) {
+													onCoverReloaded(bitmap);
+												}
+											},
+											new JavaEx.ActionT<Exception>() {
+												@Override
+												public void execute(Exception e) {
+													Log.w(TAG, e);
+												}
+											},
+											1500);
+									break;
+								case 2:
+									Api.lookupAndUpdateMusicData(
+											getMusicService(),
+											getMusicService().getMusic(),
+											new JavaEx.ActionT<Music>() {
+												@Override
+												public void execute(Music data) {
+													info("Music details updated.");
+
+													resetForUriIfNeeded(data.getPath());
+												}
+											},
+											new JavaEx.ActionT<Exception>() {
+												@Override
+												public void execute(Exception e) {
+													info("Music details were not found over internet.");
+												}
+											});
+									break;
+							}
+						} catch (Exception e) {
+							Log.w(TAG, e);
+						}
+					}
+				});
+				AlertDialog dialog = builder.create();
+				dialog.show();
 
 				return true;
 			}
