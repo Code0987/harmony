@@ -104,7 +104,6 @@ android {
 	sourceSets {
 		main {
 			java.srcDirs += '../../res/libs/chromaprint-android/src'
-			jniLibs.srcDirs += '../../res/libs/chromaprint-android/libs'
 		}
 	}
 	applicationVariants.all { variant ->

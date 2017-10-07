@@ -1,5 +1,6 @@
 package com.ilusons.harmony.views;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -42,21 +43,26 @@ import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Api;
+import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
+import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
+import java.util.Map;
 import java.util.UUID;
 
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
+import io.realm.Realm;
 import jonathanfinerty.once.Once;
 import jp.wasabeef.blurry.Blurry;
 
@@ -245,6 +251,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 									}
 									break;
 								case 1:
+									info("Downloading artwork ...", true);
+
 									Music data = getMusicService().getMusic();
 									ArtworkEx.getArtworkDownloaderTask(
 											PlaybackUIActivity.this,
@@ -257,33 +265,89 @@ public class PlaybackUIActivity extends BaseUIActivity {
 											new JavaEx.ActionT<Bitmap>() {
 												@Override
 												public void execute(Bitmap bitmap) {
+													info("Artwork downloaded!");
+
 													onCoverReloaded(bitmap);
 												}
 											},
 											new JavaEx.ActionT<Exception>() {
 												@Override
 												public void execute(Exception e) {
+													info("Artwork download failed!");
+
 													Log.w(TAG, e);
 												}
 											},
-											1500);
+											1500,
+											true);
 									break;
 								case 2:
+									info("Generating fingerprint and looking up ...", true);
+									final Music m = getMusicService().getMusic();
 									Api.lookupAndUpdateMusicData(
 											getMusicService(),
-											getMusicService().getMusic(),
-											new JavaEx.ActionT<Music>() {
+											m,
+											new JavaEx.ActionT<Map<String, String>>() {
 												@Override
-												public void execute(Music data) {
-													info("Music details updated.");
+												public void execute(Map<String, String> result) {
+													info("Music details found!");
 
-													resetForUriIfNeeded(data.getPath());
+													final String title = result.get("title");
+													final String artist = result.get("artist");
+													final String album = result.get("album");
+													final String score = result.get("score");
+													final String id = result.get("id");
+
+													if (TextUtils.isEmpty(title)) {
+														info("Music details found were not appropriate for use!");
+
+														return;
+													}
+
+													(new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle))
+															.setTitle("Apply new details?")
+															.setMessage("Title: " + title
+																	+ "\nArtist: " + artist
+																	+ "\nAlbum: " + album
+																	+ "\nConfidence: " + ((int) (Double.parseDouble(score) * 100)) + "%")
+															.setCancelable(true)
+															.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+																@Override
+																public void onClick(DialogInterface dialogInterface, int i) {
+																	try (Realm realm = DB.getDB()) {
+																		if (realm == null)
+																			return;
+
+																		realm.executeTransaction(new Realm.Transaction() {
+																			@Override
+																			public void execute(Realm realm) {
+																				m.setTitle(title);
+																				m.setArtist(artist);
+																				m.setAlbum(album);
+
+																				realm.insertOrUpdate(m);
+																			}
+																		});
+																	}
+
+																	resetForUriIfNeeded(m.getPath(), true);
+
+																	info("Music details updated, you may need to restart app to see changes!");
+																}
+															})
+															.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+																@Override
+																public void onClick(DialogInterface dialogInterface, int i) {
+																	dialogInterface.dismiss();
+																}
+															}))
+															.show();
 												}
 											},
 											new JavaEx.ActionT<Exception>() {
 												@Override
 												public void execute(Exception e) {
-													info("Music details were not found over internet.");
+													info("Music details were not found over internet or some error occurred.");
 												}
 											});
 									break;
@@ -742,11 +806,12 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	private String currentUri;
 
-	private void resetForUriIfNeeded(String uri) {
+	private void resetForUriIfNeeded(String uri, boolean force) {
 		Log.d(TAG, "resetForUri\n" + uri);
 
-		if (currentUri != null && currentUri.equals(uri))
-			return;
+		if (!force)
+			if (currentUri != null && currentUri.equals(uri))
+				return;
 
 		currentUri = uri;
 
@@ -820,6 +885,10 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		else
 			OnMusicServicePause();
 
+	}
+
+	private void resetForUriIfNeeded(String uri) {
+		resetForUriIfNeeded(uri, false);
 	}
 
 	public void onCoverReloaded(Bitmap bitmap) {

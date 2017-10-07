@@ -1,6 +1,7 @@
 package com.ilusons.harmony.ref;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import android.annotation.SuppressLint;
 import android.media.MediaCodec;
@@ -13,22 +14,18 @@ public class MediaEx {
 	/*
 	This class opens a file, reads the first audio channel it finds, and returns raw audio data.
 
-	      MediaDecoder decoder = new MediaDecoder(".m4a");
+	      MediaDecoder codec = new MediaDecoder(".m4a");
 	      short[] data;
-	      while ((data = decoder.readShortData()) != null) {
+	      while ((data = codec.readShortData()) != null) {
 	         // process data here
 	      }
 	*/
 
-	public static class MediaDecoder {
+	public static class MediaDecoder implements AutoCloseable {
 		private MediaExtractor extractor = new MediaExtractor();
-		private MediaCodec decoder;
-
+		private MediaCodec codec;
 		private MediaFormat inputFormat;
-
-		private ByteBuffer[] inputBuffers;
 		private boolean end_of_input_file;
-
 		private ByteBuffer[] outputBuffers;
 		private int outputBufferIndex = -1;
 
@@ -42,43 +39,49 @@ public class MediaEx {
 				String mime = format.getString(MediaFormat.KEY_MIME);
 				if (mime.startsWith("audio/")) {
 					extractor.selectTrack(i);
-					decoder = MediaCodec.createDecoderByType(mime);
-					decoder.configure(format, null, null, 0);
+					codec = MediaCodec.createDecoderByType(mime);
+					codec.configure(format, null, null, 0);
 					inputFormat = format;
 					break;
 				}
 			}
 
-			if (decoder == null) {
-				throw new IllegalArgumentException("No decoder for file format");
+			if (codec == null) {
+				throw new IllegalArgumentException("No codec for file format");
 			}
 
-			decoder.start();
-			inputBuffers = decoder.getInputBuffers();
-			outputBuffers = decoder.getOutputBuffers();
+			codec.start();
+			outputBuffers = codec.getOutputBuffers();
 			end_of_input_file = false;
+		}
+
+		@Override
+		public void close() throws Exception {
+
 		}
 
 		// Read the raw data from MediaCodec.
 		// The caller should copy the data out of the ByteBuffer before calling this again
 		// or else it may get overwritten.
 		@SuppressLint("WrongConstant")
-		private ByteBuffer readData(BufferInfo info) {
-			if (decoder == null)
+		private ByteBuffer readData(BufferInfo info) throws Exception {
+			if (codec == null)
 				return null;
 
 			for (; ; ) {
 				// Read data from the file into the codec.
 				if (!end_of_input_file) {
-					int inputBufferIndex = decoder.dequeueInputBuffer(10000);
+					int inputBufferIndex = codec.dequeueInputBuffer(10000);
 					if (inputBufferIndex >= 0) {
-						int size = extractor.readSampleData(inputBuffers[inputBufferIndex], 0);
+						ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferIndex);
+
+						int size = extractor.readSampleData(inputBuffer, 0);
 						if (size < 0) {
 							// End Of File
-							decoder.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+							codec.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
 							end_of_input_file = true;
 						} else {
-							decoder.queueInputBuffer(inputBufferIndex, 0, size, extractor.getSampleTime(), 0);
+							codec.queueInputBuffer(inputBufferIndex, 0, size, extractor.getSampleTime(), 0);
 							extractor.advance();
 						}
 					}
@@ -89,25 +92,25 @@ public class MediaEx {
 					// Ensure that the data is placed at the start of the buffer
 					outputBuffers[outputBufferIndex].position(0);
 
-				outputBufferIndex = decoder.dequeueOutputBuffer(info, 10000);
+				outputBufferIndex = codec.dequeueOutputBuffer(info, 10000);
 				if (outputBufferIndex >= 0) {
 					// Handle EOF
 					if (info.flags != 0) {
-						decoder.stop();
-						decoder.release();
-						decoder = null;
+						codec.stop();
+						codec.release();
+						codec = null;
 						return null;
 					}
 
 					// Release the buffer so MediaCodec can use it again.
 					// The data should stay there until the next time we are called.
-					decoder.releaseOutputBuffer(outputBufferIndex, false);
+					// codec.releaseOutputBuffer(outputBufferIndex, false);
 
 					return outputBuffers[outputBufferIndex];
 
-				} else if (outputBufferIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+				} else if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
 					// This usually happens once at the start of the file.
-					outputBuffers = decoder.getOutputBuffers();
+					outputBuffers = codec.getOutputBuffers();
 				}
 			}
 		}
@@ -117,23 +120,29 @@ public class MediaEx {
 			return inputFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
 		}
 
+		public int getChannels() {
+			return inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+		}
+
 		// Read the raw audio data in 16-bit format
 		// Returns null on EOF
-		public short[] readShortData() {
+		public short[] readShortData() throws Exception {
 			BufferInfo info = new BufferInfo();
 			ByteBuffer data = readData(info);
 
 			if (data == null)
 				return null;
 
-			int samplesRead = info.size / 2;
-			short[] returnData = new short[samplesRead];
-
+			short[] returnData = new short[info.size / 2];
 			// Converting the ByteBuffer to an array doesn't actually make a copy
 			// so we must do so or it will be overwritten later.
-			System.arraycopy(data.asShortBuffer().array(), 0, returnData, 0, samplesRead);
+			data.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(returnData);
+
+			codec.releaseOutputBuffer(outputBufferIndex, false);
+
 			return returnData;
 		}
+
 	}
 
 }
