@@ -146,10 +146,10 @@ public class MainActivity extends BaseActivity {
 				try {
 					RateMe rateMe = new RateMe(contextRef.get());
 					rateMe.setConstraints(
-							7,
-							2,
-							14,
-							5);
+							5,
+							1,
+							9,
+							3);
 					rateMe.setListener(new RateMe.Listener() {
 						@Override
 						public void onPositive(RateMe rateMe, boolean lessRating) {
@@ -191,7 +191,7 @@ public class MainActivity extends BaseActivity {
 		messages.add("Long press skip/next/previous button to skip to random item in playlist.");
 		messages.add("Long press jump/open button to open playback ui.");
 		messages.add("Long press to open lyrics menu on lyrics view.");
-		messages.add("Long press cover art to fade it.");
+		messages.add("Long press cover art to open menu.");
 		messages.add("Long press visualization button to change styles.");
 		messages.add("If songs are not shown,\nTap Library -> Save to current playlist\nOr\nRight drawer -> Refresh\nOr\nLeft drawer -> Settings -> Library -> Add scan location -> (previous step)");
 		messages.add("Beta version will have some of the premium features unlocked.");
@@ -204,6 +204,8 @@ public class MainActivity extends BaseActivity {
 		messages.add("Be sure to check out Analytics, Playback UI styles, Library UI styles, Audio visualization styles, these are free for limited time!");
 		messages.add("You can now share the whole music file  with your friends using any supported app.");
 		messages.add("You can now share lyrics with your friends using any supported app.");
+		messages.add("We now support audio fingerprinting, i.e. you can get details of audio even if it has no tags.");
+		messages.add("You can download cover art again. Long-press cover art on playback ui.");
 
 		Tips tips = new Tips(contextRef.get());
 
