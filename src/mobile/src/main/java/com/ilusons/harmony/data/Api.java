@@ -63,9 +63,9 @@ public class Api {
 					throw new CancellationException();
 
 				// Generate fingerprint
-				FingerprintEx.GenerateFingerprintAsyncTask gfat = new FingerprintEx.GenerateFingerprintAsyncTask(
-						path, null, null);
-				String fp = gfat.get(30, TimeUnit.SECONDS);
+				String fp = FingerprintEx.GenerateFingerprint(path, length);
+				if (fp == null)
+					throw new Exception("Fingerprint generate error.");
 
 				// Lookup fingerprint
 
@@ -114,15 +114,20 @@ public class Api {
 				JSONObject lr_results_0_recordings_0_artists_0 = lr_results_0_recordings_0_artists.getJSONObject(0);
 				String artist = lr_results_0_recordings_0_artists_0.getString("name");
 
-				JSONArray lr_results_0_recordings_0_releasegroups = lr_results_0_recordings_0.getJSONArray("releasegroups");
-				JSONObject lr_results_0_recordings_0_releasegroups_0 = lr_results_0_recordings_0_releasegroups.getJSONObject(0);
-				String album = lr_results_0_recordings_0_releasegroups_0.getString("title");
-
 				result.put("id", id);
 				result.put("score", String.valueOf(score));
 				result.put("title", title);
 				result.put("artist", artist);
-				result.put("album", album);
+
+				try {
+					JSONArray lr_results_0_recordings_0_releasegroups = lr_results_0_recordings_0.getJSONArray("releasegroups");
+					JSONObject lr_results_0_recordings_0_releasegroups_0 = lr_results_0_recordings_0_releasegroups.getJSONObject(0);
+					String album = lr_results_0_recordings_0_releasegroups_0.getString("title");
+
+					result.put("album", album);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 
 			} catch (Exception e) {
 				Log.w(TAG, e);
@@ -170,28 +175,18 @@ public class Api {
 
 	}
 
-	public static void lookupAndUpdateMusicData(final MusicService musicService, final Music data, final JavaEx.ActionT<Music> onSuccess, final JavaEx.ActionT<Exception> onError) {
+	public static void lookupAndUpdateMusicData(final MusicService musicService, final Music data, final JavaEx.ActionT<Map<String, String>> onSuccess, final JavaEx.ActionT<Exception> onError) {
 		LookupFingerprintDataAsyncTask asyncTask = new LookupFingerprintDataAsyncTask(
 				data.getPath(),
-				(long) data.getLength(),
+				(long) (data.getLength() / 1000.0),
 				new JavaEx.ActionT<Map<String, String>>() {
 					@Override
 					public void execute(final Map<String, String> result) {
-						try (Realm realm = DB.getDB()) {
-							if (realm == null)
-								return;
-
-							realm.executeTransaction(new Realm.Transaction() {
-								@Override
-								public void execute(Realm realm) {
-									data.setTitle(result.get("title"));
-									realm.insertOrUpdate(data);
-								}
-							});
-						}
+						if (result == null || result.size() == 0)
+							return;
 
 						if (onSuccess != null)
-							onSuccess.execute(data);
+							onSuccess.execute(result);
 					}
 				},
 				new JavaEx.ActionT<Exception>() {

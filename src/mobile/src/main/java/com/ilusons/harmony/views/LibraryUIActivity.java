@@ -477,7 +477,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 		if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
 			drawer_layout.closeDrawer(GravityCompat.START);
 		} else {
-			// super.onBackPressed();
+			super.onBackPressed();
 		}
 	}
 
@@ -1405,7 +1405,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 										cover.setImageDrawable(null);
 									}
 								},
-								1500);
+								1500,
+								false);
 					}
 				}
 			} catch (Exception e) {

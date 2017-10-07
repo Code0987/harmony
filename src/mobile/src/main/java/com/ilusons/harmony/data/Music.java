@@ -424,7 +424,8 @@ public class Music extends RealmObject {
 						Log.w(TAG, e);
 					}
 				},
-				3000));
+				3000,
+				false));
 		getCoverOrDownloadTask.execute();
 	}
 

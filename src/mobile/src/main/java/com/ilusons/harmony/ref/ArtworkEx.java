@@ -54,8 +54,9 @@ public class ArtworkEx {
 		private JavaEx.ActionT<Bitmap> onSuccess;
 		private JavaEx.ActionT<Exception> onError;
 		private int timeout;
+		private boolean forceDownload;
 
-		public ArtworkDownloaderAsyncTask(Context context, String query, ArtworkType artworkType, int size, String memoryCacheKey, String diskCacheDir, String diskCacheKey, JavaEx.ActionT<Bitmap> onSuccess, JavaEx.ActionT<Exception> onError, int timeout) {
+		public ArtworkDownloaderAsyncTask(Context context, String query, ArtworkType artworkType, int size, String memoryCacheKey, String diskCacheDir, String diskCacheKey, JavaEx.ActionT<Bitmap> onSuccess, JavaEx.ActionT<Exception> onError, int timeout, boolean forceDownload) {
 			this.contextRef = new WeakReference<Context>(context);
 			this.query = query;
 			this.artworkType = artworkType;
@@ -68,6 +69,7 @@ public class ArtworkEx {
 			this.onSuccess = onSuccess;
 			this.onError = onError;
 			this.timeout = timeout;
+			this.forceDownload = forceDownload;
 		}
 
 		@Override
@@ -82,7 +84,10 @@ public class ArtworkEx {
 				if (isCancelled() || contextRef.get() == null)
 					throw new CancellationException();
 
-				Bitmap result = loadExisting();
+				Bitmap result = null;
+
+				if (!forceDownload)
+					result = loadExisting();
 
 				// File
 				File file = IOEx.getDiskCacheFile(contextRef.get(), diskCacheDir, diskCacheKey);
@@ -220,7 +225,7 @@ public class ArtworkEx {
 
 	private static ThreadPoolExecutor artworkDownloaderTaskExecutor = null;
 
-	public static void getArtworkDownloaderTask(Context context, String query, ArtworkType artworkType, int size, String memoryCacheKey, String diskCacheDir, String diskCacheKey, JavaEx.ActionT<Bitmap> onSuccess, JavaEx.ActionT<Exception> onError, int timeout) {
+	public static void getArtworkDownloaderTask(Context context, String query, ArtworkType artworkType, int size, String memoryCacheKey, String diskCacheDir, String diskCacheKey, JavaEx.ActionT<Bitmap> onSuccess, JavaEx.ActionT<Exception> onError, int timeout, boolean forceDownload) {
 		if (artworkDownloaderTaskExecutor == null) {
 			int CORES = Runtime.getRuntime().availableProcessors();
 
@@ -244,7 +249,8 @@ public class ArtworkEx {
 				diskCacheKey,
 				onSuccess,
 				onError,
-				timeout));
+				timeout,
+				forceDownload));
 
 		artworkDownloaderAsyncTask.executeOnExecutor(artworkDownloaderTaskExecutor);
 	}
