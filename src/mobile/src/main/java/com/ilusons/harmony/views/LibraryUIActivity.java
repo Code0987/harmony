@@ -431,6 +431,9 @@ public class LibraryUIActivity extends BaseUIActivity {
 			}
 		});
 
+		// Load playlist
+		setFromPlaylist(-1L, Playlist.getActivePlaylist(this));
+
 		// Start scan
 		if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
 			Intent musicServiceIntent = new Intent(this, MusicService.class);
@@ -439,9 +442,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 			startService(musicServiceIntent);
 			Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
 		}
-
-		// Load playlist
-		loadActivePlaylist();
 
 		// Debug
 		if (BuildConfig.DEBUG)
@@ -646,8 +646,26 @@ public class LibraryUIActivity extends BaseUIActivity {
 	public void OnMusicServiceLibraryUpdated() {
 		loading_view.smoothToHide();
 
-		// Load playlist
-		loadActivePlaylist();
+		try {
+			// Refresh list of playlists
+			playlistsRecyclerViewAdapter.refresh();
+
+			// Refresh view playlist
+			if (viewPlaylist != null) {
+				viewPlaylist = Playlist.loadOrCreatePlaylist(viewPlaylist.getName());
+
+				adapter.setData(viewPlaylist.getItems());
+			} else {
+				String name = Playlist.getActivePlaylist(this);
+				if (!TextUtils.isEmpty(name))
+					setFromPlaylist(-1L, name);
+			}
+
+			// Update mini now playing ui
+			updatePlaybackUIMini();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		info("Library updated!");
 
@@ -662,6 +680,10 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 			// Refresh view playlist
 			if (viewPlaylist != null) {
+				adapter.setData(viewPlaylist.getItems());
+			} else if (viewPlaylist.getName().equals(name)) {
+				viewPlaylist = Playlist.loadOrCreatePlaylist(viewPlaylist.getName());
+
 				adapter.setData(viewPlaylist.getItems());
 			} else {
 				if (!TextUtils.isEmpty(name))
@@ -1060,48 +1082,103 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	}
 
-	private void setFromPlaylist(Long playlistId, final String playlist) {
-		loading_view.smoothToShow();
+	private static class SetFromPlaylistAsyncTask extends AsyncTask<Object, Object, Object> {
+		private String playlistName;
+		private Long playlistId;
+		private WeakReference<LibraryUIActivity> contextRef;
 
-		info("Do not refresh until this playlist is fully loaded!", true);
+		public SetFromPlaylistAsyncTask(LibraryUIActivity context, String playlistName, Long playlistId) {
+			this.contextRef = new WeakReference<LibraryUIActivity>(context);
+			this.playlistName = playlistName;
+			this.playlistId = playlistId;
+		}
 
-		Playlist.setActivePlaylist(
-				this,
-				playlist,
-				playlistId,
-				new JavaEx.ActionT<Collection<Music>>() {
-					@Override
-					public void execute(Collection<Music> data) {
-						if (data.size() % RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW == 0)
-							adapter.setData(data);
-					}
-				},
-				new JavaEx.ActionT<Playlist>() {
-					@Override
-					public void execute(final Playlist playlist) {
-						viewPlaylist = playlist;
+		@Override
+		protected Object doInBackground(Object... objects) {
+			final LibraryUIActivity context = contextRef.get();
+			if (context == null)
+				return null;
 
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								adapter.setData(playlist.getItems());
-							}
-						});
+			Playlist.setActivePlaylist(
+					context,
+					playlistName,
+					playlistId,
+					new JavaEx.ActionT<Collection<Music>>() {
+						@Override
+						public void execute(Collection<Music> data) {
+							if (data.size() % RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW == 0)
+								context.adapter.setData(data);
+						}
+					},
+					new JavaEx.ActionT<Playlist>() {
+						@Override
+						public void execute(final Playlist playlist) {
+							context.viewPlaylist = playlist;
 
-						loading_view.smoothToHide();
+							context.runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									context.adapter.setData(playlist.getItems());
+								}
+							});
 
-						info("Loaded playlist!");
-					}
-				},
-				new JavaEx.ActionT<Exception>() {
-					@Override
-					public void execute(Exception e) {
-						loading_view.smoothToHide();
+							context.loading_view.smoothToHide();
 
-						info("Playlist load failed!");
-					}
-				},
-				false);
+							context.info("Loaded playlist!");
+						}
+					},
+					new JavaEx.ActionT<Exception>() {
+						@Override
+						public void execute(Exception e) {
+							context.loading_view.smoothToHide();
+
+							context.info("Playlist load failed!");
+						}
+					},
+					false);
+
+			return null;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+
+			final LibraryUIActivity context = contextRef.get();
+			if (context == null)
+				return;
+
+			context.loading_view.smoothToShow();
+
+			context.info("Do not refresh until this playlist is fully loaded!", true);
+		}
+
+		@Override
+		protected void onPostExecute(Object o) {
+			super.onPostExecute(o);
+
+			final LibraryUIActivity context = contextRef.get();
+			if (context == null)
+				return;
+
+			context.loading_view.smoothToHide();
+		}
+	}
+
+	private static AsyncTask<Object, Object, Object> setFromPlaylistAsyncTask = null;
+
+	private void setFromPlaylist(Long playlistId, final String playlistName) {
+		if (setFromPlaylistAsyncTask != null) {
+			setFromPlaylistAsyncTask.cancel(true);
+			try {
+				setFromPlaylistAsyncTask.get(1, TimeUnit.MILLISECONDS);
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+			setFromPlaylistAsyncTask = null;
+		}
+		setFromPlaylistAsyncTask = new SetFromPlaylistAsyncTask(this, playlistName, playlistId);
+		setFromPlaylistAsyncTask.execute();
 	}
 
 	public class PlaylistsRecyclerViewAdapter extends RecyclerView.Adapter<PlaylistsRecyclerViewAdapter.ViewHolder> {
@@ -1253,10 +1330,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 			setData(playlists, Playlist.getActivePlaylist(getApplicationContext()));
 		}
 
-	}
-
-	private void loadActivePlaylist() {
-		setFromPlaylist(-1L, Playlist.getActivePlaylist(this));
 	}
 
 	//endregion

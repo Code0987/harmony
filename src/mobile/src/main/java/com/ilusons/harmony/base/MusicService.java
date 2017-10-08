@@ -63,6 +63,8 @@ import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 
 import io.realm.Realm;
@@ -1829,13 +1831,13 @@ public class MusicService extends Service {
 			libraryUpdater.execute();
 
 		} else if (action.equals(ACTION_PLAYLIST_CHANGED) || action.equals(ACTION_LIBRARY_UPDATED)) {
-			String playlist;
+			String playlist = null;
 			try {
 				playlist = intent.getStringExtra(KEY_PLAYLIST_CHANGED_PLAYLIST);
+				if (TextUtils.isEmpty(playlist))
+					playlist = Playlist.getActivePlaylist(this);
 			} catch (Exception e) {
 				e.printStackTrace();
-
-				playlist = Playlist.getActivePlaylist(this);
 			}
 
 			if (!TextUtils.isEmpty(playlist)) {
