@@ -435,7 +435,7 @@ public class Music extends RealmObject {
 
 	private static AsyncTask<Object, Object, Bitmap> getCoverOrDownloadTask = null;
 
-	public static void getCoverOrDownload(final int size, final Music data) {
+	public static void getCoverOrDownload(final int size, final Music data) throws Exception {
 		if (getCoverOrDownloadTask != null) {
 			getCoverOrDownloadTask.cancel(true);
 			try {
@@ -759,7 +759,7 @@ public class Music extends RealmObject {
 								}
 
 								try {
-									data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+									data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE).trim();
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
