@@ -35,8 +35,7 @@ public class ArtworkEx {
 		None(""),
 		Song("song"),
 		Album("album"),
-		Artist("musicArtist"),
-		Genre("genre");
+		Artist("musicArtist");
 
 		private String value;
 
@@ -109,13 +108,11 @@ public class ArtworkEx {
 						case Album:
 							downloadFromItunes(file);
 							break;
-						case Genre:
-							downloadFromPixabay(file);
-							break;
 						case None:
-						default:
 							downloadFromPixabay(file);
 							break;
+						default:
+							throw new Exception("Artwork type not specified!");
 					}
 
 					if (file.exists())

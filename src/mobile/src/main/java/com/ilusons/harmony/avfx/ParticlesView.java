@@ -190,11 +190,13 @@ public class ParticlesView extends BaseAVFXCanvasView {
 				}
 
 				if (db < -7) {
-					db *= 1.5 + Math.random();
+					db *= 2.7 + Math.random();
 				} else if (db < -15) {
-					db *= 1.3;
+					db *= 1.9 + Math.random();
 				} else if (db < -30) {
-					db *= 1.2;
+					db *= 1.2 + Math.random();
+				} else {
+					db += 10 * Math.random();
 				}
 
 				y = db * (height / dbMax);
