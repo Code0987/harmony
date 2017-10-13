@@ -14,7 +14,6 @@
     android:clickable="true"
     android:focusable="true"
     android:padding="0dp"
-    android:tag="group"
     >
 
     <RelativeLayout
@@ -28,16 +27,19 @@
             android:id="@+id/cover"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:alpha="0.25"
             android:elevation="9dp"
             android:scaleType="centerCrop"
             android:transitionName="action_image"
+            android:translationZ="0dp"
             />
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/gradient_bottom_up_transparent"
             android:padding="5dp"
+            android:translationZ="30dp"
             >
 
             <TextView
@@ -45,17 +47,18 @@
                 style="@style/TextAppearance.AppCompat.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
+                android:layout_centerHorizontal="true"
                 android:layout_margin="8dp"
+                android:layout_marginTop="16dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:shadowColor="@android:color/black"
                 android:shadowDx="2"
                 android:shadowDy="1"
                 android:shadowRadius="3"
                 android:textColor="@color/primary_text"
                 android:textSize="13sp"
-                android:textStyle="italic"
-                tools:text="Test"
+                tools:text="Text ..."
                 />
 
         </RelativeLayout>

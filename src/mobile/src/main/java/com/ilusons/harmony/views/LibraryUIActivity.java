@@ -77,7 +77,6 @@ import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
-import com.scand.realmbrowser.RealmBrowser;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -106,7 +105,6 @@ import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 import io.realm.Realm;
-import io.realm.RealmObject;
 import jonathanfinerty.once.Once;
 
 // TODO: See below
@@ -1344,7 +1342,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 			extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder>
 			implements ICustomAdapter, FastScrollRecyclerView.SectionedAdapter {
 
-		private static final String TAG_GROUP = "group";
+		private static final String KEY_GROUP = "group";
 
 		private static final int ITEMS_PER_AD = 8;
 //		private AdListener lastAdListener = null;
@@ -1388,6 +1386,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
 			View view = inflater.inflate(R.layout.library_ui_item_group, parent, false);
+
+			view.setTag(KEY_GROUP);
 
 			return new GroupViewHolder(view);
 		}
@@ -1451,12 +1451,10 @@ public class LibraryUIActivity extends BaseUIActivity {
 								artworkType = ArtworkEx.ArtworkType.Artist;
 								break;
 							case Genre:
-								artworkType = ArtworkEx.ArtworkType.Genre;
-								q = q + " music";
+								artworkType = ArtworkEx.ArtworkType.None;
 								break;
 							case Year:
 								artworkType = ArtworkEx.ArtworkType.None;
-								q = q + " year";
 								break;
 							case Default:
 							default:
@@ -1476,15 +1474,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 									new JavaEx.ActionT<Bitmap>() {
 										@Override
 										public void execute(Bitmap bitmap) {
-											TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-													cover.getDrawable(),
-													new BitmapDrawable(getResources(), bitmap)
-											});
-
-											cover.setImageDrawable(d);
-
-											d.setCrossFadeEnabled(true);
-											d.startTransition(200);
+											cover.setImageBitmap(bitmap);
 
 											onGroupItemInView(v);
 										}
@@ -1892,19 +1882,17 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 		public void onGroupItemInView(View v) {
 			try {
-				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
+				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().toString().equalsIgnoreCase(KEY_GROUP)) {
 					ImageView cover = v.findViewById(R.id.cover);
 					if (cover != null) {
-						if (hasNotNullOrNotEmptyDrawable(cover)) {
+						if (isImageSet(cover)) {
 							ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
 							params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 286, getResources().getDisplayMetrics());
 							v.setLayoutParams(params);
-							cover.setAlpha(0.85f);
 						} else {
 							ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
 							params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
 							v.setLayoutParams(params);
-							cover.setAlpha(0.25f);
 						}
 					}
 				}
@@ -1915,13 +1903,12 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 		public void onGroupItemOutOfView(View v) {
 			try {
-				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
+				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().toString().equalsIgnoreCase(KEY_GROUP)) {
 					ImageView cover = v.findViewById(R.id.cover);
-					if (cover != null && hasNotNullOrNotEmptyDrawable(cover)) {
+					if (cover != null && isImageSet(cover)) {
 						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
 						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
 						v.setLayoutParams(params);
-						cover.setAlpha(0.25f);
 					}
 				}
 			} catch (Exception e) {
@@ -1956,13 +1943,16 @@ public class LibraryUIActivity extends BaseUIActivity {
 			return null;
 		}
 
-		public boolean hasNotNullOrNotEmptyDrawable(ImageView iv) {
+		public boolean isImageSet(ImageView iv) {
 			Drawable drawable = iv.getDrawable();
 			BitmapDrawable bitmapDrawable = drawable instanceof BitmapDrawable ? (BitmapDrawable) drawable : null;
 			TransitionDrawable transitionDrawable = drawable instanceof TransitionDrawable ? (TransitionDrawable) drawable : null;
 
-			return transitionDrawable != null || (bitmapDrawable != null && bitmapDrawable.getBitmap() != null);
+			return (bitmapDrawable != null && bitmapDrawable.getBitmap() != null)
+					||
+					(transitionDrawable != null && transitionDrawable.getDrawable(1) != null);
 		}
+
 	}
 
 	public class GroupViewHolder extends AbstractExpandableItemViewHolder {
@@ -2557,9 +2547,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 				break;
 			case Year:
 				for (Music d : data) {
-					String key = String.valueOf(d.getYear());
-					if (TextUtils.isEmpty(key))
-						key = "*";
+					int year = d.getYear();
+					String key = year <= 0 ? "*" : String.valueOf(year);
 					if (result.containsKey(key)) {
 						List<Music> list = result.get(key);
 						list.add(d);
