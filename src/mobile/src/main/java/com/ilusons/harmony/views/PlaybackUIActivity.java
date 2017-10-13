@@ -843,7 +843,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					info.setText(s);
 				}
 
-				Music.getCoverOrDownload(cover.getWidth(), music);
+				try {
+					Music.getCoverOrDownload(cover.getWidth(), music);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 
 				// Load video
 				if (video != null && music.hasVideo()) {

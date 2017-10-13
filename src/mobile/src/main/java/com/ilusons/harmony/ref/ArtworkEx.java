@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.JsonArray;
@@ -58,7 +59,7 @@ public class ArtworkEx {
 		private int timeout;
 		private boolean forceDownload;
 
-		public ArtworkDownloaderAsyncTask(Context context, String query, ArtworkType artworkType, int size, String memoryCacheKey, String diskCacheDir, String diskCacheKey, JavaEx.ActionT<Bitmap> onSuccess, JavaEx.ActionT<Exception> onError, int timeout, boolean forceDownload) {
+		public ArtworkDownloaderAsyncTask(Context context, String query, ArtworkType artworkType, int size, String memoryCacheKey, String diskCacheDir, String diskCacheKey, JavaEx.ActionT<Bitmap> onSuccess, JavaEx.ActionT<Exception> onError, int timeout, boolean forceDownload) throws Exception {
 			this.contextRef = new WeakReference<Context>(context);
 			this.query = query;
 			this.artworkType = artworkType;
@@ -72,6 +73,9 @@ public class ArtworkEx {
 			this.onError = onError;
 			this.timeout = timeout;
 			this.forceDownload = forceDownload;
+
+			if (TextUtils.isEmpty(query.trim()))
+				throw new Exception("Query empty!");
 		}
 
 		@Override
@@ -106,12 +110,13 @@ public class ArtworkEx {
 							downloadFromItunes(file);
 							break;
 						case Genre:
+							downloadFromPixabay(file);
+							break;
 						case None:
 						default:
 							downloadFromPixabay(file);
 							break;
 					}
-
 
 					if (file.exists())
 						result = BitmapFactory.decodeFile(file.getAbsolutePath());
@@ -290,7 +295,7 @@ public class ArtworkEx {
 
 	private static ThreadPoolExecutor artworkDownloaderTaskExecutor = null;
 
-	public static void getArtworkDownloaderTask(Context context, String query, ArtworkType artworkType, int size, String memoryCacheKey, String diskCacheDir, String diskCacheKey, JavaEx.ActionT<Bitmap> onSuccess, JavaEx.ActionT<Exception> onError, int timeout, boolean forceDownload) {
+	public static void getArtworkDownloaderTask(Context context, String query, ArtworkType artworkType, int size, String memoryCacheKey, String diskCacheDir, String diskCacheKey, JavaEx.ActionT<Bitmap> onSuccess, JavaEx.ActionT<Exception> onError, int timeout, boolean forceDownload) throws Exception {
 		if (artworkDownloaderTaskExecutor == null) {
 			int CORES = Runtime.getRuntime().availableProcessors();
 

@@ -1441,6 +1441,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 					if (!TextUtils.isEmpty(d) && d.length() > 5) {
 						ArtworkEx.ArtworkType artworkType;
+						String q = d;
+
 						switch (getUIGroupMode(LibraryUIActivity.this)) {
 							case Album:
 								artworkType = ArtworkEx.ArtworkType.Album;
@@ -1450,9 +1452,11 @@ public class LibraryUIActivity extends BaseUIActivity {
 								break;
 							case Genre:
 								artworkType = ArtworkEx.ArtworkType.Genre;
+								q = q + " music";
 								break;
 							case Year:
 								artworkType = ArtworkEx.ArtworkType.None;
+								q = q + " year";
 								break;
 							case Default:
 							default:
@@ -1463,7 +1467,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 						if (artworkType != ArtworkEx.ArtworkType.None) {
 							ArtworkEx.getArtworkDownloaderTask(
 									LibraryUIActivity.this,
-									d,
+									q,
 									artworkType,
 									-1,
 									d,
