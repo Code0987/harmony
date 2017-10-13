@@ -45,6 +45,9 @@
 -keep class org.apache.http.** { *; }
 -dontwarn org.apache.http.**
 
+-keep class org.acoustid.chromaprint.**
+-keep class org.acoustid.chromaprint.** { *; }
+
 # Facebook
 
 -keep class com.facebook.** { *; }
