@@ -99,55 +99,19 @@ public class ArtworkEx {
 
 				// Download and cache to folder then load
 				if (result == null) {
-					try {
-						URL url = new URL(String.format(
-								"https://itunes.apple.com/search?term=%s&entity=song&media=music",
-								URLEncoder.encode(query, "UTF-8")));
-
-						Connection connection = Jsoup.connect(url.toExternalForm())
-								.timeout(timeout)
-								.ignoreContentType(true);
-
-						Document document = connection.get();
-
-						JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
-
-						JsonArray results = response.getAsJsonArray("results");
-
-						int s = size;
-						if (s < 0)
-							s = 600;
-
-						String downloadUrl = results
-								.get(0)
-								.getAsJsonObject()
-								.get("artworkUrl60")
-								.getAsString()
-								.replace("60x60bb.jpg", s + "x" + s + "bb.jpg");
-
-						BufferedInputStream in = null;
-						FileOutputStream out = null;
-						try {
-							in = new BufferedInputStream(new URL(downloadUrl).openStream());
-							out = new FileOutputStream(file.getAbsoluteFile());
-
-							final byte data[] = new byte[1024];
-							int count;
-							while ((count = in.read(data, 0, 1024)) != -1) {
-								out.write(data, 0, count);
-							}
-						} finally {
-							if (in != null) {
-								in.close();
-							}
-							if (out != null) {
-								out.close();
-							}
-						}
-
-					} catch (Exception e) {
-						Log.w(TAG, e);
+					switch (artworkType) {
+						case Song:
+						case Artist:
+						case Album:
+							downloadFromItunes(file);
+							break;
+						case Genre:
+						case None:
+						default:
+							downloadFromPixabay(file);
+							break;
 					}
+
 
 					if (file.exists())
 						result = BitmapFactory.decodeFile(file.getAbsolutePath());
@@ -221,6 +185,105 @@ public class ArtworkEx {
 			}
 
 			return result;
+		}
+
+		private void downloadFromItunes(File downloadToFile) {
+			try {
+				URL url = new URL(String.format(
+						"https://itunes.apple.com/search?term=%s&entity=song&media=music",
+						URLEncoder.encode(query, "UTF-8")));
+
+				Connection connection = Jsoup.connect(url.toExternalForm())
+						.timeout(timeout)
+						.ignoreContentType(true);
+
+				Document document = connection.get();
+
+				JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
+
+				JsonArray results = response.getAsJsonArray("results");
+
+				int s = size;
+				if (s < 0)
+					s = 600;
+
+				String downloadUrl = results
+						.get(0)
+						.getAsJsonObject()
+						.get("artworkUrl60")
+						.getAsString()
+						.replace("60x60bb.jpg", s + "x" + s + "bb.jpg");
+
+				BufferedInputStream in = null;
+				FileOutputStream out = null;
+				try {
+					in = new BufferedInputStream(new URL(downloadUrl).openStream());
+					out = new FileOutputStream(downloadToFile.getAbsoluteFile());
+
+					final byte data[] = new byte[1024];
+					int count;
+					while ((count = in.read(data, 0, 1024)) != -1) {
+						out.write(data, 0, count);
+					}
+				} finally {
+					if (in != null) {
+						in.close();
+					}
+					if (out != null) {
+						out.close();
+					}
+				}
+
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+
+		private void downloadFromPixabay(File downloadToFile) {
+			try {
+				URL url = new URL(String.format(
+						"https://pixabay.com/api/?key=3067721-bfc3771f77f096334c97ec966&q=%s&image_type=all",
+						URLEncoder.encode(query, "UTF-8")));
+
+				Connection connection = Jsoup.connect(url.toExternalForm())
+						.timeout(timeout)
+						.ignoreContentType(true);
+
+				Document document = connection.get();
+
+				JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
+
+				JsonArray hits = response.getAsJsonArray("hits");
+
+				String downloadUrl = hits
+						.get(0)
+						.getAsJsonObject()
+						.get("webformatURL")
+						.getAsString();
+
+				BufferedInputStream in = null;
+				FileOutputStream out = null;
+				try {
+					in = new BufferedInputStream(new URL(downloadUrl).openStream());
+					out = new FileOutputStream(downloadToFile.getAbsoluteFile());
+
+					final byte data[] = new byte[1024];
+					int count;
+					while ((count = in.read(data, 0, 1024)) != -1) {
+						out.write(data, 0, count);
+					}
+				} finally {
+					if (in != null) {
+						in.close();
+					}
+					if (out != null) {
+						out.close();
+					}
+				}
+
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
 		}
 
 	}
