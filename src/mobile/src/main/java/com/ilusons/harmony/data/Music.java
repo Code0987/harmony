@@ -242,10 +242,14 @@ public class Music extends RealmObject {
 	private int Year = -1;
 
 	public int getYear() {
+		if (Year <= 0)
+			return -1;
 		return Year;
 	}
 
 	public void setYear(int value) {
+		if (Year <= 0)
+			value = -1;
 		Year = value;
 	}
 
@@ -743,14 +747,24 @@ public class Music extends RealmObject {
 							try {
 								mmr.setDataSource(data.Path);
 
-								byte[] cover = mmr.getEmbeddedPicture();
-								if (cover != null && cover.length > 0) {
-									Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
-									if (bmp != null)
-										putCover(context, data, bmp);
+								try {
+									byte[] cover = mmr.getEmbeddedPicture();
+									if (cover != null && cover.length > 0) {
+										Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+										if (bmp != null)
+											putCover(context, data, bmp);
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+
+								try {
+									data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+								} catch (Exception e) {
+									e.printStackTrace();
 								}
 							} catch (Exception e) {
-								Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+								Log.w(TAG, "error on metadata from system", e);
 							} finally {
 								mmr.release();
 							}
@@ -811,30 +825,39 @@ public class Music extends RealmObject {
 							try {
 								mmr.setDataSource(data.Path);
 
-								ExecutorService executor = Executors.newCachedThreadPool();
-								Callable<Bitmap> task = new Callable<Bitmap>() {
-									public Bitmap call() {
-										return mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-									}
-								};
-								Future<Bitmap> future = executor.submit(task);
 								try {
-									Bitmap bmp = future.get(2500, TimeUnit.MILLISECONDS);
-									if (bmp != null)
-										putCover(context, data, bmp);
+									ExecutorService executor = Executors.newCachedThreadPool();
+									Callable<Bitmap> task = new Callable<Bitmap>() {
+										public Bitmap call() {
+											return mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+										}
+									};
+									Future<Bitmap> future = executor.submit(task);
+									try {
+										Bitmap bmp = future.get(2500, TimeUnit.MILLISECONDS);
+										if (bmp != null)
+											putCover(context, data, bmp);
+									} catch (Exception e) {
+										e.printStackTrace();
+									} finally {
+										future.cancel(true);
+									}
 								} catch (Exception e) {
 									e.printStackTrace();
-								} finally {
-									future.cancel(true);
+								}
+
+								try {
+									data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+								} catch (Exception e) {
+									e.printStackTrace();
 								}
 
 							} catch (Exception e) {
-								Log.w(TAG, "metadata from system - getEmbeddedPicture", e);
+								Log.w(TAG, "error on metadata from system", e);
 							} finally {
 								mmr.release();
 							}
 						}
-
 
 					} catch (Exception e) {
 						Log.w(TAG, "metadata from system", e);
