@@ -1485,6 +1485,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 											d.setCrossFadeEnabled(true);
 											d.startTransition(200);
+
+											onGroupItemInView(v);
 										}
 									},
 									new JavaEx.ActionT<Exception>() {
@@ -1892,11 +1894,18 @@ public class LibraryUIActivity extends BaseUIActivity {
 			try {
 				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
 					ImageView cover = v.findViewById(R.id.cover);
-					if (cover != null && hasNotNullOrNotEmptyDrawable(cover)) {
-						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
-						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 286, getResources().getDisplayMetrics());
-						v.setLayoutParams(params);
-						cover.setAlpha(0.85f);
+					if (cover != null) {
+						if (hasNotNullOrNotEmptyDrawable(cover)) {
+							ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
+							params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 286, getResources().getDisplayMetrics());
+							v.setLayoutParams(params);
+							cover.setAlpha(0.85f);
+						} else {
+							ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
+							params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
+							v.setLayoutParams(params);
+							cover.setAlpha(0.25f);
+						}
 					}
 				}
 			} catch (Exception e) {

@@ -1,5 +1,7 @@
 ﻿◾️ Work in progress, please leave feedback.
 
+👉 This update will require reset of old data. Sorry for the inconvenience.
+
 🆕️ Added Genre, Year, Timestamp details for songs.
 🆕️ Re-designed library/playlist system. Now you can create custom playlists, even export them for other players. Auto-conversion of Android OS playlists to app compatible ones.
 🆕️ Song recognizer, fingerprinting now supported. Long-press unknown audio in playback up -> Fingerprint ... and see the magic!
