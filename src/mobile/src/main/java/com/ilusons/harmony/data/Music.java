@@ -219,6 +219,36 @@ public class Music extends RealmObject {
 		Score = value;
 	}
 
+	private long Timestamp = -1L;
+
+	public long getTimestamp() {
+		return Timestamp;
+	}
+
+	public void setTimestamp(long value) {
+		Timestamp = value;
+	}
+
+	private String Genre = "";
+
+	public String getGenre() {
+		return Genre;
+	}
+
+	public void setGenre(String value) {
+		Genre = value;
+	}
+
+	private int Year = -1;
+
+	public int getYear() {
+		return Year;
+	}
+
+	public void setYear(int value) {
+		Year = value;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		Music other = (Music) obj;
@@ -304,8 +334,16 @@ public class Music extends RealmObject {
 				sb.append(DurationFormatUtils.formatDuration(TotalDurationPlayed, "mm:ss", false));
 			}
 		}
+		if (!TextUtils.isEmpty(Genre)) {
+			sb.append(del);
+			sb.append("\uD83C\uDFBC ").append(Genre);
+		}
 		sb.append(del);
 		sb.append("\uD83C\uDFB5 ").append(Played).append("/").append(Skipped);
+		if (Year > -1) {
+			sb.append(del);
+			sb.append("\uD83D\uDCC5 ").append(Year);
+		}
 		if (TimeAdded > -1) {
 			sb.append(del);
 			sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(TimeAdded));
@@ -648,7 +686,8 @@ public class Music extends RealmObject {
 								MediaStore.Audio.Media.TITLE,
 								MediaStore.Audio.Media.ARTIST,
 								MediaStore.Audio.Media.ALBUM,
-								MediaStore.Audio.Media.DURATION
+								MediaStore.Audio.Media.DURATION,
+								MediaStore.Audio.Media.YEAR
 						};
 
 						CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
@@ -687,12 +726,18 @@ public class Music extends RealmObject {
 								// Eat
 							}
 							try {
-								data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK));
+								data.Track = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK));
+							} catch (Exception e) {
+								// Eat
+							}
+							try {
+								data.Year = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR));
 							} catch (Exception e) {
 								// Eat
 							}
 
 							data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
+							data.Timestamp = (new File(data.Path)).lastModified();
 
 							MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 							try {
@@ -759,6 +804,7 @@ public class Music extends RealmObject {
 						}
 
 						data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
+						data.Timestamp = (new File(data.Path)).lastModified();
 
 						if (!fastMode) {
 							final MediaMetadataRetriever mmr = new MediaMetadataRetriever();
@@ -799,6 +845,7 @@ public class Music extends RealmObject {
 				}
 			}
 
+
 			// Metadata from tags
 			if (!fastMode && path != null && contentUri == null) {
 				File file = new File(path);
@@ -808,6 +855,7 @@ public class Music extends RealmObject {
 
 						Tag tag = audioFile.getTagAndConvertOrCreateAndSetDefault();
 
+						data.Timestamp = file.lastModified();
 						data.Title = tag.getFirst(FieldKey.TITLE);
 						data.Artist = tag.getFirst(FieldKey.ARTIST);
 						data.Album = tag.getFirst(FieldKey.ALBUM);
@@ -818,6 +866,16 @@ public class Music extends RealmObject {
 						}
 						try {
 							data.Track = Integer.valueOf(tag.getFirst(FieldKey.TRACK));
+						} catch (Exception e) {
+							// Ignore
+						}
+						try {
+							data.Year = Integer.valueOf(tag.getFirst(FieldKey.YEAR));
+						} catch (Exception e) {
+							// Ignore
+						}
+						try {
+							data.Genre = String.valueOf(tag.getFirst(FieldKey.GENRE));
 						} catch (Exception e) {
 							// Ignore
 						}

@@ -1448,44 +1448,52 @@ public class LibraryUIActivity extends BaseUIActivity {
 							case Artist:
 								artworkType = ArtworkEx.ArtworkType.Artist;
 								break;
+							case Genre:
+								artworkType = ArtworkEx.ArtworkType.Genre;
+								break;
+							case Year:
+								artworkType = ArtworkEx.ArtworkType.None;
+								break;
 							case Default:
 							default:
 								artworkType = ArtworkEx.ArtworkType.Song;
 								break;
 						}
 
-						ArtworkEx.getArtworkDownloaderTask(
-								LibraryUIActivity.this,
-								d,
-								artworkType,
-								-1,
-								d,
-								Music.KEY_CACHE_DIR_COVER,
-								d,
-								new JavaEx.ActionT<Bitmap>() {
-									@Override
-									public void execute(Bitmap bitmap) {
-										TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-												cover.getDrawable(),
-												new BitmapDrawable(getResources(), bitmap)
-										});
+						if (artworkType != ArtworkEx.ArtworkType.None) {
+							ArtworkEx.getArtworkDownloaderTask(
+									LibraryUIActivity.this,
+									d,
+									artworkType,
+									-1,
+									d,
+									Music.KEY_CACHE_DIR_COVER,
+									d,
+									new JavaEx.ActionT<Bitmap>() {
+										@Override
+										public void execute(Bitmap bitmap) {
+											TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+													cover.getDrawable(),
+													new BitmapDrawable(getResources(), bitmap)
+											});
 
-										cover.setImageDrawable(d);
+											cover.setImageDrawable(d);
 
-										d.setCrossFadeEnabled(true);
-										d.startTransition(200);
-									}
-								},
-								new JavaEx.ActionT<Exception>() {
-									@Override
-									public void execute(Exception e) {
-										Log.w(TAG, e);
+											d.setCrossFadeEnabled(true);
+											d.startTransition(200);
+										}
+									},
+									new JavaEx.ActionT<Exception>() {
+										@Override
+										public void execute(Exception e) {
+											Log.w(TAG, e);
 
-										cover.setImageDrawable(null);
-									}
-								},
-								1500,
-								false);
+											cover.setImageDrawable(null);
+										}
+									},
+									1500,
+									false);
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -2203,7 +2211,8 @@ public class LibraryUIActivity extends BaseUIActivity {
 		Skipped("Times Skipped ▼"),
 		Added("Added On ▼"),
 		Score("Smart score"),
-		Track("# Track"),;
+		Track("# Track"),
+		Timestamp("Timestamp ▼"),;
 
 		private String friendlyName;
 
@@ -2364,6 +2373,14 @@ public class LibraryUIActivity extends BaseUIActivity {
 					}
 				});
 				break;
+			case Timestamp:
+				Collections.sort(data, new Comparator<Music>() {
+					@Override
+					public int compare(Music x, Music y) {
+						return Long.compare(x.getTimestamp(), y.getTimestamp());
+					}
+				});
+				break;
 
 			case Default:
 			default:
@@ -2380,7 +2397,9 @@ public class LibraryUIActivity extends BaseUIActivity {
 	public enum UIGroupMode {
 		Default("Default"),
 		Album("Album"),
-		Artist("Artist"),;
+		Artist("Artist"),
+		Genre("Genre"),
+		Year("Year"),;
 
 		private String friendlyName;
 
@@ -2494,6 +2513,38 @@ public class LibraryUIActivity extends BaseUIActivity {
 			case Artist:
 				for (Music d : data) {
 					String key = d.getArtist();
+					if (TextUtils.isEmpty(key))
+						key = "*";
+					if (result.containsKey(key)) {
+						List<Music> list = result.get(key);
+						list.add(d);
+					} else {
+						List<Music> list = new ArrayList<>();
+						list.add(d);
+						result.put(key, list);
+					}
+				}
+				result = new TreeMap<>(result);
+				break;
+			case Genre:
+				for (Music d : data) {
+					String key = d.getGenre();
+					if (TextUtils.isEmpty(key))
+						key = "*";
+					if (result.containsKey(key)) {
+						List<Music> list = result.get(key);
+						list.add(d);
+					} else {
+						List<Music> list = new ArrayList<>();
+						list.add(d);
+						result.put(key, list);
+					}
+				}
+				result = new TreeMap<>(result);
+				break;
+			case Year:
+				for (Music d : data) {
+					String key = String.valueOf(d.getYear());
 					if (TextUtils.isEmpty(key))
 						key = "*";
 					if (result.containsKey(key)) {

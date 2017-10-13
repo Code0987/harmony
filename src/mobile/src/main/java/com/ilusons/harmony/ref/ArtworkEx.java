@@ -31,9 +31,11 @@ public class ArtworkEx {
 	public static final String TAG = ArtworkEx.class.getSimpleName();
 
 	public enum ArtworkType {
+		None(""),
 		Song("song"),
 		Album("album"),
-		Artist("musicArtist");
+		Artist("musicArtist"),
+		Genre("genre");
 
 		private String value;
 
