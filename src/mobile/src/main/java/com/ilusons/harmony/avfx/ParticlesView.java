@@ -200,7 +200,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 				y = db * (height / dbMax);
 			}
 
-			if (Math.abs(y) < 75) {
+			if (Math.abs(y) < 65) {
 				X += Vx;
 				Y += Vy;
 			}

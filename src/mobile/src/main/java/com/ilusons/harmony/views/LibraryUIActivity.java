@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.FragmentActivity;
@@ -77,6 +78,7 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.scand.realmbrowser.RealmBrowser;
+import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -133,7 +135,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 	private AppBarLayout appBar_layout;
 	private View root;
 	private AVLoadingIndicatorView loading_view;
-	private RecyclerView recyclerView;
+	private FastScrollRecyclerView recyclerView;
 	private RecyclerView.OnChildAttachStateChangeListener onChildAttachStateChangeListener;
 	private SearchView search_view;
 
@@ -210,7 +212,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 		loading_view = findViewById(R.id.loading_view);
 
 		// Set recycler
-		recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+		recyclerView = (FastScrollRecyclerView) findViewById(R.id.recyclerView);
 		recyclerView.setHasFixedSize(true);
 		recyclerView.setItemViewCacheSize(RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW);
 		recyclerView.setDrawingCacheEnabled(true);
@@ -444,6 +446,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 		}
 
 		// Debug
+		/*
 		if (BuildConfig.DEBUG)
 			try {
 				List<Class<? extends RealmObject>> classes = new ArrayList<>();
@@ -455,6 +458,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		*/
 	}
 
 	@Override
@@ -1336,7 +1340,9 @@ public class LibraryUIActivity extends BaseUIActivity {
 
 	//region Library view
 
-	public class RecyclerViewAdapter extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder> implements ICustomAdapter {
+	public class RecyclerViewAdapter
+			extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder>
+			implements ICustomAdapter, FastScrollRecyclerView.SectionedAdapter {
 
 		private static final String TAG_GROUP = "group";
 
@@ -1874,7 +1880,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 			try {
 				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
 					ImageView cover = v.findViewById(R.id.cover);
-					if (cover != null && !hasNullOrEmptyDrawable(cover)) {
+					if (cover != null && hasNotNullOrNotEmptyDrawable(cover)) {
 						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
 						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 286, getResources().getDisplayMetrics());
 						v.setLayoutParams(params);
@@ -1890,7 +1896,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 			try {
 				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().equals(TAG_GROUP)) {
 					ImageView cover = v.findViewById(R.id.cover);
-					if (cover != null && !hasNullOrEmptyDrawable(cover)) {
+					if (cover != null && hasNotNullOrNotEmptyDrawable(cover)) {
 						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
 						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
 						v.setLayoutParams(params);
@@ -1915,12 +1921,26 @@ public class LibraryUIActivity extends BaseUIActivity {
 			return null;
 		}
 
-		public boolean hasNullOrEmptyDrawable(ImageView iv) {
+		@NonNull
+		@Override
+		public String getSectionName(int position) {
+			try {
+				View v = recyclerView.getLayoutManager().getChildAt(position);
+
+				TextView info = v.findViewById(R.id.info);
+				return info.getText().toString();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		public boolean hasNotNullOrNotEmptyDrawable(ImageView iv) {
 			Drawable drawable = iv.getDrawable();
 			BitmapDrawable bitmapDrawable = drawable instanceof BitmapDrawable ? (BitmapDrawable) drawable : null;
 			TransitionDrawable transitionDrawable = drawable instanceof TransitionDrawable ? (TransitionDrawable) drawable : null;
 
-			return drawable == null || transitionDrawable == null || (bitmapDrawable == null || bitmapDrawable.getBitmap() == null);
+			return transitionDrawable != null || (bitmapDrawable != null && bitmapDrawable.getBitmap() != null);
 		}
 	}
 

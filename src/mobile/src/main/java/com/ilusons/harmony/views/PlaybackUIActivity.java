@@ -222,11 +222,13 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		av_layout.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View view) {
+				/*
 				if (!MusicService.IsPremium) {
 					MusicService.showPremiumFeatureMessage(PlaybackUIActivity.this);
 
 					return false;
 				}
+				*/
 
 				AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
 				builder.setTitle("Select the action");
