@@ -1,3 +1,15 @@
 [submodule "res/web"]
 	path = res/web
 	url = git@gitlab.com:ilusons/harmony.git
+[submodule "res/libs/chromaprint-android"]
+	path = res/libs/chromaprint-android
+	url = https://bitbucket.org/lalinsky/chromaprint-android.git
+[submodule "res/server/api/libs/AcoustID.NET"]
+	path = res/server/api/libs/AcoustID.NET
+	url = https://github.com/wo80/AcoustID.NET.git
+[submodule "res/server/api/libs/Aurio"]
+	path = res/server/api/libs/Aurio
+	url = https://github.com/protyposis/Aurio.git
+[submodule "res/server/api/libs/MusicBrainz"]
+	path = res/server/api/libs/MusicBrainz
+	url = https://github.com/Zastai/MusicBrainz.git
