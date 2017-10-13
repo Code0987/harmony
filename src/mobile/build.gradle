@@ -196,10 +196,12 @@ dependencies {
 	api 'com.spotify.android:auth:1.0.0-alpha'
 	api 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
 	api 'com.sdsmdg.harjot:croller:1.0.5'
+	api 'com.simplecityapps:recyclerview-fastscroll:1.0.16'
 	api ('com.scand:realm-browser:0.1.15') {
 		exclude group: 'io.realm'
 	}
-	debugApi 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+	// debugApi 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+	debugApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 	releaseApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 	releaseAlphaApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 	releaseBetaApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
