@@ -437,7 +437,7 @@ public class SettingsActivity extends BaseActivity {
 					ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "r");
 					FileInputStream fileInputStream = new FileInputStream(pfd.getFileDescriptor());
 
-					if (importCurrentPreset(fileInputStream, uri))
+					if (importCurrentPreset(this, fileInputStream, uri))
 						info("Preset successfully imported to current profile. Please restart to apply.");
 					else
 						info("Some problem while importing current preset.");
@@ -772,13 +772,13 @@ public class SettingsActivity extends BaseActivity {
 	}
 
 	@SuppressWarnings({"unchecked"})
-	private boolean importCurrentPreset(InputStream is, Uri uri) {
+	public static boolean importCurrentPreset(Context context, InputStream is, Uri uri) {
 		boolean r = false;
 
 		try {
 			String data = IOUtils.toString(is, StandardCharsets.UTF_8);
 
-			SharedPreferences.Editor prefEdit = SPrefEx.get(this).edit();
+			SharedPreferences.Editor prefEdit = SPrefEx.get(context).edit();
 
 			Map<String, ?> entries = (new Gson()).fromJson(data, new TypeToken<Map<String, ?>>() {
 			}.getType());
@@ -844,7 +844,7 @@ public class SettingsActivity extends BaseActivity {
 					try {
 						InputStream is = getResources().openRawResource(d.first);
 
-						if (importCurrentPreset(is, null))
+						if (importCurrentPreset(SettingsActivity.this, is, null))
 							info("Preset successfully imported to current profile. Please restart to apply.");
 						else
 							info("Some problem while importing preset.");

@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -23,6 +24,8 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.avfx.BarsView;
 import com.ilusons.harmony.avfx.BaseAVFXCanvasView;
 import com.ilusons.harmony.avfx.BaseAVFXGLView;
+import com.ilusons.harmony.avfx.CirclesView;
+import com.ilusons.harmony.avfx.DotsView;
 import com.ilusons.harmony.avfx.FFTView;
 import com.ilusons.harmony.avfx.ParticlesView;
 import com.ilusons.harmony.avfx.WaveformView;
@@ -357,6 +360,7 @@ public class AudioVFXViewFragment extends Fragment {
 				return;
 
 			root.removeAllViews();
+			root.setBackground(null);
 
 			if (waveformAVFXView != null) {
 				waveformAVFXView = null;
@@ -421,6 +425,27 @@ public class AudioVFXViewFragment extends Fragment {
 					root.addView(particles);
 
 					avfxCanvasView = particles;
+					root.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.lomo));
+					break;
+
+				case Circles:
+					CirclesView circles = new CirclesView(getActivity());
+
+					root.addView(circles);
+
+					avfxCanvasView = circles;
+					root.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.lomo));
+					break;
+
+				case Dots:
+					DotsView dots = new DotsView(getActivity());
+
+					dots.setColor(color);
+
+					root.addView(dots);
+
+					avfxCanvasView = dots;
+					root.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.lomo));
 					break;
 
 				case Waves:
@@ -477,7 +502,9 @@ public class AudioVFXViewFragment extends Fragment {
 		FFT("FFT"),
 		Waves("Waves"),
 		Bars("Bars"),
-		Particles("Particles");
+		Particles("Particles"),
+		Circles("Circles"),
+		Dots("Dots");
 
 		public String friendlyName;
 
@@ -494,7 +521,7 @@ public class AudioVFXViewFragment extends Fragment {
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			return AVFXType.Particles;
+			return AVFXType.Circles;
 		}
 	}
 
@@ -503,13 +530,6 @@ public class AudioVFXViewFragment extends Fragment {
 				.edit()
 				.putString(TAG_SPREF_AVFXTYPE, String.valueOf(value))
 				.apply();
-
-		try {
-			Answers.getInstance().logCustom(new CustomEvent(AVFXType.class.getSimpleName())
-					.putCustomAttribute(AVFXType.class.getSimpleName(), String.valueOf(value)));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	public static AVFXType getNextAVFXType(Context context) {
