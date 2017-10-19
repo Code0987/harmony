@@ -2,6 +2,7 @@
 
 👉 This update will require reset of old data. Sorry for the inconvenience.
 
+🆕️ Added new circles based visualizations.
 🆕️ Added Genre, Year, Timestamp details for songs.
 🆕️ Re-designed library/playlist system. Now you can create custom playlists, even export them for other players. Auto-conversion of Android OS playlists to app compatible ones.
 🆕️ Song recognizer, fingerprinting now supported. Long-press unknown audio in playback ui -> Fingerprint ... and see the magic!

@@ -348,10 +348,12 @@ public class Music extends RealmObject {
 			sb.append(del);
 			sb.append("\uD83D\uDCC5 ").append(Year);
 		}
+		/*
 		if (TimeAdded > -1) {
 			sb.append(del);
 			sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(TimeAdded));
 		}
+		*/
 
 		return sb.toString();
 	}
@@ -759,7 +761,7 @@ public class Music extends RealmObject {
 								}
 
 								try {
-									data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE).trim();
+									data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
 								} catch (Exception e) {
 									e.printStackTrace();
 								}

@@ -19,6 +19,7 @@ import com.ilusons.harmony.ref.RealmEx;
 import com.scand.realmbrowser.RealmBrowser;
 import com.squareup.leakcanary.LeakCanary;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,6 +88,19 @@ public class App extends Application {
 		// Analytics
 		Analytics.getInstance().initSettings(this);
 		Analytics.getInstance().initLastfm();
+
+		// Default settings
+		final String tag_preset_default = ".preset_default";
+		if (!Once.beenDone(Once.THIS_APP_INSTALL, tag_preset_default)) {
+			try {
+				try (InputStream is = getResources().openRawResource(R.raw.preset_default)) {
+					SettingsActivity.importCurrentPreset(this, is, null);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			Once.markDone(tag_preset_default);
+		}
 
 		// Start scan
 		if (MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this)) {

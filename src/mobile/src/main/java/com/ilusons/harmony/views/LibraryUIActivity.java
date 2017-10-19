@@ -980,8 +980,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 				try {
 					final EditText editText = new EditText(LibraryUIActivity.this);
 
-					editText.setHint("http://www.librarising.com/astrology/celebs/images2/QR/queenelizabethii.jpg");
-
 					new AlertDialog.Builder(LibraryUIActivity.this)
 							.setTitle("Create new playlist")
 							.setMessage("Enter name for new playlist ...")
@@ -1121,20 +1119,22 @@ public class LibraryUIActivity extends BaseUIActivity {
 								@Override
 								public void run() {
 									context.adapter.setData(playlist.getItems());
+									context.loading_view.smoothToHide();
+									context.info("Loaded playlist!");
 								}
 							});
-
-							context.loading_view.smoothToHide();
-
-							context.info("Loaded playlist!");
 						}
 					},
 					new JavaEx.ActionT<Exception>() {
 						@Override
 						public void execute(Exception e) {
-							context.loading_view.smoothToHide();
-
-							context.info("Playlist load failed!");
+							context.runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									context.loading_view.smoothToHide();
+									context.info("Playlist load failed!");
+								}
+							});
 						}
 					},
 					false);
