@@ -13,3 +13,6 @@
 [submodule "res/server/api/libs/MusicBrainz"]
 	path = res/server/api/libs/MusicBrainz
 	url = https://github.com/Zastai/MusicBrainz.git
+[submodule "res/libs/android-openslmediaplayer"]
+	path = res/libs/android-openslmediaplayer
+	url = git@github.com:Code0987/android-openslmediaplayer.git
