@@ -56,13 +56,17 @@ public class CirclesView extends BaseAVFXCanvasView {
 		if (width <= 0 || height <= 0)
 			return;
 
-		arcs.w = width;
-		arcs.h = height;
-		arcs.init();
+		try {
+			arcs.w = width;
+			arcs.h = height;
+			arcs.init();
 
-		dots.w = width;
-		dots.h = height;
-		dots.init();
+			dots.w = width;
+			dots.h = height;
+			dots.init();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

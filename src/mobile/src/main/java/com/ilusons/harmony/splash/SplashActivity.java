@@ -75,8 +75,8 @@ public class SplashActivity extends Activity {
 			android.Manifest.permission.ACCESS_NETWORK_STATE,
 			android.Manifest.permission.SET_WALLPAPER,
 			android.Manifest.permission.SET_WALLPAPER_HINTS,
-			"com.android.vending.BILLING",
-			"com.android.vending.CHECK_LICENSE"
+			// "com.android.vending.BILLING",
+			// "com.android.vending.CHECK_LICENSE"
 	};
 
 	private boolean checkPermissions() {
