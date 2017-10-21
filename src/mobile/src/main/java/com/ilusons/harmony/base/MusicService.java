@@ -372,8 +372,10 @@ public class MusicService extends Service {
 			licenseChecker.onDestroy();
 		}
 
-		if (iabBroadcastReceiver != null) {
+		if (iabBroadcastReceiver != null) try {
 			unregisterReceiver(iabBroadcastReceiver);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		if (iabHelper != null) {
@@ -1237,7 +1239,7 @@ public class MusicService extends Service {
 			if (mediaPlayerFactory == null)
 				switch (getPlayerType(this)) {
 					case OpenSL:
-						mediaPlayerFactory = new HybridMediaPlayerFactory(getApplicationContext());
+						mediaPlayerFactory = new MediaPlayerFactory(getApplicationContext());
 						break;
 					case AndroidOS:
 					default:
