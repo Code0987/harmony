@@ -22,6 +22,7 @@ import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
@@ -131,6 +132,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 	private boolean appBarIsExpanded = false;
 	private CollapsingToolbarLayout collapse_toolbar;
 	private AppBarLayout appBar_layout;
+	private TabLayout tab_layout;
 	private View root;
 	private AVLoadingIndicatorView loading_view;
 	private FastScrollRecyclerView recyclerView;
@@ -203,6 +205,14 @@ public class LibraryUIActivity extends BaseUIActivity {
 				appBar_layout.setExpanded(!appBarIsExpanded, true);
 			}
 		});
+
+		tab_layout = findViewById(R.id.tab_layout);
+
+		tab_layout.addTab(tab_layout.newTab().setText("Tab 1"));
+		tab_layout.addTab(tab_layout.newTab().setText("Tab 2"));
+		tab_layout.addTab(tab_layout.newTab().setText("Tab 3"));
+		tab_layout.addTab(tab_layout.newTab().setText("Tab 4"));
+		tab_layout.addTab(tab_layout.newTab().setText("Tab 5"));
 
 		// Set views
 		root = findViewById(R.id.root);
