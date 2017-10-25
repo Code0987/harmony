@@ -13,11 +13,13 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.support.design.widget.TabLayout;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -39,10 +41,12 @@ import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
@@ -53,6 +57,7 @@ import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.HeadsetMediaButtonIntentReceiver;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
+import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -94,6 +99,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import de.umass.lastfm.Session;
+import de.umass.lastfm.scrobble.ScrobbleResult;
 
 import static com.ilusons.harmony.base.MusicService.SKU_PREMIUM;
 
@@ -394,6 +402,9 @@ public class SettingsActivity extends BaseActivity {
 				info("Updated!");
 			}
 		});
+
+		// Analytics
+		createLFM();
 
 	}
 
@@ -1054,6 +1065,143 @@ public class SettingsActivity extends BaseActivity {
 			}
 		});
 
+	}
+
+	//endregion
+
+	//region Analytics: LFM section
+
+	private ImageView analytics_lfm_status;
+	private EditText analytics_lfm_username_editText;
+	private EditText analytics_lfm_password_editText;
+	private Button analytics_lfm_save;
+	private TextView analytics_lfm_logs;
+	private TextInputLayout analytics_lfm_username;
+	private TextInputLayout analytics_lfm_password;
+
+	private void createLFM() {
+		analytics_lfm_username = findViewById(R.id.analytics_lfm_username);
+		analytics_lfm_password = findViewById(R.id.analytics_lfm_password);
+		analytics_lfm_save = findViewById(R.id.analytics_lfm_save);
+
+		analytics_lfm_status = findViewById(R.id.analytics_lfm_status);
+		analytics_lfm_status.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Session session = Analytics.getInstance().getLastfmSession();
+				if (session != null) {
+					analytics_lfm_username_editText.setText("");
+					analytics_lfm_password_editText.setText("");
+					Analytics.getInstance().setLastfmCredentials("", "");
+				}
+				updateLFM();
+			}
+		});
+
+		analytics_lfm_username_editText = findViewById(R.id.analytics_lfm_username_editText);
+		analytics_lfm_username_editText.setText(Analytics.getInstance().getLastfmUsername());
+
+		analytics_lfm_password_editText = findViewById(R.id.analytics_lfm_password_editText);
+		analytics_lfm_password_editText.setText(Analytics.getInstance().getLastfmPassword());
+
+		analytics_lfm_save = findViewById(R.id.analytics_lfm_save);
+		analytics_lfm_save.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				String username = analytics_lfm_username_editText.getText().toString();
+				String password = analytics_lfm_password_editText.getText().toString();
+
+				Analytics.getInstance().setLastfmCredentials(username, password);
+
+				updateLFM();
+			}
+		});
+
+		analytics_lfm_logs = findViewById(R.id.analytics_lfm_logs);
+		StringBuilder sb = new StringBuilder();
+		for (ScrobbleResult sr : Analytics.getInstance().getScrobblerResultsForLastfm()) {
+			sb.append(sr.toString()).append(System.lineSeparator());
+		}
+		analytics_lfm_logs.setText(sb.toString());
+
+		updateLFMState();
+		Session session = Analytics.getInstance().getLastfmSession();
+		if (session == null && Analytics.getInstance().isLastfmScrobbledEnabled()) {
+			updateLFM();
+		}
+	}
+
+	private void updateLFM() {
+
+		(new RefreshLFM(this)).execute();
+
+	}
+
+	private void updateLFMState() {
+		Session session = Analytics.getInstance().getLastfmSession();
+		if (session == null) {
+			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_lfm_status.setImageResource(R.drawable.ic_error_outline_black);
+		} else {
+			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote_black);
+		}
+		if (session == null) {
+			analytics_lfm_username.setVisibility(View.VISIBLE);
+			analytics_lfm_password.setVisibility(View.VISIBLE);
+			analytics_lfm_save.setVisibility(View.VISIBLE);
+		} else {
+			analytics_lfm_username.setVisibility(View.GONE);
+			analytics_lfm_password.setVisibility(View.GONE);
+			analytics_lfm_save.setVisibility(View.GONE);
+		}
+	}
+
+	private static class RefreshLFM extends AsyncTask<Void, Void, Void> {
+		private WeakReference<SettingsActivity> contextRef;
+
+		public RefreshLFM(SettingsActivity context) {
+			this.contextRef = new WeakReference<>(context);
+		}
+
+		@Override
+		protected Void doInBackground(Void... voids) {
+
+			Analytics.getInstance().initLastfm();
+
+			return null;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+
+			SettingsActivity context = contextRef.get();
+			if (context == null)
+				return;
+
+			context.loading.smoothToShow();
+		}
+
+		@Override
+		protected void onPostExecute(Void aVoid) {
+			super.onPostExecute(aVoid);
+
+			SettingsActivity context = contextRef.get();
+			if (context == null)
+				return;
+
+			context.loading.smoothToHide();
+
+			Session session = Analytics.getInstance().getLastfmSession();
+			if (session == null) {
+				Toast.makeText(context, "Failed to connect to last.fm!", Toast.LENGTH_LONG).show();
+			} else {
+				Toast.makeText(context, "Scrobbler is active now!", Toast.LENGTH_LONG).show();
+			}
+
+			context.updateLFMState();
+		}
 	}
 
 	//endregion
