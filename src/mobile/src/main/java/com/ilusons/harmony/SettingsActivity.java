@@ -1,7 +1,5 @@
 package com.ilusons.harmony;
 
-import android.animation.ArgbEvaluator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -10,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -61,7 +58,6 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
-import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ViewEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
 import com.ilusons.harmony.ref.inappbilling.IabHelper;
@@ -69,7 +65,7 @@ import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.views.AudioVFXViewFragment;
-import com.ilusons.harmony.views.LibraryUIActivity;
+import com.ilusons.harmony.views.LibraryViewFragment;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
@@ -80,15 +76,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -764,7 +754,7 @@ public class SettingsActivity extends BaseActivity {
 			keys.addAll(Arrays.asList(MusicService.ExportableSPrefKeys));
 			keys.addAll(Arrays.asList(ExportableSPrefKeys));
 			keys.addAll(Arrays.asList(AudioVFXViewFragment.ExportableSPrefKeys));
-			keys.addAll(Arrays.asList(LibraryUIActivity.ExportableSPrefKeys));
+			keys.addAll(Arrays.asList(LibraryViewFragment.ExportableSPrefKeys));
 			keys.addAll(Arrays.asList(PlaybackUIActivity.ExportableSPrefKeys));
 
 			Map<String, ?> map = pref.getAll();
