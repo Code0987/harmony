@@ -1171,6 +1171,9 @@ public class Music extends RealmObject {
 	public static double getScore(Music music) {
 		double score;
 
+		if(music.hasVideo()) // TODO: Currently ignoring videos, fix it.
+			return 0;
+
 		int length = music.Length;
 		if (length < 1)
 			return 0;

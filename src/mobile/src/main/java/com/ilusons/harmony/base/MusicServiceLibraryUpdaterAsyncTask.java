@@ -454,6 +454,24 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		context.startService(musicServiceIntent);
 	}
 
+	@Override
+	protected void onCancelled() {
+		super.onCancelled();
+
+		Context context = contextRef.get();
+		if (context == null)
+			return;
+
+		Intent broadcastIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATED);
+		LocalBroadcastManager
+				.getInstance(context)
+				.sendBroadcast(broadcastIntent);
+
+		Intent musicServiceIntent = new Intent(context, MusicService.class);
+		musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
+		context.startService(musicServiceIntent);
+	}
+
 	public static class Result {
 	}
 

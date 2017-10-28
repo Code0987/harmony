@@ -12,6 +12,7 @@ import android.support.v7.graphics.Palette;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -54,18 +55,85 @@ public class AnalyticsViewFragment extends Fragment {
 
 		loading.smoothToShow();
 
+		// Items
+		createItems(v);
+
 		// Charts
-		createCharts();
+		createCharts(v);
 
 		loading.smoothToHide();
 
 		return v;
 	}
 
+
 	//region Charts
 
-	private void createCharts() {
-		PieChart chart = root.findViewById(R.id.analytics_charts_c1);
+	private void createItems(View v) {
+		final List<Music> items = Music.getAllSortedByScore(6);
+
+		if (items.size() <= 5)
+			return;
+
+		ImageView image_0 = v.findViewById(R.id.image_0);
+		ImageView image_1 = v.findViewById(R.id.image_1);
+		ImageView image_2 = v.findViewById(R.id.image_2);
+		ImageView image_3 = v.findViewById(R.id.image_3);
+		ImageView image_4 = v.findViewById(R.id.image_4);
+		ImageView image_5 = v.findViewById(R.id.image_5);
+
+		image_0.setImageBitmap(items.get(0).getCover(getContext(), -1));
+		image_1.setImageBitmap(items.get(1).getCover(getContext(), -1));
+		image_2.setImageBitmap(items.get(2).getCover(getContext(), -1));
+		image_3.setImageBitmap(items.get(3).getCover(getContext(), -1));
+		image_4.setImageBitmap(items.get(4).getCover(getContext(), -1));
+		image_5.setImageBitmap(items.get(5).getCover(getContext(), -1));
+
+		image_0.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				playItem(items.get(0).getPath());
+			}
+		});
+		image_1.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				playItem(items.get(1).getPath());
+			}
+		});
+		image_2.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				playItem(items.get(2).getPath());
+			}
+		});
+		image_3.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				playItem(items.get(3).getPath());
+			}
+		});
+		image_4.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				playItem(items.get(4).getPath());
+			}
+		});
+		image_5.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				playItem(items.get(5).getPath());
+			}
+		});
+
+	}
+
+	//endregion
+
+	//region Charts
+
+	private void createCharts(View v) {
+		PieChart chart = v.findViewById(R.id.analytics_charts_c1);
 
 		final int N = 5;
 
@@ -154,16 +222,7 @@ public class AnalyticsViewFragment extends Fragment {
 		chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
 			@Override
 			public void onValueSelected(Entry e, Highlight h) {
-				try {
-					Intent i = new Intent(getContext(), MusicService.class);
-
-					i.setAction(MusicService.ACTION_OPEN);
-					i.putExtra(MusicService.KEY_URI, (String) e.getData());
-
-					getContext().startService(i);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+				playItem((String) e.getData());
 			}
 
 			@Override
@@ -179,6 +238,19 @@ public class AnalyticsViewFragment extends Fragment {
 	}
 
 	//endregion
+
+	private void playItem(String path) {
+		try {
+			Intent i = new Intent(getContext(), MusicService.class);
+
+			i.setAction(MusicService.ACTION_OPEN);
+			i.putExtra(MusicService.KEY_URI, path);
+
+			getContext().startService(i);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
 
 	public static AnalyticsViewFragment create() {
 		AnalyticsViewFragment f = new AnalyticsViewFragment();

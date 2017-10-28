@@ -139,35 +139,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/analytics"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            >
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_analytics"
-                />
-
-            <TextView
-                style="@style/TextAppearance.AppCompat.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Analytics"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
             android:id="@+id/ytpl"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

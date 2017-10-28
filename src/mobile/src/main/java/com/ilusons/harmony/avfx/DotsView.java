@@ -40,7 +40,7 @@ public class DotsView extends BaseAVFXCanvasView {
 		super.setup();
 
 		fadePaint = new Paint();
-		fadePaint.setColor(Color.argb(180, 255, 255, 255));
+		fadePaint.setColor(Color.argb(30, 255, 255, 255));
 		fadePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
 
 		dots = new ArrayList<>();
