@@ -555,21 +555,6 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		});
 
-		findViewById(R.id.sleep_timer).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (MusicService.IsPremium) {
-					Intent intent = new Intent(DashboardActivity.this, SleepTimerActivity.class);
-					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-					startActivity(intent);
-				} else {
-					MusicService.showPremiumFeatureMessage(getApplicationContext());
-				}
-
-				drawer_layout.closeDrawer(GravityCompat.START);
-			}
-		});
-
 		findViewById(R.id.settings).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -671,6 +656,8 @@ public class DashboardActivity extends BaseUIActivity {
 
 		libraryViewFragment = LibraryViewFragment.create();
 		viewPagerAdapter.add(libraryViewFragment, "Library");
+
+		viewPagerAdapter.add(TimerViewFragment.create(), "Timer");
 
 	}
 
