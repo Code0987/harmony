@@ -41,7 +41,7 @@
                 android:clipToPadding="false"
                 android:nestedScrollingEnabled="true"
                 android:paddingBottom="128dp"
-                android:paddingTop="16dp"
+                android:paddingTop="0dp"
                 android:scrollbars="none"
                 app:fastScrollPopupBgColor="@color/colorAccent"
                 app:fastScrollPopupTextColor="@android:color/primary_text_dark"
@@ -64,6 +64,121 @@
                 app:layout_constraintRight_toRightOf="parent"
                 />
 
+            <com.wang.avi.AVLoadingIndicatorView
+                android:id="@+id/loading_view"
+                style="@style/AVLoadingIndicatorView.Large"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/actionBarItemBackground"
+                android:visibility="visible"
+                app:indicatorColor="@color/accent"
+                app:indicatorName="BallClipRotateMultipleIndicator"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                />
+
+            <android.support.constraint.ConstraintLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginTop="?android:attr/actionBarSize"
+                android:background="@color/primary_dark"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="?android:attr/actionBarSize"
+                android:visibility="gone"
+                app:layout_collapseMode="pin"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                >
+
+                <Spinner
+                    android:id="@+id/uiFilters_spinner"
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    />
+
+                <Spinner
+                    android:id="@+id/uiSortMode_spinner"
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/uiFilters_spinner"
+                    />
+
+                <Spinner
+                    android:id="@+id/uiGroupMode_spinner"
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/uiSortMode_spinner"
+                    />
+
+                <Spinner
+                    android:id="@+id/uiViewMode_spinner"
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/uiGroupMode_spinner"
+                    />
+
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingEnd="-0dp"
+                    android:paddingStart="-16dp"
+                    android:visibility="gone"
+                    >
+
+                    <ImageButton
+                        android:id="@+id/toolbar_menu"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_marginStart="8dp"
+                        android:background="?attr/actionBarItemBackground"
+                        android:contentDescription="Menu"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_arrow_downward_black"
+                        android:tint="@color/icons"
+                        android:tintMode="src_atop"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        />
+
+                    <android.support.v7.widget.SearchView
+                        android:id="@+id/search_view"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="8dp"
+                        android:focusableInTouchMode="true"
+                        app:iconifiedByDefault="false"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toLeftOf="@id/toolbar_menu"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:queryHint="Search"
+                        app:searchIcon="@null"
+                        />
+
+                </android.support.constraint.ConstraintLayout>
+
+            </android.support.constraint.ConstraintLayout>
+
         </android.support.constraint.ConstraintLayout>
 
         <android.support.design.widget.AppBarLayout
@@ -75,155 +190,26 @@
             app:expanded="false"
             >
 
-            <android.support.design.widget.CollapsingToolbarLayout
-                android:id="@+id/collapse_toolbar"
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="?attr/actionBarSize"
                 android:background="@color/primary_dark"
-                app:contentScrim="@color/primary_dark"
-                app:layout_scrollFlags="scroll|exitUntilCollapsed|enterAlways"
-                app:titleEnabled="false"
+                app:layout_collapseMode="pin"
+                app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <android.support.design.widget.TabLayout
+                    android:id="@+id/tab_layout"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:layout_marginTop="?android:attr/actionBarSize"
-                    android:background="@color/primary_dark"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:paddingBottom="16dp"
-                    android:paddingEnd="16dp"
-                    android:paddingStart="16dp"
-                    android:paddingTop="?android:attr/actionBarSize"
-                    app:layout_collapseMode="pin"
-                    >
-
-                    <Spinner
-                        android:id="@+id/uiFilters_spinner"
-                        android:layout_width="280dp"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        />
-
-                    <Spinner
-                        android:id="@+id/uiSortMode_spinner"
-                        android:layout_width="280dp"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/uiFilters_spinner"
-                        />
-
-                    <Spinner
-                        android:id="@+id/uiGroupMode_spinner"
-                        android:layout_width="280dp"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/uiSortMode_spinner"
-                        />
-
-                    <Spinner
-                        android:id="@+id/uiViewMode_spinner"
-                        android:layout_width="280dp"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/uiGroupMode_spinner"
-                        />
-
-                </android.support.constraint.ConstraintLayout>
-
-                <android.support.constraint.ConstraintLayout
-                    android:id="@+id/toolbars"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:layout_collapseMode="pin"
+                    android:layout_height="match_parent"
+                    android:background="@null"
                     app:layout_scrollFlags="scroll|enterAlways"
-                    >
+                    app:tabBackground="@null"
+                    app:tabGravity="fill"
+                    app:tabMode="fixed"/>
 
-                    <android.support.v7.widget.Toolbar
-                        android:id="@+id/toolbar"
-                        android:layout_width="0dp"
-                        android:layout_height="?attr/actionBarSize"
-                        android:background="@null"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        >
-
-                        <android.support.constraint.ConstraintLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:paddingEnd="-0dp"
-                            android:paddingStart="-16dp"
-                            >
-
-                            <ImageButton
-                                android:id="@+id/toolbar_menu"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_marginEnd="16dp"
-                                android:layout_marginStart="8dp"
-                                android:background="?attr/actionBarItemBackground"
-                                android:contentDescription="Menu"
-                                android:scaleType="centerInside"
-                                android:src="@drawable/ic_arrow_downward_black"
-                                android:tint="@color/icons"
-                                android:tintMode="src_atop"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintRight_toRightOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                />
-
-                            <com.wang.avi.AVLoadingIndicatorView
-                                android:id="@+id/loading_view"
-                                style="@style/AVLoadingIndicatorView.Small"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_marginEnd="16dp"
-                                android:layout_marginStart="8dp"
-                                android:background="?attr/actionBarItemBackground"
-                                android:visibility="visible"
-                                app:indicatorColor="@color/accent"
-                                app:indicatorName="LineScalePulseOutRapidIndicator"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintRight_toLeftOf="@id/toolbar_menu"
-                                app:layout_constraintTop_toTopOf="parent"
-                                />
-
-                            <android.support.v7.widget.SearchView
-                                android:id="@+id/search_view"
-                                android:layout_width="0dp"
-                                android:layout_height="match_parent"
-                                android:layout_marginEnd="8dp"
-                                android:focusableInTouchMode="true"
-                                app:iconifiedByDefault="false"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintLeft_toLeftOf="parent"
-                                app:layout_constraintRight_toLeftOf="@id/toolbar_menu"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:queryHint="Search"
-                                app:searchIcon="@null"
-                                />
-
-                        </android.support.constraint.ConstraintLayout>
-
-                    </android.support.v7.widget.Toolbar>
-
-                    <android.support.design.widget.TabLayout
-                        android:id="@+id/tab_layout"
-                        android:layout_width="0dp"
-                        android:layout_height="?attr/actionBarSize"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/toolbar"
-                        app:tabGravity="fill"
-                        app:tabMode="fixed"/>
-
-                </android.support.constraint.ConstraintLayout>
-
-            </android.support.design.widget.CollapsingToolbarLayout>
+            </android.support.v7.widget.Toolbar>
 
         </android.support.design.widget.AppBarLayout>
 

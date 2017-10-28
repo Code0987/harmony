@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ilusons.harmony"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     >
 
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
@@ -109,6 +109,11 @@
             >
         </activity>
         <activity
+            android:name=".views.DashboardActivity"
+            android:launchMode="singleTop"
+            >
+        </activity>
+        <activity
             android:name=".views.PlaybackUIActivity"
             android:launchMode="singleTop"
             >
@@ -161,7 +166,7 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".views.AnalyticsActivity"/>
+        <activity android:name=".views.AnalyticsViewFragment"/>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

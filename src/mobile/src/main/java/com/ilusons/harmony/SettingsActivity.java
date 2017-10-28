@@ -406,6 +406,9 @@ public class SettingsActivity extends BaseActivity {
 		// Analytics
 		createLFM();
 
+		// DC
+		createDC();
+
 	}
 
 	@Override
@@ -1201,6 +1204,41 @@ public class SettingsActivity extends BaseActivity {
 			}
 
 			context.updateLFMState();
+		}
+	}
+
+	//endregion
+
+	//region Analytics: DC
+
+	private ImageView analytics_dc_status;
+
+	private void createDC() {
+		analytics_dc_status = findViewById(R.id.analytics_dc_status);
+
+		analytics_dc_status.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (Analytics.getInstance().getDCEnabled()) {
+					Analytics.getInstance().setDCEnabled(false);
+				} else {
+					Analytics.getInstance().setDCEnabled(true);
+				}
+
+				updateDCState();
+			}
+		});
+
+		updateDCState();
+	}
+
+	private void updateDCState() {
+		if (Analytics.getInstance().getDCEnabled()) {
+			analytics_dc_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_dc_status.setImageResource(R.drawable.ic_settings_remote_black);
+		} else {
+			analytics_dc_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
+			analytics_dc_status.setImageResource(R.drawable.ic_error_outline_black);
 		}
 	}
 

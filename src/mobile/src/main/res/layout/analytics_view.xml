@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.constraint.ConstraintLayout
+    android:id="@+id/root"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:res="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipChildren="true"
+        android:clipToPadding="true"
+        android:descendantFocusability="beforeDescendants"
+        android:fadeScrollbars="false"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbarFadeDuration="0"
+        android:scrollbars="vertical"
+        android:tag="Charts"
+        res:layout_constraintBottom_toBottomOf="parent"
+        res:layout_constraintLeft_toLeftOf="parent"
+        res:layout_constraintRight_toRightOf="parent"
+        res:layout_constraintTop_toTopOf="parent"
+        >
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            >
+
+            <ImageView
+                android:id="@+id/analytics_charts_status"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginTop="42dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_analytics"
+                res:layout_constraintLeft_toLeftOf="parent"
+                res:layout_constraintRight_toRightOf="parent"
+                res:layout_constraintTop_toTopOf="parent"
+                />
+
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/analytics_charts_c1"
+                android:layout_width="0dp"
+                android:layout_height="305dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="32dp"
+                res:layout_constraintLeft_toLeftOf="parent"
+                res:layout_constraintRight_toRightOf="parent"
+                res:layout_constraintTop_toBottomOf="@id/analytics_charts_status"
+                />
+
+        </android.support.constraint.ConstraintLayout>
+
+    </ScrollView>
+
+    <com.wang.avi.AVLoadingIndicatorView
+        android:id="@+id/loading"
+        style="@style/AVLoadingIndicatorView.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="0dp"
+        android:padding="0dp"
+        android:visibility="visible"
+        res:indicatorColor="@color/translucent_accent"
+        res:indicatorName="BallScaleMultipleIndicator"
+        res:layout_constraintBottom_toBottomOf="parent"
+        res:layout_constraintLeft_toLeftOf="parent"
+        res:layout_constraintRight_toRightOf="parent"
+        res:layout_constraintTop_toTopOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>
