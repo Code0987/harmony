@@ -1,6 +1,5 @@
 package com.ilusons.harmony.views;
 
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -34,9 +33,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.ContentViewEvent;
-import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
@@ -45,10 +41,8 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Api;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
-import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -693,7 +687,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	@Override
 	public void onBackPressed() {
-		MainActivity.openLibraryUIActivity(this);
+		MainActivity.openDashboardActivity(this);
 
 		super.onBackPressed();
 	}

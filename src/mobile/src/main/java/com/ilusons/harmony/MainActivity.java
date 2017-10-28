@@ -15,7 +15,6 @@ import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ue.RateMe;
 import com.ilusons.harmony.ref.ue.Tips;
 import com.ilusons.harmony.views.DashboardActivity;
-import com.ilusons.harmony.views.LibraryUIActivity;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 
 import java.lang.ref.WeakReference;
@@ -44,7 +43,7 @@ public class MainActivity extends BaseActivity {
 		Log.d(TAG, "handleIntent\n" + intent);
 
 		if (intent.getAction() == null) {
-			openLibraryUIActivity(this);
+			openDashboardActivity(this);
 			return;
 		}
 
@@ -73,20 +72,20 @@ public class MainActivity extends BaseActivity {
 				} catch (Exception e) {
 					e.printStackTrace();
 
-					openLibraryUIActivity(this);
+					openDashboardActivity(this);
 				}
 
 			} else if (scheme.equals("http")) {
 			} else if (scheme.equals("ftp")) {
 			} else {
-				openLibraryUIActivity(this);
+				openDashboardActivity(this);
 				return;
 			}
 
 		}
 	}
 
-	public static synchronized Intent getLibraryUIActivityIntent(final Context context) {
+	public static synchronized Intent getDashboardActivityIntent(final Context context) {
 		Intent intent = new Intent(context, DashboardActivity.class);
 
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -94,8 +93,8 @@ public class MainActivity extends BaseActivity {
 		return intent;
 	}
 
-	public static synchronized void openLibraryUIActivity(final Context context) {
-		context.startActivity(getLibraryUIActivityIntent(context));
+	public static synchronized void openDashboardActivity(final Context context) {
+		context.startActivity(getDashboardActivityIntent(context));
 	}
 
 	public static synchronized Intent getPlaybackUIActivityIntent(final Context context) {
