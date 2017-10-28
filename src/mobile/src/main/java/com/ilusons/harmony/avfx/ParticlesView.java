@@ -46,7 +46,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 		super.setup();
 
 		fadePaint = new Paint();
-		fadePaint.setColor(Color.argb(230, 255, 255, 255));
+		fadePaint.setColor(Color.argb(190, 255, 255, 255));
 		fadePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
 
 		paint = new Paint();

@@ -20,23 +20,9 @@
         android:layout_height="match_parent"
         >
 
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:background="@color/translucent_primary_dark"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            >
-
-        </RelativeLayout>
-
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             >
 
             <ImageView
@@ -52,6 +38,13 @@
 
         </FrameLayout>
 
+        <ImageView
+            android:id="@+id/bg_effect"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            />
+
         <android.support.design.widget.AppBarLayout
             android:id="@+id/appBar_layout"
             android:layout_width="match_parent"
@@ -59,8 +52,8 @@
             android:background="@null"
             android:fitsSystemWindows="true"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:elevation="10dp"
-            app:expanded="false"
+            app:elevation="7dp"
+            app:expanded="true"
             >
 
             <android.support.v7.widget.Toolbar
@@ -80,7 +73,7 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="@null"
                 app:layout_collapseMode="pin"
-                app:layout_scrollFlags="scroll|enterAlways"
+                app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
                 app:tabBackground="@null"
                 app:tabGravity="fill"
                 app:tabMode="fixed"/>

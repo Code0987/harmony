@@ -156,26 +156,26 @@ public class LibraryViewFragment extends BaseUIFragment {
 	//region Search
 
 	private FloatingActionButton fab_search;
-	private Toolbar search_toolbar;
+	private View search;
 	private ImageButton search_close;
 	private SearchView search_view;
 
 	private void createSearch(View v) {
 		fab_search = v.findViewById(R.id.fab_search);
 
-		search_toolbar = v.findViewById(R.id.search_toolbar);
+		search = v.findViewById(R.id.search);
 
 		search_view = v.findViewById(R.id.search_view);
 
 		fab_search.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				if (search_toolbar.getVisibility() != View.VISIBLE) {
-					search_toolbar.setAlpha(0);
-					search_toolbar.setVisibility(View.VISIBLE);
+				if (search.getVisibility() != View.VISIBLE) {
+					search.setAlpha(0);
+					search.setVisibility(View.VISIBLE);
 
-					search_toolbar.animate().alpha(1).setDuration(283).start();
-					search_toolbar.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_up));
+					search.animate().alpha(1).setDuration(283).start();
+					search.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_up));
 
 					try {
 						search_view.requestFocus();
@@ -197,14 +197,14 @@ public class LibraryViewFragment extends BaseUIFragment {
 						}
 					}).start();
 				} else {
-					search_toolbar.setAlpha(1);
-					search_toolbar.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
+					search.setAlpha(1);
+					search.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
 						@Override
 						public void run() {
-							search_toolbar.setVisibility(View.INVISIBLE);
+							search.setVisibility(View.INVISIBLE);
 						}
 					}).start();
-					search_toolbar.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
+					search.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
 
 					fab_search.setVisibility(View.VISIBLE);
 					fab_search.animate().alpha(1).setDuration(173).start();
@@ -219,14 +219,14 @@ public class LibraryViewFragment extends BaseUIFragment {
 		search_close.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				search_toolbar.setAlpha(1);
-				search_toolbar.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
+				search.setAlpha(1);
+				search.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
 					@Override
 					public void run() {
-						search_toolbar.setVisibility(View.INVISIBLE);
+						search.setVisibility(View.INVISIBLE);
 					}
 				}).start();
-				search_toolbar.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
+				search.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
 
 				fab_search.setVisibility(View.VISIBLE);
 				fab_search.animate().alpha(1).setDuration(173).start();
@@ -1889,29 +1889,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 					}
 				});
 				break;
-		}
-	}
-
-	private static class Complex1LayoutManager extends RecyclerView.LayoutManager{
-
-		/**
-		 * Create a default <code>LayoutParams</code> object for a child of the RecyclerView.
-		 * <p>
-		 * <p>LayoutManagers will often want to use a custom <code>LayoutParams</code> type
-		 * to store extra information specific to the layout. Client code should subclass
-		 * {@link RecyclerView.LayoutParams} for this purpose.</p>
-		 * <p>
-		 * <p><em>Important:</em> if you use your own custom <code>LayoutParams</code> type
-		 * you must also override
-		 * {@link #checkLayoutParams(LayoutParams)},
-		 * {@link #generateLayoutParams(ViewGroup.LayoutParams)} and
-		 * {@link #generateLayoutParams(Context, AttributeSet)}.</p>
-		 *
-		 * @return A new LayoutParams for a child view
-		 */
-		@Override
-		public RecyclerView.LayoutParams generateDefaultLayoutParams() {
-			return null;
 		}
 	}
 

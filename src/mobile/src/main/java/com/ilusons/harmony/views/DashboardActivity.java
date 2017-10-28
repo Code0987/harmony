@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -110,6 +111,7 @@ import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 import io.realm.Realm;
 import jonathanfinerty.once.Once;
+import jp.wasabeef.blurry.Blurry;
 
 // TODO: See below
 // https://www.reddit.com/r/androidapps/comments/6lxp6q/do_you_know_any_android_music_player_or_playlist/
@@ -130,6 +132,7 @@ public class DashboardActivity extends BaseUIActivity {
 	private AppBarLayout appBar_layout;
 	private View root;
 	private AVLoadingIndicatorView loading;
+	private ImageView bg_effect;
 
 	private LibraryViewFragment libraryViewFragment;
 
@@ -171,6 +174,7 @@ public class DashboardActivity extends BaseUIActivity {
 		});
 		appBar_layout.setExpanded(appBarIsExpanded, true);
 		appBar_layout.animate();
+		appBar_layout.setExpanded(false, true);
 
 		drawer_layout = findViewById(R.id.drawer_layout);
 		drawer_layout.closeDrawer(GravityCompat.START);
@@ -195,6 +199,8 @@ public class DashboardActivity extends BaseUIActivity {
 		root = findViewById(R.id.root);
 
 		loading = findViewById(R.id.loading);
+
+		bg_effect = findViewById(R.id.bg_effect);
 
 		loading.smoothToShow();
 
@@ -225,13 +231,14 @@ public class DashboardActivity extends BaseUIActivity {
 		});
 
 		// Start scan
-		if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
-			Intent musicServiceIntent = new Intent(this, MusicService.class);
-			musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-			musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
-			startService(musicServiceIntent);
-			Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
-		}
+		if (!BuildConfig.DEBUG)
+			if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
+				Intent musicServiceIntent = new Intent(this, MusicService.class);
+				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+				musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+				startService(musicServiceIntent);
+				Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
+			}
 
 		// Debug
 		/*
@@ -415,6 +422,20 @@ public class DashboardActivity extends BaseUIActivity {
 
 	@Override
 	public void OnMusicServiceOpen(String uri) {
+		try {
+			Blurry.with(this)
+					.radius(17)
+					.sampling(1)
+					.color(Color.argb(100, 0, 0, 0))
+					.animate(333)
+					.async()
+					.from(getMusicService().getMusic().getCover(this, -1))
+					.into(bg_effect);
+		} catch (Exception e) {
+			bg_effect.setImageDrawable(null);
+
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -431,6 +452,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 	@Override
 	public void OnMusicServiceLibraryUpdated() {
+		loading.smoothToHide();
 		try {
 			// Refresh list of playlists
 			playlistsRecyclerViewAdapter.refresh();
@@ -453,13 +475,10 @@ public class DashboardActivity extends BaseUIActivity {
 		info("Library updated!");
 
 		updatePlaybackUIMini();
-
-		loading.smoothToHide();
 	}
 
 	@Override
 	public void OnMusicServicePlaylistChanged(String name) {
-		loading.smoothToShow();
 		try {
 			// Refresh list of playlists
 			playlistsRecyclerViewAdapter.refresh();
@@ -477,7 +496,6 @@ public class DashboardActivity extends BaseUIActivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		loading.smoothToHide();
 	}
 
 	//region Drawers
@@ -546,25 +564,6 @@ public class DashboardActivity extends BaseUIActivity {
 					startActivity(intent);
 				} else {
 					MusicService.showPremiumFeatureMessage(getApplicationContext());
-				}
-
-				drawer_layout.closeDrawer(GravityCompat.START);
-			}
-		});
-
-		findViewById(R.id.analytics).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (MusicService.IsPremium) {
-					Intent intent = new Intent(DashboardActivity.this, AnalyticsViewFragment.class);
-					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-					startActivity(intent);
-				} else {
-					// TODO: Free for sometime.
-					Intent intent = new Intent(DashboardActivity.this, AnalyticsViewFragment.class);
-					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-					startActivity(intent);
-					// MusicService.showPremiumFeatureMessage(getApplicationContext());
 				}
 
 				drawer_layout.closeDrawer(GravityCompat.START);
