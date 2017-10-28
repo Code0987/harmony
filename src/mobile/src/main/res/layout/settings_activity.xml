@@ -1015,6 +1015,98 @@
 
             </ScrollView>
 
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="true"
+                android:clipToPadding="true"
+                android:descendantFocusability="beforeDescendants"
+                android:fadeScrollbars="false"
+                android:focusableInTouchMode="true"
+                android:orientation="vertical"
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:scrollbarFadeDuration="0"
+                android:scrollbars="vertical"
+                android:tag="Data collection"
+                >
+
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    >
+
+                    <ImageView
+                        android:id="@+id/analytics_dc_status"
+                        xmlns:res="http://schemas.android.com/apk/res-auto"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_error_outline_black"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        />
+
+                    <TextView
+                        android:id="@+id/analytics_dc_info"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:text="Data collection, for smart functions. Press icon above to toggle state."
+                        android:textColorHint="@color/secondary_text"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_dc_status"
+                        />
+
+                    <TextView
+                        android:id="@+id/analytics_dc_info1"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:text="We'll collect your now playing music data (title, artist, time), nothing else."
+                        android:textColorHint="@color/secondary_text"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_dc_info"
+                        />
+
+                    <TextView
+                        android:id="@+id/analytics_dc_info2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:text="Collected data will used to create various things like - smart playlists, song recommendation, and more ..."
+                        android:textColorHint="@color/secondary_text"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_dc_info1"
+                        />
+
+                    <TextView
+                        android:id="@+id/analytics_dc_info3"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:text="[WORK IN PROGRESS]"
+                        android:textColorHint="@color/secondary_text"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_dc_info2"
+                        />
+
+                </android.support.constraint.ConstraintLayout>
+
+            </ScrollView>
+
         </view>
 
     </LinearLayout>
@@ -1028,7 +1120,7 @@
         android:padding="0dp"
         android:visibility="visible"
         app:indicatorColor="@color/translucent_primary_light"
-        app:indicatorName="LineScalePulseOutRapidIndicator"
+        app:indicatorName="BallScaleMultipleIndicator"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

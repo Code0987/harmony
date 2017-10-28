@@ -21,13 +21,11 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.GridLayoutManager;
@@ -130,7 +128,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 	// UI
 	private DrawerLayout drawer_layout;
 	private boolean appBarIsExpanded = false;
-	private CollapsingToolbarLayout collapse_toolbar;
 	private AppBarLayout appBar_layout;
 	private TabLayout tab_layout;
 	private View root;
@@ -157,10 +154,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 		getSupportActionBar().setHomeButtonEnabled(false);
 
-		collapse_toolbar = (CollapsingToolbarLayout) findViewById(R.id.collapse_toolbar);
-		collapse_toolbar.setEnabled(false);
-		collapse_toolbar.setTitle(null);
-
 		final DrawerArrowDrawable homeDrawable = new DrawerArrowDrawable(getSupportActionBar().getThemedContext());
 		getSupportActionBar().setHomeAsUpIndicator(homeDrawable);
 
@@ -178,12 +171,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 					homeDrawable.setVerticalMirror(false);
 				}
 				homeDrawable.setProgress(1.0f - percentage);
-
-				if ((collapse_toolbar.getHeight() + verticalOffset) < (2 * ViewCompat.getMinimumHeight(collapse_toolbar))) {
-
-				} else {
-
-				}
 			}
 		});
 		appBar_layout.setExpanded(appBarIsExpanded, true);
@@ -329,12 +316,12 @@ public class LibraryUIActivity extends BaseUIActivity {
 			@Override
 			public void onClick(View view) {
 				if (MusicService.IsPremium) {
-					Intent intent = new Intent(LibraryUIActivity.this, AnalyticsActivity.class);
+					Intent intent = new Intent(LibraryUIActivity.this, AnalyticsViewFragment.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 					startActivity(intent);
 				} else {
 					// TODO: Free for sometime.
-					Intent intent = new Intent(LibraryUIActivity.this, AnalyticsActivity.class);
+					Intent intent = new Intent(LibraryUIActivity.this, AnalyticsViewFragment.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 					startActivity(intent);
 					// MusicService.showPremiumFeatureMessage(getApplicationContext());
@@ -414,9 +401,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 		// Group
 		UIGroup();
 
-		// PlaybackUIMini
-		createPlaybackUIMini();
-
 		// Feedback
 		findViewById(R.id.feedback).setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -475,13 +459,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 			recyclerView.removeOnChildAttachStateChangeListener(onChildAttachStateChangeListener);
 
 		super.onDestroy();
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-
-		updatePlaybackUIMini();
 	}
 
 	@Override
@@ -608,53 +585,6 @@ public class LibraryUIActivity extends BaseUIActivity {
 	}
 
 	@Override
-	protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
-		super.OnMusicServiceChanged(className, musicService, isBound);
-
-		updatePlaybackUIMini();
-	}
-
-	@Override
-	public void OnMusicServicePlay() {
-		super.OnMusicServicePlay();
-
-		if (playbackUIMiniFragment != null)
-			playbackUIMiniFragment.onMusicServicePlay();
-	}
-
-	@Override
-	public void OnMusicServicePause() {
-		super.OnMusicServicePause();
-
-		if (playbackUIMiniFragment != null)
-			playbackUIMiniFragment.onMusicServicePause();
-	}
-
-	@Override
-	public void OnMusicServiceStop() {
-		super.OnMusicServiceStop();
-
-		if (playbackUIMiniFragment != null)
-			playbackUIMiniFragment.onMusicServiceStop();
-	}
-
-	@Override
-	public void OnMusicServiceOpen(String uri) {
-	}
-
-	@Override
-	public void OnMusicServicePrepared() {
-		updatePlaybackUIMini();
-	}
-
-	@Override
-	public void OnMusicServiceLibraryUpdateBegins() {
-		loading_view.smoothToShow();
-
-		info("Library update is in progress!", true);
-	}
-
-	@Override
 	public void OnMusicServiceLibraryUpdated() {
 		loading_view.smoothToHide();
 
@@ -674,14 +604,14 @@ public class LibraryUIActivity extends BaseUIActivity {
 			}
 
 			// Update mini now playing ui
-			updatePlaybackUIMini();
+			//TODO:updatePlaybackUIMini();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		info("Library updated!");
 
-		updatePlaybackUIMini();
+		//TODO:updatePlaybackUIMini();
 	}
 
 	@Override
@@ -703,42 +633,11 @@ public class LibraryUIActivity extends BaseUIActivity {
 			}
 
 			// Update mini now playing ui
-			updatePlaybackUIMini();
+			//TODO:updatePlaybackUIMini();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
-	//region PlaybackUIMini
-
-	private PlaybackUIMiniFragment playbackUIMiniFragment;
-	private View playbackUIMini;
-
-	private void createPlaybackUIMini() {
-		playbackUIMini = findViewById(R.id.playbackUIMiniFragment);
-		playbackUIMiniFragment = PlaybackUIMiniFragment.create();
-		getFragmentManager()
-				.beginTransaction()
-				.replace(R.id.playbackUIMiniFragment, playbackUIMiniFragment)
-				.commit();
-		playbackUIMiniFragment.setJumpOnClickListener(new WeakReference<View.OnClickListener>(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				adapter.jumpToCurrentlyPlayingItem();
-			}
-		}));
-	}
-
-	private void updatePlaybackUIMini() {
-		if (playbackUIMiniFragment != null)
-			try {
-				playbackUIMiniFragment.reset(getMusicService());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-	}
-
-	//endregion
 
 	//region Help
 
@@ -807,7 +706,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				.enableIcon(true)
 				.performClick(true)
 				.setInfoText("Welcome! \n\nNow, tap anywhere on blue screen!")
-				.setTarget(collapse_toolbar)
+				.setTarget(tab_layout)
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_ldrawer = new MaterialIntroView.Builder(this)
@@ -882,7 +781,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				.enableIcon(true)
 				.performClick(true)
 				.setInfoText("This mini playback ui, for quick view of now playing. Buttons in it have long-press functions.")
-				.setTarget(playbackUIMini)
+				//TODO:.setTarget(playbackUIMini)
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
@@ -897,7 +796,7 @@ public class LibraryUIActivity extends BaseUIActivity {
 				.enableIcon(true)
 				.performClick(true)
 				.setInfoText("That's all! Now go play something (Wait for initial scan...)!")
-				.setTarget(collapse_toolbar)
+				.setTarget(tab_layout)
 				.setUsageId(UUID.randomUUID().toString());
 
 		guide_final.setListener(onFinal);

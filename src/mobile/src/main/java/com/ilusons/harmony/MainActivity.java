@@ -14,6 +14,7 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ue.RateMe;
 import com.ilusons.harmony.ref.ue.Tips;
+import com.ilusons.harmony.views.DashboardActivity;
 import com.ilusons.harmony.views.LibraryUIActivity;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 
@@ -86,7 +87,7 @@ public class MainActivity extends BaseActivity {
 	}
 
 	public static synchronized Intent getLibraryUIActivityIntent(final Context context) {
-		Intent intent = new Intent(context, LibraryUIActivity.class);
+		Intent intent = new Intent(context, DashboardActivity.class);
 
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
