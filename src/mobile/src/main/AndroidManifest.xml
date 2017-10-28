@@ -149,11 +149,9 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".views.SleepTimerActivity"/>
-
-        <receiver android:name=".views.SleepTimerActivity$WakefulReceiver"/>
+        <receiver android:name=".views.TimerViewFragment$WakefulReceiver"/>
         <receiver
-            android:name=".views.SleepTimerActivity$BootReceiver"
+            android:name=".views.TimerViewFragment$BootReceiver"
             android:enabled="false"
             >
             <intent-filter>
