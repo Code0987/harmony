@@ -128,20 +128,42 @@ public class FingerprintViewFragment extends BaseUIFragment {
 		try {
 			double score = (double) Fingerprint.getSize() / (double) Music.getSize();
 
+			String s = (int) (score * 100) + "% fingerprinted locally";
+
 			if (score <= 0.75) {
-				if (fingerprintUpdaterAsyncTask != null) {
-					fingerprintUpdaterAsyncTask.cancel(true);
-					fingerprintUpdaterAsyncTask = null;
+				if (fingerprintUpdaterAsyncTask == null) {
+					fingerprintUpdaterAsyncTask = new FingerprintUpdaterAsyncTask(getContext());
+					fingerprintUpdaterAsyncTask.execute();
+
+					s = s + " [Tap here to cancel update]";
+
+					info.setOnClickListener(new View.OnClickListener() {
+						@Override
+						public void onClick(View view) {
+							cancelUpdater();
+						}
+					});
 				}
-				fingerprintUpdaterAsyncTask = new FingerprintUpdaterAsyncTask(getContext());
-				fingerprintUpdaterAsyncTask.execute();
+			} else {
+				info.setOnClickListener(null);
 			}
 
-			info.setText((int) (score * 100) + "% fingerprinted locally");
+			info.setText(s);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void cancelUpdater() {
+		if (fingerprintUpdaterAsyncTask != null)
+			fingerprintUpdaterAsyncTask.cancel(true);
+
+		double score = (double) Fingerprint.getSize() / (double) Music.getSize();
+
+		String s = (int) (score * 100) + "% fingerprinted locally";
+
+		info.setText(s);
 	}
 
 	private boolean isProcessing = false;
@@ -739,7 +761,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 	}
 
 	public static boolean shouldBeVisible() {
-		return Music.getSize() >= 30;
+		return Music.getSize() >= 5;
 	}
 
 }

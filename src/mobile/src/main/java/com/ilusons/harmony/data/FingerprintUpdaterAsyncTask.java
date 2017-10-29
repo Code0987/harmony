@@ -73,7 +73,7 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 
 					// Update
 					{
-						updateNotification("Preparing to index ...", true);
+						updateNotification("Preparing to fingerprint ...", true);
 
 						if (isCancelled())
 							throw new Exception("Canceled by user");
@@ -90,12 +90,15 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 						if (isCancelled())
 							throw new Exception("Canceled by user");
 
+						int t = musicData.size();
+						int k = 1;
+
 						try (Realm realm = Fingerprint.getDB()) {
 							for (Map.Entry<String, Pair<String, Long>> item : musicData.entrySet()) {
 								String path = item.getValue().first;
 								Long length = item.getValue().second;
 
-								updateNotification("Indexing ... " + path, false);
+								updateNotification("[" + k++ + "/" + t + "] " + (new File(path)).getName(), false);
 
 								Fingerprint.indexIfNot(realm, item.getKey(), path, length);
 
@@ -147,10 +150,10 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 		PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 		notificationBuilder = new NotificationCompat.Builder(context)
 				.setOngoing(true)
-				.setContentTitle(context.getString(R.string.app_name))
+				.setContentTitle(context.getString(R.string.app_name) + ": Fingerprint update")
 				.setContentText("Updating fingerprints ...")
 				.setProgress(100, 0, true)
-				.setSmallIcon(R.drawable.ic_scan)
+				.setSmallIcon(R.mipmap.ic_launcher)
 				.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent);
 
 		notificationManager.notify(KEY_NOTIFICATION_ID, notificationBuilder.build());

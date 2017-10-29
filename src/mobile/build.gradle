@@ -152,74 +152,74 @@ dependencies {
 		exclude group: 'com.android.support', module: 'support-annotations'
 	})
 	// TODO: Later ? wearApp project(':wear')
-	api group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6'
+	implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6'
 	//noinspection GradleCompatible
-	api 'com.android.support:appcompat-v7:26.1.0'
-	api 'com.android.support:mediarouter-v7:26.1.0'
-	api 'com.android.support:support-core-utils:26.1.0'
-	api 'com.android.support.constraint:constraint-layout:1.0.2'
-	api 'com.android.support:design:26.1.0'
-	api 'com.android.support:palette-v7:26.1.0'
-	api 'com.android.support:percent:26.1.0'
-	api 'com.android.support:recyclerview-v7:26.1.0'
-	api 'com.android.support:cardview-v7:26.1.0'
-	api 'com.squareup.picasso:picasso:2.5.2'
-	api 'commons-codec:commons-codec:1.10'
-	api 'com.facebook.fresco:fresco:1.2.0'
-	api 'org.jsoup:jsoup:1.10.2'
-	api 'com.google.code.gson:gson:2.8.0'
-	api 'com.wang.avi:library:2.1.3'
-	api 'com.h6ah4i.android:openslmediaplayer:0.7.5'
-	api 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:0.7.2'
-	api 'commons-io:commons-io:2.5'
-	api 'com.google.firebase:firebase-messaging:11.4.2'
-	api 'com.google.firebase:firebase-database:11.4.2'
-	api 'me.tankery.lib:circularSeekBar:1.1.3'
-	api 'org.apache.commons:commons-lang3:3.4'
-	api 'com.nononsenseapps:filepicker:4.1.0'
-	api 'com.code-troopers.betterpickers:library:3.1.0'
-	api 'com.airbnb.android:lottie:2.0.0'
-	api 'com.github.iammert:MaterialIntroView:1.6.0'
-	api 'com.jonathanfinerty.once:once:1.2.2'
-	api 'com.cleveroad:audiovisualization:1.0.0'
-	api('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.6@aar') {
+	implementation 'com.android.support:appcompat-v7:26.1.0'
+	implementation 'com.android.support:mediarouter-v7:26.1.0'
+	implementation 'com.android.support:support-core-utils:26.1.0'
+	implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+	implementation 'com.android.support:design:26.1.0'
+	implementation 'com.android.support:palette-v7:26.1.0'
+	implementation 'com.android.support:percent:26.1.0'
+	implementation 'com.android.support:recyclerview-v7:26.1.0'
+	implementation 'com.android.support:cardview-v7:26.1.0'
+	implementation 'com.squareup.picasso:picasso:2.5.2'
+	implementation 'commons-codec:commons-codec:1.10'
+	implementation 'com.facebook.fresco:fresco:1.2.0'
+	implementation 'org.jsoup:jsoup:1.10.2'
+	implementation 'com.google.code.gson:gson:2.8.0'
+	implementation 'com.wang.avi:library:2.1.3'
+	implementation 'com.h6ah4i.android:openslmediaplayer:0.7.5'
+	implementation 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:0.7.2'
+	implementation 'commons-io:commons-io:2.5'
+	implementation 'com.google.firebase:firebase-messaging:11.4.2'
+	implementation 'com.google.firebase:firebase-database:11.4.2'
+	implementation 'me.tankery.lib:circularSeekBar:1.1.3'
+	implementation 'org.apache.commons:commons-lang3:3.4'
+	implementation 'com.nononsenseapps:filepicker:4.1.0'
+	implementation 'com.code-troopers.betterpickers:library:3.1.0'
+	implementation 'com.airbnb.android:lottie:2.0.0'
+	implementation 'com.github.iammert:MaterialIntroView:1.6.0'
+	implementation 'com.jonathanfinerty.once:once:1.2.2'
+	implementation 'com.cleveroad:audiovisualization:1.0.0'
+	implementation('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.6@aar') {
 		transitive = true
 	}
-	api('com.crashlytics.sdk.android:crashlytics:2.7.1@aar') {
+	implementation('com.crashlytics.sdk.android:crashlytics:2.7.1@aar') {
 		transitive = true
 	}
-	api 'jp.wasabeef:blurry:2.1.1'
-	api 'com.squareup.okhttp3:okhttp:3.9.0'
-	api 'de.u-mass:lastfm-java:0.1.2'
-	api 'com.github.tozny:java-aes-crypto:1.1.0'
-	api 'com.github.PhilJay:MPAndroidChart:v3.0.2'
-	api 'com.github.turing-tech:MaterialScrollBar:12.5.0a'
-	api 'com.spotify.android:auth:1.0.0-alpha'
-	api 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
-	api 'com.sdsmdg.harjot:croller:1.0.5'
-	api 'com.simplecityapps:recyclerview-fastscroll:1.0.16'
-	api 'com.beloo.widget:ChipsLayoutManager:0.3.7@aar'
-	api ('com.mikepenz:fastadapter:2.6.3@aar') {
-		transitive = true
-	}
-	api 'com.mikepenz:fastadapter-commons:2.6.3@aar'
-	api 'com.mikepenz:fastadapter-extensions:2.6.3@aar'
-	api 'com.mikepenz:materialize:1.0.3@aar'
-	api('com.scand:realm-browser:0.1.15') {
+	implementation 'jp.wasabeef:blurry:2.1.1'
+	implementation 'com.squareup.okhttp3:okhttp:3.9.0'
+	implementation 'de.u-mass:lastfm-java:0.1.2'
+	implementation 'com.github.tozny:java-aes-crypto:1.1.0'
+	implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
+	implementation 'com.github.turing-tech:MaterialScrollBar:12.5.0a'
+	implementation 'com.spotify.android:auth:1.0.0-alpha'
+	implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
+	implementation 'com.sdsmdg.harjot:croller:1.0.5'
+	implementation 'com.simplecityapps:recyclerview-fastscroll:1.0.16'
+	implementation 'com.mikepenz:fastadapter:3.0.0@aar'
+	// implementation 'com.mikepenz:fastadapter-commons:3.0.0@aar'
+	// implementation 'com.mikepenz:fastadapter-extensions-expandable:3.0.0@aar'
+	// implementation 'com.mikepenz:fastadapter-extensions:3.0.0@aar'
+	implementation 'com.mikepenz:materialize:1.1.1@aar'
+	implementation "com.mikepenz:itemanimators:1.0.1@aar"
+	implementation 'com.google.android:flexbox:0.3.1'
+	implementation('com.scand:realm-browser:0.1.15') {
 		exclude group: 'io.realm'
 	}
-	// debugApi 'com.squareup.leakcanary:leakcanary-android:1.5.1'
-	debugApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-	releaseApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-	releaseAlphaApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-	releaseBetaApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-	testApi 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-	testApi 'junit:junit:4.12'
-	testApi 'org.mockito:mockito-core:1.10.19'
-	testApi "org.powermock:powermock-module-junit4:1.6.2"
-	testApi "org.powermock:powermock-module-junit4-rule:1.6.2"
-	testApi "org.powermock:powermock-api-mockito:1.6.2"
-	testApi "org.powermock:powermock-classloading-xstream:1.6.2"
+	// debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+	debugImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+	releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+	releaseAlphaImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+	releaseBetaImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+	testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+	testImplementation 'junit:junit:4.12'
+	testImplementation 'org.mockito:mockito-core:1.10.19'
+	testImplementation "org.powermock:powermock-module-junit4:1.6.2"
+	testImplementation "org.powermock:powermock-module-junit4-rule:1.6.2"
+	testImplementation "org.powermock:powermock-api-mockito:1.6.2"
+	testImplementation "org.powermock:powermock-classloading-xstream:1.6.2"
 }
 
 android {

@@ -36,102 +36,13 @@
             android:layout_height="wrap_content"
             >
 
-            <ImageView
-                android:id="@+id/image_0"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView_c1"
                 android:layout_width="0dp"
-                android:layout_height="196dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:focusable="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/logo"
+                android:layout_height="392dp"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"
                 res:layout_constraintTop_toTopOf="parent"/>
-
-            <ImageView
-                android:id="@+id/image_1"
-                android:layout_width="192dp"
-                android:layout_height="192dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:focusable="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/logo"
-                res:layout_constraintLeft_toLeftOf="parent"
-                res:layout_constraintTop_toBottomOf="@id/image_0"/>
-
-            <ImageView
-                android:id="@+id/image_2"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:focusable="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/logo"
-                res:layout_constraintLeft_toRightOf="@id/image_1"
-                res:layout_constraintTop_toBottomOf="@id/image_0"/>
-
-            <ImageView
-                android:id="@+id/image_3"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:focusable="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/logo"
-                res:layout_constraintLeft_toRightOf="@id/image_2"
-                res:layout_constraintTop_toBottomOf="@id/image_0"/>
-
-            <ImageView
-                android:id="@+id/image_4"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:focusable="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/logo"
-                res:layout_constraintLeft_toRightOf="@id/image_1"
-                res:layout_constraintTop_toBottomOf="@id/image_2"/>
-
-            <ImageView
-                android:id="@+id/image_5"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:focusable="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/logo"
-                res:layout_constraintLeft_toRightOf="@id/image_4"
-                res:layout_constraintTop_toBottomOf="@id/image_3"/>
-
-            <ImageView
-                android:id="@+id/analytics_charts_status"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:layout_margin="16dp"
-                android:alpha="0.63"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_analytics"
-                res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toTopOf="parent"
-                />
 
             <com.github.mikephil.charting.charts.PieChart
                 android:id="@+id/analytics_charts_c1"
@@ -142,7 +53,7 @@
                 android:layout_marginTop="32dp"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toBottomOf="@id/image_1"
+                res:layout_constraintTop_toBottomOf="@id/recyclerView_c1"
                 />
 
         </android.support.constraint.ConstraintLayout>

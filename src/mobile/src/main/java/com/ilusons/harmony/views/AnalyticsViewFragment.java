@@ -1,18 +1,26 @@
 package com.ilusons.harmony.views;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -25,12 +33,27 @@ import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.MPPointF;
+import com.google.android.flexbox.AlignContent;
+import com.google.android.flexbox.AlignItems;
+import com.google.android.flexbox.AlignSelf;
+import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexWrap;
+import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.flexbox.JustifyContent;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.AndroidEx;
+import com.mikepenz.fastadapter.FastAdapter;
+import com.mikepenz.fastadapter.IItem;
+import com.mikepenz.fastadapter.adapters.ItemAdapter;
+import com.mikepenz.fastadapter.items.AbstractItem;
+import com.mikepenz.itemanimators.SlideDownAlphaAnimator;
+import com.mikepenz.materialize.holder.StringHolder;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -68,7 +91,12 @@ public class AnalyticsViewFragment extends Fragment {
 	}
 
 
-	//region Charts
+	//region Items
+
+	private FastAdapter<C1Item> adapter_c1;
+	private ItemAdapter<C1Item> itemAdapter_c1;
+	private RecyclerView recyclerView_c1;
+	private FlexboxLayoutManager layoutManager_c1;
 
 	private void createItems(View v) {
 		final List<Music> items = Music.getAllSortedByScore(6);
@@ -76,57 +104,127 @@ public class AnalyticsViewFragment extends Fragment {
 		if (items.size() <= 5)
 			return;
 
-		ImageView image_0 = v.findViewById(R.id.image_0);
-		ImageView image_1 = v.findViewById(R.id.image_1);
-		ImageView image_2 = v.findViewById(R.id.image_2);
-		ImageView image_3 = v.findViewById(R.id.image_3);
-		ImageView image_4 = v.findViewById(R.id.image_4);
-		ImageView image_5 = v.findViewById(R.id.image_5);
+		itemAdapter_c1 = new ItemAdapter<>();
+		adapter_c1 = FastAdapter.with(Arrays.asList(itemAdapter_c1));
 
-		image_0.setImageBitmap(items.get(0).getCover(getContext(), -1));
-		image_1.setImageBitmap(items.get(1).getCover(getContext(), -1));
-		image_2.setImageBitmap(items.get(2).getCover(getContext(), -1));
-		image_3.setImageBitmap(items.get(3).getCover(getContext(), -1));
-		image_4.setImageBitmap(items.get(4).getCover(getContext(), -1));
-		image_5.setImageBitmap(items.get(5).getCover(getContext(), -1));
+		recyclerView_c1 = v.findViewById(R.id.recyclerView_c1);
 
-		image_0.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				playItem(items.get(0).getPath());
-			}
-		});
-		image_1.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				playItem(items.get(1).getPath());
-			}
-		});
-		image_2.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				playItem(items.get(2).getPath());
-			}
-		});
-		image_3.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				playItem(items.get(3).getPath());
-			}
-		});
-		image_4.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				playItem(items.get(4).getPath());
-			}
-		});
-		image_5.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				playItem(items.get(5).getPath());
-			}
-		});
+		layoutManager_c1 = new FlexboxLayoutManager(getContext());
 
+		layoutManager_c1.setFlexDirection(FlexDirection.ROW);
+		layoutManager_c1.setFlexWrap(FlexWrap.WRAP);
+		layoutManager_c1.setJustifyContent(JustifyContent.FLEX_START);
+		layoutManager_c1.setAlignItems(AlignItems.STRETCH);
+		layoutManager_c1.setAlignContent(AlignContent.STRETCH);
+
+		recyclerView_c1.setLayoutManager(layoutManager_c1);
+
+		recyclerView_c1.setAdapter(adapter_c1);
+
+		recyclerView_c1.setItemAnimator(new SlideDownAlphaAnimator());
+		recyclerView_c1.getItemAnimator().setAddDuration(253);
+		recyclerView_c1.getItemAnimator().setRemoveDuration(333);
+
+		for (final Music item : items) {
+			recyclerView_c1.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(item));
+				}
+			}, 333);
+		}
+	}
+
+	public static class C1Item extends AbstractItem<C1Item, C1Item.ViewHolder> {
+		private FastAdapter<C1Item> adapter;
+		private Music data;
+
+		public C1Item setAdapter(FastAdapter<C1Item> adapter) {
+			this.adapter = adapter;
+
+			return this;
+		}
+
+		public C1Item setData(Music data) {
+			this.data = data;
+
+			return this;
+		}
+
+		@Override
+		public int getType() {
+			return hashCode();
+		}
+
+		@Override
+		public int getLayoutRes() {
+			return R.layout.analytics_view_c1_item;
+		}
+
+		@Override
+		public void bindView(ViewHolder viewHolder, List<Object> payloads) {
+			super.bindView(viewHolder, payloads);
+
+			Context context = viewHolder.view.getContext();
+
+			viewHolder.image.setImageBitmap(data.getCover(context, -1));
+			viewHolder.text.setText(data.getText());
+
+			int position = adapter.getPosition(this);
+
+			ViewGroup.LayoutParams lp = viewHolder.view.getLayoutParams();
+			if (lp instanceof FlexboxLayoutManager.LayoutParams) {
+				FlexboxLayoutManager.LayoutParams flexboxLp = (FlexboxLayoutManager.LayoutParams) lp;
+
+				flexboxLp.setOrder(1);
+				flexboxLp.setFlexGrow(1.0f);
+				flexboxLp.setFlexShrink(1.0f);
+				flexboxLp.setAlignSelf(AlignSelf.FLEX_START);
+				flexboxLp.setFlexBasisPercent(-1);
+				flexboxLp.setMinWidth(AndroidEx.dpToPx(96));
+				flexboxLp.setMinHeight(AndroidEx.dpToPx(96));
+				flexboxLp.setWrapBefore(true);
+
+				switch (position) {
+					case 0:
+						flexboxLp.setFlexGrow(3.0f);
+						break;
+					case 1:
+						flexboxLp.setFlexGrow(2.0f);
+						break;
+				}
+
+			}
+		}
+
+		@Override
+		public void unbindView(ViewHolder holder) {
+			super.unbindView(holder);
+
+			holder.image.setImageDrawable(null);
+			holder.text.setText(null);
+		}
+
+		@Override
+		public ViewHolder getViewHolder(View v) {
+			return new ViewHolder(v);
+		}
+
+		protected static class ViewHolder extends RecyclerView.ViewHolder {
+			protected View view;
+
+			protected ImageView image;
+			protected TextView text;
+
+			public ViewHolder(View v) {
+				super(v);
+
+				view = v;
+
+				image = v.findViewById(R.id.image);
+				text = v.findViewById(R.id.text);
+			}
+		}
 	}
 
 	//endregion
