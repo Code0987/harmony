@@ -45,41 +45,6 @@
             android:scaleType="centerCrop"
             />
 
-        <android.support.design.widget.AppBarLayout
-            android:id="@+id/appBar_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:fitsSystemWindows="true"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:elevation="7dp"
-            app:expanded="true"
-            >
-
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/primary_dark"
-                android:clipChildren="false"
-                android:visibility="gone"
-                app:layout_collapseMode="pin"
-                app:layout_scrollFlags="scroll|enterAlways"
-                />
-
-            <android.support.design.widget.TabLayout
-                android:id="@+id/tab_layout"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@null"
-                app:layout_collapseMode="pin"
-                app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
-                app:tabBackground="@null"
-                app:tabGravity="fill"
-                app:tabMode="fixed"/>
-
-        </android.support.design.widget.AppBarLayout>
-
         <android.support.constraint.ConstraintLayout
             android:id="@+id/root"
             android:layout_width="match_parent"
@@ -93,7 +58,7 @@
             <android.support.v4.view.ViewPager
                 android:id="@+id/viewPager"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="true"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 app:layout_constraintBottom_toTopOf="@id/playbackUIMiniFragment"
@@ -130,6 +95,41 @@
                 />
 
         </android.support.constraint.ConstraintLayout>
+
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/appBar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:elevation="7dp"
+            app:expanded="false"
+            >
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/primary_dark"
+                android:clipChildren="false"
+                android:visibility="gone"
+                app:layout_scrollFlags="scroll|enterAlways"
+                />
+
+            <android.support.design.widget.TabLayout
+                android:id="@+id/tab_layout"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/translucent_primary_dark"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                app:layout_scrollFlags="scroll|snap"
+                app:tabBackground="@null"
+                app:tabGravity="fill"
+                app:tabMode="fixed"/>
+
+        </android.support.design.widget.AppBarLayout>
 
     </android.support.design.widget.CoordinatorLayout>
 

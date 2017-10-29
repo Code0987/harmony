@@ -1,34 +1,23 @@
 package com.ilusons.harmony.data;
 
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.ref.FingerprintEx;
 import com.ilusons.harmony.ref.JavaEx;
-import com.ilusons.harmony.ref.MediaEx;
 
-import org.acoustid.chromaprint.Chromaprint;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.TimeUnit;
-
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 
 public class Api {
 
@@ -38,12 +27,14 @@ public class Api {
 	public static class LookupFingerprintDataAsyncTask extends AsyncTask<Object, Object, Map<String, String>> {
 
 		private final String path;
+		private String fp;
 		private final Long length;
 		private final JavaEx.ActionT<Map<String, String>> onSuccess;
 		private final JavaEx.ActionT<Exception> onError;
 
-		public LookupFingerprintDataAsyncTask(String path, Long length, JavaEx.ActionT<Map<String, String>> onSuccess, JavaEx.ActionT<Exception> onError) {
+		public LookupFingerprintDataAsyncTask(String path, String fp, Long length, JavaEx.ActionT<Map<String, String>> onSuccess, JavaEx.ActionT<Exception> onError) {
 			this.path = path;
+			this.fp = fp;
 			this.length = length;
 			this.onSuccess = onSuccess;
 			this.onError = onError;
@@ -63,8 +54,9 @@ public class Api {
 					throw new CancellationException();
 
 				// Generate fingerprint
-				String fp = FingerprintEx.GenerateFingerprint(path, length);
-				if (fp == null)
+				if (TextUtils.isEmpty(fp))
+					fp = Fingerprint.GenerateFingerprint(path, length);
+				if (TextUtils.isEmpty(fp))
 					throw new Exception("Fingerprint generate error.");
 
 				// Lookup fingerprint
@@ -178,6 +170,7 @@ public class Api {
 	public static void lookupAndUpdateMusicData(final MusicService musicService, final Music data, final JavaEx.ActionT<Map<String, String>> onSuccess, final JavaEx.ActionT<Exception> onError) {
 		LookupFingerprintDataAsyncTask asyncTask = new LookupFingerprintDataAsyncTask(
 				data.getPath(),
+				null,
 				(long) (data.getLength() / 1000.0),
 				new JavaEx.ActionT<Map<String, String>>() {
 					@Override
@@ -197,6 +190,32 @@ public class Api {
 					}
 				});
 		asyncTask.execute();
+	}
+
+	public static LookupFingerprintDataAsyncTask lookup(String fp, long l, final JavaEx.ActionT<Map<String, String>> onSuccess, final JavaEx.ActionT<Exception> onError) throws Exception {
+		LookupFingerprintDataAsyncTask asyncTask = new LookupFingerprintDataAsyncTask(
+				null,
+				fp,
+				l,
+				new JavaEx.ActionT<Map<String, String>>() {
+					@Override
+					public void execute(final Map<String, String> result) {
+						if (result == null || result.size() == 0)
+							return;
+
+						if (onSuccess != null)
+							onSuccess.execute(result);
+					}
+				},
+				new JavaEx.ActionT<Exception>() {
+					@Override
+					public void execute(Exception e) {
+						if (onError != null)
+							onError.execute(e);
+					}
+				});
+		asyncTask.execute();
+		return asyncTask;
 	}
 
 }

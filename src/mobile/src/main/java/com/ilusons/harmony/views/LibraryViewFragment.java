@@ -15,6 +15,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -33,6 +34,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +57,9 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.beloo.widget.chipslayoutmanager.ChipsLayoutManager;
+import com.beloo.widget.chipslayoutmanager.gravity.IChildGravityResolver;
+import com.beloo.widget.chipslayoutmanager.layouter.breaker.IRowBreaker;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -1847,32 +1852,26 @@ public class LibraryViewFragment extends BaseUIFragment {
 			}
 			break;
 			case Complex1: {
-				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 2) {
-					@Override
-					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-						try {
-							super.onLayoutChildren(recycler, state);
-						} catch (IndexOutOfBoundsException e) {
-							Log.w(TAG, e);
-						}
-					}
-				};
-				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-					@Override
-					public int getSpanSize(int position) {
-						if (RecyclerViewExpandableItemManager
-								.getPackedPositionChild(recyclerViewExpandableItemManager
-										.getExpandablePosition(position))
-								==
-								RecyclerView.NO_POSITION) {
-							// group item
-							return 2;
-						} else {
-							// child item
-							return 1;
-						}
-					}
-				});
+				ChipsLayoutManager layoutManager = ChipsLayoutManager.newBuilder(getContext())
+						.setChildGravity(Gravity.TOP)
+						.setScrollingEnabled(true)
+						.setMaxViewsInRow(3)
+						.setGravityResolver(new IChildGravityResolver() {
+							@Override
+							public int getItemGravity(int position) {
+								return Gravity.CENTER;
+							}
+						})
+						.setRowBreaker(new IRowBreaker() {
+							@Override
+							public boolean isItemBreakRow(@IntRange(from = 0) int position) {
+								return position == 6 || position == 11 || position == 2;
+							}
+						})
+						.setOrientation(ChipsLayoutManager.HORIZONTAL)
+						.setRowStrategy(ChipsLayoutManager.STRATEGY_FILL_SPACE)
+						.withLastRow(false)
+						.build();
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;

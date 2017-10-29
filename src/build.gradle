@@ -8,10 +8,10 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-beta5'
+        classpath 'com.android.tools.build:gradle:3.0.0-beta7'
         classpath 'com.google.gms:google-services:3.1.0'
         classpath 'io.fabric.tools:gradle:1.24.1'
-        classpath "io.realm:realm-gradle-plugin:3.7.2"
+        classpath "io.realm:realm-gradle-plugin:4.1.1"
         // classpath 'com.netflix.nebula:gradle-lint-plugin:7.5.0'
     }
 
