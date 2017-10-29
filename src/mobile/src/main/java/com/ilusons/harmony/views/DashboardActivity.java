@@ -135,6 +135,7 @@ public class DashboardActivity extends BaseUIActivity {
 	private ImageView bg_effect;
 
 	private LibraryViewFragment libraryViewFragment;
+	private FingerprintViewFragment fingerprintViewFragment;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -492,6 +493,16 @@ public class DashboardActivity extends BaseUIActivity {
 
 			// Update mini now playing ui
 			updatePlaybackUIMini();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void OnFingerprintUpdateCancel() {
+		try {
+			if (fingerprintViewFragment != null)
+				fingerprintViewFragment.cancelUpdater();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

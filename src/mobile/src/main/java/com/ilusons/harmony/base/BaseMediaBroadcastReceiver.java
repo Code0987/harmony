@@ -8,6 +8,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.ilusons.harmony.data.FingerprintUpdaterAsyncTask;
+
 import java.lang.ref.WeakReference;
 
 public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
@@ -71,6 +73,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 			if (!TextUtils.isEmpty(name))
 				OnMusicServicePlaylistChanged(name);
 		}
+
+		if (action.equals(FingerprintUpdaterAsyncTask.ACTION_UPDATE_CANCEL)) {
+			OnFingerprintUpdateCancel();
+		}
 	}
 
 	LocalBroadcastManager broadcastManager;
@@ -88,6 +94,8 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 		intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATE_BEGINS);
 		intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATED);
 		intentFilter.addAction(MusicService.ACTION_PLAYLIST_CHANGED);
+
+		intentFilter.addAction(FingerprintUpdaterAsyncTask.ACTION_UPDATE_CANCEL);
 
 		broadcastManager.registerReceiver(this, intentFilter);
 	}
@@ -125,6 +133,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 	}
 
 	public void OnMusicServicePlaylistChanged(String name) {
+
+	}
+
+	public void OnFingerprintUpdateCancel() {
 
 	}
 

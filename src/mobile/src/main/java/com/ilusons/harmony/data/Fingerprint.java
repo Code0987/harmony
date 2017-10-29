@@ -10,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.sql.Array;
+import java.util.Arrays;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -119,7 +121,7 @@ public class Fingerprint extends RealmObject {
 
 			int[] fp = chromaprint.getRawFingerprint();
 
-			Log.d(TAG, "Fingerprint" + "\n" + path + "\n" + fp);
+			Log.d(TAG, "Fingerprint" + "\n" + path + "\n" + Arrays.toString(fp));
 
 			return fp;
 		} catch (Exception e) {
@@ -161,7 +163,7 @@ public class Fingerprint extends RealmObject {
 
 			int[] fp = chromaprint.getRawFingerprint();
 
-			Log.d(TAG, "Fingerprint" + "\n" + fp);
+			Log.d(TAG, "Fingerprint" + "\n" + Arrays.toString(fp));
 
 			return fp;
 		} catch (Exception e) {
@@ -236,7 +238,7 @@ public class Fingerprint extends RealmObject {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return 0;
+		return r;
 	}
 
 	//endregion
