@@ -174,7 +174,6 @@ public class DashboardActivity extends BaseUIActivity {
 		});
 		appBar_layout.setExpanded(appBarIsExpanded, true);
 		appBar_layout.animate();
-		appBar_layout.setExpanded(false, true);
 
 		drawer_layout = findViewById(R.id.drawer_layout);
 		drawer_layout.closeDrawer(GravityCompat.START);
@@ -658,6 +657,8 @@ public class DashboardActivity extends BaseUIActivity {
 		viewPagerAdapter.add(libraryViewFragment, "Library");
 
 		viewPagerAdapter.add(TimerViewFragment.create(), "Timer");
+
+		viewPagerAdapter.add(FingerprintViewFragment.create(), "Identify");
 
 	}
 

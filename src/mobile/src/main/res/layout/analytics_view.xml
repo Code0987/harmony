@@ -21,7 +21,6 @@
         android:nestedScrollingEnabled="true"
         android:orientation="vertical"
         android:paddingBottom="128dp"
-        android:paddingTop="64dp"
         android:scrollbarAlwaysDrawVerticalTrack="true"
         android:scrollbarFadeDuration="0"
         android:scrollbars="none"

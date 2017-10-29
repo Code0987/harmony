@@ -148,7 +148,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 
 	class Particle {
 		public int Index;
-		public float R = 5.0f;
+		public float R = 4.0f;
 		public float X;
 		public float Y;
 		public float Vx;
@@ -189,7 +189,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 					db += height;
 				}
 
-				db += 10 * Math.random() * Math.random();
+				db += 7 * Math.random() * Math.random();
 
 				y = db * (height / dbMax);
 			}

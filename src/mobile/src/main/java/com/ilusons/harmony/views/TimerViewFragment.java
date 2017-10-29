@@ -126,6 +126,8 @@ public class TimerViewFragment extends Fragment {
 			countDownTimer = new CountDownTimer(getSleepTimerTimeLeft(getContext()), 1000) {
 				@Override
 				public void onTick(long time) {
+					time += 1000; // HACK
+
 					int h = (int) (time / 3600000);
 					int m = (int) (time - h * 3600000) / 60000;
 					int s = (int) (time - h * 3600000 - m * 60000) / 1000;

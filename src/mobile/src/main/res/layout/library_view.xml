@@ -19,7 +19,7 @@
         android:clipToPadding="false"
         android:nestedScrollingEnabled="true"
         android:paddingBottom="128dp"
-        android:paddingTop="64dp"
+        android:paddingTop="72dp"
         android:scrollbars="none"
         res:fastScrollPopupBgColor="@color/colorAccent"
         res:fastScrollPopupTextColor="@android:color/primary_text_dark"

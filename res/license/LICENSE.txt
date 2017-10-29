@@ -66,6 +66,12 @@ Summary
             https://github.com/harjot-oberai/Croller/blob/master/LICENSE.md
         RecyclerView-FastScroll
             http://www.apache.org/licenses/LICENSE-2.0
+        ChipsLayoutManager
+            http://www.apache.org/licenses/LICENSE-2.0
+        StringSearch
+            http://johannburkard.de/software/stringsearch/copying.txt
+        FastAdapter
+            http://www.apache.org/licenses/LICENSE-2.0
 
 harmony - Terms and conditions
 
