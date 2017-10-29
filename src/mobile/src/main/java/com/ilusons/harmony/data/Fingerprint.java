@@ -1,9 +1,8 @@
 package com.ilusons.harmony.data;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.eaio.stringsearch.BNDMWildcardsCI;
-import com.eaio.stringsearch.StringSearch;
 import com.ilusons.harmony.ref.MediaEx;
 
 import org.acoustid.chromaprint.Chromaprint;
@@ -16,7 +15,9 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
 import io.realm.annotations.PrimaryKey;
+import io.realm.log.RealmLog;
 
 public class Fingerprint extends RealmObject {
 
@@ -171,6 +172,75 @@ public class Fingerprint extends RealmObject {
 
 	//endregion
 
+	//region Indexer
+
+	public static Fingerprint index(Realm realm, final String id, final String path, final Long length) {
+		Fingerprint r = null;
+		try {
+			int[] rawFingerprint = GenerateRawFingerprint(path, length);
+
+			String value = toStringFromIntArray(rawFingerprint);
+
+			realm.beginTransaction();
+			try {
+				r = realm.createObject(Fingerprint.class, id);
+				r.setRawFingerprint(value);
+
+				r = realm.copyFromRealm(r);
+
+				realm.commitTransaction();
+			} catch (Throwable e) {
+				if (realm.isInTransaction()) {
+					realm.cancelTransaction();
+				}
+				throw e;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return r;
+	}
+
+	public static Fingerprint index(final String id, final String path, final Long length) {
+		try (Realm realm = getDB()) {
+			return index(realm, id, path, length);
+		}
+	}
+
+	public static Fingerprint indexIfNot(Realm realm, final String id, final String path, final Long length) {
+		Fingerprint r = realm.where(Fingerprint.class).equalTo("Id", id).findFirst();
+		if (r == null) {
+			r = index(id, path, length);
+		} else {
+			r = realm.copyFromRealm(r);
+		}
+
+		return r;
+	}
+
+	public static void removeAll(Realm realm) {
+		realm.executeTransaction(new Realm.Transaction() {
+			@Override
+			public void execute(@NonNull Realm realm) {
+				realm.where(Fingerprint.class).findAll().deleteAllFromRealm();
+			}
+		});
+	}
+
+	public static long getSize() {
+		long r = 0;
+		try (Realm realm = getDB()) {
+			if (realm != null) {
+				r = realm.where(Fingerprint.class).count();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	//endregion
+
 	//region Comparator
 
 	public static String toStringFromIntArray(int[] value) {
@@ -186,12 +256,107 @@ public class Fingerprint extends RealmObject {
 		return result;
 	}
 
-	public static double compare(String x, String y) {
-		BNDMWildcardsCI algo = new BNDMWildcardsCI(' ');
+	public static Fingerprint search(Realm realm, int[] rawFingerprint) {
+		Log.d(TAG, "Search started!");
 
+		String fp = toStringFromIntArray(rawFingerprint);
 
+		Log.d(TAG, "Search on: " + fp);
 
-		return 0;
+		for (Fingerprint fingerprint : realm.where(Fingerprint.class).findAll()) {
+			double score = match(fingerprint.getRawFingerprint(), fp);
+			Log.d(TAG, "Search match: " + score + ", Id: " + fingerprint.getId());
+
+			if (score >= 0.75) {
+				Log.d(TAG, "Search over, found!");
+
+				return realm.copyFromRealm(fingerprint);
+			}
+		}
+
+		Log.d(TAG, "Search over, NOT found!");
+
+		return null;
+	}
+
+	public static Fingerprint search(int[] rawFingerprint) {
+		try (Realm realm = getDB()) {
+			return search(realm, rawFingerprint);
+		}
+	}
+
+	public static double match(String x, String y) {
+		double r = -1;
+
+		r = ((double) lcs1(x, y) / (double) Math.min(x.length(), y.length()));
+
+		return r;
+	}
+
+	public static int lcs1(String s, String t) {
+		if (s.isEmpty() || t.isEmpty()) {
+			return 0;
+		}
+		int m = s.length();
+		int n = t.length();
+		int cost = 0;
+		int maxLen = 0;
+		int[] p = new int[n];
+		int[] d = new int[n];
+		for (int i = 0; i < m; ++i) {
+			for (int j = 0; j < n; ++j) {
+				if (s.charAt(i) != t.charAt(j)) {
+					cost = 0;
+				} else {
+					if ((i == 0) || (j == 0)) {
+						cost = 1;
+					} else {
+						cost = p[j - 1] + 1;
+					}
+				}
+				d[j] = cost;
+
+				if (cost > maxLen) {
+					maxLen = cost;
+				}
+			}
+			int[] swap = p;
+			p = d;
+			d = swap;
+		}
+		return maxLen;
+	}
+
+	public static String lcs2(String a, String b) {
+		int[][] lengths = new int[a.length() + 1][b.length() + 1];
+
+		// row 0 and column 0 are initialized to 0 already
+
+		for (int i = 0; i < a.length(); i++)
+			for (int j = 0; j < b.length(); j++)
+				if (a.charAt(i) == b.charAt(j))
+					lengths[i + 1][j + 1] = lengths[i][j] + 1;
+				else
+					lengths[i + 1][j + 1] =
+							Math.max(lengths[i + 1][j], lengths[i][j + 1]);
+
+		// read the substring out from the matrix
+		StringBuffer sb = new StringBuffer();
+		for (int x = a.length(), y = b.length();
+		     x != 0 && y != 0; ) {
+			if (lengths[x][y] == lengths[x - 1][y])
+				x--;
+			else if (lengths[x][y] == lengths[x][y - 1])
+				y--;
+			else {
+				assert a.charAt(x - 1) == b.charAt(y - 1);
+				sb.append(a.charAt(x - 1));
+				x--;
+				y--;
+			}
+		}
+
+		return sb.reverse().toString();
 	}
 
 	//endregion

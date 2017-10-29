@@ -139,13 +139,13 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 			e.printStackTrace();
 
 			instance = null;
-
-			return new Result();
 		} finally {
 			cancelNotification();
 
 			instance = null;
 		}
+
+		return new Result();
 	}
 
 	private void addFromDirectory(Realm realm, Context context, File path, Playlist playlist) throws Exception {

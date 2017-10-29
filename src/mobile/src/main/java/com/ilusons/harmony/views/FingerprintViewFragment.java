@@ -32,6 +32,8 @@ import com.google.gson.Gson;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.data.Api;
+import com.ilusons.harmony.data.FingerprintUpdaterAsyncTask;
+import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AudioEx;
 import com.ilusons.harmony.data.Fingerprint;
 import com.ilusons.harmony.ref.JavaEx;
@@ -51,6 +53,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 	private View root;
 
+	private TextView info;
 	private ImageView icon;
 	private TextView text;
 
@@ -71,6 +74,8 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 		// Set views
 		root = v.findViewById(R.id.root);
+
+		info = v.findViewById(R.id.info);
 
 		icon = v.findViewById(R.id.icon);
 
@@ -113,6 +118,30 @@ public class FingerprintViewFragment extends BaseUIFragment {
 						hasPermissions = false;
 					}
 				});
+
+		checkAndFingerprintLocal();
+	}
+
+	private FingerprintUpdaterAsyncTask fingerprintUpdaterAsyncTask = null;
+
+	private void checkAndFingerprintLocal() {
+		try {
+			double score = (double) Fingerprint.getSize() / (double) Music.getSize();
+
+			if (score <= 0.75) {
+				if (fingerprintUpdaterAsyncTask != null) {
+					fingerprintUpdaterAsyncTask.cancel(true);
+					fingerprintUpdaterAsyncTask = null;
+				}
+				fingerprintUpdaterAsyncTask = new FingerprintUpdaterAsyncTask(getContext());
+				fingerprintUpdaterAsyncTask.execute();
+			}
+
+			info.setText((int) (score * 100) + "% fingerprinted locally");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private boolean isProcessing = false;
@@ -340,31 +369,52 @@ public class FingerprintViewFragment extends BaseUIFragment {
 						System.arraycopy(buffer, 0, copy, 0, length);
 
 						try {
-							String fp = Fingerprint.GenerateFingerprint(copy, CHANNELS, SAMPLE_RATE);
-							if (TextUtils.isEmpty(fp))
+							int[] rawfp = Fingerprint.GenerateRawFingerprint(copy, CHANNELS, SAMPLE_RATE);
+							if (rawfp == null || rawfp.length == 0)
 								throw new Exception("No fingerprint");
-							Api.LookupFingerprintDataAsyncTask asyncTask = Api.lookup(
-									fp,
-									(long) ((float) bufferIndex / (float) SAMPLE_RATE),
-									new JavaEx.ActionT<Map<String, String>>() {
-										@Override
-										public void execute(final Map<String, String> result) {
-											if (result.size() > 0)
-												getActivity().runOnUiThread(new Runnable() {
-													@Override
-													public void run() {
-														text.setText((new Gson()).toJson(result));
-													}
-												});
-										}
-									},
-									new JavaEx.ActionT<Exception>() {
-										@Override
-										public void execute(Exception e) {
-											e.printStackTrace();
-										}
-									});
-							asyncTask.get(3, TimeUnit.SECONDS);
+
+							// Search local
+
+							final Fingerprint fingerprint = Fingerprint.search(rawfp);
+							if (fingerprint != null) {
+								getActivity().runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										text.setText(fingerprint.getId());
+									}
+								});
+							} else {
+
+								// Search online
+
+								String fp = Fingerprint.GenerateFingerprint(copy, CHANNELS, SAMPLE_RATE);
+								if (TextUtils.isEmpty(fp))
+									throw new Exception("No fingerprint");
+
+								Api.LookupFingerprintDataAsyncTask asyncTask = Api.lookup(
+										fp,
+										(long) ((float) bufferIndex / (float) SAMPLE_RATE),
+										new JavaEx.ActionT<Map<String, String>>() {
+											@Override
+											public void execute(final Map<String, String> result) {
+												if (result.size() > 0)
+													getActivity().runOnUiThread(new Runnable() {
+														@Override
+														public void run() {
+															text.setText((new Gson()).toJson(result));
+														}
+													});
+											}
+										},
+										new JavaEx.ActionT<Exception>() {
+											@Override
+											public void execute(Exception e) {
+												e.printStackTrace();
+											}
+										});
+								asyncTask.get(3, TimeUnit.SECONDS);
+
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -686,6 +736,10 @@ public class FingerprintViewFragment extends BaseUIFragment {
 				canvas.drawText(String.format("%.2f", i), i * xStep, textHeight, mTextPaint);
 			}
 		}
+	}
+
+	public static boolean shouldBeVisible() {
+		return Music.getSize() >= 30;
 	}
 
 }

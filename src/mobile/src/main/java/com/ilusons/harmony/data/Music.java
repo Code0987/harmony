@@ -1087,6 +1087,18 @@ public class Music extends RealmObject {
 		}
 	}
 
+	public static long getSize() {
+		long r = 0;
+		try (Realm realm = DB.getDB()) {
+			if (realm != null) {
+				r = realm.where(Music.class).count();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return r;
+	}
+
 	//endregion
 
 	//region Extensions

@@ -38,6 +38,19 @@
             android:focusableInTouchMode="true"
             >
 
+            <TextView
+                android:id="@+id/info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="24dp"
+                android:textColor="@color/secondary_text"
+                android:textSize="14sp"
+                res:layout_constraintLeft_toLeftOf="parent"
+                res:layout_constraintRight_toRightOf="parent"
+                res:layout_constraintTop_toTopOf="parent"
+                tools:text="Text ..."
+                />
+
             <ImageButton
                 android:id="@+id/icon"
                 style="@style/Widget.AppCompat.ImageButton"
@@ -58,7 +71,7 @@
                 android:tintMode="src_atop"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toTopOf="parent"
+                res:layout_constraintTop_toBottomOf="@id/info"
                 />
 
             <TextView

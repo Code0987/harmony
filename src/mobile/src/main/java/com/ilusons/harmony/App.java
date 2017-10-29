@@ -67,16 +67,10 @@ public class App extends Application {
 		*/
 
 		// Fabric
-		if (!BuildConfig.DEBUG) {
-			final Crashlytics crashlyticsKit = new Crashlytics.Builder()
-					.core(new CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build())
-					.build();
-			final Fabric fabric = new Fabric.Builder(this)
-					.kits(crashlyticsKit)
-					.debuggable(BuildConfig.DEBUG)
-					.build();
-			Fabric.with(fabric);
-		}
+		final Crashlytics crashlyticsKit = new Crashlytics.Builder()
+				.core(new CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build())
+				.build();
+		Fabric.with(this, crashlyticsKit);
 
 		// Firebase
 
