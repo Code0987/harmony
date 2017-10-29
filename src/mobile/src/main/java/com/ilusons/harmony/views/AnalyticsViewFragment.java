@@ -31,6 +31,7 @@ import com.ilusons.harmony.data.Music;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class AnalyticsViewFragment extends Fragment {
@@ -255,6 +256,18 @@ public class AnalyticsViewFragment extends Fragment {
 	public static AnalyticsViewFragment create() {
 		AnalyticsViewFragment f = new AnalyticsViewFragment();
 		return f;
+	}
+
+	public static boolean shouldBeVisible() {
+		try {
+			double sum = 0;
+			for (Music item : Music.getAllSortedByScore(6))
+				sum += item.getScore();
+			return sum >= 7;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 }

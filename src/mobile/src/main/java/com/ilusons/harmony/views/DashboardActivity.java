@@ -651,14 +651,19 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		});
 
-		viewPagerAdapter.add(AnalyticsViewFragment.create(), "Analytics");
-
 		libraryViewFragment = LibraryViewFragment.create();
+
+		if (AnalyticsViewFragment.shouldBeVisible()) {
+			viewPagerAdapter.add(AnalyticsViewFragment.create(), "Analytics");
+		}
+
 		viewPagerAdapter.add(libraryViewFragment, "Library");
 
 		viewPagerAdapter.add(TimerViewFragment.create(), "Timer");
 
-		viewPagerAdapter.add(FingerprintViewFragment.create(), "Identify");
+		if (FingerprintViewFragment.shouldBeVisible()) {
+			viewPagerAdapter.add(FingerprintViewFragment.create(), "Identify");
+		}
 
 	}
 
