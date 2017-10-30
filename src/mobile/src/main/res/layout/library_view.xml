@@ -10,7 +10,7 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+    <RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -21,9 +21,6 @@
         android:paddingBottom="128dp"
         android:paddingTop="72dp"
         android:scrollbars="none"
-        res:fastScrollPopupBgColor="@color/colorAccent"
-        res:fastScrollPopupTextColor="@android:color/primary_text_dark"
-        res:fastScrollThumbColor="@color/colorAccent"
         res:layoutManager="android.support.v7.widget.LinearLayoutManager"
         res:layout_constraintBottom_toBottomOf="parent"
         res:layout_constraintLeft_toLeftOf="parent"
