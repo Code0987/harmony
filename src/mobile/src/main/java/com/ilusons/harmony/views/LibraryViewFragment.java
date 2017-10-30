@@ -57,6 +57,12 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.google.android.flexbox.AlignItems;
+import com.google.android.flexbox.AlignSelf;
+import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexWrap;
+import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.flexbox.JustifyContent;
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
@@ -66,6 +72,7 @@ import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -328,7 +335,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	private static final int RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW = 5;
 
-	private FastScrollRecyclerView recyclerView;
+	private RecyclerView recyclerView;
 	private RecyclerView.OnChildAttachStateChangeListener onChildAttachStateChangeListener;
 
 	public RecyclerViewAdapter getAdapter() {
@@ -338,7 +345,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 	private void createItems(View v) {
 
 		// Set recycler
-		recyclerView = (FastScrollRecyclerView) v.findViewById(R.id.recyclerView);
+		recyclerView = v.findViewById(R.id.recyclerView);
 		recyclerView.setHasFixedSize(true);
 		recyclerView.setItemViewCacheSize(RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW);
 		recyclerView.setDrawingCacheEnabled(true);
@@ -614,6 +621,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 			final String d = dataFiltered.get(groupPosition).first;
 			final View v = holder.view;
 
+			setupLayout(v, groupPosition, true);
+
 			TextView title = ((TextView) v.findViewById(R.id.title));
 			title.setText(d);
 
@@ -686,6 +695,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 		public void onBindChildViewHolder(ViewHolder holder, int groupPosition, int childPosition, int viewType) {
 			final Object d = dataFiltered.get(groupPosition).second.get(childPosition);
 			final View v = holder.view;
+
+			setupLayout(v, childPosition, false);
 
 			// Bind data to view here!
 
@@ -1007,6 +1018,32 @@ public class LibraryViewFragment extends BaseUIFragment {
 					}
 				}
 			}).start();
+		}
+
+		private void setupLayout(View v, int p, boolean header) {
+			ViewGroup.LayoutParams lp = v.getLayoutParams();
+			if (lp instanceof FlexboxLayoutManager.LayoutParams) {
+				FlexboxLayoutManager.LayoutParams flexboxLp = (FlexboxLayoutManager.LayoutParams) lp;
+
+				flexboxLp.setAlignSelf(AlignSelf.FLEX_START);
+				flexboxLp.setWrapBefore(false);
+
+				if (header) {
+					flexboxLp.setFlexBasisPercent(100);
+				} else {
+					switch (p) {
+						case 0:
+							flexboxLp.setFlexBasisPercent(100);
+							break;
+						case 1:
+							flexboxLp.setFlexBasisPercent(50);
+							break;
+						default:
+							flexboxLp.setFlexBasisPercent(25);
+							break;
+					}
+				}
+			}
 		}
 
 		public void highlightView(View root) {
@@ -1730,7 +1767,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 	public enum UIViewMode {
 		Default("Default"),
 		Complex1("Grid of 2"),
-		Complex2("Grid of 6|3"),;
+		Complex2("Grid of 6|2"),
+		Complex3("Flow of 2"),;
 
 		private String friendlyName;
 
@@ -1877,12 +1915,21 @@ public class LibraryViewFragment extends BaseUIFragment {
 							// child item
 							if (position % 6 == 0)
 								return 6;
-							if (position % 4 == 0)
-								return 4;
 							return 3;
 						}
 					}
 				});
+				recyclerView.setLayoutManager(layoutManager);
+			}
+			break;
+			case Complex3: {
+				FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(getContext());
+
+				layoutManager.setFlexDirection(FlexDirection.ROW);
+				layoutManager.setFlexWrap(FlexWrap.WRAP);
+				layoutManager.setJustifyContent(JustifyContent.FLEX_START);
+				layoutManager.setAlignItems(AlignItems.STRETCH);
+
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;

@@ -197,7 +197,6 @@ dependencies {
 	implementation 'com.spotify.android:auth:1.0.0-alpha'
 	implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
 	implementation 'com.sdsmdg.harjot:croller:1.0.5'
-	implementation 'com.simplecityapps:recyclerview-fastscroll:1.0.16'
 	implementation 'com.mikepenz:fastadapter:3.0.0@aar'
 	// implementation 'com.mikepenz:fastadapter-commons:3.0.0@aar'
 	// implementation 'com.mikepenz:fastadapter-extensions-expandable:3.0.0@aar'

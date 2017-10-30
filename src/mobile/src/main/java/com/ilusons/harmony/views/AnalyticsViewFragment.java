@@ -160,13 +160,6 @@ public class AnalyticsViewFragment extends Fragment {
 				16,
 				1f);
 
-		/*
-		layoutManager_c1.setFlexDirection(FlexDirection.ROW);
-		layoutManager_c1.setFlexWrap(FlexWrap.WRAP);
-		layoutManager_c1.setJustifyContent(JustifyContent.FLEX_START);
-		layoutManager_c1.setAlignItems(AlignItems.STRETCH);
-		*/
-
 		recyclerView_c1.setLayoutManager(layoutManager_c1);
 
 		recyclerView_c1.setAdapter(adapter_c1);
@@ -229,35 +222,6 @@ public class AnalyticsViewFragment extends Fragment {
 				viewHolder.image.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_broken_image_black));
 			}
 			viewHolder.text.setText(data.getText());
-
-			/*
-			ViewGroup.LayoutParams lp = viewHolder.view.getLayoutParams();
-			if (lp instanceof FlexboxLayoutManager.LayoutParams) {
-				FlexboxLayoutManager.LayoutParams flexboxLp = (FlexboxLayoutManager.LayoutParams) lp;
-
-				int p = adapter.getPosition(this);
-
-				flexboxLp.setFlexGrow(1.0f);
-				flexboxLp.setFlexShrink(1.0f);
-				flexboxLp.setAlignSelf(AlignSelf.FLEX_START);
-				flexboxLp.setFlexBasisPercent(-1);
-				flexboxLp.setMinWidth(AndroidEx.dpToPx(96));
-				flexboxLp.setMinHeight(AndroidEx.dpToPx(96));
-				flexboxLp.setWrapBefore(false);
-
-				switch (p) {
-					case 0:
-						flexboxLp.setFlexBasisPercent(100);
-						break;
-					case 1:
-						flexboxLp.setFlexBasisPercent(50);
-						break;
-					default:
-						flexboxLp.setFlexBasisPercent(25);
-						break;
-				}
-			}
-			*/
 		}
 
 		@Override
