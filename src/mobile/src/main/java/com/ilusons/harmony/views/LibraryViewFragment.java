@@ -57,20 +57,6 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.beloo.widget.chipslayoutmanager.ChipsLayoutManager;
-import com.beloo.widget.chipslayoutmanager.gravity.IChildGravityResolver;
-import com.beloo.widget.chipslayoutmanager.layouter.breaker.IRowBreaker;
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.MPPointF;
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
@@ -86,8 +72,6 @@ import com.ilusons.harmony.ref.SPrefEx;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -404,8 +388,21 @@ public class LibraryViewFragment extends BaseUIFragment {
 	}
 
 	public void setViewPlaylist(Playlist playlist) {
+		boolean set = false;
+		if (viewPlaylist == null)
+			set = true;
+
 		viewPlaylist = playlist;
+
 		adapter.setData(viewPlaylist.getItems());
+
+		if (set)
+			recyclerView.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					adapter.jumpToCurrentlyPlayingItem();
+				}
+			}, 1000);
 	}
 
 	private void createPlaylists(View v) {
@@ -453,6 +450,12 @@ public class LibraryViewFragment extends BaseUIFragment {
 								@Override
 								public void run() {
 									context.adapter.setData(playlist.getItems());
+									context.recyclerView.postDelayed(new Runnable() {
+										@Override
+										public void run() {
+											context.adapter.jumpToCurrentlyPlayingItem();
+										}
+									}, 1000);
 									context.loading.smoothToHide();
 									context.info("Loaded playlist!");
 								}
@@ -485,8 +488,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 				return;
 
 			context.loading.smoothToShow();
-
-			context.info("Do not refresh until this playlist is fully loaded!", true);
 		}
 
 		@Override
@@ -1728,8 +1729,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	public enum UIViewMode {
 		Default("Default"),
-		Two("Two"),
-		Complex1("Complex 1"),;
+		Complex1("Grid of 2"),
+		Complex2("Grid of 6|3"),;
 
 		private String friendlyName;
 
@@ -1741,7 +1742,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 	public static final String TAG_SPREF_LIBRARY_UI_VIEW_MODE = SPrefEx.TAG_SPREF + ".library_ui_view_mode";
 
 	public static UIViewMode getUIViewMode(Context context) {
-		return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Two)));
+		return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Complex1)));
 	}
 
 	public static void setUIViewMode(Context context, UIViewMode value) {
@@ -1821,7 +1822,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 		final UIViewMode uiViewMode = getUIViewMode(getContext());
 
 		switch (uiViewMode) {
-			case Two: {
+			case Complex1: {
 				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 2) {
 					@Override
 					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
@@ -1851,27 +1852,37 @@ public class LibraryViewFragment extends BaseUIFragment {
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;
-			case Complex1: {
-				ChipsLayoutManager layoutManager = ChipsLayoutManager.newBuilder(getContext())
-						.setChildGravity(Gravity.TOP)
-						.setScrollingEnabled(true)
-						.setMaxViewsInRow(3)
-						.setGravityResolver(new IChildGravityResolver() {
-							@Override
-							public int getItemGravity(int position) {
-								return Gravity.CENTER;
-							}
-						})
-						.setRowBreaker(new IRowBreaker() {
-							@Override
-							public boolean isItemBreakRow(@IntRange(from = 0) int position) {
-								return position == 6 || position == 11 || position == 2;
-							}
-						})
-						.setOrientation(ChipsLayoutManager.HORIZONTAL)
-						.setRowStrategy(ChipsLayoutManager.STRATEGY_FILL_SPACE)
-						.withLastRow(false)
-						.build();
+			case Complex2: {
+				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 6) {
+					@Override
+					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+						try {
+							super.onLayoutChildren(recycler, state);
+						} catch (IndexOutOfBoundsException e) {
+							Log.w(TAG, e);
+						}
+					}
+				};
+				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+					@Override
+					public int getSpanSize(int position) {
+						if (RecyclerViewExpandableItemManager
+								.getPackedPositionChild(recyclerViewExpandableItemManager
+										.getExpandablePosition(position))
+								==
+								RecyclerView.NO_POSITION) {
+							// group item
+							return 6;
+						} else {
+							// child item
+							if (position % 6 == 0)
+								return 6;
+							if (position % 4 == 0)
+								return 4;
+							return 3;
+						}
+					}
+				});
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;

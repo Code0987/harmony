@@ -1,12 +1,16 @@
 package com.ilusons.harmony.views;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Picture;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -25,6 +29,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -51,14 +56,25 @@ public class FingerprintViewFragment extends BaseUIFragment {
 	// Logger TAG
 	private static final String TAG = FingerprintViewFragment.class.getSimpleName();
 
+	private Context context;
+	private BroadcastReceiver broadcastReceiver;
+
 	private View root;
 
-	private TextView info;
 	private ImageView icon;
 	private TextView text;
+	private TextView info;
+	private ImageButton local_updater_status;
 
 	private FrameLayout avfx_layout;
 	private WaveformView avfx_view;
+
+	@Override
+	public void onAttach(Context context) {
+		super.onAttach(context);
+
+		this.context = context;
+	}
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,8 +90,6 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 		// Set views
 		root = v.findViewById(R.id.root);
-
-		info = v.findViewById(R.id.info);
 
 		icon = v.findViewById(R.id.icon);
 
@@ -93,7 +107,33 @@ public class FingerprintViewFragment extends BaseUIFragment {
 			}
 		});
 
+		info = v.findViewById(R.id.info);
+
+		local_updater_status = v.findViewById(R.id.local_updater_status);
+
+		local_updater_status.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (FingerprintUpdaterAsyncTask.getInstance() == null) {
+					FingerprintUpdaterAsyncTask.run(getContext().getApplicationContext());
+				} else {
+					FingerprintUpdaterAsyncTask.cancel();
+				}
+
+				checkLocalUpdater();
+			}
+		});
+
 		return v;
+	}
+
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+
+		if (context != null) {
+			destroyBroadcast(context);
+		}
 	}
 
 	private boolean hasPermissions = false;
@@ -119,51 +159,85 @@ public class FingerprintViewFragment extends BaseUIFragment {
 					}
 				});
 
-		checkAndFingerprintLocal();
+		if (((double) Fingerprint.getSize() / (double) Music.getSize()) <= 0.75) {
+			if (FingerprintUpdaterAsyncTask.getInstance() == null) {
+				FingerprintUpdaterAsyncTask.run(getContext().getApplicationContext());
+
+				info("Fingerprint updater started.");
+			}
+		}
+
+		checkLocalUpdater();
 	}
 
-	private FingerprintUpdaterAsyncTask fingerprintUpdaterAsyncTask = null;
+	//region Broadcast
 
-	private void checkAndFingerprintLocal() {
+	private void createBroadcast(Context context) {
+		broadcastReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				handleBroadcast(context, intent);
+			}
+		};
+		IntentFilter intentFilter = new IntentFilter();
+
+		intentFilter.addAction(FingerprintUpdaterAsyncTask.ACTION_UPDATE_START);
+		intentFilter.addAction(FingerprintUpdaterAsyncTask.ACTION_UPDATE_COMPLETED);
+
+		context.registerReceiver(broadcastReceiver, intentFilter);
+	}
+
+	private void destroyBroadcast(Context context) {
+		if (broadcastReceiver != null) {
+			try {
+				context.unregisterReceiver(broadcastReceiver);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void handleBroadcast(Context context, Intent intent) {
+		if (intent == null || intent.getAction() == null)
+			return;
+
+		String action = intent.getAction();
+
+		if (action.equalsIgnoreCase(FingerprintUpdaterAsyncTask.ACTION_UPDATE_START)) {
+			info("Fingerprint updater started.");
+		} else if (action.equalsIgnoreCase(FingerprintUpdaterAsyncTask.ACTION_UPDATE_START)) {
+			info("Fingerprint updater stopped.");
+		}
+
+		checkLocalUpdater();
+	}
+
+	//endregion
+
+	private void checkLocalUpdater() {
 		try {
 			double score = (double) Fingerprint.getSize() / (double) Music.getSize();
 
 			String s = (int) (score * 100) + "% fingerprinted locally";
 
-			if (score <= 0.75) {
-				if (fingerprintUpdaterAsyncTask == null) {
-					fingerprintUpdaterAsyncTask = new FingerprintUpdaterAsyncTask(getContext());
-					fingerprintUpdaterAsyncTask.execute();
-
-					s = s + " [Tap here to cancel update]";
-
-					info.setOnClickListener(new View.OnClickListener() {
-						@Override
-						public void onClick(View view) {
-							cancelUpdater();
-						}
-					});
-				}
-			} else {
-				info.setOnClickListener(null);
-			}
-
 			info.setText(s);
 
+			if (FingerprintUpdaterAsyncTask.getInstance() == null) {
+				local_updater_status.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
+				local_updater_status.setImageResource(R.drawable.ic_settings_remote_black);
+			} else {
+				local_updater_status.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
+				local_updater_status.setImageResource(R.drawable.ic_dialog_close_dark);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void cancelUpdater() {
-		if (fingerprintUpdaterAsyncTask != null)
-			fingerprintUpdaterAsyncTask.cancel(true);
+	public void cancelLocalUpdater() {
+		FingerprintUpdaterAsyncTask.cancel();
 
-		double score = (double) Fingerprint.getSize() / (double) Music.getSize();
-
-		String s = (int) (score * 100) + "% fingerprinted locally";
-
-		info.setText(s);
+		checkLocalUpdater();
 	}
 
 	private boolean isProcessing = false;

@@ -73,10 +73,6 @@ public abstract class BaseUIActivity extends BaseActivity {
 				BaseUIActivity.this.OnMusicServicePlaylistChanged(name);
 			}
 
-			@Override
-			public void OnFingerprintUpdateCancel() {
-				BaseUIActivity.this.OnFingerprintUpdateCancel();
-			}
 		};
 
 	}
@@ -167,10 +163,6 @@ public abstract class BaseUIActivity extends BaseActivity {
 	}
 
 	public void OnMusicServicePlaylistChanged(String name) {
-
-	}
-
-	public void OnFingerprintUpdateCancel() {
 
 	}
 

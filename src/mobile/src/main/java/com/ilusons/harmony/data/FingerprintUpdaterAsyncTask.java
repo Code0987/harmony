@@ -12,10 +12,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.ArraySet;
 import android.util.Log;
 import android.util.Pair;
+import android.widget.Toast;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 
@@ -37,10 +40,61 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 
 	public static final String ACTION_UPDATE_START = TAG + "_start";
 	public static final String ACTION_UPDATE_COMPLETED = TAG + "_completed";
-	public static final String ACTION_UPDATE_CANCEL = TAG + "_cancel";
+
+	public static void broadcastAction(Context context, String action) {
+		if (context == null)
+			return;
+
+		if (action == null)
+			return;
+
+		Intent broadcastIntent = new Intent(action);
+		LocalBroadcastManager
+				.getInstance(context)
+				.sendBroadcast(broadcastIntent);
+	}
 
 	@SuppressLint("StaticFieldLeak")
 	private static FingerprintUpdaterAsyncTask instance;
+
+	public static FingerprintUpdaterAsyncTask getInstance() {
+		return instance;
+	}
+
+	public static FingerprintUpdaterAsyncTask run(Context context) {
+		if (instance != null)
+			cancel();
+		instance = new FingerprintUpdaterAsyncTask(context);
+		instance.execute();
+		return instance;
+	}
+
+	public static boolean cancel() {
+		if (instance == null || instance.isCancelled())
+			return true;
+
+		if (instance != null) {
+			try {
+				Context context = instance.contextRef.get();
+
+				instance.cancelNotification();
+				instance.cancel(true);
+				instance.get(1, TimeUnit.MILLISECONDS);
+
+				try {
+					broadcastAction(context, ACTION_UPDATE_COMPLETED);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			} finally {
+				instance = null;
+			}
+		}
+
+		return true;
+	}
 
 	private WeakReference<Context> contextRef;
 
@@ -54,11 +108,6 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 				Context context = contextRef.get();
 				if (context == null)
 					throw new Exception("Context lost!");
-
-				// To keep single instance active only
-				if (instance != null)
-					wait();
-				instance = this;
 
 				// Notification
 				setupNotification();
@@ -120,15 +169,11 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 				cancelNotification();
 
 				notifyAll();
-
-				return null;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			cancelNotification();
-
-			instance = null;
 		}
 
 		return null;
@@ -146,15 +191,12 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 
 		notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-		Intent cancelIntent = new Intent(ACTION_UPDATE_CANCEL);
-		PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 		notificationBuilder = new NotificationCompat.Builder(context)
 				.setOngoing(true)
 				.setContentTitle(context.getString(R.string.app_name) + ": Fingerprint update")
 				.setContentText("Updating fingerprints ...")
 				.setProgress(100, 0, true)
-				.setSmallIcon(R.mipmap.ic_launcher)
-				.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent);
+				.setSmallIcon(R.mipmap.ic_launcher);
 
 		notificationManager.notify(KEY_NOTIFICATION_ID, notificationBuilder.build());
 	}
@@ -188,45 +230,26 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 	protected void onPreExecute() {
 		super.onPreExecute();
 
-		Context context = contextRef.get();
-		if (context == null)
-			return;
-
-		Intent broadcastIntent = new Intent(ACTION_UPDATE_START);
-		LocalBroadcastManager
-				.getInstance(context)
-				.sendBroadcast(broadcastIntent);
+		broadcastAction(contextRef.get(), ACTION_UPDATE_START);
 	}
 
 	@Override
 	protected void onPostExecute(Object result) {
 		super.onPostExecute(result);
 
-		Context context = contextRef.get();
-		if (context == null)
-			return;
+		broadcastAction(contextRef.get(), ACTION_UPDATE_COMPLETED);
 
-		if (result == null)
-			return;
-
-		Intent broadcastIntent = new Intent(ACTION_UPDATE_COMPLETED);
-		LocalBroadcastManager
-				.getInstance(context)
-				.sendBroadcast(broadcastIntent);
+		if (instance == this)
+			instance = null;
 	}
 
 	@Override
-	protected void onCancelled() {
-		super.onCancelled();
+	protected void onCancelled(Object o) {
+		super.onCancelled(o);
 
-		Context context = contextRef.get();
-		if (context == null)
-			return;
+		broadcastAction(contextRef.get(), ACTION_UPDATE_COMPLETED);
 
-		Intent broadcastIntent = new Intent(ACTION_UPDATE_COMPLETED);
-		LocalBroadcastManager
-				.getInstance(context)
-				.sendBroadcast(broadcastIntent);
+		if (instance == this)
+			instance = null;
 	}
-
 }

@@ -15,10 +15,13 @@ import android.support.v4.graphics.ColorUtils;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -44,10 +47,14 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.ui.SpannedGridLayoutManager;
 import com.mikepenz.fastadapter.FastAdapter;
+import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.mikepenz.fastadapter.items.AbstractItem;
+import com.mikepenz.fastadapter.listeners.OnClickListener;
+import com.mikepenz.itemanimators.ScaleUpAnimator;
 import com.mikepenz.itemanimators.SlideDownAlphaAnimator;
 import com.mikepenz.materialize.holder.StringHolder;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -96,7 +103,9 @@ public class AnalyticsViewFragment extends Fragment {
 	private FastAdapter<C1Item> adapter_c1;
 	private ItemAdapter<C1Item> itemAdapter_c1;
 	private RecyclerView recyclerView_c1;
-	private FlexboxLayoutManager layoutManager_c1;
+	private RecyclerView.LayoutManager layoutManager_c1;
+
+	private Animation animation_press_c1;
 
 	private void createItems(View v) {
 		final List<Music> items = Music.getAllSortedByScore(6);
@@ -107,15 +116,56 @@ public class AnalyticsViewFragment extends Fragment {
 		itemAdapter_c1 = new ItemAdapter<>();
 		adapter_c1 = FastAdapter.with(Arrays.asList(itemAdapter_c1));
 
+		animation_press_c1 = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
+
+		adapter_c1.withSelectable(true);
+		adapter_c1.withOnClickListener(new OnClickListener<C1Item>() {
+			@Override
+			public boolean onClick(View v, IAdapter<C1Item> adapter, C1Item item, int position) {
+				v.startAnimation(animation_press_c1);
+
+				playItem(item.data.getPath());
+
+				return true;
+			}
+		});
+
 		recyclerView_c1 = v.findViewById(R.id.recyclerView_c1);
+		recyclerView_c1.setHasFixedSize(true);
+		recyclerView_c1.setItemViewCacheSize(7);
+		recyclerView_c1.setDrawingCacheEnabled(true);
+		recyclerView_c1.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 
-		layoutManager_c1 = new FlexboxLayoutManager(getContext());
+		layoutManager_c1 = new SpannedGridLayoutManager(
+				new SpannedGridLayoutManager.GridSpanLookup() {
+					@Override
+					public SpannedGridLayoutManager.SpanInfo getSpanInfo(int p) {
+						int cs;
+						int rs;
 
+						if (p == 0) {
+							cs = 16;
+							rs = 8;
+						} else if (p == 1) {
+							cs = 6;
+							rs = 8;
+						} else {
+							cs = 5;
+							rs = 4;
+						}
+
+						return new SpannedGridLayoutManager.SpanInfo(cs, rs);
+					}
+				},
+				16,
+				1f);
+
+		/*
 		layoutManager_c1.setFlexDirection(FlexDirection.ROW);
 		layoutManager_c1.setFlexWrap(FlexWrap.WRAP);
 		layoutManager_c1.setJustifyContent(JustifyContent.FLEX_START);
 		layoutManager_c1.setAlignItems(AlignItems.STRETCH);
-		layoutManager_c1.setAlignContent(AlignContent.STRETCH);
+		*/
 
 		recyclerView_c1.setLayoutManager(layoutManager_c1);
 
@@ -125,14 +175,19 @@ public class AnalyticsViewFragment extends Fragment {
 		recyclerView_c1.getItemAnimator().setAddDuration(253);
 		recyclerView_c1.getItemAnimator().setRemoveDuration(333);
 
-		for (final Music item : items) {
-			recyclerView_c1.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(item));
+		recyclerView_c1.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				for (final Music item : items) {
+					recyclerView_c1.postDelayed(new Runnable() {
+						@Override
+						public void run() {
+							itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(item));
+						}
+					}, 333);
 				}
-			}, 333);
-		}
+			}
+		}, 1300);
 	}
 
 	public static class C1Item extends AbstractItem<C1Item, C1Item.ViewHolder> {
@@ -167,34 +222,42 @@ public class AnalyticsViewFragment extends Fragment {
 
 			Context context = viewHolder.view.getContext();
 
-			viewHolder.image.setImageBitmap(data.getCover(context, -1));
+			Bitmap bitmap = data.getCover(context, -1);
+			if (bitmap != null) {
+				viewHolder.image.setImageBitmap(bitmap);
+			} else {
+				viewHolder.image.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_broken_image_black));
+			}
 			viewHolder.text.setText(data.getText());
 
-			int position = adapter.getPosition(this);
-
+			/*
 			ViewGroup.LayoutParams lp = viewHolder.view.getLayoutParams();
 			if (lp instanceof FlexboxLayoutManager.LayoutParams) {
 				FlexboxLayoutManager.LayoutParams flexboxLp = (FlexboxLayoutManager.LayoutParams) lp;
 
-				flexboxLp.setOrder(1);
+				int p = adapter.getPosition(this);
+
 				flexboxLp.setFlexGrow(1.0f);
 				flexboxLp.setFlexShrink(1.0f);
 				flexboxLp.setAlignSelf(AlignSelf.FLEX_START);
 				flexboxLp.setFlexBasisPercent(-1);
 				flexboxLp.setMinWidth(AndroidEx.dpToPx(96));
 				flexboxLp.setMinHeight(AndroidEx.dpToPx(96));
-				flexboxLp.setWrapBefore(true);
+				flexboxLp.setWrapBefore(false);
 
-				switch (position) {
+				switch (p) {
 					case 0:
-						flexboxLp.setFlexGrow(3.0f);
+						flexboxLp.setFlexBasisPercent(100);
 						break;
 					case 1:
-						flexboxLp.setFlexGrow(2.0f);
+						flexboxLp.setFlexBasisPercent(50);
+						break;
+					default:
+						flexboxLp.setFlexBasisPercent(25);
 						break;
 				}
-
 			}
+			*/
 		}
 
 		@Override

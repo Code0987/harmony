@@ -9,7 +9,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -28,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
@@ -61,6 +64,8 @@ public class TimerViewFragment extends Fragment {
 	private TextView text;
 	private CountDownTimer countDownTimer;
 	private ImageButton set_timer;
+
+	private LottieAnimationView lottieAnimationView;
 
 	@Nullable
 	@Override
@@ -109,6 +114,8 @@ public class TimerViewFragment extends Fragment {
 			}
 		});
 
+		lottieAnimationView = v.findViewById(R.id.lottieAnimationView);
+
 		updateUI();
 
 		return v;
@@ -149,6 +156,15 @@ public class TimerViewFragment extends Fragment {
 			set_timer.setImageDrawable(getContext().getDrawable(R.drawable.ic_timer_black));
 			set_timer.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
 
+			lottieAnimationView.pauseAnimation();
+			lottieAnimationView.setAnimation("clock.json", LottieAnimationView.CacheStrategy.Weak);
+			lottieAnimationView.loop(true);
+			lottieAnimationView.setScale(1);
+			lottieAnimationView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+			lottieAnimationView.clearColorFilters();
+			lottieAnimationView.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.MULTIPLY));
+			lottieAnimationView.playAnimation();
+
 		} else {
 
 			text.setText(null);
@@ -156,6 +172,14 @@ public class TimerViewFragment extends Fragment {
 			set_timer.setImageDrawable(getContext().getDrawable(R.drawable.ic_timer_off_black));
 			set_timer.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
 
+			lottieAnimationView.pauseAnimation();
+			lottieAnimationView.setAnimation("no_notifications!.json", LottieAnimationView.CacheStrategy.Weak);
+			lottieAnimationView.loop(true);
+			lottieAnimationView.setScale(1);
+			lottieAnimationView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+			lottieAnimationView.clearColorFilters();
+			lottieAnimationView.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.MULTIPLY));
+			lottieAnimationView.playAnimation();
 		}
 
 
