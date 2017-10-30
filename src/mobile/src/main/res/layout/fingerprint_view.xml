@@ -84,6 +84,60 @@
                 res:layout_constraintTop_toBottomOf="@id/text"
                 />
 
+            <RelativeLayout
+                android:id="@+id/lookup_layout"
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="0dp"
+                android:layout_height="96dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                res:layout_constraintLeft_toLeftOf="parent"
+                res:layout_constraintRight_toRightOf="parent"
+                res:layout_constraintTop_toBottomOf="@id/text"
+                >
+
+                <ImageView
+                    android:id="@+id/lookup_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0.5"
+                    android:elevation="9dp"
+                    android:scaleType="centerCrop"
+                    android:transitionName="action_image"
+                    android:translationZ="0dp"
+                    tools:src="@drawable/logo"
+                    />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/gradient_bottom_up_transparent"
+                    android:padding="5dp"
+                    android:translationZ="30dp"
+                    >
+
+                    <TextView
+                        android:id="@+id/lookup_text"
+                        style="@style/TextAppearance.AppCompat.Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_margin="3dp"
+                        android:layout_marginTop="16dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/primary_text"
+                        android:textSize="9sp"
+                        tools:text="Text ..."
+                        />
+
+                </RelativeLayout>
+
+            </RelativeLayout>
+
             <TextView
                 android:id="@+id/info"
                 android:layout_width="wrap_content"

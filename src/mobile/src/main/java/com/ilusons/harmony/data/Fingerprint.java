@@ -269,7 +269,7 @@ public class Fingerprint extends RealmObject {
 			double score = match(fingerprint.getRawFingerprint(), fp);
 			Log.d(TAG, "Search match: " + score + ", Id: " + fingerprint.getId());
 
-			if (score >= 0.75) {
+			if (score >= 0.05) {
 				Log.d(TAG, "Search over, found!");
 
 				return realm.copyFromRealm(fingerprint);

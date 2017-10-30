@@ -10,8 +10,9 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <RecyclerView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerView"
+        style="@style/AppTheme.Scrollbar"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:animateLayoutChanges="false"
@@ -20,8 +21,7 @@
         android:nestedScrollingEnabled="true"
         android:paddingBottom="128dp"
         android:paddingTop="72dp"
-        android:scrollbars="none"
-        res:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        android:scrollbars="vertical"
         res:layout_constraintBottom_toBottomOf="parent"
         res:layout_constraintLeft_toLeftOf="parent"
         res:layout_constraintRight_toRightOf="parent"
