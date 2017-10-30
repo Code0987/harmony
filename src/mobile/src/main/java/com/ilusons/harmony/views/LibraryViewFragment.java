@@ -76,7 +76,6 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
-import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -531,7 +530,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	public class RecyclerViewAdapter
 			extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder>
-			implements ICustomAdapter, FastScrollRecyclerView.SectionedAdapter {
+			implements ICustomAdapter {
 
 		private static final String KEY_GROUP = "group";
 
@@ -1149,8 +1148,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 			return null;
 		}
 
-		@NonNull
-		@Override
 		public String getSectionName(int position) {
 			try {
 				View v = recyclerView.getLayoutManager().getChildAt(position);
@@ -1913,7 +1910,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 							return 6;
 						} else {
 							// child item
-							if (position % 6 == 0)
+							if (position % 5 == 0)
 								return 6;
 							return 3;
 						}

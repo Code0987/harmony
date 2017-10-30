@@ -104,4 +104,17 @@
         <item name="colorControlActivated">@color/primary_text</item>
     </style>
 
+    <style name="AppTheme.Scrollbar">
+        <item name="android:scrollbarAlwaysDrawVerticalTrack">true</item>
+        <item name="android:scrollbarStyle">insideOverlay</item>
+        <item name="android:scrollbars">vertical</item>
+        <item name="android:fadeScrollbars">true</item>
+        <item name="android:scrollbarThumbVertical">@drawable/scrollbar_thumb</item>
+        <item name="android:scrollbarTrackVertical">@drawable/scrollbar_track</item>
+        <item name="android:scrollbarSize">6dp</item>
+        <item name="android:smoothScrollbar">true</item>
+        <item name="android:scrollbarFadeDuration">800</item>
+        <item name="android:scrollbarDefaultDelayBeforeFade">500</item>
+    </style>
+
 </resources>

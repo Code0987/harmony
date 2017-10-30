@@ -48,10 +48,14 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 		if (action == null)
 			return;
 
-		Intent broadcastIntent = new Intent(action);
-		LocalBroadcastManager
-				.getInstance(context)
-				.sendBroadcast(broadcastIntent);
+		try {
+			Intent broadcastIntent = new Intent(action);
+			LocalBroadcastManager
+					.getInstance(context)
+					.sendBroadcast(broadcastIntent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@SuppressLint("StaticFieldLeak")
@@ -104,6 +108,8 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 
 	protected Object doInBackground(Void... params) {
 		try {
+			broadcastAction(contextRef.get(), ACTION_UPDATE_START);
+
 			synchronized (this) {
 				Context context = contextRef.get();
 				if (context == null)
@@ -174,6 +180,8 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 			e.printStackTrace();
 		} finally {
 			cancelNotification();
+
+			broadcastAction(contextRef.get(), ACTION_UPDATE_COMPLETED);
 		}
 
 		return null;
@@ -226,30 +234,4 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 		notificationBuilder = null;
 	}
 
-	@Override
-	protected void onPreExecute() {
-		super.onPreExecute();
-
-		broadcastAction(contextRef.get(), ACTION_UPDATE_START);
-	}
-
-	@Override
-	protected void onPostExecute(Object result) {
-		super.onPostExecute(result);
-
-		broadcastAction(contextRef.get(), ACTION_UPDATE_COMPLETED);
-
-		if (instance == this)
-			instance = null;
-	}
-
-	@Override
-	protected void onCancelled(Object o) {
-		super.onCancelled(o);
-
-		broadcastAction(contextRef.get(), ACTION_UPDATE_COMPLETED);
-
-		if (instance == this)
-			instance = null;
-	}
 }

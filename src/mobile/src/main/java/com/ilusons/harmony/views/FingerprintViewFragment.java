@@ -120,9 +120,13 @@ public class FingerprintViewFragment extends BaseUIFragment {
 					FingerprintUpdaterAsyncTask.cancel();
 				}
 
+				local_updater_status.setVisibility(View.GONE);
+
 				checkLocalUpdater();
 			}
 		});
+
+		createLookup(v);
 
 		return v;
 	}
@@ -205,8 +209,12 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 		if (action.equalsIgnoreCase(FingerprintUpdaterAsyncTask.ACTION_UPDATE_START)) {
 			info("Fingerprint updater started.");
+
+			local_updater_status.setVisibility(View.VISIBLE);
 		} else if (action.equalsIgnoreCase(FingerprintUpdaterAsyncTask.ACTION_UPDATE_START)) {
 			info("Fingerprint updater stopped.");
+
+			local_updater_status.setVisibility(View.VISIBLE);
 		}
 
 		checkLocalUpdater();
@@ -234,11 +242,33 @@ public class FingerprintViewFragment extends BaseUIFragment {
 		}
 	}
 
-	public void cancelLocalUpdater() {
-		FingerprintUpdaterAsyncTask.cancel();
+	//region Lookup
 
-		checkLocalUpdater();
+	private View lookup_layout;
+	private ImageView lookup_image;
+	private TextView lookup_text;
+
+	private void createLookup(View v) {
+		lookup_layout = v.findViewById(R.id.lookup_layout);
+
+		lookup_image = v.findViewById(R.id.lookup_image);
+		lookup_text = v.findViewById(R.id.lookup_text);
+
+		lookup_layout.animate().alpha(0).setDuration(333).start();
 	}
+
+	private void updateLookup(Bitmap image, String text, boolean local) {
+		if (TextUtils.isEmpty(text)) {
+			lookup_layout.animate().alpha(0).setDuration(333).start();
+		} else {
+			lookup_image.setImageBitmap(image);
+			lookup_text.setText(text);
+
+			lookup_layout.animate().alpha(1).setDuration(369).start();
+		}
+	}
+
+	//endregion
 
 	private boolean isProcessing = false;
 
@@ -473,12 +503,14 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 							final Fingerprint fingerprint = Fingerprint.search(rawfp);
 							if (fingerprint != null) {
-								getActivity().runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										text.setText(fingerprint.getId());
-									}
-								});
+								final Music music = Music.getById(fingerprint.getId());
+								if (music != null)
+									getActivity().runOnUiThread(new Runnable() {
+										@Override
+										public void run() {
+											updateLookup(music.getCover(getContext(), -1), music.getText(), true);
+										}
+									});
 							} else {
 
 								// Search online
@@ -497,6 +529,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 													getActivity().runOnUiThread(new Runnable() {
 														@Override
 														public void run() {
+															// TODO: Fix online lookup.
 															text.setText((new Gson()).toJson(result));
 														}
 													});

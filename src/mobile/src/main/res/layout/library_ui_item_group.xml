@@ -4,7 +4,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="72dp"
+    android:layout_height="82dp"
     android:layout_marginBottom="8dp"
     android:layout_marginEnd="3dp"
     android:layout_marginStart="3dp"
@@ -25,7 +25,7 @@
         <ImageView
             android:id="@+id/cover"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="82dp"
             android:elevation="9dp"
             android:scaleType="centerCrop"
             android:transitionName="action_image"

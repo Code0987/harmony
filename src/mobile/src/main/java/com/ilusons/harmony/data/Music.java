@@ -1017,6 +1017,21 @@ public class Music extends RealmObject {
 
 	//region DB
 
+	public static Music getById(Realm realm, String id) {
+		return realm.where(Music.class).equalTo("Id", id).findFirst();
+	}
+
+	public static Music getById(String id) {
+		try (Realm realm = DB.getDB()) {
+			if (realm != null) {
+				return realm.copyFromRealm(getById(realm, id));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public static Collection<Music> loadAll() {
 		try {
 			try (Realm realm = DB.getDB()) {
@@ -1183,7 +1198,7 @@ public class Music extends RealmObject {
 	public static double getScore(Music music) {
 		double score;
 
-		if(music.hasVideo()) // TODO: Currently ignoring videos, fix it.
+		if (music.hasVideo()) // TODO: Currently ignoring videos, fix it.
 			return 0;
 
 		int length = music.Length;
