@@ -97,6 +97,25 @@
                 tools:text="Text ..."
                 />
 
+            <ImageButton
+                android:id="@+id/local_updater_status"
+                style="@style/Widget.AppCompat.ImageButton"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_margin="16dp"
+                android:background="@null"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_error_outline_black"
+                android:tint="@android:color/holo_red_light"
+                android:tintMode="src_atop"
+                res:layout_constraintLeft_toLeftOf="parent"
+                res:layout_constraintRight_toRightOf="parent"
+                res:layout_constraintTop_toBottomOf="@id/info"
+                />
+
         </android.support.constraint.ConstraintLayout>
 
     </ScrollView>
