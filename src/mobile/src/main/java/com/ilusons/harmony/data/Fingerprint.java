@@ -269,7 +269,7 @@ public class Fingerprint extends RealmObject {
 			double score = match(fingerprint.getRawFingerprint(), fp);
 			Log.d(TAG, "Search match: " + score + ", Id: " + fingerprint.getId());
 
-			if (score >= 0.05) {
+			if (score >= 0.1) {
 				Log.d(TAG, "Search over, found!");
 
 				return realm.copyFromRealm(fingerprint);
@@ -290,7 +290,59 @@ public class Fingerprint extends RealmObject {
 	public static double match(String x, String y) {
 		double r = -1;
 
-		r = ((double) lcs1(x, y) / (double) Math.min(x.length(), y.length()));
+		r = fingerprint_distance(toIntArrayFromString(x), toIntArrayFromString(y));
+
+		return r;
+	}
+
+	private static /*unsigned*/ char popcount_table_8bit[] = {
+			0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+			2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+			3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
+	};
+
+	private static int popcount_lookup8(/*unsigned*/ int x) {
+		return popcount_table_8bit[x & 0xff] +
+				popcount_table_8bit[(x >> 8) & 0xff] +
+				popcount_table_8bit[(x >> 16) & 0xff] +
+				popcount_table_8bit[x >> 24];
+	}
+
+	public static double fingerprint_distance(int[] fingerprint1, int[] fingerprint2) {
+		double r = 0;
+
+		final int ACOUSTID_MAX_BIT_ERROR = 2;
+		final int ACOUSTID_MAX_ALIGN_OFFSET = 120;
+
+		int numcounts = fingerprint1.length + fingerprint2.length + 1;
+		int[] counts = new int[numcounts];
+
+		for (int i = 0; i < fingerprint1.length; i++) {
+			int jbegin = Math.max(0, i - ACOUSTID_MAX_ALIGN_OFFSET);
+			int jend = Math.min(fingerprint2.length, i + ACOUSTID_MAX_ALIGN_OFFSET);
+			for (int j = jbegin; j < jend; j++) {
+				int biterror = popcount_lookup8(fingerprint1[i] ^ fingerprint2[j]);
+				if (biterror <= ACOUSTID_MAX_BIT_ERROR) {
+					int offset = i - j + fingerprint2.length;
+					counts[offset]++;
+				}
+
+			}
+		}
+
+		int topcount = 0;
+		for (int i = 0; i < numcounts; i++) {
+			if (counts[i] > topcount) {
+				topcount = counts[i];
+			}
+		}
+
+		r = (double) topcount / (double) Math.min(fingerprint1.length, fingerprint2.length);
 
 		return r;
 	}

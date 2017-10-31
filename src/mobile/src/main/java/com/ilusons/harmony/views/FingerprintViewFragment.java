@@ -163,6 +163,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 					}
 				});
 
+		/*
 		if (((double) Fingerprint.getSize() / (double) Music.getSize()) <= 0.75) {
 			if (FingerprintUpdaterAsyncTask.getInstance() == null) {
 				FingerprintUpdaterAsyncTask.run(getContext().getApplicationContext());
@@ -170,6 +171,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 				info("Fingerprint updater started.");
 			}
 		}
+		*/
 
 		checkLocalUpdater();
 	}
@@ -371,7 +373,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 		isProcessing = false;
 	}
 
-	private static final int SAMPLE_RATE = 44100;
+	private static final int SAMPLE_RATE = 11025;
 	private static final short CHANNELS = 1;
 	private static final int TRY_MATCH_INTERVAL = 4000;
 
