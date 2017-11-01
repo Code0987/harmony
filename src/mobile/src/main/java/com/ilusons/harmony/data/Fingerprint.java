@@ -1,6 +1,7 @@
 package com.ilusons.harmony.data;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.ilusons.harmony.ref.MediaEx;
@@ -11,7 +12,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.sql.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -258,44 +263,61 @@ public class Fingerprint extends RealmObject {
 		return result;
 	}
 
-	public static Fingerprint search(Realm realm, int[] rawFingerprint) {
+	public static Fingerprint search(Realm realm, int[] rawFingerprint, double min, double cutoff) {
 		Log.d(TAG, "Search started!");
+
+		Fingerprint r = null;
 
 		String fp = toStringFromIntArray(rawFingerprint);
 
 		Log.d(TAG, "Search on: " + fp);
 
+		double max = 0;
 		for (Fingerprint fingerprint : realm.where(Fingerprint.class).findAll()) {
 			double score = match(fingerprint.getRawFingerprint(), fp);
 			Log.d(TAG, "Search match: " + score + ", Id: " + fingerprint.getId());
 
-			if (score >= 0.1) {
-				Log.d(TAG, "Search over, found!");
+			if (score >= min) {
+				Log.d(TAG, "Search matched at " + score);
 
-				return realm.copyFromRealm(fingerprint);
+				r = realm.copyFromRealm(fingerprint);
+
+				if (max < score)
+					max = score;
+
+				if (score >= cutoff) {
+					Log.d(TAG, "Search over, found!");
+					break;
+				}
 			}
 		}
 
-		Log.d(TAG, "Search over, NOT found!");
+		if (r == null)
+			Log.d(TAG, "Search over, NOT found!");
+		else
+			Log.d(TAG, "Search over, found!");
 
-		return null;
+		return r;
 	}
 
-	public static Fingerprint search(int[] rawFingerprint) {
+	public static Fingerprint search(int[] rawFingerprint, double min, double cutoff) {
 		try (Realm realm = getDB()) {
-			return search(realm, rawFingerprint);
+			return search(realm, rawFingerprint, min, cutoff);
 		}
 	}
 
 	public static double match(String x, String y) {
-		double r = -1;
+		double r;
+
+		if (TextUtils.isEmpty(x) || TextUtils.isEmpty(y))
+			return 0;
 
 		r = fingerprint_distance(toIntArrayFromString(x), toIntArrayFromString(y));
 
 		return r;
 	}
 
-	private static /*unsigned*/ char popcount_table_8bit[] = {
+	private static /*unsigned*/ int popcount_table_8bit[] = {
 			0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
 			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
 			1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
@@ -307,17 +329,17 @@ public class Fingerprint extends RealmObject {
 	};
 
 	private static int popcount_lookup8(/*unsigned*/ int x) {
-		return popcount_table_8bit[x & 0xff] +
-				popcount_table_8bit[(x >> 8) & 0xff] +
-				popcount_table_8bit[(x >> 16) & 0xff] +
-				popcount_table_8bit[x >> 24];
+		return popcount_table_8bit[(x & 0xff) & 0xff] +
+				popcount_table_8bit[((x >> 8) & 0xff) & 0xff] +
+				popcount_table_8bit[((x >> 16) & 0xff) & 0xff] +
+				popcount_table_8bit[(x >> 24) & 0xff];
 	}
 
 	public static double fingerprint_distance(int[] fingerprint1, int[] fingerprint2) {
 		double r = 0;
 
-		final int ACOUSTID_MAX_BIT_ERROR = 2;
-		final int ACOUSTID_MAX_ALIGN_OFFSET = 120;
+		final int ACOUSTID_MAX_BIT_ERROR = 2 * 4;
+		final int ACOUSTID_MAX_ALIGN_OFFSET = 120 * 8;
 
 		int numcounts = fingerprint1.length + fingerprint2.length + 1;
 		int[] counts = new int[numcounts];

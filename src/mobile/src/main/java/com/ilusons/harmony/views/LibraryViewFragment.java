@@ -1,5 +1,7 @@
 package com.ilusons.harmony.views;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
@@ -15,6 +17,9 @@ import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
@@ -24,10 +29,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.text.TextUtils;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -40,6 +47,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.support.v7.widget.SearchView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -64,6 +72,8 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -153,7 +163,17 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 					try {
 						search_view.requestFocus();
-						getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+						new Handler().postDelayed(new Runnable() {
+							public void run() {
+								try {
+									search_view.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, 0, 0, 0));
+									search_view.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 0, 0, 0));
+
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						}, 283);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -314,6 +334,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 	private static final int RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW = 5;
 
 	private RecyclerView recyclerView;
+	private FastScrollLayout fastScrollLayout;
 
 	public RecyclerViewAdapter getAdapter() {
 		return adapter;
@@ -346,6 +367,204 @@ public class LibraryViewFragment extends BaseUIFragment {
 		recyclerViewExpandableItemManager.attachRecyclerView(recyclerView);
 		recyclerViewExpandableItemManager.setDefaultGroupsExpandedState(true);
 
+		fastScrollLayout = v.findViewById(R.id.fastScrollLayout);
+		fastScrollLayout.setRecyclerView(recyclerView);
+	}
+
+	public static class FastScrollLayout extends LinearLayout {
+		private static final int HANDLE_HIDE_DELAY = 1300;
+		private static final int HANDLE_ANIMATION_DURATION = 100;
+		private static final int TRACK_SNAP_RANGE = 15;
+		private static final String SCALE_X = "scaleX";
+		private static final String SCALE_Y = "scaleY";
+		private static final String ALPHA = "alpha";
+
+		private View bubble;
+		private View handle;
+		private TextView text;
+
+		private RecyclerView recyclerView;
+
+		private final HandleHider handleHider = new HandleHider();
+		private final ScrollListener scrollListener = new ScrollListener();
+		private int width;
+		private int height;
+
+		private AnimatorSet currentAnimator = null;
+
+		public FastScrollLayout(Context context, AttributeSet attrs) {
+			super(context, attrs);
+			initialise(context);
+		}
+
+		public FastScrollLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+			super(context, attrs, defStyleAttr);
+			initialise(context);
+		}
+
+		private void initialise(Context context) {
+			setOrientation(HORIZONTAL);
+			setClipChildren(false);
+			LayoutInflater inflater = LayoutInflater.from(context);
+			inflater.inflate(R.layout.library_view_fast_scroll, this);
+			bubble = findViewById(R.id.bubble);
+			handle = findViewById(R.id.handle);
+			text = findViewById(R.id.text);
+
+			handle.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					hideHandle();
+				}
+			});
+		}
+
+		@Override
+		protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+			super.onSizeChanged(w, h, oldw, oldh);
+			width = w;
+			height = h;
+		}
+
+		@Override
+		public boolean onTouchEvent(MotionEvent event) {
+			if ((width - (bubble.getWidth() + TRACK_SNAP_RANGE)) > event.getX()) {
+				return super.onTouchEvent(event);
+			}
+
+			if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
+				setPosition(event.getY());
+				if (currentAnimator != null) {
+					currentAnimator.cancel();
+				}
+				getHandler().removeCallbacks(handleHider);
+				if (handle.getVisibility() == INVISIBLE) {
+					showHandle();
+				}
+				setRecyclerViewPosition(event.getY());
+				return true;
+			} else if (event.getAction() == MotionEvent.ACTION_UP) {
+				getHandler().postDelayed(handleHider, HANDLE_HIDE_DELAY);
+				return true;
+			}
+			return super.onTouchEvent(event);
+		}
+
+		public void setRecyclerView(RecyclerView recyclerView) {
+			this.recyclerView = recyclerView;
+			recyclerView.setOnScrollListener(scrollListener);
+		}
+
+		private void setRecyclerViewPosition(float y) {
+			if (recyclerView != null) {
+				int itemCount = recyclerView.getAdapter().getItemCount();
+				float proportion;
+				if (bubble.getY() == 0) {
+					proportion = 0f;
+				} else if (bubble.getY() + bubble.getHeight() >= height - TRACK_SNAP_RANGE) {
+					proportion = 1f;
+				} else {
+					proportion = y / (float) height;
+				}
+				int targetPos = getValueInRange(0, itemCount - 1, (int) (proportion * (float) itemCount));
+				recyclerView.scrollToPosition(targetPos);
+			}
+		}
+
+		private int getValueInRange(int min, int max, int value) {
+			int minimum = Math.max(min, value);
+			return Math.min(minimum, max);
+		}
+
+		private void setPosition(float y) {
+			float position = y / height;
+			int bubbleHeight = bubble.getHeight();
+			bubble.setY(getValueInRange(0, height - bubbleHeight, (int) ((height - bubbleHeight) * position)));
+			int handleHeight = handle.getHeight();
+			handle.setY(getValueInRange(0, height - handleHeight, (int) ((height - handleHeight) * position)));
+
+			if (recyclerView != null) {
+				int n = recyclerView.getChildCount();
+
+				int p = getValueInRange(0, n - 1, (int) ((y / (float) height) * (float) n));
+
+				try {
+					Object tag = recyclerView.getLayoutManager().getChildAt(p).getTag();
+					if (tag instanceof String)
+						text.setText((String) tag);
+					else
+						text.setText("");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		private void showHandle() {
+			AnimatorSet animatorSet = new AnimatorSet();
+			handle.setPivotX(handle.getWidth());
+			handle.setPivotY(handle.getHeight());
+			handle.setVisibility(VISIBLE);
+			Animator growerX = ObjectAnimator.ofFloat(handle, SCALE_X, 0f, 1f).setDuration(HANDLE_ANIMATION_DURATION);
+			Animator growerY = ObjectAnimator.ofFloat(handle, SCALE_Y, 0f, 1f).setDuration(HANDLE_ANIMATION_DURATION);
+			Animator alpha = ObjectAnimator.ofFloat(handle, ALPHA, 0f, 1f).setDuration(HANDLE_ANIMATION_DURATION);
+			animatorSet.playTogether(growerX, growerY, alpha);
+			animatorSet.start();
+		}
+
+		private void hideHandle() {
+			currentAnimator = new AnimatorSet();
+			handle.setPivotX(handle.getWidth());
+			handle.setPivotY(handle.getHeight());
+			Animator shrinkerX = ObjectAnimator.ofFloat(handle, SCALE_X, 1f, 0f).setDuration(HANDLE_ANIMATION_DURATION);
+			Animator shrinkerY = ObjectAnimator.ofFloat(handle, SCALE_Y, 1f, 0f).setDuration(HANDLE_ANIMATION_DURATION);
+			Animator alpha = ObjectAnimator.ofFloat(handle, ALPHA, 1f, 0f).setDuration(HANDLE_ANIMATION_DURATION);
+			currentAnimator.playTogether(shrinkerX, shrinkerY, alpha);
+			currentAnimator.addListener(new AnimatorListenerAdapter() {
+				@Override
+				public void onAnimationEnd(Animator animation) {
+					super.onAnimationEnd(animation);
+					handle.setVisibility(INVISIBLE);
+					currentAnimator = null;
+				}
+
+				@Override
+				public void onAnimationCancel(Animator animation) {
+					super.onAnimationCancel(animation);
+					handle.setVisibility(INVISIBLE);
+					currentAnimator = null;
+				}
+			});
+			currentAnimator.start();
+		}
+
+		private class HandleHider implements Runnable {
+			@Override
+			public void run() {
+				hideHandle();
+			}
+		}
+
+		private class ScrollListener extends RecyclerView.OnScrollListener {
+			@Override
+			public void onScrolled(RecyclerView rv, int dx, int dy) {
+				View firstVisibleView = recyclerView.getChildAt(0);
+				int firstVisiblePosition = recyclerView.getChildPosition(firstVisibleView);
+				int visibleRange = recyclerView.getChildCount();
+				int lastVisiblePosition = firstVisiblePosition + visibleRange;
+				int itemCount = recyclerView.getAdapter().getItemCount();
+				int position;
+				if (firstVisiblePosition == 0) {
+					position = 0;
+				} else if (lastVisiblePosition == itemCount - 1) {
+					position = itemCount - 1;
+				} else {
+					position = firstVisiblePosition;
+				}
+				float proportion = (float) position / (float) itemCount;
+				setPosition(height * proportion);
+			}
+		}
 	}
 
 	//endregion
@@ -497,8 +716,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 			extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder>
 			implements ICustomAdapter {
 
-		private static final String KEY_GROUP = "group";
-
 		private static final int ITEMS_PER_AD = 8;
 //		private AdListener lastAdListener = null;
 
@@ -570,8 +787,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 			View view = inflater.inflate(layoutId, parent, false);
 
-			view.setTag(KEY_GROUP);
-
 			return new GroupViewHolder(view);
 		}
 
@@ -616,6 +831,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 		public void onBindGroupViewHolder(GroupViewHolder holder, int groupPosition, int viewType) {
 			final String d = dataFiltered.get(groupPosition).first;
 			final View v = holder.view;
+
+			v.setTag(d);
 
 			setupLayout(v, groupPosition, true);
 
@@ -697,6 +914,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 			if (d instanceof Music) {
 
 				final Music item = (Music) d;
+
+				v.setTag(item.getText());
 
 				final View root = v.findViewById(R.id.root);
 
@@ -1027,7 +1246,12 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		public void bringInToView(int position) {
 			try {
-				recyclerView.smoothScrollToPosition(position);
+				int delta = Math.abs(recyclerView.getScrollY() - recyclerView.getLayoutManager().getChildAt(0).getHeight() * position);
+
+				if (delta < recyclerView.getMeasuredHeight() * 5)
+					recyclerView.smoothScrollToPosition(position);
+				else
+					recyclerView.scrollToPosition(position);
 
 				View v = recyclerView.getLayoutManager().getChildAt(position);
 

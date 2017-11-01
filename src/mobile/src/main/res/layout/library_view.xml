@@ -21,13 +21,23 @@
         android:nestedScrollingEnabled="true"
         android:paddingBottom="128dp"
         android:paddingTop="72dp"
-        android:scrollbars="vertical"
+        android:scrollbars="none"
         res:layout_constraintBottom_toBottomOf="parent"
         res:layout_constraintLeft_toLeftOf="parent"
         res:layout_constraintRight_toRightOf="parent"
         res:layout_constraintTop_toTopOf="parent"
         tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
         tools:listitem="@layout/library_view_item_default"
+        />
+
+    <view
+        android:id="@+id/fastScrollLayout"
+        class="com.ilusons.harmony.views.LibraryViewFragment$FastScrollLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        res:layout_constraintBottom_toBottomOf="@id/recyclerView"
+        res:layout_constraintRight_toRightOf="@id/recyclerView"
+        res:layout_constraintTop_toTopOf="@id/recyclerView"
         />
 
     <android.support.v7.widget.CardView
@@ -37,6 +47,7 @@
         android:layout_marginBottom="0dp"
         android:layout_marginEnd="0dp"
         android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
         android:background="@null"
         android:clickable="true"
         android:focusable="true"
@@ -151,6 +162,7 @@
         android:layout_marginBottom="0dp"
         android:layout_marginEnd="0dp"
         android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
         android:background="@null"
         android:clickable="true"
         android:focusable="true"
@@ -158,16 +170,16 @@
         android:visibility="gone"
         res:cardBackgroundColor="@color/translucent"
         res:cardElevation="4dp"
-        res:layout_constraintBottom_toBottomOf="parent"
         res:layout_constraintLeft_toLeftOf="parent"
         res:layout_constraintRight_toRightOf="parent"
+        res:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/lomo"
-            android:paddingBottom="16dp"
+            android:paddingBottom="3dp"
             android:paddingEnd="5dp"
             android:paddingStart="5dp"
             android:paddingTop="3dp"
