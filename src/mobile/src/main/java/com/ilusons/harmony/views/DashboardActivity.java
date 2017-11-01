@@ -144,7 +144,6 @@ public class DashboardActivity extends BaseUIActivity {
 
 		drawer_layout = findViewById(R.id.drawer_layout);
 		drawer_layout.closeDrawer(GravityCompat.START);
-		drawer_layout.closeDrawer(GravityCompat.END);
 
 		/*
 		ImageButton toolbar_menu = (ImageButton) findViewById(R.id.toolbar_menu);
@@ -530,7 +529,7 @@ public class DashboardActivity extends BaseUIActivity {
 				musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
 				startService(musicServiceIntent);
 
-				drawer_layout.closeDrawer(GravityCompat.END);
+				drawer_layout.closeDrawer(GravityCompat.START);
 			}
 		});
 		findViewById(R.id.refresh).setOnLongClickListener(new View.OnLongClickListener() {
@@ -596,7 +595,7 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		});
 
-		drawer_layout.closeDrawer(GravityCompat.END);
+		drawer_layout.closeDrawer(GravityCompat.START);
 
 	}
 
@@ -796,7 +795,7 @@ public class DashboardActivity extends BaseUIActivity {
 					e.printStackTrace();
 				}
 
-				drawer_layout.closeDrawer(GravityCompat.END);
+				drawer_layout.closeDrawer(GravityCompat.START);
 			}
 		});
 
@@ -815,7 +814,7 @@ public class DashboardActivity extends BaseUIActivity {
 					e.printStackTrace();
 				}
 
-				drawer_layout.closeDrawer(GravityCompat.END);
+				drawer_layout.closeDrawer(GravityCompat.START);
 			}
 		});
 
@@ -830,7 +829,7 @@ public class DashboardActivity extends BaseUIActivity {
 					e.printStackTrace();
 				}
 
-				drawer_layout.closeDrawer(GravityCompat.END);
+				drawer_layout.closeDrawer(GravityCompat.START);
 			}
 		});
 
@@ -847,7 +846,7 @@ public class DashboardActivity extends BaseUIActivity {
 					info("SAF not found!");
 				}
 
-				drawer_layout.closeDrawer(GravityCompat.END);
+				drawer_layout.closeDrawer(GravityCompat.START);
 			}
 		});
 
@@ -924,14 +923,14 @@ public class DashboardActivity extends BaseUIActivity {
 
 							dialog.dismiss();
 
-							drawer_layout.closeDrawer(GravityCompat.END);
+							drawer_layout.closeDrawer(GravityCompat.START);
 						}
 					});
 					builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
 							dialog.dismiss();
 
-							drawer_layout.closeDrawer(GravityCompat.END);
+							drawer_layout.closeDrawer(GravityCompat.START);
 						}
 					});
 					AlertDialog dialog = builder.create();
@@ -970,7 +969,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 							dialog.dismiss();
 
-							drawer_layout.closeDrawer(GravityCompat.END);
+							drawer_layout.closeDrawer(GravityCompat.START);
 						}
 					});
 					AlertDialog dialog = builder.create();
@@ -1102,21 +1101,6 @@ public class DashboardActivity extends BaseUIActivity {
 				.setTarget(findViewById(R.id.nav_layout))
 				.setUsageId(UUID.randomUUID().toString());
 
-		final MaterialIntroView.Builder guide_rdrawer = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText("Right drawer. Here library and playlist can be managed.")
-				.setTarget(findViewById(R.id.nav_layout_right))
-				.setUsageId(UUID.randomUUID().toString());
-
 		final MaterialIntroView.Builder guide_mini = new MaterialIntroView.Builder(this)
 				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
 				.setDelayMillis(500)
@@ -1158,26 +1142,13 @@ public class DashboardActivity extends BaseUIActivity {
 				}
 			}
 		});
-		guide_rdrawer.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				drawer_layout.closeDrawer(Gravity.END);
-
-				try {
-					guide_mini.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
 		guide_ldrawer.setListener(new MaterialIntroListener() {
 			@Override
 			public void onUserClicked(String usageId) {
 				drawer_layout.closeDrawer(Gravity.START);
-				drawer_layout.openDrawer(Gravity.END);
 
 				try {
-					guide_rdrawer.show();
+					guide_mini.show();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

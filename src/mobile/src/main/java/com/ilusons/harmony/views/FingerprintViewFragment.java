@@ -1,5 +1,6 @@
 package com.ilusons.harmony.views;
 
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -36,6 +37,7 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIFragment;
+import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Api;
 import com.ilusons.harmony.data.FingerprintUpdaterAsyncTask;
 import com.ilusons.harmony.data.Music;
@@ -47,6 +49,7 @@ import com.ilusons.harmony.ref.permissions.PermissionsResultAction;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -259,7 +262,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 		lookup_layout.animate().alpha(0).setDuration(333).start();
 	}
 
-	private void updateLookup(Bitmap image, String text, boolean local) {
+	private void updateLookup(final String uriOrPath, Bitmap image, String text, boolean local) {
 		if (TextUtils.isEmpty(text)) {
 			lookup_layout.animate().alpha(0).setDuration(333).start();
 		} else {
@@ -267,6 +270,39 @@ public class FingerprintViewFragment extends BaseUIFragment {
 			lookup_text.setText(text);
 
 			lookup_layout.animate().alpha(1).setDuration(369).start();
+		}
+
+		if (!TextUtils.isEmpty(uriOrPath)) {
+			if (local) {
+				lookup_layout.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						try {
+							Intent i = new Intent(getContext(), MusicService.class);
+
+							i.setAction(MusicService.ACTION_OPEN);
+							i.putExtra(MusicService.KEY_URI, uriOrPath);
+
+							getContext().startService(i);
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+				});
+			} else {
+				lookup_layout.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						try {
+							Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+							intent.putExtra(SearchManager.QUERY, uriOrPath);
+							getContext().startActivity(intent);
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+				});
+			}
 		}
 	}
 
@@ -323,7 +359,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 				AudioFormat.ENCODING_PCM_16BIT,
 				bufferSize);
 
-		buffer = new byte[bufferSize * 600 * 2];
+		buffer = new byte[bufferSize * 42 * 2];
 
 		if (recorder.getState() != AudioRecord.STATE_INITIALIZED) {
 			Log.e(TAG, "Audio Record can't initialize!");
@@ -503,14 +539,14 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 							// Search local
 
-							final Fingerprint fingerprint = Fingerprint.search(rawfp);
+							final Fingerprint fingerprint = Fingerprint.search(rawfp, 0.4, 0.72);
 							if (fingerprint != null) {
 								final Music music = Music.getById(fingerprint.getId());
 								if (music != null)
 									getActivity().runOnUiThread(new Runnable() {
 										@Override
 										public void run() {
-											updateLookup(music.getCover(getContext(), -1), music.getText(), true);
+											updateLookup(music.getPath(), music.getCover(getContext(), -1), music.getText(), true);
 										}
 									});
 							} else {

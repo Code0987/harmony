@@ -350,17 +350,18 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_ALL);
 
-			realm.beginTransaction();
-			try {
-				for (Music item : realm.where(Music.class).findAll())
+			for (Music item : realm.where(Music.class).findAll()) {
+				realm.beginTransaction();
+				try {
 					playlist.addIfNot(item);
 
-				realm.commitTransaction();
-			} catch (Throwable e) {
-				if (realm.isInTransaction()) {
-					realm.cancelTransaction();
+					realm.commitTransaction();
+				} catch (Throwable e) {
+					if (realm.isInTransaction()) {
+						realm.cancelTransaction();
+					}
+					Log.w(TAG, e);
 				}
-				Log.w(TAG, e);
 			}
 
 			Playlist.update(realm, playlist);

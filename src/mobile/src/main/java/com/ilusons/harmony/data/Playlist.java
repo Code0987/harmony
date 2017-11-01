@@ -219,7 +219,7 @@ public class Playlist extends RealmObject {
 
 			// Ignore if already present
 			for (Music item : playlist.getItems())
-				if (item.getPath().equalsIgnoreCase(path))
+				if (item.getPath().equals(path))
 					return false;
 
 			final Music newData = Music.decode(realm, context, path, contentUri, fastMode, null);
