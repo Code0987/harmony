@@ -415,29 +415,6 @@
                 >
 
                 <TextView
-                    android:id="@+id/ui_style_textView"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="UI Style"
-                    android:textStyle="italic"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    />
-
-                <Spinner
-                    android:id="@+id/uiStyle_spinner"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/ui_style_textView"
-                    />
-
-                <TextView
                     android:id="@+id/playbackUIStyle_textView"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="wrap_content"
@@ -446,7 +423,8 @@
                     android:text="Playback UI Style"
                     android:textStyle="italic"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/uiStyle_spinner"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     />
 
                 <Spinner
