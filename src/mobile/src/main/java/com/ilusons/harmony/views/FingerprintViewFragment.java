@@ -359,7 +359,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 				AudioFormat.ENCODING_PCM_16BIT,
 				bufferSize);
 
-		buffer = new byte[bufferSize * 42 * 2];
+		buffer = new byte[bufferSize * (60 * 3) * 2];
 
 		if (recorder.getState() != AudioRecord.STATE_INITIALIZED) {
 			Log.e(TAG, "Audio Record can't initialize!");
@@ -539,7 +539,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 							// Search local
 
-							final Fingerprint fingerprint = Fingerprint.search(rawfp, 0.4, 0.72);
+							final Fingerprint fingerprint = Fingerprint.search(rawfp, 0.65, 0.95);
 							if (fingerprint != null) {
 								final Music music = Music.getById(fingerprint.getId());
 								if (music != null)

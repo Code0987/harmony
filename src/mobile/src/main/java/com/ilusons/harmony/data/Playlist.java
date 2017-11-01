@@ -175,7 +175,7 @@ public class Playlist extends RealmObject {
 		return Items.contains(item);
 	}
 
-	public static boolean update(final Realm realm, final Playlist playlist) {
+	public static boolean update(final Realm realm, final Playlist playlist, boolean removeTrace) {
 		boolean r = false;
 		try {
 			final ArrayList<Music> toRemove = new ArrayList<>();
@@ -190,6 +190,14 @@ public class Playlist extends RealmObject {
 				realm.beginTransaction();
 				try {
 					playlist.Items.removeAll(toRemove);
+
+					if (removeTrace)
+						for (Music item : toRemove)
+							try {
+								item.deleteFromRealm();
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 
 					realm.commitTransaction();
 				} catch (Throwable e) {
