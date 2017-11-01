@@ -189,7 +189,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_MEDIASTORE);
 
-			Playlist.update(realm, playlist);
+			Playlist.update(realm, playlist, false);
 
 			ContentResolver cr = context.getContentResolver();
 
@@ -240,7 +240,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_MEDIASTORE);
 
-			Playlist.update(realm, playlist);
+			Playlist.update(realm, playlist, false);
 
 			ContentResolver cr = context.getContentResolver();
 
@@ -322,7 +322,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 			}
 
 			// Update
-			Playlist.update(realm, playlist);
+			Playlist.update(realm, playlist, false);
 
 			// Scan new
 			for (String location : scanLocations) {
@@ -364,7 +364,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				}
 			}
 
-			Playlist.update(realm, playlist);
+			Playlist.update(realm, playlist, true);
 
 			Playlist.savePlaylist(realm, playlist);
 		}
