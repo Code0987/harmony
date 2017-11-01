@@ -100,8 +100,6 @@ public class SettingsActivity extends BaseActivity {
 	// Logger TAG
 	private static final String TAG = SettingsActivity.class.getSimpleName();
 
-	public static final String TAG_SPREF_UISTYLE = SPrefEx.TAG_SPREF + ".uistyle";
-
 	private static final int REQUEST_SCAN_LOCATIONS_PICK = 11;
 
 	// IAB
@@ -902,7 +900,6 @@ public class SettingsActivity extends BaseActivity {
 
 	private void onCreateBindUISection() {
 
-		createUIStyle();
 		createPlaybackUIStyle();
 
 	}
@@ -1234,106 +1231,6 @@ public class SettingsActivity extends BaseActivity {
 
 	//endregion
 
-	//region UI style
-	public enum UIStyle {
-		Default("Default"),
-		LUI5("Simple UI"),
-		LUI2("UI Style 2"),
-		LUI11("UI Style 11"),
-		LUI12("UI Style 12");
-
-		private String friendlyName;
-
-		UIStyle(String friendlyName) {
-			this.friendlyName = friendlyName;
-		}
-	}
-
-	public static UIStyle getUIStyle(Context context) {
-		try {
-			return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.LUI12)));
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			return UIStyle.Default;
-		}
-	}
-
-	public static void setUIStyle(Context context, UIStyle value) {
-		SPrefEx.get(context)
-				.edit()
-				.putString(TAG_SPREF_UISTYLE, String.valueOf(value))
-				.apply();
-	}
-
-	private Spinner uiStyle_spinner;
-
-	private void createUIStyle() {
-		uiStyle_spinner = (Spinner) findViewById(R.id.uiStyle_spinner);
-
-		UIStyle[] items = UIStyle.values();
-
-		uiStyle_spinner.setAdapter(new ArrayAdapter<UIStyle>(this, 0, items) {
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
-
-				text.setText(text.getText());
-
-				return text;
-			}
-
-			@Override
-			public View getDropDownView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) convertView;
-
-				if (text == null) {
-					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					text.setLayoutParams(lp);
-					text.setPadding(px, px, px, px);
-				}
-
-				text.setText(getItem(position).friendlyName);
-
-				return text;
-			}
-		});
-
-		int i = 0;
-		UIStyle lastMode = getUIStyle(this);
-		for (; i < items.length; i++)
-			if (items[i] == lastMode)
-				break;
-		uiStyle_spinner.setSelection(i, true);
-
-		uiStyle_spinner.post(new Runnable() {
-			public void run() {
-				uiStyle_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-						setUIStyle(getApplicationContext(), (UIStyle) adapterView.getItemAtPosition(position));
-
-						info("UI Style will be completely applied on restart!");
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
-	}
-
-	//endregion
-
 	//region PlaybackUI style
 	public enum PlaybackUIStyle {
 		Default("Default"),
@@ -1498,7 +1395,6 @@ public class SettingsActivity extends BaseActivity {
 
 	public static String[] ExportableSPrefKeys = new String[]{
 			TAG_SPREF_PlaybackUIStyle,
-			TAG_SPREF_UISTYLE,
 	};
 
 }

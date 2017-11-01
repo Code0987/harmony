@@ -2,53 +2,41 @@ package com.ilusons.harmony.views;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.ColorUtils;
 import android.support.v4.util.Pair;
-import android.support.v4.view.GravityCompat;
-import android.support.v7.graphics.Palette;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.text.TextUtils;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v7.widget.Toolbar;
-import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.support.v7.widget.SearchView;
 import android.widget.ImageView;
@@ -67,12 +55,10 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
-import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -125,6 +111,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 		createUISortMode(v);
 		createUIGroupMode(v);
 		createUIViewMode(v);
+		createUIStyle(v);
 
 		createItems(v);
 
@@ -138,14 +125,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 	public static LibraryViewFragment create() {
 		LibraryViewFragment f = new LibraryViewFragment();
 		return f;
-	}
-
-	@Override
-	public void onDestroyView() {
-		if (onChildAttachStateChangeListener != null)
-			recyclerView.removeOnChildAttachStateChangeListener(onChildAttachStateChangeListener);
-
-		super.onDestroyView();
 	}
 
 	//region Search
@@ -335,7 +314,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 	private static final int RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW = 5;
 
 	private RecyclerView recyclerView;
-	private RecyclerView.OnChildAttachStateChangeListener onChildAttachStateChangeListener;
 
 	public RecyclerViewAdapter getAdapter() {
 		return adapter;
@@ -367,19 +345,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 		((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 		recyclerViewExpandableItemManager.attachRecyclerView(recyclerView);
 		recyclerViewExpandableItemManager.setDefaultGroupsExpandedState(true);
-
-		onChildAttachStateChangeListener = new RecyclerView.OnChildAttachStateChangeListener() {
-			@Override
-			public void onChildViewAttachedToWindow(View view) {
-				adapter.onGroupItemInView(view);
-			}
-
-			@Override
-			public void onChildViewDetachedFromWindow(View view) {
-				adapter.onGroupItemOutOfView(view);
-			}
-		};
-		recyclerView.addOnChildAttachStateChangeListener(onChildAttachStateChangeListener);
 
 	}
 
@@ -540,13 +505,13 @@ public class LibraryViewFragment extends BaseUIFragment {
 		private final List<Music> data;
 		private final List<Pair<String, List<Object>>> dataFiltered;
 
-		private final SettingsActivity.UIStyle uiStyle;
+		private final UIStyle uiStyle;
 
 		public RecyclerViewAdapter() {
 			data = new ArrayList<>();
 			dataFiltered = new ArrayList<>();
 
-			uiStyle = SettingsActivity.getUIStyle(getContext());
+			uiStyle = getUIStyle(getContext());
 
 			setHasStableIds(true);
 		}
@@ -575,7 +540,35 @@ public class LibraryViewFragment extends BaseUIFragment {
 		public GroupViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
 			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
-			View view = inflater.inflate(R.layout.library_ui_item_group, parent, false);
+			int layoutId = -1;
+			switch (uiStyle) {
+				case Card1:
+					layoutId = R.layout.library_view_group_card;
+					break;
+
+				case Card2:
+					layoutId = R.layout.library_view_group_card;
+					break;
+
+				case Card3:
+					layoutId = R.layout.library_view_group_card;
+					break;
+
+				case Card4:
+					layoutId = R.layout.library_view_group_card;
+					break;
+
+				case Simple:
+					layoutId = R.layout.library_view_group_simple;
+					break;
+
+				case Default:
+				default:
+					layoutId = R.layout.library_view_group_default;
+					break;
+			}
+
+			View view = inflater.inflate(layoutId, parent, false);
 
 			view.setTag(KEY_GROUP);
 
@@ -588,25 +581,29 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 			int layoutId = -1;
 			switch (uiStyle) {
-				case LUI2:
-					layoutId = R.layout.library_ui_lui2_item;
+				case Card1:
+					layoutId = R.layout.library_view_item_card1;
 					break;
 
-				case LUI5:
-					layoutId = R.layout.library_ui_lui5_item;
+				case Card2:
+					layoutId = R.layout.library_view_item_card2;
 					break;
 
-				case LUI11:
-					layoutId = R.layout.library_ui_lui11_item;
+				case Card3:
+					layoutId = R.layout.library_view_item_card3;
 					break;
 
-				case LUI12:
-					layoutId = R.layout.library_ui_lui12_item;
+				case Card4:
+					layoutId = R.layout.library_view_item_card4;
+					break;
+
+				case Simple:
+					layoutId = R.layout.library_view_item_simple;
 					break;
 
 				case Default:
 				default:
-					layoutId = R.layout.library_ui_default_item;
+					layoutId = R.layout.library_view_item_default;
 					break;
 			}
 
@@ -667,8 +664,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 										@Override
 										public void execute(Bitmap bitmap) {
 											cover.setImageBitmap(bitmap);
-
-											onGroupItemInView(v);
 										}
 									},
 									new JavaEx.ActionT<Exception>() {
@@ -690,6 +685,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		}
 
+		@SuppressLint("StaticFieldLeak")
 		@Override
 		public void onBindChildViewHolder(ViewHolder holder, int groupPosition, int childPosition, int viewType) {
 			final Object d = dataFiltered.get(groupPosition).second.get(childPosition);
@@ -698,65 +694,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 			setupLayout(v, childPosition, false);
 
 			// Bind data to view here!
-
-/*
-			// TODO: Fix ads later
-			if (false && ((BuildConfig.DEBUG || !MusicService.IsPremium) && (d instanceof NativeExpressAdView && lastAdListener == null))) {
-
-				CardView cv = (CardView) v.findViewById(R.id.cardView);
-
-				final NativeExpressAdView adView = (NativeExpressAdView) d;
-
-				try {
-					if (adView.getParent() == null) {
-
-						int w = (int) ((cv.getWidth() - cv.getPaddingLeft() - cv.getPaddingRight()) / getResources().getDisplayMetrics().density);
-						int h = (int) ((cv.getHeight() - cv.getPaddingTop() - cv.getPaddingBottom()) / getResources().getDisplayMetrics().density);
-
-						if (w > 280 && h > 80) {
-							adView.setAdUnitId(BuildConfig.AD_UNIT_ID_NE1);
-							adView.setAdSize(new AdSize(w, h));
-
-							cv.addView(adView, new CardView.LayoutParams(CardView.LayoutParams.WRAP_CONTENT, CardView.LayoutParams.WRAP_CONTENT));
-
-							lastAdListener = new AdListener() {
-								@Override
-								public void onAdLoaded() {
-									super.onAdLoaded();
-
-									lastAdListener = null;
-								}
-
-								@Override
-								public void onAdFailedToLoad(int errorCode) {
-
-									lastAdListener = null;
-								}
-							};
-							adView.setAdListener(lastAdListener);
-
-							AdRequest adRequest;
-							if (BuildConfig.DEBUG) {
-								adRequest = new AdRequest.Builder()
-										.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-										.addTestDevice(AndroidEx.getDeviceIdHashed(getContext()))
-										.build();
-							} else {
-								adRequest = new AdRequest.Builder()
-										.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-										.build();
-							}
-
-							adView.loadAd(adRequest);
-
-						}
-					}
-				} catch (Exception e) {
-					Log.w(TAG, e);
-				}
-
-			} else
-*/
 			if (d instanceof Music) {
 
 				final Music item = (Music) d;
@@ -945,12 +882,37 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		@Override
 		public boolean getInitialGroupExpandedState(int groupPosition) {
-			return true;
+			final UIGroupMode uiGroupMode = getUIGroupMode(getContext());
+
+			boolean r = true;
+
+			switch (uiGroupMode) {
+				case Album:
+				case Artist:
+				case Year:
+				case Genre:
+					r = false;
+					break;
+				case Default:
+					r = true;
+					break;
+			}
+
+			return r;
 		}
 
 		public void setData(Collection<Music> d) {
 			data.clear();
 			data.addAll(d);
+
+			refresh(String.valueOf(search_view.getQuery()));
+		}
+
+		public void resetData() {
+			ArrayList<Music> oldData = new ArrayList<>(data);
+
+			data.clear();
+			data.addAll(oldData);
 
 			refresh(String.valueOf(search_view.getQuery()));
 		}
@@ -1094,42 +1056,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 				long ppc = RecyclerViewExpandableItemManager.getPackedPositionForChild(pg, pc);
 				int k = recyclerViewExpandableItemManager.getFlatPosition(ppc);
 				bringInToView(k);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		public void onGroupItemInView(View v) {
-			try {
-				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().toString().equalsIgnoreCase(KEY_GROUP)) {
-					ImageView cover = v.findViewById(R.id.cover);
-					if (cover != null) {
-						if (isImageSet(cover)) {
-							ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
-							params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 286, getResources().getDisplayMetrics());
-							v.setLayoutParams(params);
-						} else {
-							ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
-							params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
-							v.setLayoutParams(params);
-						}
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		public void onGroupItemOutOfView(View v) {
-			try {
-				if (v.isAttachedToWindow() && v.getTag() != null && v.getTag().toString().equalsIgnoreCase(KEY_GROUP)) {
-					ImageView cover = v.findViewById(R.id.cover);
-					if (cover != null && isImageSet(cover)) {
-						ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) v.getLayoutParams();
-						params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
-						v.setLayoutParams(params);
-					}
-				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1948,11 +1874,119 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	//endregion
 
+	//region UI style
+
+	public enum UIStyle {
+		Default("Default"),
+		Simple("Simple"),
+		Card1("Card 1"),
+		Card2("Card 2"),
+		Card3("Card 3"),
+		Card4("Card 4"),;
+
+		private String friendlyName;
+
+		UIStyle(String friendlyName) {
+			this.friendlyName = friendlyName;
+		}
+	}
+
+	public static final String TAG_SPREF_UISTYLE = TAG + ".uistyle";
+
+	public static UIStyle getUIStyle(Context context) {
+		try {
+			return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Card4)));
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return UIStyle.Default;
+		}
+	}
+
+	public static void setUIStyle(Context context, UIStyle value) {
+		SPrefEx.get(context)
+				.edit()
+				.putString(TAG_SPREF_UISTYLE, String.valueOf(value))
+				.apply();
+	}
+
+	private Spinner uiStyle_spinner;
+
+	private void createUIStyle(View v) {
+		uiStyle_spinner = (Spinner) v.findViewById(R.id.uiStyle_spinner);
+
+		UIStyle[] items = UIStyle.values();
+
+		uiStyle_spinner.setAdapter(new ArrayAdapter<UIStyle>(getContext(), 0, items) {
+			@Override
+			public View getView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+				text.setText("Style: " + text.getText());
+
+				return text;
+			}
+
+			@Override
+			public View getDropDownView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) convertView;
+
+				if (text == null) {
+					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+							ViewGroup.LayoutParams.MATCH_PARENT,
+							ViewGroup.LayoutParams.WRAP_CONTENT
+					);
+					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+					lp.setMargins(px, px, px, px);
+					text.setLayoutParams(lp);
+					text.setPadding(px, px, px, px);
+				}
+
+				text.setText(getItem(position).friendlyName);
+
+				return text;
+			}
+		});
+
+		int i = 0;
+		UIStyle lastMode = getUIStyle(getContext());
+		for (; i < items.length; i++)
+			if (items[i] == lastMode)
+				break;
+		uiStyle_spinner.setSelection(i, true);
+
+		uiStyle_spinner.post(new Runnable() {
+			public void run() {
+				uiStyle_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+						setUIStyle(getContext().getApplicationContext(), (UIStyle) adapterView.getItemAtPosition(position));
+
+						recyclerView.getRecycledViewPool().clear();
+						adapter.resetData();
+
+						info("UI Style will be completely applied on restart!");
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> adapterView) {
+					}
+				});
+			}
+		});
+	}
+
+	//endregion
+
 	public static String[] ExportableSPrefKeys = new String[]{
 			TAG_SPREF_LIBRARY_UI_SORT_MODE,
 			TAG_SPREF_LIBRARY_UI_GROUP_MODE,
 			TAG_SPREF_LIBRARY_UI_VIEW_MODE,
-			TAG_SPREF_LIBRARY_UI_SORT_MODE
+			TAG_SPREF_LIBRARY_UI_SORT_MODE,
+			TAG_SPREF_UISTYLE,
 	};
 
 }
