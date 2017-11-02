@@ -340,7 +340,11 @@ public class MusicService extends Service {
 			public void onReceive(final Context context, final Intent intent) {
 				Log.d(TAG, "onReceive\n" + intent);
 
-				handleIntent(intent);
+				try {
+					handleIntent(intent);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		};
 
@@ -426,7 +430,11 @@ public class MusicService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "onStartCommand\n" + intent + "\n" + "flags=" + flags + "\nstartId=" + startId);
 
-		handleIntent(intent);
+		try {
+			handleIntent(intent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		return Service.START_NOT_STICKY;
 	}

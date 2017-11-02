@@ -194,7 +194,7 @@ public class MainActivity extends BaseActivity {
 			messages.add("Long press to open lyrics menu on lyrics view.");
 			messages.add("Long press cover art to open menu.");
 			messages.add("Long press visualization button to change styles.");
-			messages.add("If songs are not shown,\nTap Library -> Save to current playlist\nOr\nRight drawer -> Refresh\nOr\nLeft drawer -> Settings -> Library -> Add scan location -> (previous step)");
+			messages.add("If songs are not shown,\nTap Library -> Save to current playlist\nOr\nLeft drawer -> Refresh\nOr\nLeft drawer -> Settings -> Library -> Add scan location -> (previous step)");
 			messages.add("Beta version will have some of the premium features unlocked.");
 			messages.add("Visit our YouTube Channel/Playlist (Left drawer -> Help...) for demos and videos.");
 			messages.add("Visit our website (Settings -> About ...) for latest updates and more information.");
@@ -207,6 +207,7 @@ public class MainActivity extends BaseActivity {
 			messages.add("You can now share lyrics with your friends using any supported app.");
 			messages.add("We now support audio fingerprinting, i.e. you can get details of audio even if it has no tags.");
 			messages.add("You can download cover art again. Long-press cover art on playback ui.");
+			messages.add("This is a smart player, it'll learn and improve itself over time, as you use it.");
 
 			Tips tips = new Tips(contextRef.get());
 

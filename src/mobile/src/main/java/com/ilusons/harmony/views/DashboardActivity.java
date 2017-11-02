@@ -58,6 +58,7 @@ import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
+import com.scand.realmbrowser.RealmBrowser;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
@@ -76,6 +77,7 @@ import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 import io.realm.Realm;
+import io.realm.RealmObject;
 import jonathanfinerty.once.Once;
 import jp.wasabeef.blurry.Blurry;
 
@@ -196,29 +198,13 @@ public class DashboardActivity extends BaseUIActivity {
 		});
 
 		// Start scan
-		if (!BuildConfig.DEBUG)
-			if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
-				Intent musicServiceIntent = new Intent(this, MusicService.class);
-				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-				musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
-				startService(musicServiceIntent);
-				Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
-			}
-
-		// Debug
-		/*
-		if (BuildConfig.DEBUG)
-			try {
-				List<Class<? extends RealmObject>> classes = new ArrayList<>();
-				classes.add(Music.class);
-				classes.add(Playlist.class);
-				new RealmBrowser.Builder(this)
-						.add(DB.getDBConfig(), classes)
-						.showNotification();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		*/
+		if (!Once.beenDone(Once.THIS_APP_VERSION, MusicServiceLibraryUpdaterAsyncTask.TAG)) {
+			Intent musicServiceIntent = new Intent(this, MusicService.class);
+			musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+			musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+			startService(musicServiceIntent);
+			Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
+		}
 
 		bg_effect.postDelayed(new Runnable() {
 			@Override
@@ -236,9 +222,9 @@ public class DashboardActivity extends BaseUIActivity {
 						bitmap = ((BitmapDrawable) ContextCompat.getDrawable(DashboardActivity.this, R.drawable.logo)).getBitmap();
 
 					Blurry.with(DashboardActivity.this)
-							.radius(11)
+							.radius(15)
 							.sampling(1)
-							.color(Color.argb(100, 0, 0, 0))
+							.color(Color.argb(140, 0, 0, 0))
 							.animate(333)
 							.async()
 							.from(bitmap)
@@ -252,6 +238,18 @@ public class DashboardActivity extends BaseUIActivity {
 		}, 700);
 
 		loading.smoothToHide();
+
+		if (BuildConfig.DEBUG)
+			try {
+				List<Class<? extends RealmObject>> classes = new ArrayList<>();
+				classes.add(Music.class);
+				classes.add(Playlist.class);
+				new RealmBrowser.Builder(this)
+						.add(DB.getDBConfig(), classes)
+						.showNotification();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 	}
 
@@ -653,15 +651,14 @@ public class DashboardActivity extends BaseUIActivity {
 
 		viewPagerAdapter.add(libraryViewFragment, "Library");
 
-		if (AnalyticsViewFragment.shouldBeVisible()) {
+		if (AnalyticsViewFragment.shouldBeVisible())
 			viewPagerAdapter.add(AnalyticsViewFragment.create(), "Analytics");
-		}
 
-		viewPagerAdapter.add(TimerViewFragment.create(), "Timer");
+		if (TimerViewFragment.shouldBeVisible())
+			viewPagerAdapter.add(TimerViewFragment.create(), "Timer");
 
-		if (FingerprintViewFragment.shouldBeVisible()) {
+		if (FingerprintViewFragment.shouldBeVisible())
 			viewPagerAdapter.add(FingerprintViewFragment.create(), "Identify");
-		}
 
 	}
 
@@ -1097,7 +1094,7 @@ public class DashboardActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("Left drawer.")
+				.setInfoText("Left drawer. So many options here, be sure to checkout all, later.")
 				.setTarget(findViewById(R.id.nav_layout))
 				.setUsageId(UUID.randomUUID().toString());
 
@@ -1112,7 +1109,7 @@ public class DashboardActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("This mini playback ui, for quick view of now playing. Buttons in it have long-press functions.")
+				.setInfoText("This is mini playback ui, for quick view of now playing. Buttons in it have long-press functions too.")
 				.setTarget(playbackUIMini)
 				.setUsageId(UUID.randomUUID().toString());
 
@@ -1127,7 +1124,7 @@ public class DashboardActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("That's all! Now go play something (Wait for initial scan...)!")
+				.setInfoText("Now go play something (Wait for initial scan...)!")
 				.setTarget(tab_layout)
 				.setUsageId(UUID.randomUUID().toString());
 
