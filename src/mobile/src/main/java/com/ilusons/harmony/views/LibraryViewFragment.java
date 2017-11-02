@@ -1171,19 +1171,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 						for (Map.Entry<String, List<Music>> entry : grouped.entrySet())
 							dataFiltered.add(new Pair<String, List<Object>>(entry.getKey(), new ArrayList<Object>(entry.getValue())));
 
-						// Add ads
-						// TODO: Fix ads later
-						/*if (false && (BuildConfig.DEBUG || !MusicService.IsPremium)) {
-						    final int n = Math.min(dataFiltered.size(), 7);
-                            for (int i = 0; i <= n; i += ITEMS_PER_AD)
-                                try {
-                                    final NativeExpressAdView adView = new NativeExpressAdView(getContext());
-                                    dataFiltered.add(i, adView);
-                                } catch (Exception e) {
-                                    Log.w(TAG, e);
-                                }
-                        }*/
-
 						(getActivity()).runOnUiThread(new Runnable() {
 							@Override
 							public void run() {

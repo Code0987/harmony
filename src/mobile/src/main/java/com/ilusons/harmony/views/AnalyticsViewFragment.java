@@ -378,12 +378,9 @@ public class AnalyticsViewFragment extends Fragment {
 		}
 	}
 
-	public static AnalyticsViewFragment create() {
-		AnalyticsViewFragment f = new AnalyticsViewFragment();
-		return f;
-	}
-
 	public static boolean shouldBeVisible() {
+		if (!MusicService.IsPremium)
+			return false;
 		try {
 			double sum = 0;
 			for (Music item : Music.getAllSortedByScore(6))
@@ -393,6 +390,11 @@ public class AnalyticsViewFragment extends Fragment {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	public static AnalyticsViewFragment create() {
+		AnalyticsViewFragment f = new AnalyticsViewFragment();
+		return f;
 	}
 
 }

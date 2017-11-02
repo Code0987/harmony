@@ -598,48 +598,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		// Info
 		info = (TextView) findViewById(R.id.info);
 
-/*
-		// Set ads TODO: enable ads in final release
-		if (false && (BuildConfig.DEBUG || !MusicService.IsPremium))
-			handler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							iad = new InterstitialAd(PlaybackUIActivity.this);
-							iad.setAdUnitId(BuildConfig.AD_UNIT_ID_I1);
-							iad.setAdListener(new AdListener() {
-								@Override
-								public void onAdLoaded() {
-									super.onAdLoaded();
-
-									if (isFinishing())
-										return;
-
-									iad.show();
-								}
-
-								@Override
-								public void onAdClosed() {
-									if (isFinishing())
-										return;
-
-									// iad.loadAd(new AdRequest.Builder().build());
-								}
-
-								@Override
-								public void onAdFailedToLoad(int i) {
-									super.onAdFailedToLoad(i);
-								}
-							});
-							iad.loadAd(new AdRequest.Builder().build());
-						}
-					});
-				}
-			}, 1 * 60 * 1000);
-*/
-
 		// Guide
 		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
@@ -888,6 +846,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void resetForUriIfNeeded(String uri) {
+		if (TextUtils.isEmpty(uri))
+			return;
+
 		resetForUriIfNeeded(uri, false);
 	}
 

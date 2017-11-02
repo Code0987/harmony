@@ -287,6 +287,10 @@ public class TimerViewFragment extends Fragment {
 		pm.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 	}
 
+	public static boolean shouldBeVisible() {
+		return MusicService.IsPremium && Music.getSize() >= 5;
+	}
+
 	public static TimerViewFragment create() {
 		TimerViewFragment f = new TimerViewFragment();
 		return f;

@@ -567,8 +567,13 @@ public class FingerprintViewFragment extends BaseUIFragment {
 													getActivity().runOnUiThread(new Runnable() {
 														@Override
 														public void run() {
-															// TODO: Fix online lookup.
-															text.setText((new Gson()).toJson(result));
+															final String title = result.get("title");
+															final String artist = result.get("artist");
+															final String album = result.get("album");
+															final String score = result.get("score");
+															final String id = result.get("id");
+
+															updateLookup(artist + " - " + title, null, artist + " - " + title, false);
 														}
 													});
 											}
@@ -605,6 +610,10 @@ public class FingerprintViewFragment extends BaseUIFragment {
 			}
 		}
 
+	}
+
+	public static boolean shouldBeVisible() {
+		return Music.getSize() >= 5;
 	}
 
 	public static FingerprintViewFragment create() {
@@ -903,10 +912,6 @@ public class FingerprintViewFragment extends BaseUIFragment {
 				canvas.drawText(String.format("%.2f", i), i * xStep, textHeight, mTextPaint);
 			}
 		}
-	}
-
-	public static boolean shouldBeVisible() {
-		return Music.getSize() >= 5;
 	}
 
 }

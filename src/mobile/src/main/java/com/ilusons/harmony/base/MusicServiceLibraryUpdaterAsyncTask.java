@@ -350,6 +350,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_ALL);
 
+			Playlist.update(realm, playlist, true);
+
 			for (Music item : realm.where(Music.class).findAll()) {
 				realm.beginTransaction();
 				try {
@@ -363,8 +365,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 					Log.w(TAG, e);
 				}
 			}
-
-			Playlist.update(realm, playlist, true);
 
 			Playlist.savePlaylist(realm, playlist);
 		}
