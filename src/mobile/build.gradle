@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 apply plugin: 'realm-android'
 apply from: '../gradle/git-version.gradle'
+apply plugin: 'com.github.triplet.play'
 
 def gitVersionData = getGitVersionData()
 
@@ -19,6 +20,12 @@ android {
 			storePassword 'keystore'
 		}
 	}
+	playAccountConfigs {
+		defaultAccountConfig {
+			serviceAccountEmail = 'play-console-publisher@api-6153425672890041824-622911.iam.gserviceaccount.com'
+			jsonFile = file("$rootDir/../res/keys/google-play-android-developer-df159a5c5c35.json")
+		}
+	}
 	compileSdkVersion 26
 	buildToolsVersion "26.0.2"
 	defaultConfig {
@@ -30,6 +37,7 @@ android {
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 		vectorDrawables.useSupportLibrary = true
 		multiDexEnabled = true
+		playAccountConfig = playAccountConfigs.defaultAccountConfig
 	}
 	flavorDimensions "versionCode"
 	buildTypes {
@@ -256,6 +264,14 @@ afterEvaluate {
 
 realm {
 	syncEnabled = true
+}
+
+play {
+	track = 'production' // or 'rollout' or 'beta' or 'alpha'
+	userFraction = 1.0 // only necessary for 'rollout', in this case default is 0.1 (10% of the target)
+	untrackOld = true // will untrack 'alpha' while upload to 'beta'
+	errorOnSizeLimit = true
+	uploadImages = true
 }
 
 apply plugin: 'com.google.gms.google-services'
