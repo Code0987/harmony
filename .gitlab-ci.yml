@@ -40,8 +40,8 @@ stages:
     - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
 
     # Fetch the specified SDK tools version to build with
-    - wget --quiet --output-document=/tmp/sdk-tools-linux.zip https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip > $LOG
-    - unzip /tmp/sdk-tools-linux.zip -d $ANDROID_HOME/ > $LOG
+    - wget --quiet --output-document=/tmp/sdk-tools-linux.zip https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip >> $LOG
+    - unzip /tmp/sdk-tools-linux.zip -d $ANDROID_HOME/ >> $LOG
 
     # Install platform tools and Android SDK for the compile target
     - echo 'count=0' > $ANDROID_HOME/repositories.cfg
@@ -64,7 +64,7 @@ build_debug:
     - develop
 
   script:
-    - ./src/gradlew -p ./src assembleMainDebug --stacktrace --debug
+    - ./src/gradlew -p ./src assembleMainDebug --stacktrace
 
 build_release:
   <<: *build_template_def
