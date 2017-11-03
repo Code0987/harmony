@@ -39,6 +39,7 @@ stages:
     - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
 
     # Install platform tools and Android SDK for the compile target
+    - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
     - echo 'count=0' > $ANDROID_HOME/repositories.cfg
     - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update 
     - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools'
