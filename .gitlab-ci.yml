@@ -45,16 +45,16 @@ stages:
 
     # Install platform tools and Android SDK for the compile target
     - echo 'count=0' > $ANDROID_HOME/repositories.cfg
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools' > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platform-tools' > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'build-tools;'$ANDROID_BUILD_TOOLS > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platforms;android-'$ANDROID_COMPILE_SDK > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;android;m2repository' > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;google_play_services' > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;m2repository' > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'cmake;3.6.4111459' > $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'ndk-bundle' > $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platform-tools' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'build-tools;'$ANDROID_BUILD_TOOLS >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platforms;android-'$ANDROID_COMPILE_SDK >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;android;m2repository' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;google_play_services' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;m2repository' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'cmake;3.6.4111459' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'ndk-bundle' >> $LOG
 
     - chmod +x ./src/gradlew
 
@@ -64,14 +64,14 @@ build_debug:
     - develop
 
   script:
-    - ./src/gradlew -p assembleDebug --stacktrace
+    - ./src/gradlew -p assembleMainDebug --stacktrace
 
 build_release:
   <<: *build_template_def
   only:
     - master
   script:
-    - ./src/gradlew -p assembleReleaseBeta --stacktrace
+    - ./src/gradlew -p assembleMainReleaseBeta --stacktrace
 
 ####################################################################################################
 # UNIT TESTING
