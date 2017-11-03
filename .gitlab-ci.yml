@@ -39,6 +39,7 @@ stages:
 
     # Install platform tools and Android SDK for the compile target
     - echo 'count=0' > $ANDROID_HOME/repositories.cfg
+    - mkdir ~/.android
     - touch ~/.android/repositories.cfg
     - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update 
     - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools'
