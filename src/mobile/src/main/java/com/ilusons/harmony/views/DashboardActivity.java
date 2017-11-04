@@ -731,7 +731,8 @@ public class DashboardActivity extends BaseUIActivity {
 		playbackUIMiniFragment.setJumpOnClickListener(new WeakReference<View.OnClickListener>(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				libraryViewFragment.getAdapter().jumpToCurrentlyPlayingItem();
+				if (libraryViewFragment != null)
+					libraryViewFragment.getAdapter().jumpToCurrentlyPlayingItem();
 			}
 		}));
 	}
