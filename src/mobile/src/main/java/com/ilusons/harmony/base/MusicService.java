@@ -1948,7 +1948,12 @@ public class MusicService extends Service {
 	public static final String TAG_SPREF_PLAYER_TYPE = SPrefEx.TAG_SPREF + ".player_type";
 
 	public static PlayerType getPlayerType(Context context) {
-		return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.AndroidOS)));
+		try {
+			return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.AndroidOS)));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return PlayerType.AndroidOS;
 	}
 
 	public static void setPlayerType(Context context, PlayerType value) {

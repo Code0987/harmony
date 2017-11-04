@@ -634,34 +634,50 @@ public class LibraryViewFragment extends BaseUIFragment {
 					new JavaEx.ActionT<Playlist>() {
 						@Override
 						public void execute(final Playlist playlist) {
-							context.viewPlaylist = playlist;
+							try {
+								context.viewPlaylist = playlist;
 
-							context.getActivity().runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									context.adapter.setData(playlist.getItems());
-									context.recyclerView.postDelayed(new Runnable() {
-										@Override
-										public void run() {
-											context.adapter.jumpToCurrentlyPlayingItem();
+								context.getActivity().runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										try {
+											context.adapter.setData(playlist.getItems());
+											context.recyclerView.postDelayed(new Runnable() {
+												@Override
+												public void run() {
+													context.adapter.jumpToCurrentlyPlayingItem();
+												}
+											}, 1000);
+											context.loading.smoothToHide();
+											context.info("Loaded playlist!");
+										} catch (Exception e) {
+											e.printStackTrace();
 										}
-									}, 1000);
-									context.loading.smoothToHide();
-									context.info("Loaded playlist!");
-								}
-							});
+									}
+								});
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 					},
 					new JavaEx.ActionT<Exception>() {
 						@Override
 						public void execute(Exception e) {
-							context.getActivity().runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									context.loading.smoothToHide();
-									context.info("Playlist load failed!");
-								}
-							});
+							try {
+								context.getActivity().runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										try {
+											context.loading.smoothToHide();
+											context.info("Playlist load failed!");
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+									}
+								});
+							} catch (Exception e2) {
+								e2.printStackTrace();
+							}
 						}
 					},
 					false);

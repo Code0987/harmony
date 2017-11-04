@@ -2,10 +2,10 @@
 
 👉 It's recommended to reset your old data for better working of functions.
 
+✔️ Fixed bugs, crashes.
 ✔️ Re-designed library/playlist system.
 ✔️ Re-designed UI / new ui.
 ✔️ New reports, analytics, ...
-✔️ Fixed bugs, crashes.
 ✔️ Updated UI.
 ✔️ Updated visualizations.
 ✔️ New song recognizer (find song using mic in your library or online, work still in progress).
