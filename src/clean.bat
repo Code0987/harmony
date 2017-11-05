@@ -1,1 +1,1 @@
-./gradlew clean
+gradlew clean

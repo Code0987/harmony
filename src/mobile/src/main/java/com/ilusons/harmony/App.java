@@ -97,10 +97,14 @@ public class App extends Application {
 		}
 
 		// Start scan
-		if (MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this)) {
-			Intent musicServiceIntent = new Intent(this, MusicService.class);
-			musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-			startService(musicServiceIntent);
+		try {
+			if (MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this)) {
+				Intent musicServiceIntent = new Intent(this, MusicService.class);
+				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+				startService(musicServiceIntent);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		// Ads

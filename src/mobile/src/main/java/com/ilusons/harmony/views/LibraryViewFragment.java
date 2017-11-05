@@ -791,6 +791,10 @@ public class LibraryViewFragment extends BaseUIFragment {
 					layoutId = R.layout.library_view_group_card;
 					break;
 
+				case Card5:
+					layoutId = R.layout.library_view_group_card;
+					break;
+
 				case Simple:
 					layoutId = R.layout.library_view_group_simple;
 					break;
@@ -826,6 +830,10 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 				case Card4:
 					layoutId = R.layout.library_view_item_card4;
+					break;
+
+				case Card5:
+					layoutId = R.layout.library_view_item_card5;
 					break;
 
 				case Simple:
@@ -2109,7 +2117,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 		Card1("Card 1"),
 		Card2("Card 2"),
 		Card3("Card 3"),
-		Card4("Card 4"),;
+		Card4("Card 4"),
+		Card5("Card 5"),;
 
 		private String friendlyName;
 
@@ -2122,7 +2131,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	public static UIStyle getUIStyle(Context context) {
 		try {
-			return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Card4)));
+			return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Card5)));
 		} catch (Exception e) {
 			e.printStackTrace();
 

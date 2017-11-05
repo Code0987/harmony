@@ -1,1 +1,1 @@
-./gradlew assembleMainDebug && ./gradlew installMainDebug
+gradlew assembleMainDebug && gradlew installMainDebug
