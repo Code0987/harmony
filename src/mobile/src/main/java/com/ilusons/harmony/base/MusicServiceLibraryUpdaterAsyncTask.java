@@ -493,7 +493,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 	}
 
 	public static final String TAG_SPREF_LIBRARY_SCAN_AUTO_INTERVAL = SPrefEx.TAG_SPREF + ".library_scan_auto_interval";
-	public static final long LIBRARY_SCAN_AUTO_INTERVAL_DEFAULT = 18 * 60 * 60 * 1000;
+	public static final long LIBRARY_SCAN_AUTO_INTERVAL_DEFAULT = 36 * 60 * 60 * 1000;
 
 	public static Long getScanAutoInterval(Context context) {
 		return SPrefEx.get(context).getLong(TAG_SPREF_LIBRARY_SCAN_AUTO_INTERVAL, LIBRARY_SCAN_AUTO_INTERVAL_DEFAULT);
@@ -543,7 +543,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 	}
 
 	public static final String TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MIN_DURATION = SPrefEx.TAG_SPREF + ".library_scan_constraint_min_duration";
-	private static final long LIBRARY_SCAN_CONSTRAINT_MIN_DURATION_DEFAULT = (long) (23 * 60 * 1000);
+	private static final long LIBRARY_SCAN_CONSTRAINT_MIN_DURATION_DEFAULT = (long) (2.5 * 60 * 1000);
 
 	public static Long getScanConstraintMinDuration(Context context) {
 		return SPrefEx.get(context).getLong(TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MIN_DURATION, LIBRARY_SCAN_CONSTRAINT_MIN_DURATION_DEFAULT);

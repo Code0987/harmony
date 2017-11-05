@@ -236,7 +236,7 @@ public class Playlist extends RealmObject {
 				throw new Exception("Some error while decoding.");
 
 			// Check constraints
-			if (newData.getLength() > 0 && MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context) > newData.getLength()) {
+			if (newData.getLength() > 0 && (MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) > newData.getLength()) {
 				return false;
 			}
 
@@ -246,6 +246,8 @@ public class Playlist extends RealmObject {
 				playlist.Items.add(newData);
 
 				realm.copyToRealmOrUpdate(newData);
+
+				realm.copyToRealmOrUpdate(playlist);
 
 				realm.commitTransaction();
 			} catch (Throwable e) {
@@ -287,7 +289,6 @@ public class Playlist extends RealmObject {
 			if (playlist == null)
 				throw new Exception("Not found. [" + name + "]");
 		} catch (Exception e) {
-			e.printStackTrace();
 			try {
 				realm.beginTransaction();
 
@@ -297,9 +298,9 @@ public class Playlist extends RealmObject {
 			} catch (Throwable e2) {
 				if (realm.isInTransaction()) {
 					realm.cancelTransaction();
-				} else {
-					Log.w(TAG, e2);
 				}
+				Log.w(TAG, e);
+				Log.w(TAG, e2);
 			}
 		}
 		return playlist;

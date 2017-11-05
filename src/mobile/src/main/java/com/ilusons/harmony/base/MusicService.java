@@ -44,7 +44,6 @@ import com.h6ah4i.android.media.audiofx.IPreAmp;
 import com.h6ah4i.android.media.audiofx.IPresetReverb;
 import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
-import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
 import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
 import com.ilusons.harmony.BuildConfig;
@@ -54,7 +53,6 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
-import com.ilusons.harmony.ref.ArrayEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
@@ -62,10 +60,8 @@ import com.ilusons.harmony.ref.inappbilling.IabHelper;
 import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
-
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
+import com.ilusons.harmony.sfx.AndroidOSMediaPlayerFactory;
+import com.ilusons.harmony.sfx.MediaPlayerFactory;
 
 import io.realm.Realm;
 
@@ -1251,7 +1247,7 @@ public class MusicService extends Service {
 						break;
 					case AndroidOS:
 					default:
-						mediaPlayerFactory = new StandardMediaPlayerFactory(getApplicationContext());
+						mediaPlayerFactory = new AndroidOSMediaPlayerFactory(getApplicationContext());
 						break;
 				}
 			if (mediaPlayer == null)
