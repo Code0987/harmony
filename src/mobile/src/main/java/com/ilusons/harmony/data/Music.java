@@ -393,11 +393,15 @@ public class Music extends RealmObject {
 			return result;
 
 		// File
-		File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, Path);
+		try {
+			File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, Path);
 
-		// Load from cache folder
-		if (file.exists())
-			result = BitmapFactory.decodeFile(file.getAbsolutePath());
+			// Load from cache folder
+			if (file.exists())
+				result = BitmapFactory.decodeFile(file.getAbsolutePath());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		// Re-sample
 		if (result != null) {

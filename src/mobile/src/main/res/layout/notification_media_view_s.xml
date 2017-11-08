@@ -38,7 +38,7 @@
 
             <TextView
                 android:id="@+id/title"
-                style="@style/TextAppearance.AppCompat.Notification.Title.Media"
+                style="@style/TextAppearance.Compat.Notification.Title.Media"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -49,7 +49,7 @@
 
             <TextView
                 android:id="@+id/album"
-                style="@style/TextAppearance.AppCompat.Notification.Line2.Media"
+                style="@style/TextAppearance.Compat.Notification.Line2.Media"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -61,7 +61,7 @@
 
             <TextView
                 android:id="@+id/artist"
-                style="@style/TextAppearance.AppCompat.Notification.Info.Media"
+                style="@style/TextAppearance.Compat.Notification.Info.Media"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"

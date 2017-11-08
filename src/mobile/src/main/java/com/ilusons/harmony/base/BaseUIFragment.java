@@ -24,10 +24,14 @@ public class BaseUIFragment extends Fragment {
 	}
 
 	public void info(String s) {
-		if (getBaseUIActivity() != null)
-			getBaseUIActivity().info(s);
-		else
-			Toast.makeText(getContext(), s, Toast.LENGTH_LONG).show();
+		try {
+			if (getBaseUIActivity() != null)
+				getBaseUIActivity().info(s);
+			else
+				Toast.makeText(getContext(), s, Toast.LENGTH_LONG).show();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void info(String s, boolean i) {

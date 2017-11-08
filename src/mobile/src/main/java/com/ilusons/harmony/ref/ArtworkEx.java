@@ -78,6 +78,11 @@ public class ArtworkEx {
 		}
 
 		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+		}
+
+		@Override
 		protected void onPostExecute(Bitmap bitmap) {
 			if (onSuccess != null)
 				onSuccess.execute(bitmap);

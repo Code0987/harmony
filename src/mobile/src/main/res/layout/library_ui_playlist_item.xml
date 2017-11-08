@@ -44,8 +44,7 @@
             android:layout_weight="6"
             android:ellipsize="middle"
             android:textColor="@color/translucent_icons"
-            tools:text="Playlist"
-            />
+            tools:text="Playlist"/>
 
         <LinearLayout
             android:layout_width="0dp"
