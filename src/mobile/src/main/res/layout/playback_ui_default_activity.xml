@@ -308,6 +308,25 @@
 
     </RelativeLayout>
 
+    <com.jetradarmobile.snowfall.SnowfallView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:snowflakeAlphaMax="220"
+        app:snowflakeAlphaMin="120"
+        app:snowflakeAngleMax="15"
+        app:snowflakeImage="@drawable/ic_snowflake_1"
+        app:snowflakeSizeMax="24dp"
+        app:snowflakeSizeMin="6dp"
+        app:snowflakeSpeedMax="8"
+        app:snowflakeSpeedMin="1"
+        app:snowflakesAlreadyFalling="true"
+        app:snowflakesFadingEnabled="true"
+        app:snowflakesNum="70"/>
+
     <FrameLayout
         android:id="@+id/lyrics_layout"
         android:layout_width="0dp"
