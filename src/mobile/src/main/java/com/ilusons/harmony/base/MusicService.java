@@ -230,38 +230,46 @@ public class MusicService extends Service {
 		// IAB
 		IsPremium = SPrefEx.get(this).getBoolean(TAG_SPREF_SKU_PREMIUM, BuildConfig.DEBUG);
 
-		iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);
+		if (Analytics.getInstance().getTimeSinceFirstRun() > (3 * 24 * 60 * 60 * 1000)) {
 
-		iabHelper = new IabHelper(this, LICENSE_BASE64_PUBLIC_KEY);
-		if (BuildConfig.DEBUG)
-			iabHelper.enableDebugLogging(true, TAG);
-		iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-			public void onIabSetupFinished(IabResult result) {
-				if (!result.isSuccess()) {
-					Log.w(TAG, result.toString());
+			iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);
 
-					return;
+			iabHelper = new IabHelper(this, LICENSE_BASE64_PUBLIC_KEY);
+			if (BuildConfig.DEBUG)
+				iabHelper.enableDebugLogging(true, TAG);
+			iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+				public void onIabSetupFinished(IabResult result) {
+					if (!result.isSuccess()) {
+						Log.w(TAG, result.toString());
+
+						return;
+					}
+
+					if (iabHelper == null) return;
+
+					// Important: Dynamically register for broadcast messages about updated purchases.
+					// We register the receiver he re instead of as a <receiver> in the Manifest
+					// because we always call getPurchases() at startup, so therefore we can ignore
+					// any broadcasts sent while the app isn't running.
+					// Note: registering this listener in an Activity is a bad idea, but is done here
+					// because this is a SAMPLE. Regardless, the receiver must be registered after
+					// IabHelper is setup, but before first call to getPurchases().
+					IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
+					registerReceiver(iabBroadcastReceiver, broadcastFilter);
+
+					try {
+						iabHelper.queryInventoryAsync(gotInventoryListener);
+					} catch (IabHelper.IabAsyncInProgressException e) {
+						Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
+					}
 				}
+			});
 
-				if (iabHelper == null) return;
+		} else if (!BuildConfig.DEBUG) {
 
-				// Important: Dynamically register for broadcast messages about updated purchases.
-				// We register the receiver he re instead of as a <receiver> in the Manifest
-				// because we always call getPurchases() at startup, so therefore we can ignore
-				// any broadcasts sent while the app isn't running.
-				// Note: registering this listener in an Activity is a bad idea, but is done here
-				// because this is a SAMPLE. Regardless, the receiver must be registered after
-				// IabHelper is setup, but before first call to getPurchases().
-				IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
-				registerReceiver(iabBroadcastReceiver, broadcastFilter);
+			IsPremium = true;
 
-				try {
-					iabHelper.queryInventoryAsync(gotInventoryListener);
-				} catch (IabHelper.IabAsyncInProgressException e) {
-					Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
-				}
-			}
-		});
+		}
 	}
 
 	public static boolean verifyDeveloperPayload(Context context, Purchase p) {

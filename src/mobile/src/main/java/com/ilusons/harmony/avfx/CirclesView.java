@@ -386,7 +386,7 @@ public class CirclesView extends BaseAVFXCanvasView {
 					(int) lf,
 					(int) uf));
 
-			for (int i = 0; i < 10; i++) {
+			for (int i = 0; i < 30; i++) {
 				Dot dot = new Dot();
 
 				dot.w = w;
@@ -407,7 +407,7 @@ public class CirclesView extends BaseAVFXCanvasView {
 					(int) lf,
 					(int) uf));
 
-			for (int i = 0; i < 10; i++) {
+			for (int i = 0; i < 30; i++) {
 				Dot dot = new Dot();
 
 				dot.w = w;

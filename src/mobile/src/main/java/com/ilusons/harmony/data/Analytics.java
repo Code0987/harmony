@@ -28,6 +28,7 @@ import de.umass.lastfm.Track;
 import de.umass.lastfm.scrobble.ScrobbleData;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import io.realm.Realm;
+import jonathanfinerty.once.Once;
 
 public class Analytics {
 
@@ -54,6 +55,28 @@ public class Analytics {
 			e.printStackTrace();
 		}
 	}
+
+	//endregion
+
+	//region General
+
+	private final static String KEY_FIRST_RUN_TIMESTAMP = "first_run_timestamp";
+
+	public long getTimeSinceFirstRun() {
+		try {
+			long currentMillis = System.currentTimeMillis();
+			long timeOfAbsoluteFirstLaunch = securePreferences.getLong(KEY_FIRST_RUN_TIMESTAMP, 0);
+			if (timeOfAbsoluteFirstLaunch == 0) {
+				timeOfAbsoluteFirstLaunch = currentMillis;
+				securePreferences.edit().putLong(KEY_FIRST_RUN_TIMESTAMP, timeOfAbsoluteFirstLaunch).apply();
+			}
+			return (currentMillis - timeOfAbsoluteFirstLaunch);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
 
 	//endregion
 
