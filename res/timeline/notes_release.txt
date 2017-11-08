@@ -1,10 +1,10 @@
 ﻿◾️ Work in progress, please leave feedback.
 
-👉 It's recommended to reset your old data for better working of functions.
+☃ Winter special ☃
 
-✔️ Fixed bugs, crashes.
-✔️ 1 new theme for library items.
-✔️ Fixed reverb. and other audio/sound effects.
+✔️ Okay, there's been a huge no. of bugs/crashes in last update, please forgive, some are fixed in this update.
+✔ Fixed bugs/crashes.
+✔️ Updated reverb. and other audio/sound effects.
 
 🔮️ Future: Smart playlist generator.
 🔮️ Future: YouTube integration.

@@ -527,22 +527,25 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			@Override
 			public void onClick(View view) {
 				if (getMusicService() != null) {
-					boolean value = MusicService.getPlayerShuffleMusicEnabled(PlaybackUIActivity.this);
+					try {
+						boolean value = MusicService.getPlayerShuffleMusicEnabled(PlaybackUIActivity.this);
 
-					value = !value;
+						value = !value;
 
-					MusicService.setPlayerShuffleMusicEnabled(PlaybackUIActivity.this, value);
+						MusicService.setPlayerShuffleMusicEnabled(PlaybackUIActivity.this, value);
 
-					if (value)
-						info("Shuffle turned ON");
-					else
-						info("Shuffle turned OFF");
+						if (value)
+							info("Shuffle turned ON");
+						else
+							info("Shuffle turned OFF");
 
-
-					if (value)
-						shuffle.setAlpha(0.9f);
-					else
-						shuffle.setAlpha(0.3f);
+						if (value)
+							shuffle.setAlpha(0.9f);
+						else
+							shuffle.setAlpha(0.3f);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		});

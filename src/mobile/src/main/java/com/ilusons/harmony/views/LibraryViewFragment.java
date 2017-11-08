@@ -956,15 +956,19 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 						@Override
 						protected void onPostExecute(Bitmap bitmap) {
-							TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-									cover.getDrawable(),
-									new BitmapDrawable(getResources(), bitmap)
-							});
+							try {
+								TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+										cover.getDrawable(),
+										new BitmapDrawable(getResources(), bitmap)
+								});
 
-							cover.setImageDrawable(d);
+								cover.setImageDrawable(d);
 
-							d.setCrossFadeEnabled(true);
-							d.startTransition(200);
+								d.setCrossFadeEnabled(true);
+								d.startTransition(200);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 					}).execute();
 				}

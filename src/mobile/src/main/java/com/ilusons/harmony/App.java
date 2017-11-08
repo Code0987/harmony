@@ -15,6 +15,7 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.RealmEx;
 import com.scand.realmbrowser.RealmBrowser;
 import com.squareup.leakcanary.LeakCanary;
@@ -53,7 +54,6 @@ public class App extends Application {
 		}
 
 		// WTFs
-		/* TODO: WTF
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread thread, Throwable e) {
@@ -64,7 +64,6 @@ public class App extends Application {
 				Crashlytics.logException(e);
 			}
 		});
-		*/
 
 		// Fabric
 		final Crashlytics crashlyticsKit = new Crashlytics.Builder()
@@ -110,6 +109,8 @@ public class App extends Application {
 		// Ads
 		// TODO: Ads later
 		// MobileAds.initialize(this, BuildConfig.AD_PUB_ID);
+
+		AndroidEx.overrideFont(getApplicationContext(), "DEFAULT", "fonts/open_sans.ttf");
 
 	}
 

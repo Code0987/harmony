@@ -43,7 +43,7 @@
 
             <TextView
                 android:id="@+id/title"
-                style="@style/TextAppearance.AppCompat.Notification.Title.Media"
+                style="@style/TextAppearance.Compat.Notification.Title.Media"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -55,7 +55,7 @@
 
             <TextView
                 android:id="@+id/info"
-                style="@style/TextAppearance.AppCompat.Notification.Info.Media"
+                style="@style/TextAppearance.Compat.Notification.Info.Media"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"

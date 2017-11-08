@@ -45,6 +45,9 @@
         <item name="android:alertDialogTheme">@style/AppTheme.AlertDialogStyle</item>
 
         <item name="searchViewStyle">@style/AppTheme.SearchView</item>
+
+        <item name="android:typeface">serif</item>
+
     </style>
 
     <style name="AppTheme.ActivityAnimationStyle" parent="@android:style/Animation.Activity">

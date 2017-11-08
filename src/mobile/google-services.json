@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1020414112906-c7h648ma772bdj9qt8e4jd8mk50fneqo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ilusons.harmony",
+            "certificate_hash": "950bb8723d05d4dae10f1203b87645df2ef0093a"
+          }
+        },
+        {
           "client_id": "1020414112906-ucsv8661gkvreqvkue43i8e71a0k1grc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

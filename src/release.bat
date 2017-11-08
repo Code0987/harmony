@@ -1,1 +1,1 @@
-gradlew assembleMainReleaseBeta && gradlew publishApkMainReleaseBeta
+gradlew assembleMainReleaseBeta
