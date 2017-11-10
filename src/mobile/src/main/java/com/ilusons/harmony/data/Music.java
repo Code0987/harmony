@@ -408,7 +408,7 @@ public class Music extends RealmObject {
 			try {
 				Bitmap.Config config = result.getConfig();
 				if (config == null) {
-					config = Bitmap.Config.ARGB_8888;
+					config = Bitmap.Config.RGB_565;
 				}
 				result = result.copy(config, false);
 			} catch (Exception e) {

@@ -841,10 +841,14 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			Log.e(TAG, "open file", e);
 		}
 
-		if (getMusicService().isPlaying())
-			OnMusicServicePlay();
-		else
-			OnMusicServicePause();
+		try {
+			if (getMusicService().isPlaying())
+				OnMusicServicePlay();
+			else
+				OnMusicServicePause();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 

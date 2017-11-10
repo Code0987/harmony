@@ -140,7 +140,7 @@ public class MainActivity extends BaseActivity {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (contextRef.get() == null)
+				if (contextRef.get() == null || contextRef.get().isFinishing() || contextRef.get().isDestroyed())
 					return;
 
 				try {
@@ -179,7 +179,7 @@ public class MainActivity extends BaseActivity {
 	}
 
 	public static void initTips(final WeakReference<FragmentActivity> contextRef) {
-		if (contextRef.get() == null)
+		if (contextRef.get() == null || contextRef.get().isFinishing() || contextRef.get().isDestroyed())
 			return;
 
 		try {
