@@ -2,9 +2,7 @@
 
 ☃ Winters special: 3 days FREE premium (automatic) ☃
 
-✔️ Okay, there's been a huge no. of bugs/crashes in last update, please forgive, some are fixed in this update.
-✔ Fixed bugs/crashes.
-✔️ Updated reverb. and other audio/sound effects.
+✔ More bugs/crashes fixed, hopefully after sometime things pending below will be worked out.
 
 🔮️ Future: Smart playlist generator.
 🔮️ Future: YouTube integration.

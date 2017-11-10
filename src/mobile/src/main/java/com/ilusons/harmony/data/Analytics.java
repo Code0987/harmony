@@ -2,9 +2,11 @@ package com.ilusons.harmony.data;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -321,50 +323,11 @@ public class Analytics {
 
 	//region DC
 
-	private static final String firebase_db_ref = "analytics";
-
-	private static final String firebase_db_now_playing = "now_playing";
-	private static final String firebase_db_now_playing_title = "title";
-	private static final String firebase_db_now_playing_artist = "artist";
-	private static final String firebase_db_now_playing_text = "text";
-	private static final String firebase_db_now_playing_timestamp = "timestamp";
-	private static final String firebase_db_now_playing_user = "user";
-
-	public void logNowPlaying(MusicService musicService, Music data) {
-		if (!getDCEnabled())
-			return;
-
-		try {
-			HashMap<String, Object> values = new HashMap<>();
-
-			values.put(firebase_db_now_playing_title, data.getTitle());
-			values.put(firebase_db_now_playing_artist, data.getArtist());
-			values.put(firebase_db_now_playing_text, data.getText());
-			values.put(firebase_db_now_playing_timestamp, ServerValue.TIMESTAMP);
-			values.put(firebase_db_now_playing_user, Settings.Secure.getString(musicService.getContentResolver(), Settings.Secure.ANDROID_ID));
-
-			FirebaseDatabase.getInstance()
-					.getReference(firebase_db_ref)
-					.child(firebase_db_now_playing)
-					.push()
-					.updateChildren(values, new DatabaseReference.CompletionListener() {
-						@Override
-						public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-							if (databaseError != null) {
-								Log.e(TAG, "firebase rdb push error", databaseError.toException());
-							}
-						}
-					});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static final String KEY_DC_ENABLED = "dc_enabled";
 
 	public boolean getDCEnabled() {
 		try {
-			return securePreferences.getBoolean(KEY_DC_ENABLED, false);
+			return securePreferences.getBoolean(KEY_DC_ENABLED, true);
 		} catch (Exception e) {
 			return false;
 		}
@@ -376,6 +339,31 @@ public class Analytics {
 					.edit()
 					.putBoolean(KEY_DC_ENABLED, value)
 					.apply();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private FirebaseAnalytics firebaseAnalytics;
+
+	public void initDC(Context context) {
+		if (getDCEnabled())
+			try {
+				firebaseAnalytics = FirebaseAnalytics.getInstance(context);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	}
+
+	public void logMusicOpened(MusicService musicService, Music data) {
+		if (firebaseAnalytics == null)
+			return;
+
+		try {
+			Bundle bundle = new Bundle();
+			bundle.putString("title", data.getTitle());
+			bundle.putString("artist", data.getArtist());
+			firebaseAnalytics.logEvent("music_opened", bundle);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

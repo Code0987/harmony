@@ -136,7 +136,7 @@ public class MainActivity extends BaseActivity {
 		}
 	}
 
-	public static void initRateMe(final WeakReference<FragmentActivity> contextRef) {
+	public static void initRateMe(final WeakReference<FragmentActivity> contextRef, final boolean force) {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -170,7 +170,10 @@ public class MainActivity extends BaseActivity {
 
 						}
 					});
-					rateMe.run();
+					if (force)
+						rateMe.forceShow();
+					else
+						rateMe.run();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
