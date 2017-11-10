@@ -968,7 +968,7 @@ public class Music extends RealmObject {
 			// Save to db
 
 			realm.beginTransaction();
-			realm.copyToRealmOrUpdate(data);
+			realm.insertOrUpdate(data);
 			realm.commitTransaction();
 
 			// Check constraints

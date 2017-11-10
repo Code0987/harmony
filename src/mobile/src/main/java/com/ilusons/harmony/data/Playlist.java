@@ -245,9 +245,9 @@ public class Playlist extends RealmObject {
 			try {
 				playlist.Items.add(newData);
 
-				realm.copyToRealmOrUpdate(newData);
+				realm.insertOrUpdate(newData);
 
-				realm.copyToRealmOrUpdate(playlist);
+				realm.insertOrUpdate(playlist);
 
 				realm.commitTransaction();
 			} catch (Throwable e) {

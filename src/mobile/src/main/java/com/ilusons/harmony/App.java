@@ -110,7 +110,13 @@ public class App extends Application {
 		// TODO: Ads later
 		// MobileAds.initialize(this, BuildConfig.AD_PUB_ID);
 
-		AndroidEx.overrideFont(getApplicationContext(), "DEFAULT", "fonts/open_sans.ttf");
+		try {
+			AndroidEx.overrideFont(getApplicationContext(), "DEFAULT", "fonts/open_sans.ttf");
+			AndroidEx.overrideFont(getApplicationContext(), "SANS_SERIF", "fonts/open_sans.ttf");
+			AndroidEx.overrideFont(getApplicationContext(), "SERIF", "fonts/open_sans.ttf");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 

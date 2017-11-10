@@ -55,6 +55,7 @@ import com.ilusons.harmony.base.HeadsetMediaButtonIntentReceiver;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
+import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -178,7 +179,7 @@ public class SettingsActivity extends BaseActivity {
 	private View root;
 	private AVLoadingIndicatorView loading;
 
-	private ScanLocationsRecyclerViewAdapter scanLocationsRecyclerViewAdapter;
+	private ViewEx.StaticViewPager viewPager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -292,7 +293,7 @@ public class SettingsActivity extends BaseActivity {
 		});
 
 		// Set views and tabs
-		final ViewEx.StaticViewPager viewPager = (ViewEx.StaticViewPager) findViewById(R.id.viewPager);
+		viewPager = (ViewEx.StaticViewPager) findViewById(R.id.viewPager);
 		TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
 		tabs.setupWithViewPager(viewPager);
 
@@ -422,12 +423,17 @@ public class SettingsActivity extends BaseActivity {
 		Log.d(TAG, "onActivityResult::" + requestCode + "," + resultCode + "," + data);
 
 		if (requestCode == REQUEST_SCAN_LOCATIONS_PICK && resultCode == Activity.RESULT_OK) {
+			try {
+				List<Uri> files = Utils.getSelectedFilesFromResult(data);
+				for (Uri uri : files) {
+					File file = Utils.getFileForUri(uri);
 
-			List<Uri> files = Utils.getSelectedFilesFromResult(data);
-			for (Uri uri : files) {
-				File file = Utils.getFileForUri(uri);
+					scanLocationsRecyclerViewAdapter.addData(file.getAbsolutePath());
+				}
 
-				scanLocationsRecyclerViewAdapter.addData(file.getAbsolutePath());
+
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 
 		} else if (requestCode == REQUEST_PRESETS_IMPORT_LOCATION_PICK_SAF && resultCode == Activity.RESULT_OK) {
@@ -518,93 +524,6 @@ public class SettingsActivity extends BaseActivity {
 					}
 				}))
 				.show();
-	}
-
-	public class ScanLocationsRecyclerViewAdapter extends RecyclerView.Adapter<ScanLocationsRecyclerViewAdapter.ViewHolder> {
-
-		private final ArrayList<String> data;
-
-		public ScanLocationsRecyclerViewAdapter() {
-			data = new ArrayList<>();
-		}
-
-		@Override
-		public int getItemCount() {
-			return data.size();
-		}
-
-		@Override
-		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
-			View view = inflater.inflate(R.layout.settings_scan_locations_item, parent, false);
-
-			return new ViewHolder(view);
-		}
-
-		@Override
-		public void onBindViewHolder(final ViewHolder holder, int position) {
-			final String d = data.get(position);
-			final View v = holder.view;
-
-			TextView text = (TextView) v.findViewById(R.id.text);
-			text.setText(d);
-
-			ImageButton remove = (ImageButton) v.findViewById(R.id.remove);
-			remove.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					removeData(d);
-				}
-			});
-
-		}
-
-		public class ViewHolder extends RecyclerView.ViewHolder {
-			public View view;
-
-			public ViewHolder(View view) {
-				super(view);
-
-				this.view = view;
-			}
-
-		}
-
-		public void setData(Collection<String> d) {
-			data.clear();
-			data.addAll(d);
-			notifyDataSetChanged();
-		}
-
-		public void addData(String d) {
-			data.add(d);
-
-			Set<String> locations = new HashSet<>();
-			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-				locations = new ArraySet<>();
-			}
-			locations.addAll(data);
-
-			MusicServiceLibraryUpdaterAsyncTask.setScanLocations(SettingsActivity.this, locations);
-
-			notifyDataSetChanged();
-		}
-
-		public void removeData(String d) {
-			data.remove(d);
-
-			Set<String> locations = new HashSet<>();
-			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-				locations = new ArraySet<String>();
-			}
-			locations.addAll(data);
-
-			MusicServiceLibraryUpdaterAsyncTask.setScanLocations(SettingsActivity.this, locations);
-
-			notifyDataSetChanged();
-		}
-
 	}
 
 	//region About section
@@ -908,8 +827,11 @@ public class SettingsActivity extends BaseActivity {
 
 	//region Library section
 
-	private void onCreateBindLibrarySection() {
+	public static final String TAG_BehaviourForAddScanLocationOnEmptyLibrary = TAG + "_BehaviourForAddScanLocationOnEmptyLibrary";
 
+	private ScanLocationsRecyclerViewAdapter scanLocationsRecyclerViewAdapter;
+
+	private void onCreateBindLibrarySection() {
 		CheckBox library_scan_auto_checkBox = (CheckBox) findViewById(R.id.library_scan_auto_checkBox);
 		library_scan_auto_checkBox.setChecked(MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this));
 		library_scan_auto_checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -1054,6 +976,128 @@ public class SettingsActivity extends BaseActivity {
 				info("Updated!");
 			}
 		});
+
+		// Check for behavior
+		scan_locations_recyclerView.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				boolean behaviourForAddScanLocationOnEmptyLibrary = false;
+				try {
+					behaviourForAddScanLocationOnEmptyLibrary = getIntent().getBooleanExtra(TAG_BehaviourForAddScanLocationOnEmptyLibrary, false);
+
+					if (behaviourForAddScanLocationOnEmptyLibrary) {
+						viewPager.setCurrentItem(3, true);
+						findViewById(R.id.scan_locations_imageButton).performClick();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}, 777);
+	}
+
+	public class ScanLocationsRecyclerViewAdapter extends RecyclerView.Adapter<ScanLocationsRecyclerViewAdapter.ViewHolder> {
+
+		private final ArrayList<String> data;
+
+		public ScanLocationsRecyclerViewAdapter() {
+			data = new ArrayList<>();
+		}
+
+		@Override
+		public int getItemCount() {
+			return data.size();
+		}
+
+		@Override
+		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+			View view = inflater.inflate(R.layout.settings_scan_locations_item, parent, false);
+
+			return new ViewHolder(view);
+		}
+
+		@Override
+		public void onBindViewHolder(final ViewHolder holder, int position) {
+			final String d = data.get(position);
+			final View v = holder.view;
+
+			TextView text = (TextView) v.findViewById(R.id.text);
+			text.setText(d);
+
+			ImageButton remove = (ImageButton) v.findViewById(R.id.remove);
+			remove.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					removeData(d);
+				}
+			});
+
+		}
+
+		public class ViewHolder extends RecyclerView.ViewHolder {
+			public View view;
+
+			public ViewHolder(View view) {
+				super(view);
+
+				this.view = view;
+			}
+
+		}
+
+		public void setData(Collection<String> d) {
+			data.clear();
+			data.addAll(d);
+			notifyDataSetChanged();
+		}
+
+		public void addData(String d) {
+			data.add(d);
+
+			Set<String> locations = new HashSet<>();
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+				locations = new ArraySet<>();
+			}
+			locations.addAll(data);
+
+			MusicServiceLibraryUpdaterAsyncTask.setScanLocations(SettingsActivity.this, locations);
+
+			notifyDataSetChanged();
+
+			try {
+				Intent musicServiceIntent = new Intent(SettingsActivity.this, MusicService.class);
+				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+				musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+				startService(musicServiceIntent);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void removeData(String d) {
+			data.remove(d);
+
+			Set<String> locations = new HashSet<>();
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+				locations = new ArraySet<String>();
+			}
+			locations.addAll(data);
+
+			MusicServiceLibraryUpdaterAsyncTask.setScanLocations(SettingsActivity.this, locations);
+
+			notifyDataSetChanged();
+
+			try {
+				Intent musicServiceIntent = new Intent(SettingsActivity.this, MusicService.class);
+				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+				musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+				startService(musicServiceIntent);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
 	}
 
