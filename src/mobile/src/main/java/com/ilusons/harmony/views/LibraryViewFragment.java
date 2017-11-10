@@ -1942,7 +1942,12 @@ public class LibraryViewFragment extends BaseUIFragment {
 	public static final String TAG_SPREF_LIBRARY_UI_VIEW_MODE = SPrefEx.TAG_SPREF + ".library_ui_view_mode";
 
 	public static UIViewMode getUIViewMode(Context context) {
-		return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Complex1)));
+		try {
+			return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Complex1)));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return UIViewMode.Complex1;
 	}
 
 	public static void setUIViewMode(Context context, UIViewMode value) {
