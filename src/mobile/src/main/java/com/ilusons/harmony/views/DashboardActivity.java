@@ -470,6 +470,8 @@ public class DashboardActivity extends BaseUIActivity {
 		info("Library updated!");
 
 		updatePlaybackUIMini();
+
+		behaviourForAddScanLocationOnEmptyLibrary();
 	}
 
 	@Override
@@ -1173,6 +1175,49 @@ public class DashboardActivity extends BaseUIActivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public boolean behaviourForAddScanLocationOnEmptyLibrary() {
+		boolean r = false;
+
+		try {
+			try {
+				Playlist pl_all = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ALL);
+				if (pl_all != null && pl_all.getItems() != null)
+					r = pl_all.getItems().size() <= 3;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			if (r) {
+				(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
+						.setTitle("No music? No songs?")
+						.setMessage("Would you like add a scan location i.e. select your music/songs folder?")
+						.setCancelable(true)
+						.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialogInterface, int i) {
+								Intent intent = new Intent(DashboardActivity.this, SettingsActivity.class);
+								intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+								intent.putExtra(SettingsActivity.TAG_BehaviourForAddScanLocationOnEmptyLibrary, true);
+								startActivity(intent);
+
+								dialogInterface.dismiss();
+							}
+						})
+						.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialogInterface, int i) {
+								dialogInterface.dismiss();
+							}
+						}))
+						.show();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return r;
 	}
 
 	//endregion
