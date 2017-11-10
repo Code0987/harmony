@@ -2084,7 +2084,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;
-			case Complex3: {
+			case Complex3: { // TODO: Fix it
+				/*
 				FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(getContext());
 
 				layoutManager.setFlexDirection(FlexDirection.ROW);
@@ -2092,6 +2093,37 @@ public class LibraryViewFragment extends BaseUIFragment {
 				layoutManager.setJustifyContent(JustifyContent.FLEX_START);
 				layoutManager.setAlignItems(AlignItems.STRETCH);
 
+				recyclerView.setLayoutManager(layoutManager);
+				*/
+
+				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 4) {
+					@Override
+					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+						try {
+							super.onLayoutChildren(recycler, state);
+						} catch (IndexOutOfBoundsException e) {
+							Log.w(TAG, e);
+						}
+					}
+				};
+				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+					@Override
+					public int getSpanSize(int position) {
+						if (RecyclerViewExpandableItemManager
+								.getPackedPositionChild(recyclerViewExpandableItemManager
+										.getExpandablePosition(position))
+								==
+								RecyclerView.NO_POSITION) {
+							// group item
+							return 4;
+						} else {
+							// child item
+							if (position % 2 == 0 || position % 3 == 0)
+								return 2;
+							return 4;
+						}
+					}
+				});
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;

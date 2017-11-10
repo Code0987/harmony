@@ -1328,15 +1328,29 @@ public class MusicService extends Service {
 			});
 
 			// Update media session
-			mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-					.putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.getTitle())
-					.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.getArtist())
-					.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.getAlbum())
-					.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
-					.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, currentPlaylist.getItemIndex() + 1)
-					.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, currentPlaylist.getItems().size())
-					.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentMusic.getCover(this, -1))
-					.build());
+			Bitmap cover;
+			try {
+				cover = currentMusic.getCover(this, -1);
+				mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+						.putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.getTitle())
+						.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.getArtist())
+						.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.getAlbum())
+						.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
+						.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, currentPlaylist.getItemIndex() + 1)
+						.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, currentPlaylist.getItems().size())
+						.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, cover)
+						.build());
+			} catch (Exception e) {
+				e.printStackTrace();
+				mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+						.putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentMusic.getTitle())
+						.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentMusic.getArtist())
+						.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, currentMusic.getAlbum())
+						.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration())
+						.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, currentPlaylist.getItemIndex() + 1)
+						.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, currentPlaylist.getItems().size())
+						.build());
+			}
 
 			// Update effects
 
