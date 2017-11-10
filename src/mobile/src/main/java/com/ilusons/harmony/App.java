@@ -81,6 +81,7 @@ public class App extends Application {
 		// Analytics
 		Analytics.getInstance().initSettings(this);
 		Analytics.getInstance().initLastfm();
+		Analytics.getInstance().initDC(this);
 
 		// Default settings
 		final String tag_preset_default = ".preset_default";
