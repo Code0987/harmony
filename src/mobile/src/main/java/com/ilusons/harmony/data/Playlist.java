@@ -14,6 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
@@ -23,11 +24,25 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.musicbrainz.android.api.data.Recording;
+import org.musicbrainz.android.api.data.RecordingInfo;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
+import de.umass.lastfm.Track;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -175,39 +190,35 @@ public class Playlist extends RealmObject {
 		return Items.contains(item);
 	}
 
-	public static boolean update(final Realm realm, final Playlist playlist, boolean removeTrace) {
+	public static boolean update(final Realm realm, final Playlist playlist, final boolean removeTrace) {
 		boolean r = false;
 		try {
 			final ArrayList<Music> toRemove = new ArrayList<>();
 
-			for (Music item : playlist.Items) {
+			for (Music item : playlist.getItems()) {
+				if (!item.isLocal())
+					continue;
 				File file = (new File(item.getPath()));
 				if (!file.exists())
 					toRemove.add(item);
 			}
 
 			if (toRemove.size() > 0) {
-				realm.beginTransaction();
-				try {
-					playlist.Items.removeAll(toRemove);
-
-					if (removeTrace)
-						for (Music item : toRemove)
-							try {
-								item.deleteFromRealm();
-							} catch (Exception e) {
-								e.printStackTrace();
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(@NonNull Realm realm) {
+						playlist.getItems().removeAll(toRemove);
+						if (removeTrace) {
+							for (Music item : toRemove) {
+								try {
+									item.deleteFromRealm();
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							}
-
-					realm.commitTransaction();
-				} catch (Throwable e) {
-					if (realm.isInTransaction()) {
-						realm.cancelTransaction();
-					} else {
-						Log.w(TAG, e);
+						}
 					}
-					throw e;
-				}
+				});
 
 				r = true;
 			}
@@ -217,6 +228,12 @@ public class Playlist extends RealmObject {
 			r = true;
 		}
 		return r;
+	}
+
+	public static boolean update(final Playlist playlist, final boolean removeTrace) {
+		try (Realm realm = DB.getDB()) {
+			return update(realm, playlist, removeTrace);
+		}
 	}
 
 	public static boolean scanNew(final Realm realm, final Context context, final Playlist playlist, final String path, final Uri contentUri, boolean fastMode) {
@@ -470,6 +487,87 @@ public class Playlist extends RealmObject {
 	}
 
 	//region OS
+
+	public static Observable<Pair<String, Uri>> getAllMediaStoreEntriesForAudio(final Context context) {
+		return Observable.create(new ObservableOnSubscribe<Pair<String, Uri>>() {
+			@Override
+			public void subscribe(ObservableEmitter<Pair<String, Uri>> oe) throws Exception {
+				try {
+					Cursor cursor = null;
+					try {
+						ContentResolver cr = context.getContentResolver();
+						Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+						String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
+						String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
+						cursor = cr.query(uri, null, selection, null, sortOrder);
+						int count = 0;
+						if (cursor != null) {
+							count = cursor.getCount();
+							if (count > 0) {
+								while (cursor.moveToNext()) {
+									String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+									if ((new File(path)).exists()) {
+										Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
+
+										oe.onNext(Pair.create(path, contentUri));
+									}
+								}
+
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						if (cursor != null)
+							cursor.close();
+					}
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Pair<String, Uri>> getAllMediaStoreEntriesForVideo(final Context context) {
+		return Observable.create(new ObservableOnSubscribe<Pair<String, Uri>>() {
+			@Override
+			public void subscribe(ObservableEmitter<Pair<String, Uri>> oe) throws Exception {
+				try {
+					Cursor cursor = null;
+					try {
+						ContentResolver cr = context.getContentResolver();
+						Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+						String sortOrder = MediaStore.Video.Media.TITLE + " ASC";
+						cursor = cr.query(uri, null, null, null, sortOrder);
+						int count = 0;
+						if (cursor != null) {
+							count = cursor.getCount();
+							if (count > 0) {
+								while (cursor.moveToNext()) {
+									String path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
+									if ((new File(path)).exists()) {
+										Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
+
+										oe.onNext(Pair.create(path, contentUri));
+									}
+								}
+
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						if (cursor != null)
+							cursor.close();
+					}
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
 
 	public static void allPlaylist(ContentResolver cr, final JavaEx.ActionTU<Long, String> action) {
 		if (action == null)
@@ -734,6 +832,131 @@ public class Playlist extends RealmObject {
 		try (Realm realm = DB.getDB()) {
 			exportM3U(realm, context, data);
 		}
+	}
+
+	//endregion
+
+	//region Smart playlist
+
+	private String QueryTitle;
+
+	public String getQueryTitle() {
+		return QueryTitle;
+	}
+
+	public void setQueryTitle(String value) {
+		QueryTitle = value;
+	}
+
+	private String QueryArtist;
+
+	public String getQueryArtist() {
+		return QueryArtist;
+	}
+
+	public void setQueryArtist(String value) {
+		QueryArtist = value;
+	}
+
+	private String QueryTags;
+
+	public String getQueryTags() {
+		return QueryTags;
+	}
+
+	public void setQueryTags(String value) {
+		QueryTags = value;
+	}
+
+	public boolean isSmart() {
+		return (!TextUtils.isEmpty(QueryTitle) || !TextUtils.isEmpty(QueryArtist) || !TextUtils.isEmpty(QueryTags));
+	}
+
+	public static void updatePlaylist(final Realm realm, final Playlist playlist) {
+		final Collection<Music> items = new ArrayList<>();
+
+		if (!TextUtils.isEmpty(playlist.getQueryTitle()) && !TextUtils.isEmpty(playlist.getQueryArtist())) {
+			Analytics.findTrackFromTitleArtist(playlist.getQueryTitle(), playlist.getQueryArtist())
+					.flatMap(new Function<RecordingInfo, ObservableSource<Recording>>() {
+						@Override
+						public ObservableSource<Recording> apply(RecordingInfo r) throws Exception {
+							return Analytics.findTrackFromMBID(r.getMbid());
+						}
+					})
+					.flatMap(new Function<Recording, ObservableSource<Collection<Track>>>() {
+						@Override
+						public ObservableSource<Collection<Track>> apply(Recording r) throws Exception {
+							return Analytics.findSimilarTracks(r.getArtists().get(0).getName(), r.getMbid(), 25);
+						}
+					})
+					.subscribeOn(Schedulers.io())
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribe(new Consumer<Collection<Track>>() {
+						@Override
+						public void accept(final Collection<Track> r) throws Exception {
+							for (Track t : r) {
+								Music m = new Music();
+								m.setTitle(t.getName());
+								m.setArtist(t.getArtist());
+								m.setAlbum(t.getAlbum());
+								m.setMBID(t.getMbid());
+								m.setTags(StringUtils.join(t.getTags(), ','));
+								m.setLength(t.getDuration());
+								m.setPath(t.getUrl());
+
+								items.add(m);
+							}
+						}
+					}, new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+							Log.w(TAG, throwable);
+						}
+					});
+		} else {
+			String query = StringUtils.join(playlist.getQueryTags().split(","), " OR ");
+
+			Analytics.findTrackFromQuery(query)
+					.flatMap(new Function<RecordingInfo, ObservableSource<Recording>>() {
+						@Override
+						public ObservableSource<Recording> apply(RecordingInfo r) throws Exception {
+							return Analytics.findTrackFromMBID(r.getMbid());
+						}
+					})
+					.flatMap(new Function<Recording, ObservableSource<Collection<Track>>>() {
+						@Override
+						public ObservableSource<Collection<Track>> apply(Recording r) throws Exception {
+							return Analytics.findSimilarTracks(r.getArtists().get(0).getName(), r.getMbid(), 25);
+						}
+					})
+					.subscribeOn(Schedulers.io())
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribe(new Consumer<Collection<Track>>() {
+						@Override
+						public void accept(final Collection<Track> r) throws Exception {
+							for (Track t : r) {
+								Music m = new Music();
+								m.setTitle(t.getName());
+								m.setArtist(t.getArtist());
+								m.setAlbum(t.getAlbum());
+								m.setMBID(t.getMbid());
+								m.setTags(StringUtils.join(t.getTags(), ','));
+								m.setLength(t.getDuration());
+								m.setPath(t.getUrl());
+
+								items.add(m);
+							}
+						}
+					}, new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+							Log.w(TAG, throwable);
+						}
+					});
+		}
+
+		playlist.clear();
+		playlist.addAll(items);
 	}
 
 	//endregion

@@ -80,7 +80,7 @@ public class App extends Application {
 
 		// Analytics
 		Analytics.getInstance().initSettings(this);
-		Analytics.getInstance().initLastfm();
+		Analytics.getInstance().initLastfm(this);
 		Analytics.getInstance().initDC(this);
 
 		// Default settings

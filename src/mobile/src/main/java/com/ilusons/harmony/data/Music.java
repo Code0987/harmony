@@ -138,6 +138,10 @@ public class Music extends RealmObject {
 		Path = path;
 	}
 
+	public boolean isLocal() {
+		return (getPath() != null) && (new File(getPath())).isFile();
+	}
+
 	// Stats
 	private int Played = 0;
 
@@ -199,14 +203,24 @@ public class Music extends RealmObject {
 		TimeAdded = value;
 	}
 
-	private String Mood = "";
+	private String MBID = "";
 
-	public String getMood() {
-		return Mood;
+	public String getMBID() {
+		return MBID;
 	}
 
-	public void setMood(String value) {
-		Mood = value;
+	public void setMBID(String value) {
+		MBID = value;
+	}
+
+	private String Tags = "";
+
+	public String getTags() {
+		return Tags;
+	}
+
+	public void setTags(String value) {
+		Tags = value;
 	}
 
 	private double Score = 0.0;
@@ -354,6 +368,10 @@ public class Music extends RealmObject {
 			sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(TimeAdded));
 		}
 		*/
+		if (!TextUtils.isEmpty(Tags)) {
+			sb.append(del);
+			sb.append(Tags);
+		}
 
 		return sb.toString();
 	}
@@ -397,8 +415,13 @@ public class Music extends RealmObject {
 			File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, Path);
 
 			// Load from cache folder
-			if (file.exists())
-				result = BitmapFactory.decodeFile(file.getAbsolutePath());
+			if (file.exists()) {
+				BitmapFactory.Options options = new BitmapFactory.Options();
+				options.inJustDecodeBounds = false;
+				options.inPreferredConfig = Bitmap.Config.RGB_565;
+				options.inDither = true;
+				result = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -908,6 +931,24 @@ public class Music extends RealmObject {
 						} catch (Exception e) {
 							// Ignore
 						}
+						try {
+							data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+						} catch (Exception e) {
+							try {
+								data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_RELEASE_TRACK_ID));
+							} catch (Exception e2) {
+								try {
+									data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
+								} catch (Exception e3) {
+									// Ignore
+								}
+							}
+						}
+						try {
+							data.Tags = String.valueOf(tag.getFirst(FieldKey.TAGS));
+						} catch (Exception e) {
+							// Ignore
+						}
 
 						data.Path = path;
 
@@ -1062,6 +1103,16 @@ public class Music extends RealmObject {
 	public static Music load(Context context, String path) {
 		try (Realm realm = DB.getDB()) {
 			return load(realm, context, path);
+		}
+	}
+
+	public static void update(Music data) {
+		try (Realm realm = DB.getDB()) {
+			if (realm != null) {
+				realm.insertOrUpdate(data);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 

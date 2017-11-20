@@ -1200,8 +1200,11 @@ public class SettingsActivity extends BaseActivity {
 
 		@Override
 		protected Void doInBackground(Void... voids) {
+			SettingsActivity context = contextRef.get();
+			if (context == null)
+				return null;
 
-			Analytics.getInstance().initLastfm();
+			Analytics.getInstance().initLastfm(context);
 
 			return null;
 		}

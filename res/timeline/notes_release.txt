@@ -2,7 +2,12 @@
 
 ☃ Winters special: 3 days FREE premium (automatic) ☃
 
-✔ More bugs/crashes fixed, hopefully after sometime things pending below will be worked out.
+✔ Bugs/crashes fixed.
+✔ Fixed slow scan on large media collections.
+✔ Added support for MusicBrainz tags.
+✔ Added new metadata field, tags.
+✔ Updated search to include tags and genre.
+✔ Smart playlist creator.
 
 🔮️ Future: Smart playlist generator.
 🔮️ Future: YouTube integration.

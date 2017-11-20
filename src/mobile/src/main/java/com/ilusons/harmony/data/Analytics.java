@@ -14,6 +14,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.Transaction;
+import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.SecurePreferences;
 
@@ -21,16 +22,40 @@ import org.apache.http.util.TextUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.LogRecord;
 
 import de.umass.lastfm.Authenticator;
+import de.umass.lastfm.Caller;
 import de.umass.lastfm.Session;
-import de.umass.lastfm.Track;
+import de.umass.lastfm.cache.FileSystemCache;
 import de.umass.lastfm.scrobble.ScrobbleData;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import io.realm.Realm;
 import jonathanfinerty.once.Once;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.musicbrainz.android.api.User;
+import org.musicbrainz.android.api.data.Artist;
+import org.musicbrainz.android.api.data.ArtistSearchResult;
+import org.musicbrainz.android.api.data.Recording;
+import org.musicbrainz.android.api.data.RecordingInfo;
+import org.musicbrainz.android.api.data.Track;
+import org.musicbrainz.android.api.handler.RecordingSearchHandler;
+import org.musicbrainz.android.api.webservice.MusicBrainzWebClient;
+
+import java.net.URLEncoder;
+import java.util.LinkedList;
+
+import io.reactivex.Maybe;
+import io.reactivex.MaybeEmitter;
+import io.reactivex.MaybeOnSubscribe;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 
 public class Analytics {
 
@@ -94,8 +119,44 @@ public class Analytics {
 	private List<ScrobbleData> scrobbleCache = new ArrayList<>();
 
 	private List<ScrobbleResult> scrobbleResults = new ArrayList<>();
+	private static int callsCount = 0;
+	private static long lastCallCountStart = 0;
 
-	public void initLastfm() {
+	public static boolean canCall() {
+		boolean r = true;
+
+		long now = System.currentTimeMillis();
+
+		if ((now - lastCallCountStart) > 60 * 1000) {
+			callsCount = 0;
+			lastCallCountStart = now;
+		} else {
+			if (callsCount >= 5)
+				r = false;
+		}
+
+		callsCount++;
+
+		return r;
+	}
+
+	public static String getKey() {
+		return "7f549d7402bd35d37f3711c40a84ec95";
+	}
+
+	public static String getSecret() {
+		return "350215664ed8c4b13a27ed56a3da51d5";
+	}
+
+	public void initLastfm(Context context) {
+		// For api
+
+		Caller.getInstance().setCache(new FileSystemCache(context.getCacheDir()));
+		if (!BuildConfig.DEBUG)
+			Caller.getInstance().setUserAgent(BuildConfig.APPLICATION_ID + "/" + BuildConfig.VERSION_CODE);
+
+		// For scrobbler
+
 		if (securePreferences == null)
 			return;
 
@@ -127,8 +188,8 @@ public class Analytics {
 				context.lfm_session = Authenticator.getMobileSession(
 						username,
 						password,
-						"7f549d7402bd35d37f3711c40a84ec95",
-						"350215664ed8c4b13a27ed56a3da51d5");
+						getKey(),
+						getSecret());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -209,7 +270,7 @@ public class Analytics {
 				scrobbleData.setTrack(data.getTitle());
 				scrobbleData.setDuration(data.getLength() / 1000);
 
-				ScrobbleResult result = Track.updateNowPlaying(scrobbleData, context.lfm_session);
+				ScrobbleResult result = de.umass.lastfm.Track.updateNowPlaying(scrobbleData, context.lfm_session);
 
 				Log.d(TAG, "nowPlayingLastfm" + "\n" + result);
 			} catch (Exception e) {
@@ -289,7 +350,7 @@ public class Analytics {
 
 						context.scrobbleCache.add(scrobbleData);
 
-						List<ScrobbleResult> result = Track.scrobble(context.scrobbleCache, context.lfm_session);
+						List<ScrobbleResult> result = de.umass.lastfm.Track.scrobble(context.scrobbleCache, context.lfm_session);
 
 						context.scrobbleCache.clear();
 
@@ -298,7 +359,7 @@ public class Analytics {
 						Log.d(TAG, "scrobbleLastfm" + "\n" + result);
 					} else {
 
-						ScrobbleResult result = Track.scrobble(scrobbleData, context.lfm_session);
+						ScrobbleResult result = de.umass.lastfm.Track.scrobble(scrobbleData, context.lfm_session);
 
 						Log.d(TAG, "scrobbleLastfm" + "\n" + result);
 
@@ -368,6 +429,130 @@ public class Analytics {
 			e.printStackTrace();
 		}
 	}
+
+	//endregion
+
+	//region Smart
+
+	public static MusicBrainzWebClient createClient() {
+		return new MusicBrainzWebClient(
+				new User() {
+					@Override
+					public String getUsername() {
+						return "ikCePnurwp1qxVIjxOXR6Q";
+					}
+
+					@Override
+					public String getPassword() {
+						return "1MFKDP5z_pgZ0Snf3g5CYQ";
+					}
+				},
+				BuildConfig.APPLICATION_ID + "/" + BuildConfig.VERSION_CODE,
+				BuildConfig.APPLICATION_ID + "/" + BuildConfig.VERSION_CODE);
+	}
+
+	public static Observable<RecordingInfo> findTrackFromQuery(final String query) {
+		return Observable.create(new ObservableOnSubscribe<RecordingInfo>() {
+			@Override
+			public void subscribe(ObservableEmitter<RecordingInfo> oe) throws Exception {
+				try {
+					MusicBrainzWebClient mbc = createClient();
+
+					for (RecordingInfo item : mbc.searchRecording(URLEncoder.encode(query, "UTF-8")))
+						try {
+							oe.onNext(item);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<RecordingInfo> findTrackFromTitleArtist(final String title, final String artist) {
+		return Observable.create(new ObservableOnSubscribe<RecordingInfo>() {
+			@Override
+			public void subscribe(ObservableEmitter<RecordingInfo> oe) throws Exception {
+				try {
+					boolean f = false;
+
+					MusicBrainzWebClient mbc = createClient();
+
+					JaroWinklerDistance sa = new JaroWinklerDistance();
+
+					for (RecordingInfo item : mbc.searchRecording(URLEncoder.encode("recording:" + title + " AND artist:" + artist, "UTF-8")))
+						try {
+							if (sa.apply(item.getTitle().toLowerCase(), title.toLowerCase()) > 0.85
+									&& sa.apply(item.getArtist().getName().toLowerCase(), artist.toLowerCase()) > 0.85) {
+								oe.onNext(item);
+								f = true;
+								break;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+					if (!f)
+						throw new Exception("Not found");
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Recording> findTrackFromMBID(final String mbid) {
+		return Observable.create(new ObservableOnSubscribe<Recording>() {
+			@Override
+			public void subscribe(ObservableEmitter<Recording> oe) throws Exception {
+				try {
+					boolean f = false;
+
+					MusicBrainzWebClient mbc = createClient();
+
+					Recording track = mbc.lookupRecording(mbid);
+					if (track != null) {
+						oe.onNext(track);
+						f = true;
+					}
+
+					if (!f)
+						throw new Exception("Not found");
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Collection<de.umass.lastfm.Track>> findSimilarTracks(final String artist, final String trackOrMbid, final int limit) {
+		return Observable.create(new ObservableOnSubscribe<Collection<de.umass.lastfm.Track>>() {
+			@Override
+			public void subscribe(ObservableEmitter<Collection<de.umass.lastfm.Track>> oe) throws Exception {
+				try {
+					boolean f = false;
+
+					if (canCall()) {
+						Collection<de.umass.lastfm.Track> similar = de.umass.lastfm.Track.getSimilar(artist, trackOrMbid, getKey(), limit);
+						oe.onNext(similar);
+						f = true;
+					}
+
+					if (!f)
+						throw new Exception("Not found");
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
 
 	//endregion
 

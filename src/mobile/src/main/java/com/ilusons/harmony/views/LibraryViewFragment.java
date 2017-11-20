@@ -44,6 +44,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.support.v7.widget.SearchView;
 import android.widget.ImageView;
@@ -693,7 +694,11 @@ public class LibraryViewFragment extends BaseUIFragment {
 			if (context == null)
 				return;
 
-			context.loading.smoothToShow();
+			try {
+				context.loading.smoothToShow();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override
@@ -704,7 +709,11 @@ public class LibraryViewFragment extends BaseUIFragment {
 			if (context == null)
 				return;
 
-			context.loading.smoothToHide();
+			try {
+				context.loading.smoothToHide();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -853,17 +862,17 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		@Override
 		public void onBindGroupViewHolder(GroupViewHolder holder, int groupPosition, int viewType) {
-			final String d = dataFiltered.get(groupPosition).first;
-			final View v = holder.view;
-
-			v.setTag(d);
-
-			setupLayout(v, groupPosition, true);
-
-			TextView title = ((TextView) v.findViewById(R.id.title));
-			title.setText(d);
-
 			try {
+				final String d = dataFiltered.get(groupPosition).first;
+				final View v = holder.view;
+
+				v.setTag(d);
+
+				setupLayout(v, groupPosition, true);
+
+				TextView title = ((TextView) v.findViewById(R.id.title));
+				title.setText(d);
+
 				final ImageView cover = (ImageView) v.findViewById(R.id.cover);
 				if (cover != null) {
 					cover.setImageBitmap(null);
@@ -923,7 +932,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
 		}
 
 		@SuppressLint("StaticFieldLeak")
@@ -1035,6 +1043,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 						builder.setTitle("Select the action");
 						builder.setItems(new CharSequence[]{
 								"Share",
+								"Tags",
 								"Add next",
 								"Add at start",
 								"Add at last",
@@ -1062,28 +1071,56 @@ public class LibraryViewFragment extends BaseUIFragment {
 											shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 											startActivity(Intent.createChooser(shareIntent, "Share " + item.getText() + " ..."));
 											break;
-										case 1:
+										case 1: {
+											final EditText editText = new EditText(getActivity());
+											editText.setText(item.getTags());
+											(new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.AppTheme_AlertDialogStyle))
+													.setTitle("Tags")
+													.setView(editText)
+													.setCancelable(true)
+													.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+														@Override
+														public void onClick(DialogInterface dialogInterface, int i) {
+															item.setTags(editText.getText().toString().trim());
+
+															Music.update(item);
+
+															setFromPlaylist(-1L, viewPlaylist.getName());
+
+															dialogInterface.dismiss();
+														}
+													}))
+													.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+														@Override
+														public void onClick(DialogInterface dialogInterface, int i) {
+															dialogInterface.dismiss();
+														}
+													})
+													.show();
+										}
+										break;
+										case 2:
 											viewPlaylist.add(item, viewPlaylist.getItems().lastIndexOf(item) + 1);
 											break;
-										case 2:
+										case 3:
 											viewPlaylist.add(item, 0);
 											break;
-										case 3:
+										case 4:
 											viewPlaylist.add(item, viewPlaylist.getItems().size());
 											break;
-										case 4:
+										case 5:
 											viewPlaylist.remove(item);
 											break;
-										case 5:
+										case 6:
 											viewPlaylist.removeAllExceptCurrent();
 											break;
-										case 6:
+										case 7:
 											viewPlaylist.moveDown(item);
 											break;
-										case 7:
+										case 8:
 											viewPlaylist.moveUp(item);
 											break;
-										case 8:
+										case 9:
 											viewPlaylist.delete(item, getMusicService(), true);
 											break;
 									}
@@ -1541,11 +1578,14 @@ public class LibraryViewFragment extends BaseUIFragment {
 				}
 			}
 
-			f &= TextUtils.isEmpty(q) || q.length() < 1 ||
-					(m.getPath().toLowerCase().contains(q)
+			f &= TextUtils.isEmpty(q) || q.length() < 1 || (
+					m.getPath().toLowerCase().contains(q)
 							|| m.getTitle().toLowerCase().contains(q)
 							|| m.getArtist().toLowerCase().contains(q)
-							|| m.getAlbum().toLowerCase().contains(q));
+							|| m.getAlbum().toLowerCase().contains(q)
+							|| m.getTags().toLowerCase().contains(q)
+							|| m.getGenre().toLowerCase().contains(q)
+			);
 
 			if (f)
 				result.add(m);

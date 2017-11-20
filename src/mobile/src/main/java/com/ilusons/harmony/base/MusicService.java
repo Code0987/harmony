@@ -1247,6 +1247,12 @@ public class MusicService extends Service {
 			if (currentMusic == null)
 				return;
 
+			if (!currentMusic.isLocal()) {
+				Toast.makeText(this, "Sorry, we only support local files based music currently!", Toast.LENGTH_LONG).show();
+				nextSmart(true);
+				return;
+			}
+
 			// Setup player
 			if (mediaPlayerFactory == null)
 				switch (getPlayerType(this)) {
@@ -1354,19 +1360,20 @@ public class MusicService extends Service {
 
 			// Update effects
 
-			getEqualizer();
+			if (getEnvironmentalReverb() == null) {
 
-			getPreAmp();
+				getPresetReverb();
+			}
+
+			getEqualizer();
 
 			getBassBoost();
 
-			getLoudnessEnhancer();
-
 			getVirtualizer();
 
-			getEnvironmentalReverb();
+			getLoudnessEnhancer();
 
-			getPresetReverb();
+			getPreAmp();
 
 		}
 

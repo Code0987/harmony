@@ -34,257 +34,265 @@ import com.ilusons.harmony.ref.SPrefEx;
  */
 public class HeadsetMediaButtonIntentReceiver extends WakefulBroadcastReceiver {
 
-    // Logger TAG
-    private static final String TAG = HeadsetMediaButtonIntentReceiver.class.getSimpleName();
+	// Logger TAG
+	private static final String TAG = HeadsetMediaButtonIntentReceiver.class.getSimpleName();
+
+	private static WakeLock wakeLock = null;
+
+	private static final int MSG_LONGPRESS = 1;
+	private static final int MSG_PRESS = 2;
+
+	private static final int LONG_PRESS_DELAY = 1000;
+	private static final int PRESS_DELAY = 800;
+
+	private static int clickCounter = 0;
+	private static long lastClickTime = 0;
+	private static boolean down = false;
+	private static boolean launched = false;
+
+	private static Handler handler = new Handler() {
+		@Override
+		public void handleMessage(final Message msg) {
+
+			switch (msg.what) {
+
+				case MSG_LONGPRESS:
+					Log.v(TAG, "Handling longpress timeout, launched " + launched);
+
+					if (!launched) {
+						final Context context = (Context) msg.obj;
 
-    private static WakeLock wakeLock = null;
+						MainActivity.openPlaybackUIActivity(context);
 
-    private static final int MSG_LONGPRESS = 1;
-    private static final int MSG_PRESS = 2;
+						launched = true;
+					}
 
-    private static final int LONG_PRESS_DELAY = 1000;
-    private static final int PRESS_DELAY = 800;
+					break;
 
-    private static int clickCounter = 0;
-    private static long lastClickTime = 0;
-    private static boolean down = false;
-    private static boolean launched = false;
+				case MSG_PRESS:
+					final int clickCount = msg.arg1;
+					final String command;
+
+					Log.v(TAG, "Handling headset click, count = " + clickCount);
 
-    private static Handler handler = new Handler() {
-        @Override
-        public void handleMessage(final Message msg) {
+					switch (clickCount) {
+						case 1:
+							command = MusicService.ACTION_TOGGLE_PLAYBACK;
+							break;
+						case 2:
+							command = MusicService.ACTION_NEXT;
+							break;
+						case 3:
+							command = MusicService.ACTION_PREVIOUS;
+							break;
+						default:
+							command = null;
+							break;
+					}
 
-            switch (msg.what) {
+					if (command != null) {
+						final Context context = (Context) msg.obj;
+						startService(context, command);
+					}
 
-                case MSG_LONGPRESS:
-                    Log.v(TAG, "Handling longpress timeout, launched " + launched);
+					break;
+			}
 
-                    if (!launched) {
-                        final Context context = (Context) msg.obj;
+			releaseWakeLockIfHandlerIdle();
+		}
+	};
 
-                        MainActivity.openPlaybackUIActivity(context);
+	private static void startService(Context context, String action) {
+		try {
+			final Intent intent = new Intent(context, MusicService.class);
+			intent.setAction(action);
+			startWakefulService(context, intent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void startService(Context context) {
+		try {
+			final Intent intent = new Intent(context, MusicService.class);
+			startWakefulService(context, intent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void acquireWakeLockAndSendMessage(Context context, Message msg, long delay) {
+		if (wakeLock == null) {
+			Context appContext = context.getApplicationContext();
+			PowerManager pm = (PowerManager) appContext.getSystemService(Context.POWER_SERVICE);
+
+			wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+			wakeLock.setReferenceCounted(false);
+		}
+
+		Log.v(TAG, "Acquiring wake lock and sending " + msg.what);
+
+		wakeLock.acquire(10000);
+
+		handler.sendMessageDelayed(msg, delay);
+	}
+
+	private static void releaseWakeLockIfHandlerIdle() {
+		if (handler.hasMessages(MSG_LONGPRESS) || handler.hasMessages(MSG_PRESS)) {
+			Log.v(TAG, "Handler still has messages pending, not releasing wake lock");
+			return;
+		}
+
+		if (wakeLock != null) {
+			Log.v(TAG, "Releasing wake lock");
+
+			wakeLock.release();
+			wakeLock = null;
+		}
+	}
 
-                        launched = true;
-                    }
+	@Override
+	public void onReceive(final Context context, final Intent intent) {
+		Log.d(TAG, "onReceive\n" + intent);
 
-                    break;
+		final String action = intent.getAction();
+
+		if (action.equals(Intent.ACTION_USER_PRESENT) || action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+
+			startService(context);
+
+		} else if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
+
+			int state = intent.getIntExtra("state", -1);
+			switch (state) {
+				case 0:
+					startService(context, MusicService.ACTION_PAUSE);
+
+					Log.d(TAG, "Headset is unplugged");
+					break;
+				case 1:
+					if (HeadsetMediaButtonIntentReceiver.getHeadsetAutoPlayOnPlug(context))
+						startService(context, MusicService.ACTION_PLAY);
 
-                case MSG_PRESS:
-                    final int clickCount = msg.arg1;
-                    final String command;
+					Log.d(TAG, "Headset is plugged");
+					break;
+				default:
+					Log.d(TAG, "I have no idea what the headset state is");
+			}
+
+		} else if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
 
-                    Log.v(TAG, "Handling headset click, count = " + clickCount);
+			startService(context, MusicService.ACTION_PAUSE);
 
-                    switch (clickCount) {
-                        case 1:
-                            command = MusicService.ACTION_TOGGLE_PLAYBACK;
-                            break;
-                        case 2:
-                            command = MusicService.ACTION_NEXT;
-                            break;
-                        case 3:
-                            command = MusicService.ACTION_PREVIOUS;
-                            break;
-                        default:
-                            command = null;
-                            break;
-                    }
+		} else if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
 
-                    if (command != null) {
-                        final Context context = (Context) msg.obj;
-                        startService(context, command);
-                    }
+			final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+			if (event == null)
+				return;
 
-                    break;
-            }
+			Log.d(TAG, "onReceive\n" + event);
 
-            releaseWakeLockIfHandlerIdle();
-        }
-    };
+			final int k = event.getKeyCode();
+			final int a = event.getAction();
+			final long t = event.getEventTime();
 
-    private static void startService(Context context, String action) {
-        final Intent intent = new Intent(context, MusicService.class);
-        intent.setAction(action);
-        startWakefulService(context, intent);
-    }
-
-    private static void startService(Context context) {
-        final Intent intent = new Intent(context, MusicService.class);
-        startWakefulService(context, intent);
-    }
-
-    private static void acquireWakeLockAndSendMessage(Context context, Message msg, long delay) {
-        if (wakeLock == null) {
-            Context appContext = context.getApplicationContext();
-            PowerManager pm = (PowerManager) appContext.getSystemService(Context.POWER_SERVICE);
-
-            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-            wakeLock.setReferenceCounted(false);
-        }
-
-        Log.v(TAG, "Acquiring wake lock and sending " + msg.what);
-
-        wakeLock.acquire(10000);
-
-        handler.sendMessageDelayed(msg, delay);
-    }
-
-    private static void releaseWakeLockIfHandlerIdle() {
-        if (handler.hasMessages(MSG_LONGPRESS) || handler.hasMessages(MSG_PRESS)) {
-            Log.v(TAG, "Handler still has messages pending, not releasing wake lock");
-            return;
-        }
-
-        if (wakeLock != null) {
-            Log.v(TAG, "Releasing wake lock");
+			String command = null;
+			switch (k) {
+				case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+					command = MusicService.ACTION_PREVIOUS;
+					break;
+				case KeyEvent.KEYCODE_MEDIA_NEXT:
+					command = MusicService.ACTION_NEXT;
+					break;
+				case KeyEvent.KEYCODE_MEDIA_PLAY:
+					command = MusicService.ACTION_PLAY;
+					break;
+				case KeyEvent.KEYCODE_MEDIA_PAUSE:
+					command = MusicService.ACTION_PAUSE;
+					break;
+				case KeyEvent.KEYCODE_MEDIA_STOP:
+					command = MusicService.ACTION_STOP;
+					break;
+				case KeyEvent.KEYCODE_HEADSETHOOK:
+				case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+					command = MusicService.ACTION_TOGGLE_PLAYBACK;
+					break;
+			}
 
-            wakeLock.release();
-            wakeLock = null;
-        }
-    }
+			if (command != null) {
 
-    @Override
-    public void onReceive(final Context context, final Intent intent) {
-        Log.d(TAG, "onReceive\n" + intent);
+				if (a == KeyEvent.ACTION_DOWN) {
+					if (down) {
+						if (MusicService.ACTION_TOGGLE_PLAYBACK.equals(command)
+								|| MusicService.ACTION_PLAY.equals(command)) {
 
-        final String action = intent.getAction();
+							if (lastClickTime != 0
+									&& t - lastClickTime > LONG_PRESS_DELAY) {
 
-        if (action.equals(Intent.ACTION_USER_PRESENT) || action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+								acquireWakeLockAndSendMessage(context,
+										handler.obtainMessage(MSG_LONGPRESS, context),
+										0);
 
-            startService(context);
-
-        } else if (Intent.ACTION_HEADSET_PLUG.equals(action)) {
+							}
 
-            int state = intent.getIntExtra("state", -1);
-            switch (state) {
-                case 0:
-                    startService(context, MusicService.ACTION_PAUSE);
+						}
+					} else if (event.getRepeatCount() == 0) {
 
-                    Log.d(TAG, "Headset is unplugged");
-                    break;
-                case 1:
-                    if (HeadsetMediaButtonIntentReceiver.getHeadsetAutoPlayOnPlug(context))
-                        startService(context, MusicService.ACTION_PLAY);
+						if (k == KeyEvent.KEYCODE_HEADSETHOOK) {
+							if (t - lastClickTime >= PRESS_DELAY) {
+								clickCounter = 0;
+							}
 
-                    Log.d(TAG, "Headset is plugged");
-                    break;
-                default:
-                    Log.d(TAG, "I have no idea what the headset state is");
-            }
+							clickCounter++;
 
-        } else if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
+							Log.v(TAG, "Got press, count = " + clickCounter);
 
-            startService(context, MusicService.ACTION_PAUSE);
+							handler.removeMessages(MSG_PRESS);
 
-        } else if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
+							Message msg = handler.obtainMessage(MSG_PRESS, clickCounter, 0, context);
 
-            final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-            if (event == null)
-                return;
+							long delay = clickCounter < 3 ? PRESS_DELAY : 0;
+							if (clickCounter >= 3) {
+								clickCounter = 0;
+							}
+							lastClickTime = t;
+							acquireWakeLockAndSendMessage(context, msg, delay);
+						} else {
+							startService(context, command);
+						}
 
-            Log.d(TAG, "onReceive\n" + event);
+						launched = false;
+						down = true;
+					}
 
-            final int k = event.getKeyCode();
-            final int a = event.getAction();
-            final long t = event.getEventTime();
+				} else {
 
-            String command = null;
-            switch (k) {
-                case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                    command = MusicService.ACTION_PREVIOUS;
-                    break;
-                case KeyEvent.KEYCODE_MEDIA_NEXT:
-                    command = MusicService.ACTION_NEXT;
-                    break;
-                case KeyEvent.KEYCODE_MEDIA_PLAY:
-                    command = MusicService.ACTION_PLAY;
-                    break;
-                case KeyEvent.KEYCODE_MEDIA_PAUSE:
-                    command = MusicService.ACTION_PAUSE;
-                    break;
-                case KeyEvent.KEYCODE_MEDIA_STOP:
-                    command = MusicService.ACTION_STOP;
-                    break;
-                case KeyEvent.KEYCODE_HEADSETHOOK:
-                case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                    command = MusicService.ACTION_TOGGLE_PLAYBACK;
-                    break;
-            }
+					handler.removeMessages(MSG_LONGPRESS);
+					down = false;
 
-            if (command != null) {
+				}
 
-                if (a == KeyEvent.ACTION_DOWN) {
-                    if (down) {
-                        if (MusicService.ACTION_TOGGLE_PLAYBACK.equals(command)
-                                || MusicService.ACTION_PLAY.equals(command)) {
+				if (isOrderedBroadcast()) {
+					abortBroadcast();
+				}
 
-                            if (lastClickTime != 0
-                                    && t - lastClickTime > LONG_PRESS_DELAY) {
+				releaseWakeLockIfHandlerIdle();
+			}
+		}
 
-                                acquireWakeLockAndSendMessage(context,
-                                        handler.obtainMessage(MSG_LONGPRESS, context),
-                                        0);
+	}
 
-                            }
+	public static final String TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG = SPrefEx.TAG_SPREF + ".headset_auto_play_on_plug";
 
-                        }
-                    } else if (event.getRepeatCount() == 0) {
+	public static boolean getHeadsetAutoPlayOnPlug(Context context) {
+		return SPrefEx.get(context).getBoolean(TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG, true);
+	}
 
-                        if (k == KeyEvent.KEYCODE_HEADSETHOOK) {
-                            if (t - lastClickTime >= PRESS_DELAY) {
-                                clickCounter = 0;
-                            }
-
-                            clickCounter++;
-
-                            Log.v(TAG, "Got press, count = " + clickCounter);
-
-                            handler.removeMessages(MSG_PRESS);
-
-                            Message msg = handler.obtainMessage(MSG_PRESS, clickCounter, 0, context);
-
-                            long delay = clickCounter < 3 ? PRESS_DELAY : 0;
-                            if (clickCounter >= 3) {
-                                clickCounter = 0;
-                            }
-                            lastClickTime = t;
-                            acquireWakeLockAndSendMessage(context, msg, delay);
-                        } else {
-                            startService(context, command);
-                        }
-
-                        launched = false;
-                        down = true;
-                    }
-
-                } else {
-
-                    handler.removeMessages(MSG_LONGPRESS);
-                    down = false;
-
-                }
-
-                if (isOrderedBroadcast()) {
-                    abortBroadcast();
-                }
-
-                releaseWakeLockIfHandlerIdle();
-            }
-        }
-
-    }
-
-    public static final String TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG = SPrefEx.TAG_SPREF + ".headset_auto_play_on_plug";
-
-    public static boolean getHeadsetAutoPlayOnPlug(Context context) {
-        return SPrefEx.get(context).getBoolean(TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG, true);
-    }
-
-    public static void setHeadsetAutoPlayOnPlug(Context context, boolean value) {
-        SPrefEx.get(context)
-                .edit()
-                .putBoolean(TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG, value)
-                .apply();
-    }
+	public static void setHeadsetAutoPlayOnPlug(Context context, boolean value) {
+		SPrefEx.get(context)
+				.edit()
+				.putBoolean(TAG_SPREF_HEADSET_AUTO_PLAY_ON_PLUG, value)
+				.apply();
+	}
 
 }

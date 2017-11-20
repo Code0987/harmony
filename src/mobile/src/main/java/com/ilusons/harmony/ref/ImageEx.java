@@ -72,6 +72,14 @@ public class ImageEx {
 		return inSampleSize;
 	}
 
+	public static Bitmap loadFromFileLowQuality(String filePath) {
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = false;
+		options.inPreferredConfig = Bitmap.Config.RGB_565;
+		options.inDither = true;
+		return BitmapFactory.decodeFile(filePath, options);
+	}
+
 	/**
 	 * Stack Blur v1.0 from
 	 * http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html
