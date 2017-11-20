@@ -16,3 +16,9 @@
 [submodule "res/libs/android-openslmediaplayer"]
 	path = res/libs/android-openslmediaplayer
 	url = git@github.com:Code0987/android-openslmediaplayer.git
+[submodule "res/libs/lastfm-java"]
+	path = res/libs/lastfm-java
+	url = git@github.com:Code0987/lastfm-java.git
+[submodule "res/libs/musicbrainz-android"]
+	path = res/libs/musicbrainz-android
+	url = https://github.com/jdamcd/musicbrainz-android.git
