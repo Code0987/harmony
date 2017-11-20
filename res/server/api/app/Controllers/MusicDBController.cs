@@ -123,7 +123,7 @@ namespace app.Controllers {
         }
 
         [HttpGet("similar")]
-        public async Task<JsonResult> SimilarArtist(string q, string type) {
+        public async Task<JsonResult> SimilarArtist(string q) {
             var error = "";
             var data = new Object();
 

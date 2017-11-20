@@ -11,10 +11,12 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.ArraySet;
 import android.util.Log;
+import android.util.Pair;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.DB;
@@ -25,9 +27,15 @@ import com.ilusons.harmony.ref.SPrefEx;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.realm.Realm;
 
 public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, MusicServiceLibraryUpdaterAsyncTask.Result> {
@@ -179,101 +187,57 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (isCancelled())
 			return;
 
-		Context context = contextRef.get();
+		final Context context = contextRef.get();
 		if (context == null)
 			return;
 
-		try (Realm realm = DB.getDB()) {
-			if (realm == null)
-				return;
+		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_MEDIASTORE);
 
-			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_MEDIASTORE);
-
-			Playlist.update(realm, playlist, false);
-
-			ContentResolver cr = context.getContentResolver();
-
-			Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-			String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
-			String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
-
-			Cursor cursor = cr.query(uri, null, selection, null, sortOrder);
-			int count = 0;
-			if (cursor != null) {
-				count = cursor.getCount();
-
-				if (count > 0) {
-					while (cursor.moveToNext()) {
-						if (isCancelled())
-							throw new Exception("Canceled by user");
-
-						String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-
-						if ((new File(path)).exists()) {
-							Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
-
-							add(realm, context, path, contentUri, playlist);
+		Playlist.getAllMediaStoreEntriesForAudio(context)
+				.subscribeOn(AndroidSchedulers.mainThread())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new Consumer<Pair<String, Uri>>() {
+					@Override
+					public void accept(Pair<String, Uri> r) throws Exception {
+						try (Realm realm = DB.getDB()) {
+							if (realm == null)
+								return;
+							add(realm, context, r.first, r.second, playlist);
 						}
 					}
+				});
 
-				}
-			}
+		Playlist.update(playlist, false);
 
-			if (cursor != null)
-				cursor.close();
-
-			Playlist.savePlaylist(realm, playlist);
-		}
+		Playlist.savePlaylist(playlist);
 	}
 
 	private void scanMediaStoreVideo() throws Exception {
 		if (isCancelled())
 			return;
 
-		Context context = contextRef.get();
+		final Context context = contextRef.get();
 		if (context == null)
 			return;
 
-		try (Realm realm = DB.getDB()) {
-			if (realm == null)
-				return;
+		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_MEDIASTORE);
 
-			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_MEDIASTORE);
-
-			Playlist.update(realm, playlist, false);
-
-			ContentResolver cr = context.getContentResolver();
-
-			Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-			String sortOrder = MediaStore.Video.Media.TITLE + " ASC";
-
-			Cursor cursor = cr.query(uri, null, null, null, sortOrder);
-			int count = 0;
-			if (cursor != null) {
-				count = cursor.getCount();
-
-				if (count > 0) {
-					while (cursor.moveToNext()) {
-						if (isCancelled())
-							throw new Exception("Canceled by user");
-
-						String path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA));
-
-						if ((new File(path)).exists()) {
-							Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
-
-							add(realm, context, path, contentUri, playlist);
+		Playlist.getAllMediaStoreEntriesForAudio(context)
+				.subscribeOn(AndroidSchedulers.mainThread())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new Consumer<Pair<String, Uri>>() {
+					@Override
+					public void accept(Pair<String, Uri> r) throws Exception {
+						try (Realm realm = DB.getDB()) {
+							if (realm == null)
+								return;
+							add(realm, context, r.first, r.second, playlist);
 						}
 					}
+				});
 
-				}
-			}
-
-			if (cursor != null)
-				cursor.close();
-
-			Playlist.savePlaylist(realm, playlist);
-		}
+		Playlist.update(playlist, false);
+		Playlist.savePlaylist(playlist);
 	}
 
 	private void scanStorage() throws Exception {
@@ -288,7 +252,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 			if (realm == null)
 				return;
 
-			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_STORAGE);
+			final Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_STORAGE);
 
 			// Remove all not matching scan locations
 			final Set<String> scanLocations = getScanLocations(context);
@@ -306,19 +270,12 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 					toRemove.add(music);
 			}
 			if (toRemove.size() > 0) {
-				realm.beginTransaction();
-				try {
-					playlist.removeAll(toRemove);
-
-					realm.commitTransaction();
-				} catch (Throwable e) {
-					if (realm.isInTransaction()) {
-						realm.cancelTransaction();
-					} else {
-						Log.w(TAG, e);
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(@NonNull Realm realm) {
+						playlist.removeAll(toRemove);
 					}
-					throw e;
-				}
+				});
 			}
 
 			// Update
@@ -348,23 +305,17 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 			updateNotification("Updating [" + Playlist.KEY_PLAYLIST_ALL + "] ...", true);
 
-			Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_ALL);
+			final Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_ALL);
+
+			realm.executeTransaction(new Realm.Transaction() {
+				@Override
+				public void execute(@NonNull Realm realm) {
+					playlist.clear();
+					playlist.addAll(realm.where(Music.class).findAll());
+				}
+			});
 
 			Playlist.update(realm, playlist, true);
-
-			for (Music item : realm.where(Music.class).findAll()) {
-				realm.beginTransaction();
-				try {
-					playlist.addIfNot(item);
-
-					realm.commitTransaction();
-				} catch (Throwable e) {
-					if (realm.isInTransaction()) {
-						realm.cancelTransaction();
-					}
-					Log.w(TAG, e);
-				}
-			}
 
 			Playlist.savePlaylist(realm, playlist);
 		}

@@ -38,6 +38,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Api;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
@@ -47,7 +48,14 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.musicbrainz.android.api.data.Artist;
+import org.musicbrainz.android.api.data.Recording;
+import org.musicbrainz.android.api.data.RecordingInfo;
+import org.musicbrainz.android.api.data.ReleaseArtist;
+import org.musicbrainz.android.api.data.ReleaseInfo;
+import org.musicbrainz.android.api.data.Tag;
 
 import java.util.Map;
 import java.util.UUID;
@@ -56,6 +64,11 @@ import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
+import io.reactivex.ObservableSource;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import jonathanfinerty.once.Once;
 import jp.wasabeef.blurry.Blurry;
@@ -229,6 +242,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				builder.setItems(new CharSequence[]{
 						"Fade / Show cover art",
 						"Re-download cover art",
+						"Search and update details",
 						"Fingerprint and update details"
 				}, new DialogInterface.OnClickListener() {
 					@Override
@@ -277,8 +291,117 @@ public class PlaybackUIActivity extends BaseUIActivity {
 											1500,
 											true);
 									break;
-								case 2:
+
+								case 2: {
+									info("Searching ...", true);
+
+									final Music m = getMusicService().getMusic();
+
+									Analytics.findTrackFromTitleArtist(m.getTitle(), m.getArtist())
+											.flatMap(new Function<RecordingInfo, ObservableSource<Recording>>() {
+												@Override
+												public ObservableSource<Recording> apply(RecordingInfo r) throws Exception {
+													return Analytics.findTrackFromMBID(r.getMbid());
+												}
+											})
+											.subscribeOn(Schedulers.io())
+											.observeOn(AndroidSchedulers.mainThread())
+											.subscribe(new Consumer<Recording>() {
+												@Override
+												public void accept(final Recording r) throws Exception {
+													info("Found something ...");
+
+													final String mbid = r.getMbid();
+
+													final String title = r.getTitle();
+
+													final StringBuilder artist = new StringBuilder();
+													for (ReleaseArtist ra : r.getArtists())
+														artist.append(ra.getName()).append(",");
+													if (artist.length() > 0)
+														artist.deleteCharAt(artist.length() - 1);
+
+													final StringBuilder release = new StringBuilder();
+													for (ReleaseInfo ri : r.getReleases())
+														release.append(ri.getTitle()).append(",");
+													if (release.length() > 0)
+														release.deleteCharAt(release.length() - 1);
+
+													final StringBuilder tags = new StringBuilder();
+													for (Tag tag : r.getTags())
+														tags.append(tag.getText()).append(",");
+													if (tags.length() > 0)
+														tags.deleteCharAt(tags.length() - 1);
+
+													StringBuilder sb = new StringBuilder();
+
+													if (!TextUtils.isEmpty(title))
+														sb.append("Title: ").append(title).append(System.lineSeparator());
+													if (!TextUtils.isEmpty(artist))
+														sb.append("Artist: ").append(artist).append(System.lineSeparator());
+													if (!TextUtils.isEmpty(release))
+														sb.append("Release: ").append(release).append(System.lineSeparator());
+													if (!TextUtils.isEmpty(tags))
+														sb.append("Tags: ").append(tags).append(System.lineSeparator());
+													if (!TextUtils.isEmpty(mbid))
+														sb.append("MBID: ").append(mbid).append(System.lineSeparator());
+
+													(new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle))
+															.setTitle("Apply new details?")
+															.setMessage(sb.toString())
+															.setCancelable(true)
+															.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+																@Override
+																public void onClick(DialogInterface dialogInterface, int i) {
+																	try (Realm realm = DB.getDB()) {
+																		if (realm == null)
+																			return;
+
+																		realm.executeTransaction(new Realm.Transaction() {
+																			@Override
+																			public void execute(Realm realm) {
+																				if (!TextUtils.isEmpty(mbid))
+																					m.setMBID(mbid);
+																				if (!TextUtils.isEmpty(title))
+																					m.setTitle(title);
+																				if (!TextUtils.isEmpty(artist))
+																					m.setArtist(artist.toString());
+																				if (!TextUtils.isEmpty(release))
+																					m.setAlbum(release.toString());
+																				if (!TextUtils.isEmpty(tags))
+																					m.setTags(StringUtils.join(m.getTags(), tags.toString(), ','));
+
+																				realm.insertOrUpdate(m);
+																			}
+																		});
+																	}
+
+																	resetForUriIfNeeded(m.getPath(), true);
+
+																	info("Music details updated, you may need to restart app to see changes!");
+																}
+															})
+															.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+																@Override
+																public void onClick(DialogInterface dialogInterface, int i) {
+																	dialogInterface.dismiss();
+																}
+															}))
+															.show();
+												}
+											}, new Consumer<Throwable>() {
+												@Override
+												public void accept(Throwable throwable) throws Exception {
+													Log.w(TAG, throwable);
+
+													info("Music details were not found over internet or some error occurred.");
+												}
+											});
+								}
+								break;
+								case 3: {
 									info("Generating fingerprint and looking up ...", true);
+
 									final Music m = getMusicService().getMusic();
 									Api.lookupAndUpdateMusicData(
 											getMusicService(),
@@ -346,7 +469,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 													info("Music details were not found over internet or some error occurred.");
 												}
 											});
-									break;
+								}
+								break;
 							}
 						} catch (Exception e) {
 							Log.w(TAG, e);

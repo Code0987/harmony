@@ -137,48 +137,43 @@ public class MainActivity extends BaseActivity {
 	}
 
 	public static void initRateMe(final WeakReference<FragmentActivity> contextRef, final boolean force) {
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				if (contextRef.get() == null || contextRef.get().isFinishing() || contextRef.get().isDestroyed())
-					return;
+		if (contextRef.get() == null || contextRef.get().isFinishing() || contextRef.get().isDestroyed())
+			return;
 
-				try {
-					RateMe rateMe = new RateMe(contextRef.get());
-					rateMe.setConstraints(
-							5,
-							1,
-							9,
-							3);
-					rateMe.setListener(new RateMe.Listener() {
-						@Override
-						public void onPositive(RateMe rateMe, boolean lessRating) {
-							if (lessRating) {
-								MainActivity.gotoFeedback(rateMe.getActivity());
-							} else {
-								MainActivity.gotoPlayStore(rateMe.getActivity());
-							}
-						}
-
-						@Override
-						public void onNeutral(RateMe rateMe) {
-
-						}
-
-						@Override
-						public void onNegative(RateMe rateMe) {
-
-						}
-					});
-					if (force)
-						rateMe.forceShow();
-					else
-						rateMe.run();
-				} catch (Exception e) {
-					e.printStackTrace();
+		try {
+			RateMe rateMe = new RateMe(contextRef.get());
+			rateMe.setConstraints(
+					5,
+					1,
+					9,
+					3);
+			rateMe.setListener(new RateMe.Listener() {
+				@Override
+				public void onPositive(RateMe rateMe, boolean lessRating) {
+					if (lessRating) {
+						MainActivity.gotoFeedback(rateMe.getActivity());
+					} else {
+						MainActivity.gotoPlayStore(rateMe.getActivity());
+					}
 				}
-			}
-		}, (int) (1.5 * 60 * 1000));
+
+				@Override
+				public void onNeutral(RateMe rateMe) {
+
+				}
+
+				@Override
+				public void onNegative(RateMe rateMe) {
+
+				}
+			});
+			if (force)
+				rateMe.forceShow();
+			else
+				rateMe.run();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void initTips(final WeakReference<FragmentActivity> contextRef) {

@@ -185,7 +185,12 @@ public class DashboardActivity extends BaseUIActivity {
 		createPlaylists();
 
 		// Ratings
-		MainActivity.initRateMe(new WeakReference<FragmentActivity>(this), false);
+		root.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				MainActivity.initRateMe(new WeakReference<FragmentActivity>(DashboardActivity.this), false);
+			}
+		}, 1500);
 
 		// Help
 		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {

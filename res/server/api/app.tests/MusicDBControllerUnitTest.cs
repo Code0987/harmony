@@ -32,6 +32,16 @@ namespace app.test {
             }
 
         }
+        
+        [Fact]
+        public async void SimilarArtistTest() {
+            var controller = new MusicDBController();
+
+            var resp = await controller.SimilarArtist("linkin park");
+
+            Debug.WriteLine(resp);
+
+        }
 
     }
 
