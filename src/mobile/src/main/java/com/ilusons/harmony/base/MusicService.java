@@ -1357,42 +1357,6 @@ public class MusicService extends Service {
 						.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, currentPlaylist.getItems().size())
 						.build());
 			}
-
-			// Update effects
-			try {
-				if (getEnvironmentalReverb() == null) {
-
-					getPresetReverb();
-				}
-
-				getEqualizer();
-
-				getBassBoost();
-
-				getVirtualizer();
-
-				getLoudnessEnhancer();
-
-				getPreAmp();
-
-				if (getEnvironmentalReverb() == null) {
-
-					getPresetReverb();
-				}
-
-				getEqualizer();
-
-				getBassBoost();
-
-				getVirtualizer();
-
-				getLoudnessEnhancer();
-
-				getPreAmp();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
 		}
 
 	}
@@ -1457,14 +1421,45 @@ public class MusicService extends Service {
 
 			mediaSession.setActive(true);
 
+			// Update player effects
+			try {
+				getEqualizer();
+
+				getPreAmp();
+
+				getBassBoost();
+
+				getLoudnessEnhancer();
+
+				getVirtualizer();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
 			mediaPlayer.start();
 
+			// Update aux effects
+			handler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						getEnvironmentalReverb();
+
+						getPresetReverb();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}, 255); // HACK: This is weird!
+
+			// Signal
 			update();
 
 			LocalBroadcastManager
 					.getInstance(MusicService.this)
 					.sendBroadcast(new Intent(ACTION_PLAY));
 
+			// Update db
 			try {
 				musicRealm.executeTransaction(new Realm.Transaction() {
 					@Override
