@@ -1,6 +1,9 @@
 package com.ilusons.ref.threading;
 
 import android.os.Looper;
+
+import com.ilusons.harmony.ref.threading.Needle;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -62,7 +65,7 @@ public class NeedleTest {
         TestCancelableTask task = new TestCancelableTask();
         Needle.onMainThread().execute(task);
         sleepABit();
-        Robolectric.runUiThreadTasks();
+        //TODO:Robolectric.runUiThreadTasks();
         assertTrue(task.didRun());
         assertSame(Looper.getMainLooper().getThread(), task.getWorkThread());
     }
@@ -83,7 +86,7 @@ public class NeedleTest {
         TestUiRelatedTask task = new TestUiRelatedTask();
         Needle.onBackgroundThread().execute(task);
         sleepABit();
-        Robolectric.runUiThreadTasks();
+        //TODO:Robolectric.runUiThreadTasks();
         assertTrue(task.didRun());
         assertNotSame(Thread.currentThread(), task.getWorkThread());
         assertNotSame(task.getWorkThread(), task.getUiThread());

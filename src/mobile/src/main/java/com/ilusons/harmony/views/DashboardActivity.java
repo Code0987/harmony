@@ -23,7 +23,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.util.Pair;
+import android.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -77,6 +77,9 @@ import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.realm.Realm;
 import io.realm.RealmObject;
 import jonathanfinerty.once.Once;
@@ -358,23 +361,52 @@ public class DashboardActivity extends BaseUIActivity {
 		} else if (requestCode == REQUEST_PLAYLIST_ADD_PICK && resultCode == Activity.RESULT_OK) {
 			if (data != null) {
 				try {
-					ClipData clipData = data.getClipData();
+					final ArrayList<Pair<String, Uri>> newScanItems = new ArrayList<>();
 
-					try (Realm realm = DB.getDB()) {
-						if (realm == null)
-							return;
+					ClipData clipData = data.getClipData();
+					if (clipData != null) {
 						for (int i = 0; i < clipData.getItemCount(); i++)
 							try {
 								String path = StorageEx.getPath(this, clipData.getItemAt(i).getUri());
 								if (path != null)
-									Playlist.scanNew(realm, this, libraryViewFragment.getViewPlaylist(), path, null, false);
+									newScanItems.add(Pair.create(path, (Uri) null));
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
-						Playlist.savePlaylist(realm, libraryViewFragment.getViewPlaylist());
+					} else {
+						try {
+							String path = StorageEx.getPath(this, data.getData());
+							if (path != null)
+								newScanItems.add(Pair.create(path, (Uri) null));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 
-					libraryViewFragment.setViewPlaylist(libraryViewFragment.getViewPlaylist());
+					final Playlist playlist = libraryViewFragment.getViewPlaylist();
+
+					Playlist.update(
+							this,
+							playlist,
+							newScanItems,
+							false,
+							true,
+							new JavaEx.ActionExT<String>() {
+								@Override
+								public void execute(String s) throws Exception {
+									info(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
+								}
+							})
+							.subscribe(new Consumer<Playlist>() {
+								@Override
+								public void accept(Playlist playlist) throws Exception {
+									info("Added all items.");
+								}
+							});
+
+					Playlist.savePlaylist(playlist);
+
+					libraryViewFragment.setViewPlaylist(playlist);
 
 					info("Playlist updated!");
 				} catch (Exception e) {

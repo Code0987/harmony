@@ -21,7 +21,7 @@ public class TimeIt implements AutoCloseable {
 
 		this.tag = tag;
 
-		split("[Initial]");
+		split("reset");
 	}
 
 	public void split(String tag) {
@@ -30,13 +30,14 @@ public class TimeIt implements AutoCloseable {
 	}
 
 	public String print() {
-		split("[Final]");
+		split("print");
 
 		StringBuilder sb = new StringBuilder();
 
+		long total = 0;
 		for (int i = 1; i < splits.size(); i++) {
 			long seconds = ((splits.get(i) - splits.get(i - 1)) / 1000) % 60;
-
+			total += seconds;
 			sb.append(tag)
 					.append(":\t")
 					.append(String.format(Locale.ENGLISH, "0.%d seconds", seconds))
@@ -44,6 +45,13 @@ public class TimeIt implements AutoCloseable {
 					.append(splitTags.get(i))
 					.append(System.lineSeparator());
 		}
+
+		sb.append(tag)
+				.append(":\t")
+				.append(String.format(Locale.ENGLISH, "0.%d seconds", total))
+				.append("\t")
+				.append("total")
+				.append(System.lineSeparator());
 
 		return sb.toString();
 	}

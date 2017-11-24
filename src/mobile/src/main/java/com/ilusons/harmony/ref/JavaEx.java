@@ -10,6 +10,10 @@ public class JavaEx {
         void execute(T t);
     }
 
+    public interface ActionExT<T> {
+        void execute(T t) throws Exception;
+    }
+
     public interface ActionTU<T, U> {
         void execute(T t, U u);
     }

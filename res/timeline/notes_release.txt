@@ -3,7 +3,7 @@
 ☃ Winters special: 3 days FREE premium (automatic) ☃
 
 ✔ Bugs/crashes fixed.
-✔ Fixed slow scan on large media collections.
+✔ Fixed slow scan on large media collections. (Also scanner is now blazing fast)
 ✔ Added support for MusicBrainz tags.
 ✔ Added new metadata field, tags.
 ✔ Updated search to include tags and genre.

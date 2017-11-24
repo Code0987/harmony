@@ -1,5 +1,7 @@
 package com.ilusons.ref.threading;
 
+import com.ilusons.harmony.ref.threading.UiRelatedTask;
+
 import static org.junit.Assert.assertEquals;
 
 public class TestUiRelatedTask extends UiRelatedTask<Integer> {

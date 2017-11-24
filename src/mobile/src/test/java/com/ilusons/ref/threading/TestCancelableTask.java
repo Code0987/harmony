@@ -1,5 +1,7 @@
 package com.ilusons.ref.threading;
 
+import com.ilusons.harmony.ref.threading.CancelableTask;
+
 public class TestCancelableTask extends CancelableTask {
 
     private boolean mDidRun;

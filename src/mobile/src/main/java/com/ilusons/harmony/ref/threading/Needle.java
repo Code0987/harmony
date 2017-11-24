@@ -37,7 +37,7 @@ public class Needle {
         return new ExecutorObtainer();
     }
 
-    static class ExecutorObtainer implements BackgroundThreadExecutor {
+    public static class ExecutorObtainer implements BackgroundThreadExecutor {
 
         private static Map<ExecutorId, Executor> sCachedExecutors = new HashMap<ExecutorId, Executor>();
 
@@ -73,7 +73,7 @@ public class Needle {
             getExecutor().execute(runnable);
         }
 
-        Executor getExecutor() {
+        public Executor getExecutor() {
             final ExecutorId executorId = new ExecutorId(mDesiredThreadPoolSize, mDesiredTaskType);
             synchronized (ExecutorObtainer.class) {
                 Executor executor = sCachedExecutors.get(executorId);
