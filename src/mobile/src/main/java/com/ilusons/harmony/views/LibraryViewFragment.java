@@ -1581,10 +1581,10 @@ public class LibraryViewFragment extends BaseUIFragment {
 			f &= TextUtils.isEmpty(q) || q.length() < 1 || (
 					m.getPath().toLowerCase().contains(q)
 							|| m.getTitle().toLowerCase().contains(q)
-							|| m.getArtist().toLowerCase().contains(q)
-							|| m.getAlbum().toLowerCase().contains(q)
-							|| m.getTags().toLowerCase().contains(q)
-							|| m.getGenre().toLowerCase().contains(q)
+							|| (m.getArtist() != null && m.getArtist().toLowerCase().contains(q))
+							|| (m.getAlbum() != null && m.getAlbum().toLowerCase().contains(q))
+							|| (m.getTags() != null && m.getTags().toLowerCase().contains(q))
+							|| (m.getGenre() != null && m.getGenre().toLowerCase().contains(q))
 			);
 
 			if (f)
