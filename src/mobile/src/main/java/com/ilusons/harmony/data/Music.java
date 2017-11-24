@@ -56,6 +56,7 @@ import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
+import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
 public class Music extends RealmObject {
@@ -68,6 +69,7 @@ public class Music extends RealmObject {
 
 	// Basic
 	@PrimaryKey
+	@Index
 	private String Id = (UUID.randomUUID().toString());
 
 	public String getId() {
@@ -128,6 +130,7 @@ public class Music extends RealmObject {
 		Track = track;
 	}
 
+	@Index
 	private String Path;
 
 	public String getPath() {
@@ -676,318 +679,38 @@ public class Music extends RealmObject {
 
 	//region Decoding
 
-	public static Music decode(Realm realm, Context context, final String path, final Uri contentUri, boolean fastMode, Music oldData) {
-		Music data = oldData;
-
+	public static Music createFromLocal(final Context context, final String path, final Uri contentUri, boolean fastMode, final Music oldData) {
 		try {
-			// Get data
-			if (data == null) {
-				if (path != null) {
-					data = realm.where(Music.class).equalTo("Path", path).findFirst();
-					if (data != null)
-						data = realm.copyFromRealm(data);
-				}
-				if (data == null)
-					data = new Music();
+			Music data = oldData;
+			if (oldData == null)
+				data = new Music();
 
-				data.TimeAdded = System.currentTimeMillis();
-				data.TimeLastPlayed = System.currentTimeMillis();
-				data.TimeLastSkipped = System.currentTimeMillis();
-			}
+			data.TimeAdded = System.currentTimeMillis();
+			data.TimeLastPlayed = System.currentTimeMillis();
+			data.TimeLastSkipped = System.currentTimeMillis();
 
 			// HACK: Calling the devil
 			System.gc();
 			Runtime.getRuntime().gc();
 
 			// Metadata from system
-
 			if (Looper.myLooper() == null) try {
 				Looper.prepare(); // HACK
 			} catch (Exception e) {
 				Log.w(TAG, e);
 			}
-
 			if (Looper.myLooper() != null) {
+				final MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 
-				if (contentUri != null && contentUri.toString().startsWith(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI.toString())) {
-					Cursor cursor = null;
-
-					try {
-						String[] projection = {
-								MediaStore.Audio.Media.DATA,
-								MediaStore.Audio.Media.IS_MUSIC,
-								MediaStore.Audio.Media.TITLE,
-								MediaStore.Audio.Media.ARTIST,
-								MediaStore.Audio.Media.ALBUM,
-								MediaStore.Audio.Media.DURATION,
-								MediaStore.Audio.Media.YEAR
-						};
-
-						CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
-
-						cursor = loader.loadInBackground();
-
-						cursor.moveToFirst();
-
-						int isMusic = 1;
-						try {
-							isMusic = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC));
-						} catch (Exception e) {
-							// Eat
-						}
-
-						if (isMusic != 0) {
-
-							try {
-								data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
-							} catch (Exception e) {
-								// Eat
-							}
-							try {
-								data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
-							} catch (Exception e) {
-								// Eat
-							}
-							try {
-								data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
-							} catch (Exception e) {
-								// Eat
-							}
-							try {
-								data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
-							} catch (Exception e) {
-								// Eat
-							}
-							try {
-								data.Track = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK));
-							} catch (Exception e) {
-								// Eat
-							}
-							try {
-								data.Year = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR));
-							} catch (Exception e) {
-								// Eat
-							}
-
-							data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
-							data.Timestamp = (new File(data.Path)).lastModified();
-
-							MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-							try {
-								mmr.setDataSource(data.Path);
-
-								try {
-									byte[] cover = mmr.getEmbeddedPicture();
-									if (cover != null && cover.length > 0) {
-										Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
-										if (bmp != null)
-											putCover(context, data, bmp);
-									}
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-
-								try {
-									data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							} catch (Exception e) {
-								Log.w(TAG, "error on metadata from system", e);
-							} finally {
-								mmr.release();
-							}
-
-						}
-					} catch (Exception e) {
-						Log.w(TAG, "metadata from system", e);
-					} finally {
-						if (cursor != null)
-							cursor.close();
-					}
-				}
-
-				if (contentUri != null && contentUri.toString().startsWith(MediaStore.Video.Media.EXTERNAL_CONTENT_URI.toString())) {
-					Cursor cursor = null;
-
-					try {
-						String[] projection = {
-								MediaStore.Video.Media.DATA,
-								MediaStore.Video.Media.TITLE,
-								MediaStore.Video.Media.ARTIST,
-								MediaStore.Video.Media.ALBUM,
-								MediaStore.Video.Media.DURATION
-						};
-
-						CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
-
-						cursor = loader.loadInBackground();
-
-						cursor.moveToFirst();
-
-						try {
-							data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE));
-						} catch (Exception e) {
-							// Eat
-						}
-						try {
-							data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ARTIST));
-						} catch (Exception e) {
-							// Eat
-						}
-						try {
-							data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ALBUM));
-						} catch (Exception e) {
-							// Eat
-						}
-						try {
-							data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
-						} catch (Exception e) {
-							// Eat
-						}
-
-						data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
-						data.Timestamp = (new File(data.Path)).lastModified();
-
-						if (!fastMode) {
-							final MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-							try {
-								mmr.setDataSource(data.Path);
-
-								try {
-									ExecutorService executor = Executors.newCachedThreadPool();
-									Callable<Bitmap> task = new Callable<Bitmap>() {
-										public Bitmap call() {
-											return mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-										}
-									};
-									Future<Bitmap> future = executor.submit(task);
-									try {
-										Bitmap bmp = future.get(2500, TimeUnit.MILLISECONDS);
-										if (bmp != null)
-											putCover(context, data, bmp);
-									} catch (Exception e) {
-										e.printStackTrace();
-									} finally {
-										future.cancel(true);
-									}
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-
-								try {
-									data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-
-							} catch (Exception e) {
-								Log.w(TAG, "error on metadata from system", e);
-							} finally {
-								mmr.release();
-							}
-						}
-
-					} catch (Exception e) {
-						Log.w(TAG, "metadata from system", e);
-					} finally {
-						if (cursor != null)
-							cursor.close();
-					}
-				}
+				tryToFillMetadataFromOS(context, contentUri, data, fastMode, mmr);
 			}
-
 
 			// Metadata from tags
 			if (!fastMode && path != null && contentUri == null) {
-				File file = new File(path);
-				if (file.length() < 100 * 1024 * 1024)
-					try {
-						AudioFile audioFile = AudioFileIO.read(file);
-
-						Tag tag = audioFile.getTagAndConvertOrCreateAndSetDefault();
-
-						data.Timestamp = file.lastModified();
-						data.Title = tag.getFirst(FieldKey.TITLE);
-						data.Artist = tag.getFirst(FieldKey.ARTIST);
-						data.Album = tag.getFirst(FieldKey.ALBUM);
-						try {
-							data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
-						} catch (Exception e) {
-							// Ignore
-						}
-						try {
-							data.Track = Integer.valueOf(tag.getFirst(FieldKey.TRACK));
-						} catch (Exception e) {
-							// Ignore
-						}
-						try {
-							data.Year = Integer.valueOf(tag.getFirst(FieldKey.YEAR));
-						} catch (Exception e) {
-							// Ignore
-						}
-						try {
-							data.Genre = String.valueOf(tag.getFirst(FieldKey.GENRE));
-						} catch (Exception e) {
-							// Ignore
-						}
-						try {
-							data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
-						} catch (Exception e) {
-							try {
-								data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_RELEASE_TRACK_ID));
-							} catch (Exception e2) {
-								try {
-									data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
-								} catch (Exception e3) {
-									// Ignore
-								}
-							}
-						}
-						try {
-							data.Tags = String.valueOf(tag.getFirst(FieldKey.TAGS));
-						} catch (Exception e) {
-							// Ignore
-						}
-
-						data.Path = path;
-
-						if (data.getCover(context, -1) == null) {
-							Artwork artwork = tag.getFirstArtwork();
-							if (artwork != null) {
-								byte[] cover = artwork.getBinaryData();
-								if (cover != null && cover.length > 0) {
-									Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
-
-									if (bmp != null)
-										putCover(context, data, bmp);
-								}
-							}
-						}
-
-						// Lyrics
-						String lyrics;
-						lyrics = tag.getFirst(FieldKey.LYRICS);
-						if (!TextUtils.isEmpty(lyrics))
-							data.putLyrics(context, lyrics);
-						lyrics = tag.getFirst(FieldKey.USER_UNSYNCED_LYRICS);
-						if (!TextUtils.isEmpty(lyrics))
-							data.putLyrics(context, lyrics);
-						lyrics = tag.getFirst(FieldKey.USER_LYRICS);
-						if (!TextUtils.isEmpty(lyrics))
-							data.putLyrics(context, lyrics);
-
-					} catch (OutOfMemoryError e) {
-						Log.wtf(TAG, "OOM", e);
-					} catch (Exception e) {
-						Log.w(TAG, "metadata from tags", e);
-						Log.w(TAG, "file\n" + file);
-					}
-				else {
-					Log.w(TAG, "file\n" + file);
-				}
+				tryToFillMetadataFromTags(context, path, data, fastMode);
 			}
 
+			// Metadata from file name
 			if (TextUtils.isEmpty(data.Title)
 					|| TextUtils.isEmpty(data.Artist)
 					|| data.Artist.contains("unknown"))
@@ -1006,55 +729,289 @@ public class Music extends RealmObject {
 					}
 				}
 
-			// Save to db
-
-			realm.beginTransaction();
-			realm.insertOrUpdate(data);
-			realm.commitTransaction();
-
-			// Check constraints
-			if (!(data.hasAudio() || data.hasVideo())) {
-				try {
-					realm.beginTransaction();
-					data.deleteFromRealm();
-					realm.commitTransaction();
-
-					data = null;
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-
-			if (data != null)
-				try {
-					Music dbData = realm.where(Music.class).equalTo("Path", data.Path).findFirst();
-					if (dbData != null)
-						data = realm.copyFromRealm(dbData);
-				} catch (Exception e) {
-					Log.w(TAG, e);
-				}
-
-			// HACK: Calling the devil
-			System.gc();
-			Runtime.getRuntime().gc();
-
+			return data;
 		} catch (Throwable e) {
-			if (realm.isInTransaction()) {
-				realm.cancelTransaction();
-			} else {
-				Log.w(TAG, e);
+			Log.w(TAG, e);
+		}
+		return null;
+	}
+
+	private static void tryToFillMetadataFromOS(final Context context, final Uri contentUri, final Music data, final boolean fastMode, final MediaMetadataRetriever mmr) {
+		if (contentUri != null && contentUri.toString().startsWith(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI.toString())) {
+			Cursor cursor = null;
+
+			try {
+				String[] projection = {
+						MediaStore.Audio.Media.DATA,
+						MediaStore.Audio.Media.IS_MUSIC,
+						MediaStore.Audio.Media.TITLE,
+						MediaStore.Audio.Media.ARTIST,
+						MediaStore.Audio.Media.ALBUM,
+						MediaStore.Audio.Media.DURATION,
+						MediaStore.Audio.Media.YEAR
+				};
+
+				CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
+
+				cursor = loader.loadInBackground();
+
+				cursor.moveToFirst();
+
+				int isMusic = 1;
+				try {
+					isMusic = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_MUSIC));
+				} catch (Exception e) {
+					// Eat
+				}
+
+				if (isMusic != 0) {
+
+					try {
+						data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+					} catch (Exception e) {
+						// Eat
+					}
+					try {
+						data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+					} catch (Exception e) {
+						// Eat
+					}
+					try {
+						data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+					} catch (Exception e) {
+						// Eat
+					}
+					try {
+						data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
+					} catch (Exception e) {
+						// Eat
+					}
+					try {
+						data.Track = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK));
+					} catch (Exception e) {
+						// Eat
+					}
+					try {
+						data.Year = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR));
+					} catch (Exception e) {
+						// Eat
+					}
+
+					data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
+					data.Timestamp = (new File(data.Path)).lastModified();
+
+					try {
+						mmr.setDataSource(data.Path);
+
+						try {
+							byte[] cover = mmr.getEmbeddedPicture();
+							if (cover != null && cover.length > 0) {
+								Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+								if (bmp != null)
+									putCover(context, data, bmp);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						try {
+							data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					} catch (Exception e) {
+						Log.w(TAG, "error on metadata from system", e);
+					} finally {
+						mmr.release();
+					}
+
+				}
+			} catch (Exception e) {
+				Log.w(TAG, "metadata from system", e);
+			} finally {
+				if (cursor != null)
+					cursor.close();
 			}
 		}
 
-		if (data != null)
-			Log.d(TAG, "decode\n" + data.Path);
+		if (contentUri != null && contentUri.toString().startsWith(MediaStore.Video.Media.EXTERNAL_CONTENT_URI.toString())) {
+			Cursor cursor = null;
 
-		return data;
+			try {
+				String[] projection = {
+						MediaStore.Video.Media.DATA,
+						MediaStore.Video.Media.TITLE,
+						MediaStore.Video.Media.ARTIST,
+						MediaStore.Video.Media.ALBUM,
+						MediaStore.Video.Media.DURATION
+				};
+
+				CursorLoader loader = new CursorLoader(context, contentUri, projection, null, null, null);
+
+				cursor = loader.loadInBackground();
+
+				cursor.moveToFirst();
+
+				try {
+					data.Title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE));
+				} catch (Exception e) {
+					// Eat
+				}
+				try {
+					data.Artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ARTIST));
+				} catch (Exception e) {
+					// Eat
+				}
+				try {
+					data.Album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.ALBUM));
+				} catch (Exception e) {
+					// Eat
+				}
+				try {
+					data.Length = (int) cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
+				} catch (Exception e) {
+					// Eat
+				}
+
+				data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
+				data.Timestamp = (new File(data.Path)).lastModified();
+
+				if (!fastMode) {
+					try {
+						mmr.setDataSource(data.Path);
+
+						try {
+							ExecutorService executor = Executors.newCachedThreadPool();
+							Callable<Bitmap> task = new Callable<Bitmap>() {
+								public Bitmap call() {
+									return mmr.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+								}
+							};
+							Future<Bitmap> future = executor.submit(task);
+							try {
+								Bitmap bmp = future.get(333, TimeUnit.MILLISECONDS);
+								if (bmp != null)
+									putCover(context, data, bmp);
+							} catch (Exception e) {
+								e.printStackTrace();
+							} finally {
+								future.cancel(true);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						try {
+							data.Genre = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+					} catch (Exception e) {
+						Log.w(TAG, "error on metadata from system", e);
+					} finally {
+						mmr.release();
+					}
+				}
+
+			} catch (Exception e) {
+				Log.w(TAG, "metadata from system", e);
+			} finally {
+				if (cursor != null)
+					cursor.close();
+			}
+		}
+
 	}
 
-	public void refresh(Context context) {
-		try (Realm realm = DB.getDB()) {
-			Music.decode(realm, context, Path, null, false, this);
+	private static void tryToFillMetadataFromTags(final Context context, final String path, final Music data, final boolean fastMode) {
+		File file = new File(path);
+		if (file.length() < 100 * 1024 * 1024)
+			try {
+				AudioFile audioFile = AudioFileIO.read(file);
+
+				Tag tag = audioFile.getTagAndConvertOrCreateAndSetDefault();
+
+				data.Timestamp = file.lastModified();
+				data.Title = tag.getFirst(FieldKey.TITLE);
+				data.Artist = tag.getFirst(FieldKey.ARTIST);
+				data.Album = tag.getFirst(FieldKey.ALBUM);
+				try {
+					data.Length = Integer.valueOf(tag.getFirst(FieldKey.LENGTH));
+				} catch (Exception e) {
+					// Ignore
+				}
+				try {
+					data.Track = Integer.valueOf(tag.getFirst(FieldKey.TRACK));
+				} catch (Exception e) {
+					// Ignore
+				}
+				try {
+					data.Year = Integer.valueOf(tag.getFirst(FieldKey.YEAR));
+				} catch (Exception e) {
+					// Ignore
+				}
+				try {
+					data.Genre = String.valueOf(tag.getFirst(FieldKey.GENRE));
+				} catch (Exception e) {
+					// Ignore
+				}
+				try {
+					data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+				} catch (Exception e) {
+					try {
+						data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_RELEASE_TRACK_ID));
+					} catch (Exception e2) {
+						try {
+							data.MBID = String.valueOf(tag.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
+						} catch (Exception e3) {
+							// Ignore
+						}
+					}
+				}
+				try {
+					data.Tags = String.valueOf(tag.getFirst(FieldKey.TAGS));
+				} catch (Exception e) {
+					// Ignore
+				}
+
+				data.Path = path;
+
+				if (!fastMode) {
+					if (data.getCover(context, -1) == null) {
+						Artwork artwork = tag.getFirstArtwork();
+						if (artwork != null) {
+							byte[] cover = artwork.getBinaryData();
+							if (cover != null && cover.length > 0) {
+								Bitmap bmp = ImageEx.decodeBitmap(cover, 256, 256);
+
+								if (bmp != null)
+									putCover(context, data, bmp);
+							}
+						}
+					}
+				}
+
+				// Lyrics
+				String lyrics;
+				lyrics = tag.getFirst(FieldKey.LYRICS);
+				if (!TextUtils.isEmpty(lyrics))
+					data.putLyrics(context, lyrics);
+				lyrics = tag.getFirst(FieldKey.USER_UNSYNCED_LYRICS);
+				if (!TextUtils.isEmpty(lyrics))
+					data.putLyrics(context, lyrics);
+				lyrics = tag.getFirst(FieldKey.USER_LYRICS);
+				if (!TextUtils.isEmpty(lyrics))
+					data.putLyrics(context, lyrics);
+
+			} catch (OutOfMemoryError e) {
+				Log.wtf(TAG, "OOM", e);
+			} catch (Exception e) {
+				Log.w(TAG, "metadata from tags", e);
+				Log.w(TAG, "file\n" + file);
+			}
+		else {
+			Log.w(TAG, "file\n" + file);
 		}
 	}
 
@@ -1077,40 +1034,43 @@ public class Music extends RealmObject {
 		return null;
 	}
 
-	public static Collection<Music> loadAll() {
-		try {
-			try (Realm realm = DB.getDB()) {
-				if (realm == null)
-					throw new Exception("Realm error.");
-				return realm.copyFromRealm(realm.where(Music.class).findAll());
+	public static Music load(Context context, String path) {
+		Music data = null;
+		try (Realm realm = DB.getDB()) {
+			if (realm != null) {
+				data = realm.where(Music.class).equalTo("Path", path).findFirst();
+				if (data == null) {
+					data = Music.createFromLocal(context, path, null, true, null);
+					if (data != null)
+						realm.insertOrUpdate(data);
+				} else {
+					data = realm.copyFromRealm(data);
+				}
+			}
+		}
+		return data;
+	}
+
+	public void update() {
+		try (Realm realm = DB.getDB()) {
+			if (realm != null) {
+				realm.insertOrUpdate(this);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return new ArrayList<>();
 	}
 
-	public static Music load(Realm realm, Context context, String path) {
-		Music data = realm.where(Music.class).equalTo("Path", path).findFirst();
-		if (data == null)
-			data = Music.decode(realm, context, path, null, false, null);
-		else
-			data = realm.copyFromRealm(data);
-
-		return data;
-	}
-
-	public static Music load(Context context, String path) {
-		try (Realm realm = DB.getDB()) {
-			return load(realm, context, path);
-		}
-	}
-
-	public static void update(Music data) {
-		try (Realm realm = DB.getDB()) {
-			if (realm != null) {
-				realm.insertOrUpdate(data);
-			}
+	public void refresh(final Context context) {
+		try {
+			Music data = this;
+			data = Music.createFromLocal(context, data.getPath(), null, false, data);
+			if (data != null)
+				try (Realm realm = DB.getDB()) {
+					if (realm != null) {
+						realm.insertOrUpdate(data);
+					}
+				}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -233,6 +233,7 @@ dependencies {
 	testImplementation "org.powermock:powermock-module-junit4-rule:1.6.2"
 	testImplementation "org.powermock:powermock-api-mockito:1.6.2"
 	testImplementation "org.powermock:powermock-classloading-xstream:1.6.2"
+	testImplementation "org.robolectric:robolectric:3.5.1"
 }
 
 android {

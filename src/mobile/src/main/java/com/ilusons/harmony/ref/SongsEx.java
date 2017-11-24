@@ -11,12 +11,13 @@ public class SongsEx {
 	public static final String TAG = SongsEx.class.getSimpleName();
 
 	private static Pattern SongFileName1 = Pattern.compile(
-			"(.*)(\\s?[-|_]\\s?)(.*)",
+			"(.*)(\\s?[-]\\s?)(.*)",
 			Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
 	public static ArrayList<String> getArtistAndTitle(String filename) {
 		ArrayList<String> result = new ArrayList<>();
 
+		// Remove extension
 		filename = filename.replaceFirst("[.][^.]+$", "");
 
 		Matcher m = SongFileName1.matcher(filename);
@@ -25,6 +26,10 @@ public class SongsEx {
 			String title = m.group(3).split("_|\\(|:|-|\\[|\\.")[0].trim();
 			if (TextUtils.isEmpty(title))
 				title = m.group(3).trim();
+
+			// Replace _
+			artist = artist.replace("_", " ");
+			title = title.replace("_", " ");
 
 			result.add(artist);
 			result.add(title);

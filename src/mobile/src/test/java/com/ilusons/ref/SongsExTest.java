@@ -53,6 +53,11 @@ public class SongsExTest {
 		assertTrue(result.get(0).equalsIgnoreCase("NEMESEA"));
 		assertTrue(result.get(1).equalsIgnoreCase("Dance In The Fire"));
 
+		result = SongsEx.getArtistAndTitle("Jane_Zhang_-_Battlefield_1080p_MUX.mp4");
+		assertTrue(result.size() == 2);
+		assertTrue(result.get(0).equalsIgnoreCase("Jane Zhang"));
+		assertTrue(result.get(1).equalsIgnoreCase("Battlefield 1080p MUX"));
+
 	}
 
 

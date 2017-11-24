@@ -1359,21 +1359,39 @@ public class MusicService extends Service {
 			}
 
 			// Update effects
+			try {
+				if (getEnvironmentalReverb() == null) {
 
-			if (getEnvironmentalReverb() == null) {
+					getPresetReverb();
+				}
 
-				getPresetReverb();
+				getEqualizer();
+
+				getBassBoost();
+
+				getVirtualizer();
+
+				getLoudnessEnhancer();
+
+				getPreAmp();
+
+				if (getEnvironmentalReverb() == null) {
+
+					getPresetReverb();
+				}
+
+				getEqualizer();
+
+				getBassBoost();
+
+				getVirtualizer();
+
+				getLoudnessEnhancer();
+
+				getPreAmp();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-
-			getEqualizer();
-
-			getBassBoost();
-
-			getVirtualizer();
-
-			getLoudnessEnhancer();
-
-			getPreAmp();
 
 		}
 

@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
@@ -22,20 +23,42 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 
 public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, MusicServiceLibraryUpdaterAsyncTask.Result> {
@@ -99,6 +122,12 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 					// Scan media store
 					if (getScanMediaStoreEnabled(context)) {
+						// Looper needed
+						if (Looper.myLooper() == null) try {
+							Looper.prepare(); // HACK
+						} catch (Exception e) {
+							Log.w(TAG, e);
+						}
 
 						scanMediaStoreAudio();
 
@@ -156,33 +185,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		return new Result();
 	}
 
-	private void addFromDirectory(Realm realm, Context context, File path, Playlist playlist) throws Exception {
-		if (isCancelled())
-			return;
-
-		for (File file : path.listFiles()) {
-			if (isCancelled())
-				throw new Exception("Canceled by user");
-
-			if (file.canRead()) {
-				if (file.isDirectory()) {
-					addFromDirectory(realm, context, file, playlist);
-				} else {
-					add(realm, context, file.getAbsolutePath(), null, playlist);
-				}
-			}
-		}
-	}
-
-	private void add(Realm realm, Context context, final String path, final Uri contentUri, final Playlist playlist) {
-		if (isCancelled())
-			return;
-
-		updateNotification(playlist.getName() + "@..." + path.substring(Math.min(path.length() - 34, path.length())), false);
-
-		Playlist.scanNew(realm, context, playlist, path, contentUri, fastMode);
-	}
-
 	private void scanMediaStoreAudio() throws Exception {
 		if (isCancelled())
 			return;
@@ -194,20 +196,35 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_MEDIASTORE);
 
 		Playlist.getAllMediaStoreEntriesForAudio(context)
-				.subscribeOn(AndroidSchedulers.mainThread())
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Consumer<Pair<String, Uri>>() {
+				.flatMap(new Function<Collection<Pair<String, Uri>>, ObservableSource<Playlist>>() {
 					@Override
-					public void accept(Pair<String, Uri> r) throws Exception {
-						try (Realm realm = DB.getDB()) {
-							if (realm == null)
-								return;
-							add(realm, context, r.first, r.second, playlist);
-						}
+					public ObservableSource<Playlist> apply(Collection<Pair<String, Uri>> newScanItems) throws Exception {
+						if (isCancelled())
+							throw new Exception("Canceled by user");
+
+						return Playlist.update(
+								context,
+								playlist,
+								newScanItems,
+								false,
+								fastMode,
+								new JavaEx.ActionExT<String>() {
+									@Override
+									public void execute(String s) throws Exception {
+										if (isCancelled())
+											throw new Exception("Canceled by user");
+
+										updateNotification(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
+									}
+								});
+					}
+				})
+				.subscribe(new Consumer<Playlist>() {
+					@Override
+					public void accept(Playlist playlist) throws Exception {
+
 					}
 				});
-
-		Playlist.update(playlist, false);
 
 		Playlist.savePlaylist(playlist);
 	}
@@ -222,21 +239,37 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_MEDIASTORE);
 
-		Playlist.getAllMediaStoreEntriesForAudio(context)
-				.subscribeOn(AndroidSchedulers.mainThread())
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Consumer<Pair<String, Uri>>() {
+		Playlist.getAllMediaStoreEntriesForVideo(context)
+				.flatMap(new Function<Collection<Pair<String, Uri>>, ObservableSource<Playlist>>() {
 					@Override
-					public void accept(Pair<String, Uri> r) throws Exception {
-						try (Realm realm = DB.getDB()) {
-							if (realm == null)
-								return;
-							add(realm, context, r.first, r.second, playlist);
-						}
+					public ObservableSource<Playlist> apply(Collection<Pair<String, Uri>> newScanItems) throws Exception {
+						if (isCancelled())
+							throw new Exception("Canceled by user");
+
+						return Playlist.update(
+								context,
+								playlist,
+								newScanItems,
+								false,
+								fastMode,
+								new JavaEx.ActionExT<String>() {
+									@Override
+									public void execute(String s) throws Exception {
+										if (isCancelled())
+											throw new Exception("Canceled by user");
+
+										updateNotification(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
+									}
+								});
+					}
+				})
+				.subscribe(new Consumer<Playlist>() {
+					@Override
+					public void accept(Playlist playlist) throws Exception {
+
 					}
 				});
 
-		Playlist.update(playlist, false);
 		Playlist.savePlaylist(playlist);
 	}
 
@@ -248,47 +281,32 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
-		try (Realm realm = DB.getDB()) {
-			if (realm == null)
-				return;
+		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_STORAGE);
 
-			final Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_STORAGE);
-
-			// Remove all not matching scan locations
-			final Set<String> scanLocations = getScanLocations(context);
-			final ArrayList<Music> toRemove = new ArrayList<>();
-			for (Music music : playlist.getItems()) {
-				if (isCancelled())
-					throw new Exception("Canceled by user");
-				boolean shouldRemove = true;
-				for (String scanLocation : scanLocations)
-					if (music.getPath().contains(scanLocation)) {
-						shouldRemove = false;
-						break;
-					}
-				if (shouldRemove)
-					toRemove.add(music);
-			}
-			if (toRemove.size() > 0) {
-				realm.executeTransaction(new Realm.Transaction() {
+		Playlist.updateForLocations(
+				context,
+				playlist,
+				getScanLocations(context),
+				false,
+				fastMode,
+				new JavaEx.ActionExT<String>() {
 					@Override
-					public void execute(@NonNull Realm realm) {
-						playlist.removeAll(toRemove);
+					public void execute(String s) throws Exception {
+						if (isCancelled())
+							throw new Exception("Canceled by user");
+
+						updateNotification(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
+					}
+				})
+				.subscribe(new Consumer<Playlist>() {
+					@Override
+					public void accept(Playlist playlist) throws Exception {
+
 					}
 				});
-			}
 
-			// Update
-			Playlist.update(realm, playlist, false);
-
-			// Scan new
-			for (String location : scanLocations) {
-				addFromDirectory(realm, context, new File(location), playlist);
-			}
-
-			// Save
-			Playlist.savePlaylist(realm, playlist);
-		}
+		// Save
+		Playlist.savePlaylist(playlist);
 	}
 
 	private void scanAll() {
@@ -299,26 +317,44 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
+		updateNotification("Updating [" + Playlist.KEY_PLAYLIST_ALL + "] ...", true);
+
+		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ALL);
+
 		try (Realm realm = DB.getDB()) {
 			if (realm == null)
 				return;
-
-			updateNotification("Updating [" + Playlist.KEY_PLAYLIST_ALL + "] ...", true);
-
-			final Playlist playlist = Playlist.loadOrCreatePlaylist(realm, Playlist.KEY_PLAYLIST_ALL);
-
 			realm.executeTransaction(new Realm.Transaction() {
 				@Override
 				public void execute(@NonNull Realm realm) {
 					playlist.clear();
 					playlist.addAll(realm.where(Music.class).findAll());
+					realm.insertOrUpdate(playlist);
 				}
 			});
 
-			Playlist.update(realm, playlist, true);
+			Playlist.update(
+					context,
+					playlist,
+					true,
+					new JavaEx.ActionExT<String>() {
+						@Override
+						public void execute(String s) throws Exception {
+							if (isCancelled())
+								throw new Exception("Canceled by user");
 
-			Playlist.savePlaylist(realm, playlist);
+							updateNotification(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
+						}
+					})
+					.subscribe(new Consumer<Playlist>() {
+						@Override
+						public void accept(Playlist playlist) throws Exception {
+
+						}
+					});
 		}
+
+		Playlist.savePlaylist(playlist);
 	}
 
 	NotificationManager notificationManager = null;

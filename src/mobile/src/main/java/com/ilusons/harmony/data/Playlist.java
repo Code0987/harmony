@@ -22,8 +22,11 @@ import com.ilusons.harmony.ref.ArrayEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.TimeIt;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.musicbrainz.android.api.data.Recording;
 import org.musicbrainz.android.api.data.RecordingInfo;
@@ -32,6 +35,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import de.umass.lastfm.Track;
@@ -190,100 +194,6 @@ public class Playlist extends RealmObject {
 		return Items.contains(item);
 	}
 
-	public static boolean update(final Realm realm, final Playlist playlist, final boolean removeTrace) {
-		boolean r = false;
-		try {
-			final ArrayList<Music> toRemove = new ArrayList<>();
-
-			for (Music item : playlist.getItems()) {
-				if (!item.isLocal())
-					continue;
-				File file = (new File(item.getPath()));
-				if (!file.exists())
-					toRemove.add(item);
-			}
-
-			if (toRemove.size() > 0) {
-				realm.executeTransaction(new Realm.Transaction() {
-					@Override
-					public void execute(@NonNull Realm realm) {
-						playlist.getItems().removeAll(toRemove);
-						if (removeTrace) {
-							for (Music item : toRemove) {
-								try {
-									item.deleteFromRealm();
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-						}
-					}
-				});
-
-				r = true;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			r = true;
-		}
-		return r;
-	}
-
-	public static boolean update(final Playlist playlist, final boolean removeTrace) {
-		try (Realm realm = DB.getDB()) {
-			return update(realm, playlist, removeTrace);
-		}
-	}
-
-	public static boolean scanNew(final Realm realm, final Context context, final Playlist playlist, final String path, final Uri contentUri, boolean fastMode) {
-		try {
-			// Check for validity
-			if (!Music.isValid(path))
-				return false;
-
-			// Ignore if already present
-			for (Music item : playlist.getItems())
-				if (item.getPath().equals(path))
-					return false;
-
-			final Music newData = Music.decode(realm, context, path, contentUri, fastMode, null);
-
-			if (newData == null)
-				throw new Exception("Some error while decoding.");
-
-			// Check constraints
-			if (newData.getLength() > 0 && (MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) > newData.getLength()) {
-				return false;
-			}
-
-			// Add it finally
-			realm.beginTransaction();
-			try {
-				playlist.Items.add(newData);
-
-				realm.insertOrUpdate(newData);
-
-				realm.insertOrUpdate(playlist);
-
-				realm.commitTransaction();
-			} catch (Throwable e) {
-				if (realm.isInTransaction()) {
-					realm.cancelTransaction();
-				} else {
-					Log.w(TAG, e);
-				}
-				throw e;
-			}
-
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			return false;
-		}
-	}
-
 	public static RealmResults<Playlist> loadAllPlaylists(Realm realm) {
 		return realm.where(Playlist.class).findAll();
 	}
@@ -408,21 +318,17 @@ public class Playlist extends RealmObject {
 			if (!(playlistId <= -1L)) {
 				final ArrayList<Music> osDatas = new ArrayList<>();
 				final Collection<String> audioIds = getAllAudioIdsInPlaylist(context.getContentResolver(), playlistId);
-				try (Realm realm = DB.getDB()) {
-					if (realm == null)
-						throw new Exception("Realm error.");
 
-					for (String audioId : audioIds) {
-						Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId));
+				for (String audioId : audioIds) {
+					Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId));
 
-						Music data = Music.decode(realm, context, null, contentUri, true, null);
+					Music data = Music.createFromLocal(context, null, contentUri, true, null);
 
-						if (data != null) {
-							osDatas.add(data);
+					if (data != null) {
+						osDatas.add(data);
 
-							if (onProgress != null)
-								onProgress.execute(osDatas);
-						}
+						if (onProgress != null)
+							onProgress.execute(osDatas);
 					}
 				}
 
@@ -486,13 +392,14 @@ public class Playlist extends RealmObject {
 		}
 	}
 
-	//region OS
+	//region Scanner
 
-	public static Observable<Pair<String, Uri>> getAllMediaStoreEntriesForAudio(final Context context) {
-		return Observable.create(new ObservableOnSubscribe<Pair<String, Uri>>() {
+	public static Observable<Collection<Pair<String, Uri>>> getAllMediaStoreEntriesForAudio(final Context context) {
+		return Observable.create(new ObservableOnSubscribe<Collection<Pair<String, Uri>>>() {
 			@Override
-			public void subscribe(ObservableEmitter<Pair<String, Uri>> oe) throws Exception {
+			public void subscribe(ObservableEmitter<Collection<Pair<String, Uri>>> oe) throws Exception {
 				try {
+					ArrayList<Pair<String, Uri>> items = new ArrayList<>();
 					Cursor cursor = null;
 					try {
 						ContentResolver cr = context.getContentResolver();
@@ -509,7 +416,7 @@ public class Playlist extends RealmObject {
 									if ((new File(path)).exists()) {
 										Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID)));
 
-										oe.onNext(Pair.create(path, contentUri));
+										items.add(Pair.create(path, contentUri));
 									}
 								}
 
@@ -521,6 +428,7 @@ public class Playlist extends RealmObject {
 						if (cursor != null)
 							cursor.close();
 					}
+					oe.onNext(items);
 					oe.onComplete();
 				} catch (Exception e) {
 					oe.onError(e);
@@ -529,11 +437,12 @@ public class Playlist extends RealmObject {
 		});
 	}
 
-	public static Observable<Pair<String, Uri>> getAllMediaStoreEntriesForVideo(final Context context) {
-		return Observable.create(new ObservableOnSubscribe<Pair<String, Uri>>() {
+	public static Observable<Collection<Pair<String, Uri>>> getAllMediaStoreEntriesForVideo(final Context context) {
+		return Observable.create(new ObservableOnSubscribe<Collection<Pair<String, Uri>>>() {
 			@Override
-			public void subscribe(ObservableEmitter<Pair<String, Uri>> oe) throws Exception {
+			public void subscribe(ObservableEmitter<Collection<Pair<String, Uri>>> oe) throws Exception {
 				try {
+					ArrayList<Pair<String, Uri>> items = new ArrayList<>();
 					Cursor cursor = null;
 					try {
 						ContentResolver cr = context.getContentResolver();
@@ -549,7 +458,7 @@ public class Playlist extends RealmObject {
 									if ((new File(path)).exists()) {
 										Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
 
-										oe.onNext(Pair.create(path, contentUri));
+										items.add(Pair.create(path, contentUri));
 									}
 								}
 
@@ -561,6 +470,7 @@ public class Playlist extends RealmObject {
 						if (cursor != null)
 							cursor.close();
 					}
+					oe.onNext(items);
 					oe.onComplete();
 				} catch (Exception e) {
 					oe.onError(e);
@@ -568,6 +478,281 @@ public class Playlist extends RealmObject {
 			}
 		});
 	}
+
+	public static Observable<Playlist> update(final Context context, final Playlist playlist, final boolean removeTrace, final JavaEx.ActionExT<String> onProgress) {
+		return Observable.create(new ObservableOnSubscribe<Playlist>() {
+			@Override
+			public void subscribe(ObservableEmitter<Playlist> oe) throws Exception {
+				try {
+					final Map<String, Music> oldItems = new HashMap<>();
+
+					try {
+						// Remove missing items
+						if (onProgress != null)
+							onProgress.execute("Removing wasted");
+						final ArrayList<Music> toRemove = new ArrayList<>();
+						for (Music item : playlist.getItems()) {
+							if (!item.isLocal())
+								continue;
+							File file = (new File(item.getPath()));
+							if (!file.exists()) {
+								toRemove.add(item);
+							} else {
+								oldItems.put(item.getPath(), item);
+							}
+						}
+						if (toRemove.size() > 0) {
+							try (Realm realm = DB.getDB()) {
+								if (realm != null) {
+									realm.executeTransaction(new Realm.Transaction() {
+										@Override
+										public void execute(@NonNull Realm realm) {
+											playlist.removeAll(toRemove);
+											if (removeTrace) {
+												for (Music item : toRemove) {
+													try {
+														item.deleteFromRealm();
+													} catch (Exception e) {
+														e.printStackTrace();
+													}
+												}
+											}
+										}
+									});
+								}
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					oe.onNext(playlist);
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Playlist> update(final Context context, final Playlist playlist, final Collection<Pair<String, Uri>> newScanItems, final boolean removeTrace, final boolean fastMode, final JavaEx.ActionExT<String> onProgress) {
+		return Observable.create(new ObservableOnSubscribe<Playlist>() {
+			@Override
+			public void subscribe(ObservableEmitter<Playlist> oe) throws Exception {
+				try {
+					final TimeIt timeIt = new TimeIt();
+					timeIt.reset(playlist.getName());
+
+					final Map<String, Music> oldItems = new HashMap<>();
+
+					try {
+						// Remove missing items
+						if (onProgress != null)
+							onProgress.execute("Removing wasted");
+						final ArrayList<Music> toRemove = new ArrayList<>();
+						for (Music item : playlist.getItems()) {
+							if (!item.isLocal())
+								continue;
+							File file = (new File(item.getPath()));
+							if (!file.exists()) {
+								toRemove.add(item);
+							} else {
+								oldItems.put(item.getPath(), item);
+							}
+						}
+						timeIt.split("waste collect");
+						if (toRemove.size() > 0) {
+							try (Realm realm = DB.getDB()) {
+								if (realm != null) {
+									realm.executeTransaction(new Realm.Transaction() {
+										@Override
+										public void execute(@NonNull Realm realm) {
+											playlist.removeAll(toRemove);
+											if (removeTrace) {
+												for (Music item : toRemove) {
+													try {
+														item.deleteFromRealm();
+													} catch (Exception e) {
+														e.printStackTrace();
+													}
+												}
+											}
+										}
+									});
+								}
+							}
+						}
+						timeIt.split("waste remove");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					// Add new items, not in old items
+					final ArrayList<Music> newItems = new ArrayList<>();
+
+					for (Pair<String, Uri> item : newScanItems) {
+						if (onProgress != null)
+							onProgress.execute(item.second == null ? item.first : item.second.getPath());
+						// Check for validity
+						if (Music.isValid(item.first)) {
+							if (!oldItems.containsKey(item.first)) {
+								try {
+									Music newItem = Music.createFromLocal(context, item.first, item.second, fastMode, null);
+									if (newItem != null) {
+										// Check constraints
+										if (!(newItem.getLength() > 0 && (MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) > newItem.getLength())) {
+											newItems.add(newItem);
+										}
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						}
+					}
+
+					timeIt.split("scan");
+
+					// Update db
+					try (Realm realm = DB.getDB()) {
+						if (realm != null) {
+							realm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(@NonNull Realm realm) {
+									realm.insertOrUpdate(newItems);
+									playlist.addAll(newItems);
+									realm.insertOrUpdate(playlist);
+								}
+							});
+						}
+					}
+
+					timeIt.printToLog();
+
+					oe.onNext(playlist);
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Playlist> updateForLocations(final Context context, final Playlist playlist, final Collection<String> locations, final boolean removeTrace, final boolean fastMode, final JavaEx.ActionExT<String> onProgress) {
+		return Observable.create(new ObservableOnSubscribe<Playlist>() {
+			@Override
+			public void subscribe(ObservableEmitter<Playlist> oe) throws Exception {
+				try {
+					final Map<String, Music> oldItems = new HashMap<>();
+
+					try {
+						// Remove extra items
+						if (onProgress != null)
+							onProgress.execute("Removing wasted");
+						final ArrayList<Music> toRemove = new ArrayList<>();
+						for (Music item : playlist.getItems()) {
+							if (!item.isLocal())
+								continue;
+							boolean shouldRemove = true;
+							for (String l : locations)
+								if (item.getPath().contains(l)) {
+									shouldRemove = false;
+									break;
+								}
+							if (shouldRemove) {
+								toRemove.add(item);
+							} else {
+								oldItems.put(item.getPath(), item);
+							}
+						}
+						if (toRemove.size() > 0) {
+							try (Realm realm = DB.getDB()) {
+								if (realm != null) {
+									realm.executeTransaction(new Realm.Transaction() {
+										@Override
+										public void execute(@NonNull Realm realm) {
+											playlist.removeAll(toRemove);
+											if (removeTrace) {
+												for (Music item : toRemove) {
+													try {
+														item.deleteFromRealm();
+													} catch (Exception e) {
+														e.printStackTrace();
+													}
+												}
+											}
+										}
+									});
+								}
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					// Add new items, not in old items
+					final ArrayList<Music> newItems = new ArrayList<>();
+
+					for (String location : locations) {
+						for (Iterator<File> it = FileUtils.iterateFiles(new File(location), new IOFileFilter() {
+							@Override
+							public boolean accept(File file) {
+								return Music.isValid(file.getAbsolutePath());
+							}
+
+							@Override
+							public boolean accept(File dir, String name) {
+								return false;
+							}
+						}, TrueFileFilter.TRUE); it.hasNext(); ) {
+							File file = it.next();
+							if (onProgress != null)
+								onProgress.execute(file.getAbsolutePath());
+							if (!oldItems.containsKey(file.getAbsolutePath())) {
+								try {
+									Music newItem = Music.createFromLocal(context, file.getAbsolutePath(), null, fastMode, null);
+									if (newItem != null) {
+										// Check constraints
+										if (!(newItem.getLength() > 0 && (MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) > newItem.getLength())) {
+											newItems.add(newItem);
+										}
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						}
+					}
+
+					// Update db
+					try (Realm realm = DB.getDB()) {
+						if (realm != null) {
+							realm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(@NonNull Realm realm) {
+									realm.insertOrUpdate(newItems);
+									playlist.addAll(newItems);
+									realm.insertOrUpdate(playlist);
+								}
+							});
+						}
+					}
+
+					oe.onNext(playlist);
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	//endregion
+
+	//region OS
 
 	public static void allPlaylist(ContentResolver cr, final JavaEx.ActionTU<Long, String> action) {
 		if (action == null)
@@ -744,7 +929,7 @@ public class Playlist extends RealmObject {
 		for (String audioId : audioIds) {
 			Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(audioId));
 
-			Music data = Music.decode(realm, context, null, contentUri, true, null);
+			Music data = Music.createFromLocal(context, null, contentUri, true, null);
 
 			if (data != null)
 				action.execute(data);

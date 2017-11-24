@@ -1083,7 +1083,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 														public void onClick(DialogInterface dialogInterface, int i) {
 															item.setTags(editText.getText().toString().trim());
 
-															Music.update(item);
+															item.update();
 
 															setFromPlaylist(-1L, viewPlaylist.getName());
 
