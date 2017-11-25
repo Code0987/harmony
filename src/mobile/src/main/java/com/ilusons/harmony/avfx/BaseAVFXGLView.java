@@ -120,10 +120,10 @@ public abstract class BaseAVFXGLView extends GLSurfaceView {
             h = height;
         }
 
-        private static TimeIt.FPS FPS = new TimeIt.FPS();
+        // private static TimeIt.FPS FPS = new TimeIt.FPS();
 
         public void onDrawFrame(GL10 gl) {
-            Log.d(TAG, "FPS: " + FPS.getFPS());
+            // Log.d(TAG, "FPS: " + FPS.getFPS());
 
             BaseAVFXGLView holderView = holderViewReference.get();
 

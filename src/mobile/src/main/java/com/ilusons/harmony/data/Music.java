@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -1063,14 +1064,19 @@ public class Music extends RealmObject {
 
 	public void refresh(final Context context) {
 		try {
-			Music data = this;
-			data = Music.createFromLocal(context, data.getPath(), null, false, data);
-			if (data != null)
-				try (Realm realm = DB.getDB()) {
-					if (realm != null) {
-						realm.insertOrUpdate(data);
-					}
+			final Music data = this;
+			Music.createFromLocal(context, data.getPath(), null, false, data);
+			try (Realm realm = DB.getDB()) {
+				if (realm != null) {
+					realm.executeTransaction(new Realm.Transaction() {
+						@Override
+						public void execute(@NonNull Realm realm) {
+							realm.insertOrUpdate(data);
+						}
+					});
 				}
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

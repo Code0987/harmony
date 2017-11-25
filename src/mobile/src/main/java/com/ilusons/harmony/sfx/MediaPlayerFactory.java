@@ -188,12 +188,12 @@ public class MediaPlayerFactory implements IMediaPlayerFactory {
 
 	protected StandardPresetReverb onCreatePresetReverb() {
 		// NOTE: Auxiliary effects can be created for session 0 only
-		return new StandardPresetReverb(0, 0);
+		return new StandardPresetReverb(1, 0);
 	}
 
 	protected StandardEnvironmentalReverb onCreateEnvironmentalReverb() {
 		// NOTE: Auxiliary effects can be created for session 0 only
-		return new StandardEnvironmentalReverb(0, 0);
+		return new StandardEnvironmentalReverb(1, 0);
 	}
 
 	protected OpenSLHQEqualizer onCreateHQEqualizer() {

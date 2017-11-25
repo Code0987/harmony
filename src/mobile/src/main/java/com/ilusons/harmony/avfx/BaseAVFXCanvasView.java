@@ -132,11 +132,11 @@ public abstract class BaseAVFXCanvasView extends SurfaceView implements SurfaceH
 			thread.setRunning(true);
 	}
 
-	private static final TimeIt.FPS FPS = new TimeIt.FPS();
+	// private static final TimeIt.FPS FPS = new TimeIt.FPS();
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		Log.d(TAG, "FPS: " + FPS.getFPS());
+		// Log.d(TAG, "FPS: " + FPS.getFPS());
 
 		super.onDraw(canvas);
 

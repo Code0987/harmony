@@ -507,11 +507,11 @@ public class MusicService extends Service {
 							equalizer = mediaPlayerFactory.createEqualizer(mediaPlayer);
 							break;
 					}
+
+					loadEqualizer();
 				} catch (Exception e) {
 					// Eat?
 				}
-
-				loadEqualizer();
 			}
 		} catch (Exception e) {
 			Log.w(TAG, e);
@@ -569,7 +569,7 @@ public class MusicService extends Service {
 				equalizer.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-
+				equalizer.setProperties(new IEqualizer.Settings());
 				equalizer.setEnabled(true);
 			}
 	}
@@ -606,11 +606,11 @@ public class MusicService extends Service {
 			if (preAmp == null) {
 				try {
 					preAmp = mediaPlayerFactory.createPreAmp();
+
+					loadPreAmp();
 				} catch (Exception e) {
 					// Eat?
 				}
-
-				loadPreAmp();
 			}
 		} catch (Exception e) {
 			Log.w(TAG, e);
@@ -664,7 +664,7 @@ public class MusicService extends Service {
 				preAmp.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-
+				preAmp.setProperties(new IPreAmp.Settings());
 				preAmp.setEnabled(true);
 			}
 	}
@@ -701,11 +701,11 @@ public class MusicService extends Service {
 			if (bassBoost == null)
 				try {
 					bassBoost = mediaPlayerFactory.createBassBoost(mediaPlayer);
+
+					loadBassBoost();
 				} catch (Exception e) {
 					// Eat?
 				}
-
-			loadBassBoost();
 		} catch (Exception e) {
 			Log.w(TAG, e);
 		}
@@ -758,7 +758,7 @@ public class MusicService extends Service {
 				bassBoost.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-
+				bassBoost.setProperties(new IBassBoost.Settings());
 				bassBoost.setEnabled(true);
 			}
 	}
@@ -795,11 +795,11 @@ public class MusicService extends Service {
 			if (loudnessEnhancer == null)
 				try {
 					loudnessEnhancer = mediaPlayerFactory.createLoudnessEnhancer(mediaPlayer);
+
+					loadLoudnessEnhancer();
 				} catch (Exception e) {
 					// Eat?
 				}
-
-			loadLoudnessEnhancer();
 		} catch (Exception e) {
 			Log.w(TAG, e);
 		}
@@ -873,7 +873,7 @@ public class MusicService extends Service {
 				loudnessEnhancer.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-
+				loudnessEnhancer.setProperties(new ILoudnessEnhancer.Settings());
 				loudnessEnhancer.setEnabled(true);
 			}
 	}
@@ -889,11 +889,11 @@ public class MusicService extends Service {
 			if (virtualizer == null)
 				try {
 					virtualizer = mediaPlayerFactory.createVirtualizer(mediaPlayer);
-				} catch (Exception e) {
-					// Eat?
-				}
 
-			loadVirtualizer();
+					loadVirtualizer();
+				} catch (Exception e) {
+					// Eat?l
+				}
 		} catch (Exception e) {
 			Log.w(TAG, e);
 		}
@@ -967,7 +967,7 @@ public class MusicService extends Service {
 				virtualizer.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-
+				virtualizer.setProperties(new IVirtualizer.Settings());
 				virtualizer.setEnabled(true);
 			}
 	}
@@ -983,11 +983,11 @@ public class MusicService extends Service {
 			if (environmentalReverb == null)
 				try {
 					environmentalReverb = mediaPlayerFactory.createEnvironmentalReverb();
+
+					loadEnvironmentalReverb();
 				} catch (Exception e) {
 					// Eat?
 				}
-
-			loadEnvironmentalReverb();
 		} catch (Exception e) {
 			Log.w(TAG, e);
 		}
@@ -1061,7 +1061,7 @@ public class MusicService extends Service {
 				environmentalReverb.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-
+				environmentalReverb.setProperties(EnvironmentalReverbPresets.DEFAULT);
 				environmentalReverb.setEnabled(true);
 			}
 	}
@@ -1077,11 +1077,11 @@ public class MusicService extends Service {
 			if (presetReverb == null)
 				try {
 					presetReverb = mediaPlayerFactory.createPresetReverb();
+
+					loadPresetReverb();
 				} catch (Exception e) {
 					// Eat?
 				}
-
-			loadPresetReverb();
 		} catch (Exception e) {
 			Log.w(TAG, e);
 		}
@@ -1155,7 +1155,7 @@ public class MusicService extends Service {
 				presetReverb.setEnabled(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-
+				presetReverb.setProperties(new IPresetReverb.Settings());
 				presetReverb.setEnabled(true);
 			}
 	}
@@ -1432,25 +1432,23 @@ public class MusicService extends Service {
 				getLoudnessEnhancer();
 
 				getVirtualizer();
+
+				IEnvironmentalReverb environmentalReverb = getEnvironmentalReverb();
+				if (environmentalReverb != null) {
+					mediaPlayer.attachAuxEffect(getEnvironmentalReverb().getId());
+					mediaPlayer.setAuxEffectSendLevel(1f);
+				}
+
+				IPresetReverb presetReverb = getPresetReverb();
+				if (presetReverb != null) {
+					mediaPlayer.attachAuxEffect(getPresetReverb().getId());
+					mediaPlayer.setAuxEffectSendLevel(1f);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
 			mediaPlayer.start();
-
-			// Update aux effects
-			handler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						getEnvironmentalReverb();
-
-						getPresetReverb();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}, 255); // HACK: This is weird!
 
 			// Signal
 			update();
