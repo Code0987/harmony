@@ -1280,6 +1280,9 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		public void highlightView(View root) {
 			try {
+				if (root == null)
+					return;
+
 				root.clearAnimation();
 
 				AnimatorSet as = new AnimatorSet();
