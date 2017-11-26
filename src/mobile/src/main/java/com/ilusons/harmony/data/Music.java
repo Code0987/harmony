@@ -71,16 +71,17 @@ public class Music extends RealmObject {
 	// Basic
 	@PrimaryKey
 	@Index
-	private String Id = (UUID.randomUUID().toString());
+	private String Path;
 
-	public String getId() {
-		return Id;
+	public String getPath() {
+		return Path;
 	}
 
-	public void setId(String id) {
-		Id = id;
+	public void setPath(String path) {
+		Path = path;
 	}
 
+	@Index
 	private String Title = "";
 
 	public String getTitle() {
@@ -91,6 +92,7 @@ public class Music extends RealmObject {
 		Title = title;
 	}
 
+	@Index
 	private String Artist = "";
 
 	public String getArtist() {
@@ -129,17 +131,6 @@ public class Music extends RealmObject {
 
 	public void setTrack(int track) {
 		Track = track;
-	}
-
-	@Index
-	private String Path;
-
-	public String getPath() {
-		return Path;
-	}
-
-	public void setPath(String path) {
-		Path = path;
 	}
 
 	public boolean isLocal() {
@@ -257,6 +248,66 @@ public class Music extends RealmObject {
 		Genre = value;
 	}
 
+	public String getSmartGenre() {
+		if (TextUtils.isEmpty(getGenre()))
+			return null;
+
+		String r = getGenre();
+
+		try {
+			r = r.toLowerCase();
+
+			if (r.contains("alt") || r.contains("alternative"))
+				r = "Alternative";
+
+			else if (r.contains("metal") || r.contains("metalcore"))
+				r = "Metal";
+
+			else if (r.contains("indie"))
+				r = "Indie";
+
+			else if (r.contains("punk"))
+				r = "Punk";
+
+			else if (r.contains("rock") || r.contains("hardcore"))
+				r = "Rock";
+
+			else if (r.contains("folk"))
+				r = "Folk";
+
+			else if (r.contains("country"))
+				r = "Country";
+
+			else if (r.contains("blues"))
+				r = "Blues";
+
+			else if (r.contains("electronic") || r.contains("edm"))
+				r = "EDM";
+
+			else if (r.contains("rap") || r.contains("hip"))
+				r = "Hip hop, Rap";
+
+			else if (r.contains("Jazz"))
+				r = "Jazz";
+
+			else if (r.contains("r&b") || r.contains("soul"))
+				r = "R&B, Soul";
+
+			else if (r.contains("pop"))
+				r = "Pop";
+
+			else
+				r = "*";
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Log.d(TAG, "smart genre: " + r + " <-> " + getGenre());
+
+		return r;
+	}
+
 	private int Year = -1;
 
 	public int getYear() {
@@ -278,7 +329,7 @@ public class Music extends RealmObject {
 		if (other == null)
 			return false;
 
-		if (Id.equals(other.Id))
+		if (Path.equals(other.Path))
 			return true;
 
 		return false;
@@ -1023,21 +1074,6 @@ public class Music extends RealmObject {
 	//endregion
 
 	//region DB
-
-	public static Music getById(Realm realm, String id) {
-		return realm.where(Music.class).equalTo("Id", id).findFirst();
-	}
-
-	public static Music getById(String id) {
-		try (Realm realm = DB.getDB()) {
-			if (realm != null) {
-				return realm.copyFromRealm(getById(realm, id));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 
 	public static Music load(Context context, String path) {
 		Music data = null;

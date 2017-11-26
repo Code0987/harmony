@@ -548,7 +548,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 							final Fingerprint fingerprint = Fingerprint.search(rawfp, 0.65, 0.95);
 							if (fingerprint != null) {
-								final Music music = Music.getById(fingerprint.getId());
+								final Music music = Music.load(context, fingerprint.getId());
 								if (music != null)
 									getActivity().runOnUiThread(new Runnable() {
 										@Override

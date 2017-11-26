@@ -1798,7 +1798,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 		Album("Album"),
 		Artist("Artist"),
 		Genre("Genre"),
-		Year("Year"),;
+		Year("Year"),
+		SmartGenre("Smart genre"),;
 
 		private String friendlyName;
 
@@ -1945,6 +1946,22 @@ public class LibraryViewFragment extends BaseUIFragment {
 				for (Music d : data) {
 					int year = d.getYear();
 					String key = year <= 0 ? "*" : String.valueOf(year);
+					if (result.containsKey(key)) {
+						List<Music> list = result.get(key);
+						list.add(d);
+					} else {
+						List<Music> list = new ArrayList<>();
+						list.add(d);
+						result.put(key, list);
+					}
+				}
+				result = new TreeMap<>(result);
+				break;
+			case SmartGenre:
+				for (Music d : data) {
+					String key = d.getSmartGenre();
+					if (TextUtils.isEmpty(key))
+						key = "*";
 					if (result.containsKey(key)) {
 						List<Music> list = result.get(key);
 						list.add(d);
