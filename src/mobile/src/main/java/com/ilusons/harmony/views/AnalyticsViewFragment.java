@@ -45,6 +45,7 @@ import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ui.SpannedGridLayoutManager;
@@ -63,6 +64,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import de.umass.lastfm.Track;
+import io.reactivex.ObservableSource;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 
 public class AnalyticsViewFragment extends Fragment {
 
@@ -172,15 +181,29 @@ public class AnalyticsViewFragment extends Fragment {
 			@Override
 			public void run() {
 				for (final Music item : items) {
-					recyclerView_c1.postDelayed(new Runnable() {
-						@Override
-						public void run() {
-							itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(item));
-						}
-					}, 333);
+					itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(item));
 				}
 			}
 		}, 1300);
+
+		Analytics.getInstance().getTopTracksForLastfmForApp()
+				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+					@Override
+					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+						return Analytics.convertToLocal(tracks, 7);
+					}
+				})
+				.subscribeOn(Schedulers.io())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new Consumer<Collection<Music>>() {
+					@Override
+					public void accept(Collection<Music> r) throws Exception {
+						itemAdapter_c1.clear();
+						for (Music m : r) {
+							itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(m));
+						}
+					}
+				});
 	}
 
 	public static class C1Item extends AbstractItem<C1Item, C1Item.ViewHolder> {
@@ -221,7 +244,7 @@ public class AnalyticsViewFragment extends Fragment {
 			} else {
 				viewHolder.image.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_broken_image_black));
 			}
-			viewHolder.text.setText(data.getText());
+			viewHolder.text.setText(data.getText(System.lineSeparator()));
 		}
 
 		@Override

@@ -29,10 +29,16 @@ import java.util.logging.LogRecord;
 
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Caller;
+import de.umass.lastfm.Period;
 import de.umass.lastfm.Session;
 import de.umass.lastfm.cache.FileSystemCache;
 import de.umass.lastfm.scrobble.ScrobbleData;
 import de.umass.lastfm.scrobble.ScrobbleResult;
+import io.reactivex.ObservableSource;
+import io.reactivex.Scheduler;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import jonathanfinerty.once.Once;
 
@@ -104,49 +110,158 @@ public class Analytics {
 		return 0;
 	}
 
-
 	//endregion
 
 	//region last.fm
 
-	private final static String KEY_LFM_USERNAME = "lfm_username";
-	private final static String KEY_LFM_PASSWORD = "lfm_password";
-
-	private Session lfm_session;
-
-	private final static String KEY_LFM_SCACHE = "lfm_scache";
-
-	private List<ScrobbleData> scrobbleCache = new ArrayList<>();
-
-	private List<ScrobbleResult> scrobbleResults = new ArrayList<>();
-	private static int callsCount = 0;
-	private static long lastCallCountStart = 0;
-
-	public static boolean canCall() {
-		boolean r = true;
-
-		long now = System.currentTimeMillis();
-
-		if ((now - lastCallCountStart) > 60 * 1000) {
-			callsCount = 0;
-			lastCallCountStart = now;
-		} else {
-			if (callsCount >= 5)
-				r = false;
-		}
-
-		callsCount++;
-
-		return r;
-	}
-
 	public static String getKey() {
-		return "7f549d7402bd35d37f3711c40a84ec95";
+		return "050059635d31b4ce8d4a08384ef832f3";
 	}
 
 	public static String getSecret() {
-		return "350215664ed8c4b13a27ed56a3da51d5";
+		return "c8bac34a977592eecabc10efe71c5a38";
 	}
+
+	//region App
+
+	/*
+	last.fm account
+
+	harmony_ilusons
+	%"8Gp.
+	(% " 8 GOLF park .)
+	harmony@ilusons.com
+
+	050059635d31b4ce8d4a08384ef832f3
+	c8bac34a977592eecabc10efe71c5a38
+
+	*/
+
+	public static String getLastfmForAppUsername() {
+		return "harmony_ilusons";
+	}
+
+	public static String getLastfmForAppPassword() {
+		return "%\"8Gp.";
+	}
+
+	private Session lastfmSessionForApp;
+
+	public Observable<Session> getLastfmSessionForApp() {
+		return Observable.create(new ObservableOnSubscribe<Session>() {
+			@Override
+			public void subscribe(ObservableEmitter<Session> oe) throws Exception {
+				try {
+					if (lastfmSessionForApp == null) {
+						lastfmSessionForApp = Authenticator.getMobileSession(
+								getLastfmForAppUsername(),
+								getLastfmForAppPassword(),
+								getKey(),
+								getSecret());
+					}
+
+					oe.onNext(lastfmSessionForApp);
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public Observable<ScrobbleResult> scrobbleLastfmForApp(final MusicService musicService, final Music data) {
+		return getLastfmSessionForApp()
+				.flatMap(new Function<Session, ObservableSource<ScrobbleResult>>() {
+					@Override
+					public ObservableSource<ScrobbleResult> apply(final Session session) throws Exception {
+						return Observable.create(new ObservableOnSubscribe<ScrobbleResult>() {
+							@Override
+							public void subscribe(ObservableEmitter<ScrobbleResult> oe) throws Exception {
+								try {
+									if (!canCall())
+										throw new Exception("Calls exceeded!");
+
+									if (canScrobble(musicService, data)) {
+										ScrobbleData scrobbleData = new ScrobbleData();
+										scrobbleData.setArtist(data.getArtist());
+										scrobbleData.setTrack(data.getTitle());
+										scrobbleData.setDuration(data.getLength() / 1000);
+										scrobbleData.setTimestamp((int) (System.currentTimeMillis() / 1000));
+
+										ScrobbleResult result = de.umass.lastfm.Track.scrobble(scrobbleData, session);
+
+										scrobbleResults.add(result);
+
+										oe.onNext(result);
+									}
+
+									oe.onComplete();
+								} catch (Exception e) {
+									oe.onError(e);
+								}
+							}
+						});
+					}
+				});
+	}
+
+	public Observable<Collection<de.umass.lastfm.Track>> getTopTracksForLastfmForApp() {
+		return getLastfmSessionForApp()
+				.flatMap(new Function<Session, ObservableSource<Collection<de.umass.lastfm.Track>>>() {
+					@Override
+					public ObservableSource<Collection<de.umass.lastfm.Track>> apply(final Session session) throws Exception {
+						return Observable.create(new ObservableOnSubscribe<Collection<de.umass.lastfm.Track>>() {
+							@Override
+							public void subscribe(ObservableEmitter<Collection<de.umass.lastfm.Track>> oe) throws Exception {
+								try {
+									if (!canCall())
+										throw new Exception("Calls exceeded!");
+
+									Collection<de.umass.lastfm.Track> tracks = new ArrayList<>();
+
+									tracks.addAll(de.umass.lastfm.User.getTopTracks(
+											getLastfmForAppUsername(),
+											Period.WEEK,
+											getLastfmForAppPassword()));
+
+									if (tracks.size() < 7) {
+										tracks.clear();
+										tracks.addAll(de.umass.lastfm.User.getTopTracks(
+												getLastfmForAppUsername(),
+												Period.OVERALL,
+												getLastfmForAppPassword()));
+									}
+
+									oe.onNext(tracks);
+
+									oe.onComplete();
+								} catch (Exception e) {
+									oe.onError(e);
+								}
+							}
+						});
+					}
+				});
+	}
+
+	//endregion
+
+	//region User
+
+	private final static String KEY_LFM_USERNAME = "lfm_username";
+
+	public String getLastfmUsername() {
+		return securePreferences.getString(KEY_LFM_USERNAME, null);
+	}
+
+	private final static String KEY_LFM_PASSWORD = "lfm_password";
+
+	public String getLastfmPassword() {
+		return securePreferences.getString(KEY_LFM_PASSWORD, null);
+	}
+
+	private Session lfm_session;
 
 	public void initLastfm(Context context) {
 		// For api
@@ -216,18 +331,12 @@ public class Analytics {
 				.apply();
 	}
 
-	public String getLastfmUsername() {
-		return securePreferences.getString(KEY_LFM_USERNAME, null);
-	}
+	private final static String KEY_LFM_SCACHE = "lfm_scache";
+	private List<ScrobbleData> scrobbleCache = new ArrayList<>();
+	private List<ScrobbleResult> scrobbleResults = new ArrayList<>();
 
-	public String getLastfmPassword() {
-		return securePreferences.getString(KEY_LFM_PASSWORD, null);
-	}
-
-	public void nowPlayingLastfm(MusicService musicService, Music data) {
-
-		(new RunNowPlayingLastfm(this, musicService, data)).execute();
-
+	public List<ScrobbleResult> getScrobblerResultsForLastfm() {
+		return scrobbleResults;
 	}
 
 	private static class RunNowPlayingLastfm extends AsyncTask<Void, Void, Void> {
@@ -281,18 +390,9 @@ public class Analytics {
 		}
 	}
 
-	public boolean canScrobble(MusicService musicService, Music data) {
-		boolean duration30s = data.getLength() > 30 * 1000;
-		boolean playing = musicService.isPlaying();
-		boolean playedHalf = ((float) musicService.getPosition() / (float) musicService.getDuration()) >= 0.5f;
-		boolean played4min = musicService.getPosition() >= 4 * 60 * 1000;
+	public void nowPlayingLastfm(MusicService musicService, Music data) {
 
-		return duration30s && playing && (true || playedHalf || played4min);
-	}
-
-	public void scrobbleLastfm(MusicService musicService, Music data) {
-
-		(new RunScrobbleLastfm(this, musicService, data)).execute();
+		(new RunNowPlayingLastfm(this, musicService, data)).execute();
 
 	}
 
@@ -376,8 +476,42 @@ public class Analytics {
 		}
 	}
 
-	public List<ScrobbleResult> getScrobblerResultsForLastfm() {
-		return scrobbleResults;
+	public boolean canScrobble(MusicService musicService, Music data) {
+		boolean duration30s = data.getLength() > 30 * 1000;
+		boolean playing = musicService.isPlaying();
+		boolean playedHalf = ((float) musicService.getPosition() / (float) musicService.getDuration()) >= 0.5f;
+		boolean played4min = musicService.getPosition() >= 4 * 60 * 1000;
+
+		return duration30s && playing && (true || playedHalf || played4min);
+	}
+
+	public void scrobbleLastfm(MusicService musicService, Music data) {
+
+		(new RunScrobbleLastfm(this, musicService, data)).execute();
+
+	}
+
+	//endregion
+
+	private static int callsCount = 0;
+	private static long lastCallCountStart = 0;
+
+	public static boolean canCall() {
+		boolean r = true;
+
+		long now = System.currentTimeMillis();
+
+		if ((now - lastCallCountStart) > 60 * 1000) {
+			callsCount = 0;
+			lastCallCountStart = now;
+		} else {
+			if (callsCount >= 5)
+				r = false;
+		}
+
+		callsCount++;
+
+		return r;
 	}
 
 	//endregion
@@ -417,17 +551,25 @@ public class Analytics {
 	}
 
 	public void logMusicOpened(MusicService musicService, Music data) {
-		if (firebaseAnalytics == null)
-			return;
-
-		try {
-			Bundle bundle = new Bundle();
-			bundle.putString("title", data.getTitle());
-			bundle.putString("artist", data.getArtist());
-			firebaseAnalytics.logEvent("music_opened", bundle);
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (firebaseAnalytics != null) {
+			try {
+				Bundle bundle = new Bundle();
+				bundle.putString("title", data.getTitle());
+				bundle.putString("artist", data.getArtist());
+				firebaseAnalytics.logEvent("music_opened", bundle);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
+
+		scrobbleLastfmForApp(musicService, data)
+				.subscribeOn(Schedulers.io())
+				.subscribe(new Consumer<ScrobbleResult>() {
+					@Override
+					public void accept(ScrobbleResult r) throws Exception {
+						Log.d(TAG, "scrobble" + "\n" + r);
+					}
+				});
 	}
 
 	//endregion
@@ -553,6 +695,60 @@ public class Analytics {
 		});
 	}
 
+
+	public static Observable<Collection<Music>> convertToLocal(final Collection<de.umass.lastfm.Track> tracks, int limit) {
+		return Observable.create(new ObservableOnSubscribe<Collection<Music>>() {
+			@Override
+			public void subscribe(ObservableEmitter<Collection<Music>> oe) throws Exception {
+				try {
+					ArrayList<Music> r = new ArrayList<>();
+
+					JaroWinklerDistance sa = new JaroWinklerDistance();
+
+					Collection<Music> local = new ArrayList<>();
+					try (Realm realm = DB.getDB()) {
+						if (realm != null) {
+							local.addAll(realm.copyFromRealm(realm.where(Music.class).findAll()));
+						}
+					}
+
+					for (de.umass.lastfm.Track t : tracks) {
+						Music m = null;
+
+						for (Music l : local)
+							try {
+								if (sa.apply(t.getName(), l.getTitle()) > 0.90
+										&& sa.apply(t.getArtist(), l.getArtist()) > 0.90) {
+									m = l;
+									local.remove(l);
+									break;
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+
+						if (m == null) {
+							m = new Music();
+							m.setTitle(t.getName());
+							m.setArtist(t.getArtist());
+							m.setAlbum(t.getAlbum());
+							m.setMBID(t.getMbid());
+							m.setTags(StringUtils.join(t.getTags(), ','));
+							m.setLength(t.getDuration());
+							m.setPath(t.getUrl());
+						}
+
+						r.add(m);
+					}
+
+					oe.onNext(r);
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
 
 	//endregion
 
