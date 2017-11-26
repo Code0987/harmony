@@ -134,9 +134,36 @@ public class PlaybackUIMiniFragment extends Fragment {
 		root.setOnClickListener(onClickListener);
 		root.setOnTouchListener(new OnSwipeTouchListener() {
 			@Override
-			public boolean onSwipeBottom() {
+			public boolean onSwipeLeft() {
+				if (musicService != null) {
+					musicService.prev();
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSwipeRight() {
+				if (musicService != null) {
+					musicService.next();
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSwipeTop() {
 				onClickListener.onClick(root);
 				return true;
+			}
+
+			@Override
+			public boolean onSwipeBottom() {
+				try {
+					getActivity().onBackPressed();
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
 			}
 		});
 

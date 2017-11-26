@@ -46,6 +46,7 @@ import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.ui.OnSwipeTouchListener;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.lang3.StringUtils;
@@ -212,6 +213,37 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			@Override
 			public void onClick(View view) {
 				toggleUI();
+			}
+		});
+		av_layout.setOnTouchListener(new OnSwipeTouchListener() {
+			@Override
+			public boolean onSwipeLeft() {
+				if (getMusicService() != null) {
+					getMusicService().prev();
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSwipeRight() {
+				if (getMusicService() != null) {
+					getMusicService().next();
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSwipeTop() {
+				if (getMusicService() != null) {
+					getMusicService().random();
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSwipeBottom() {
+				onBackPressed();
+				return true;
 			}
 		});
 

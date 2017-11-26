@@ -133,11 +133,11 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 						if (isCancelled())
 							throw new Exception("Canceled by user");
 
-						Map<String, Pair<String, Long>> musicData = new HashMap<>();
+						Map<String, Long> musicData = new HashMap<>();
 						try (Realm realm = DB.getDB()) {
 							if (realm != null) {
 								for (Music item : realm.where(Music.class).findAll()) {
-									musicData.put(item.getId(), Pair.create(item.getPath(), (long) item.getLength()));
+									musicData.put(item.getPath(), (long) item.getLength());
 								}
 							}
 						}
@@ -149,13 +149,10 @@ public class FingerprintUpdaterAsyncTask extends AsyncTask<Void, Boolean, Object
 						int k = 1;
 
 						try (Realm realm = Fingerprint.getDB()) {
-							for (Map.Entry<String, Pair<String, Long>> item : musicData.entrySet()) {
-								String path = item.getValue().first;
-								Long length = item.getValue().second;
+							for (Map.Entry<String, Long> item : musicData.entrySet()) {
+								updateNotification("[" + k++ + "/" + t + "] " + (new File(item.getKey())).getName(), false);
 
-								updateNotification("[" + k++ + "/" + t + "] " + (new File(path)).getName(), false);
-
-								Fingerprint.indexIfNot(realm, item.getKey(), path, length);
+								Fingerprint.indexIfNot(realm, item.getKey(), item.getKey(), item.getValue());
 
 								if (isCancelled())
 									throw new Exception("Canceled by user");
