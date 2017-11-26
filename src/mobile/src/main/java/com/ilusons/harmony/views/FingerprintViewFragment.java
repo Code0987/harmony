@@ -119,8 +119,12 @@ public class FingerprintViewFragment extends BaseUIFragment {
 			public void onClick(View view) {
 				if (FingerprintUpdaterAsyncTask.getInstance() == null) {
 					FingerprintUpdaterAsyncTask.run(getContext().getApplicationContext());
+
+					info("Fingerprint updater is running!");
 				} else {
 					FingerprintUpdaterAsyncTask.cancel();
+
+					info("Fingerprint updater stopped!");
 				}
 
 				local_updater_status.setVisibility(View.GONE);

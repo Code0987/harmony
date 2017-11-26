@@ -426,6 +426,12 @@ public class DashboardActivity extends BaseUIActivity {
 		super.OnMusicServiceChanged(className, musicService, isBound);
 
 		updatePlaybackUIMini();
+
+		if (musicService.getLibraryUpdater() != null && !musicService.getLibraryUpdater().isCancelled()) {
+			info("Library update is in progress!", true);
+
+			loading.smoothToShow();
+		}
 	}
 
 	@Override

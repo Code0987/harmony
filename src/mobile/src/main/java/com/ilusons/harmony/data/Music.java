@@ -284,8 +284,12 @@ public class Music extends RealmObject {
 		return false;
 	}
 
+	public String getText(String del) {
+		return TextUtils.isEmpty(Artist) ? Title : Artist + del + Title;
+	}
+
 	public String getText() {
-		return TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title;
+		return getText(" - ");
 	}
 
 	public String getTextExtraOnly(String del, int position) {

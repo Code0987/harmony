@@ -1164,6 +1164,10 @@ public class MusicService extends Service {
 
 	private static MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
 
+	public MusicServiceLibraryUpdaterAsyncTask getLibraryUpdater() {
+		return libraryUpdater;
+	}
+
 	private Music currentMusic;
 	private Playlist currentPlaylist;
 
@@ -1878,6 +1882,8 @@ public class MusicService extends Service {
 			libraryUpdater.execute();
 
 		} else if (action.equals(ACTION_PLAYLIST_CHANGED) || action.equals(ACTION_LIBRARY_UPDATED)) {
+			libraryUpdater = null;
+
 			String playlist = null;
 			try {
 				playlist = intent.getStringExtra(KEY_PLAYLIST_CHANGED_PLAYLIST);
@@ -1902,8 +1908,9 @@ public class MusicService extends Service {
 
 		} else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {
 
-			if (libraryUpdater != null)
+			if (libraryUpdater != null) {
 				libraryUpdater.cancel(true);
+			}
 
 		} else if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
 

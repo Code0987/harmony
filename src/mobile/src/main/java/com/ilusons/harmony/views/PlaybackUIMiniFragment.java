@@ -19,6 +19,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.CacheEx;
+import com.ilusons.harmony.ref.ui.OnSwipeTouchListener;
 
 import java.lang.ref.WeakReference;
 
@@ -127,6 +128,14 @@ public class PlaybackUIMiniFragment extends Fragment {
 			@Override
 			public boolean onLongClick(View view) {
 				onClickListener.onClick(view);
+				return true;
+			}
+		});
+		root.setOnClickListener(onClickListener);
+		root.setOnTouchListener(new OnSwipeTouchListener() {
+			@Override
+			public boolean onSwipeBottom() {
+				onClickListener.onClick(root);
 				return true;
 			}
 		});
