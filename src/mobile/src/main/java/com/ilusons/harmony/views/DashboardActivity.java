@@ -408,6 +408,17 @@ public class DashboardActivity extends BaseUIActivity {
 
 					libraryViewFragment.setViewPlaylist(playlist);
 
+					try {
+						if (Playlist.getActivePlaylist(DashboardActivity.this).equals(playlist.getName())) {
+							Intent musicServiceIntent = new Intent(DashboardActivity.this, MusicService.class);
+							musicServiceIntent.setAction(MusicService.ACTION_PLAYLIST_CHANGED);
+							musicServiceIntent.putExtra(MusicService.KEY_PLAYLIST_CHANGED_PLAYLIST, playlist.getName());
+							startService(musicServiceIntent);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
 					info("Playlist updated!");
 				} catch (Exception e) {
 					e.printStackTrace();
