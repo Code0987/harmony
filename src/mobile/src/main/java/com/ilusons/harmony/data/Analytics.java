@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -701,7 +702,7 @@ public class Analytics {
 			@Override
 			public void subscribe(ObservableEmitter<Collection<Music>> oe) throws Exception {
 				try {
-					ArrayList<Music> r = new ArrayList<>();
+					final ArrayList<Music> r = new ArrayList<>();
 
 					JaroWinklerDistance sa = new JaroWinklerDistance();
 
@@ -745,6 +746,19 @@ public class Analytics {
 						count++;
 						if (count >= limit)
 							break;
+					}
+
+					try (Realm realm = DB.getDB()) {
+						if (realm != null) {
+							realm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(@NonNull Realm realm) {
+									realm.insertOrUpdate(r);
+								}
+							});
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 
 					oe.onNext(r);

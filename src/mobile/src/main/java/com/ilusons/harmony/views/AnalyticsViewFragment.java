@@ -46,6 +46,7 @@ import com.google.android.flexbox.JustifyContent;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
+import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.CacheEx;
@@ -74,6 +75,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import io.realm.Realm;
 
 public class AnalyticsViewFragment extends Fragment {
 
@@ -119,7 +121,7 @@ public class AnalyticsViewFragment extends Fragment {
 	private Animation animation_press_c1;
 
 	private void createItems(View v) {
-		final int N = 11;
+		final int N = 7;
 
 		final List<Music> items = Music.getAllSortedByScore(N);
 
@@ -156,11 +158,14 @@ public class AnalyticsViewFragment extends Fragment {
 						if (p == 0) {
 							cs = 16;
 							rs = 8;
-						} else if (p == 1 || p == 8) {
+						} else if (p == 1 || p == 5) {
 							cs = 6;
 							rs = 8;
+						} else if (p == 2 || p == 3 || p == 4 || p == 6) {
+							cs = 10;
+							rs = 4;
 						} else {
-							cs = 5;
+							cs = 8;
 							rs = 4;
 						}
 
@@ -199,6 +204,7 @@ public class AnalyticsViewFragment extends Fragment {
 				.subscribe(new Consumer<Collection<Music>>() {
 					@Override
 					public void accept(Collection<Music> r) throws Exception {
+
 						itemAdapter_c1.clear();
 						for (Music m : r) {
 							itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(m));
