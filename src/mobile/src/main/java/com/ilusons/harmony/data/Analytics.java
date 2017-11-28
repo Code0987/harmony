@@ -1,22 +1,17 @@
 package com.ilusons.harmony.data;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.ServerValue;
-import com.google.firebase.database.Transaction;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.ref.ArtworkEx;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SecurePreferences;
 
 import org.apache.http.util.TextUtils;
@@ -24,42 +19,34 @@ import org.apache.http.util.TextUtils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.logging.LogRecord;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Caller;
+import de.umass.lastfm.ImageSize;
 import de.umass.lastfm.Period;
 import de.umass.lastfm.Session;
 import de.umass.lastfm.cache.FileSystemCache;
 import de.umass.lastfm.scrobble.ScrobbleData;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import io.reactivex.ObservableSource;
-import io.reactivex.Scheduler;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
-import jonathanfinerty.once.Once;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.musicbrainz.android.api.User;
-import org.musicbrainz.android.api.data.Artist;
-import org.musicbrainz.android.api.data.ArtistSearchResult;
 import org.musicbrainz.android.api.data.Recording;
 import org.musicbrainz.android.api.data.RecordingInfo;
-import org.musicbrainz.android.api.data.Track;
-import org.musicbrainz.android.api.handler.RecordingSearchHandler;
 import org.musicbrainz.android.api.webservice.MusicBrainzWebClient;
 
 import java.net.URLEncoder;
-import java.util.LinkedList;
 
-import io.reactivex.Maybe;
-import io.reactivex.MaybeEmitter;
-import io.reactivex.MaybeOnSubscribe;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -697,7 +684,7 @@ public class Analytics {
 	}
 
 
-	public static Observable<Collection<Music>> convertToLocal(final Collection<de.umass.lastfm.Track> tracks, final int limit) {
+	public static Observable<Collection<Music>> convertToLocal(final Context context, final Collection<de.umass.lastfm.Track> tracks, final int limit) {
 		return Observable.create(new ObservableOnSubscribe<Collection<Music>>() {
 			@Override
 			public void subscribe(ObservableEmitter<Collection<Music>> oe) throws Exception {
@@ -739,6 +726,36 @@ public class Analytics {
 							m.setTags(StringUtils.join(t.getTags(), ','));
 							m.setLength(t.getDuration());
 							m.setPath(t.getUrl());
+
+							try {
+								ArtworkEx.ArtworkDownloaderAsyncTask artworkDownloaderAsyncTask = (new ArtworkEx.ArtworkDownloaderAsyncTask(
+										context,
+										t.getImageURL(ImageSize.MEDIUM),
+										ArtworkEx.ArtworkType.Song,
+										-1,
+										m.getPath(),
+										Music.KEY_CACHE_DIR_COVER,
+										m.getPath(),
+										new JavaEx.ActionT<Bitmap>() {
+											@Override
+											public void execute(Bitmap bitmap) {
+											}
+										},
+										new JavaEx.ActionT<Exception>() {
+											@Override
+											public void execute(Exception e) {
+												Log.w(TAG, e);
+											}
+										},
+										1500,
+										true));
+
+								artworkDownloaderAsyncTask.execute();
+
+								artworkDownloaderAsyncTask.wait(1500);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 
 						r.add(m);
