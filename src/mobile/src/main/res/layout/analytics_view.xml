@@ -39,7 +39,7 @@
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recyclerView_c1"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="588dp"
                 android:animateLayoutChanges="false"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"

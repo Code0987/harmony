@@ -1318,6 +1318,9 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		public void jumpToCurrentlyPlayingItem() {
 			try {
+				if(getMusicService().getMusic() == null)
+					return;
+
 				int pg = -1;
 				int pc = -1;
 				String current = getMusicService().getMusic().getPath();

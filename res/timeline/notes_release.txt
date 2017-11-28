@@ -6,6 +6,7 @@
 ✔ Bugs/crashes fixed.
 🔮️ New smart genres based groups.
 🔮️ New swipe gestures (Now playing gui, mini + full).
+✔ Added a new visualizer, circle bars.
 ✔ Fixed slow scan on large media collections. (Also scanner is now fast)
 ✔ Fixed reverb. not working automatically bug.
 ✔ Added support for MusicBrainz tags.
