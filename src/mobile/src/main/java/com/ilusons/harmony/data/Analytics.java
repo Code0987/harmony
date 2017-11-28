@@ -683,7 +683,6 @@ public class Analytics {
 		});
 	}
 
-
 	public static Observable<Collection<Music>> convertToLocal(final Context context, final Collection<de.umass.lastfm.Track> tracks, final int limit) {
 		return Observable.create(new ObservableOnSubscribe<Collection<Music>>() {
 			@Override
@@ -730,7 +729,7 @@ public class Analytics {
 							try {
 								ArtworkEx.ArtworkDownloaderAsyncTask artworkDownloaderAsyncTask = (new ArtworkEx.ArtworkDownloaderAsyncTask(
 										context,
-										t.getImageURL(ImageSize.MEDIUM),
+										t.getImageURL(ImageSize.LARGESQUARE),
 										ArtworkEx.ArtworkType.Song,
 										-1,
 										m.getPath(),
@@ -747,12 +746,12 @@ public class Analytics {
 												Log.w(TAG, e);
 											}
 										},
-										1500,
+										3000,
 										true));
 
 								artworkDownloaderAsyncTask.execute();
 
-								artworkDownloaderAsyncTask.wait(1500);
+								artworkDownloaderAsyncTask.wait();
 							} catch (Exception e) {
 								e.printStackTrace();
 							}

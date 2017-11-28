@@ -194,6 +194,8 @@ public class AnalyticsViewFragment extends Fragment {
 
 		final Context context = getContext();
 
+		loading.smoothToShow();
+
 		Analytics.getInstance().getTopTracksForLastfmForApp()
 				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 					@Override
@@ -206,11 +208,16 @@ public class AnalyticsViewFragment extends Fragment {
 				.subscribe(new Consumer<Collection<Music>>() {
 					@Override
 					public void accept(Collection<Music> r) throws Exception {
-
 						itemAdapter_c1.clear();
 						for (Music m : r) {
 							itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(m));
 						}
+						loading.smoothToHide();
+					}
+				}, new Consumer<Throwable>() {
+					@Override
+					public void accept(Throwable throwable) throws Exception {
+						loading.smoothToHide();
 					}
 				});
 	}
