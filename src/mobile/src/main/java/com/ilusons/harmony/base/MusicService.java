@@ -1904,6 +1904,8 @@ public class MusicService extends Service {
 						prepare(null);
 						// update();
 					}
+
+				updateNotification();
 			}
 
 		} else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {

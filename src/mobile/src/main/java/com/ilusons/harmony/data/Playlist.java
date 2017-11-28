@@ -598,7 +598,14 @@ public class Playlist extends RealmObject {
 						if (Music.isValid(item.first)) {
 							if (!oldItems.containsKey(item.first)) {
 								try {
-									Music newItem = Music.createFromLocal(context, item.first, item.second, fastMode, null);
+									Music newItem = null;
+									try {
+										newItem = Music.load(context, item.first);
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+									if (newItem == null)
+										newItem = Music.createFromLocal(context, item.first, item.second, fastMode, null);
 									if (newItem != null) {
 										// Check constraints
 										if (!(newItem.getLength() > 0 && (MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) > newItem.getLength())) {
