@@ -1082,8 +1082,14 @@ public class Music extends RealmObject {
 				data = realm.where(Music.class).equalTo("Path", path).findFirst();
 				if (data == null) {
 					data = Music.createFromLocal(context, path, null, true, null);
-					if (data != null)
-						realm.insertOrUpdate(data);
+					if (data != null){
+						final Music finalData = data;
+						realm.executeTransaction(new Realm.Transaction() {
+							@Override
+							public void execute(@NonNull Realm realm) {
+								realm.insertOrUpdate(finalData);
+							}
+						});}
 				} else {
 					data = realm.copyFromRealm(data);
 				}
