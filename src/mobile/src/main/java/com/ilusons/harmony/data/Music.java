@@ -1075,6 +1075,19 @@ public class Music extends RealmObject {
 
 	//region DB
 
+	public static Music get(String path) {
+		Music data = null;
+		try (Realm realm = DB.getDB()) {
+			if (realm != null) {
+				data = realm.where(Music.class).equalTo("Path", path).findFirst();
+				if (data != null) {
+					data = realm.copyFromRealm(data);
+				}
+			}
+			return data;
+		}
+	}
+
 	public static Music load(Context context, String path) {
 		Music data = null;
 		try (Realm realm = DB.getDB()) {
@@ -1082,14 +1095,15 @@ public class Music extends RealmObject {
 				data = realm.where(Music.class).equalTo("Path", path).findFirst();
 				if (data == null) {
 					data = Music.createFromLocal(context, path, null, true, null);
-					if (data != null){
+					if (data != null) {
 						final Music finalData = data;
 						realm.executeTransaction(new Realm.Transaction() {
 							@Override
 							public void execute(@NonNull Realm realm) {
 								realm.insertOrUpdate(finalData);
 							}
-						});}
+						});
+					}
 				} else {
 					data = realm.copyFromRealm(data);
 				}

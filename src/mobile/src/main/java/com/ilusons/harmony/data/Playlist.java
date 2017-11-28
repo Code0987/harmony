@@ -600,7 +600,7 @@ public class Playlist extends RealmObject {
 								try {
 									Music newItem = null;
 									try {
-										newItem = Music.load(context, item.first);
+										newItem = Music.get(item.first);
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
