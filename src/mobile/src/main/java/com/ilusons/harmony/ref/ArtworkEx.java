@@ -107,17 +107,21 @@ public class ArtworkEx {
 
 				// Download and cache to folder then load
 				if (result == null) {
-					switch (artworkType) {
-						case Song:
-						case Artist:
-						case Album:
-							downloadFromItunes(file);
-							break;
-						case None:
-							downloadFromPixabay(file);
-							break;
-						default:
-							throw new Exception("Artwork type not specified!");
+					if (query.toLowerCase().startsWith("http")) {
+						downloadFromUrl(file);
+					} else {
+						switch (artworkType) {
+							case Song:
+							case Artist:
+							case Album:
+								downloadFromItunes(file);
+								break;
+							case None:
+								downloadFromPixabay(file);
+								break;
+							default:
+								throw new Exception("Artwork type not specified!");
+						}
 					}
 
 					if (file.exists())
@@ -192,6 +196,33 @@ public class ArtworkEx {
 			}
 
 			return result;
+		}
+
+		private void downloadFromUrl(File downloadToFile) {
+			try {
+				BufferedInputStream in = null;
+				FileOutputStream out = null;
+				try {
+					in = new BufferedInputStream(new URL(query).openStream());
+					out = new FileOutputStream(downloadToFile.getAbsoluteFile());
+
+					final byte data[] = new byte[1024];
+					int count;
+					while ((count = in.read(data, 0, 1024)) != -1) {
+						out.write(data, 0, count);
+					}
+				} finally {
+					if (in != null) {
+						in.close();
+					}
+					if (out != null) {
+						out.close();
+					}
+				}
+
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
 		}
 
 		private void downloadFromItunes(File downloadToFile) {

@@ -535,10 +535,10 @@ public class Music extends RealmObject {
 		}
 		getCoverOrDownloadTask = (new ArtworkEx.ArtworkDownloaderAsyncTask(
 				currentCoverView.get(),
-				data.getText(),
+				data.isLocal() ? data.getText() : data.getPath(),
 				ArtworkEx.ArtworkType.Song,
 				size,
-				data.Path,
+				data.getPath(),
 				KEY_CACHE_DIR_COVER,
 				data.Path,
 				new JavaEx.ActionT<Bitmap>() {
