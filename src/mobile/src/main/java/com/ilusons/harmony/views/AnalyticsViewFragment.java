@@ -119,10 +119,7 @@ public class AnalyticsViewFragment extends Fragment {
 	private Animation animation_press_c1;
 
 	private void createItems(View v) {
-		final List<Music> items = Music.getAllSortedByScore(6);
-
-		if (items.size() <= 5)
-			return;
+		final List<Music> items = Music.getAllSortedByScore(7);
 
 		itemAdapter_c1 = new ItemAdapter<>();
 		adapter_c1 = FastAdapter.with(Arrays.asList(itemAdapter_c1));
@@ -307,7 +304,7 @@ public class AnalyticsViewFragment extends Fragment {
 		chart.setHighlightPerTapEnabled(true);
 
 		chart.setDrawCenterText(true);
-		chart.setCenterText("Top " + N);
+		chart.setCenterText("Local Top " + N);
 		chart.setCenterTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
 		chart.setCenterTextSize(16f);
 
@@ -352,7 +349,7 @@ public class AnalyticsViewFragment extends Fragment {
 				e.printStackTrace();
 			}
 
-		PieDataSet dataSet = new PieDataSet(data, "Top " + N);
+		PieDataSet dataSet = new PieDataSet(data, "Local Top " + N);
 		dataSet.setSliceSpace(1f);
 		dataSet.setSelectionShift(5f);
 		dataSet.setHighlightEnabled(true);
