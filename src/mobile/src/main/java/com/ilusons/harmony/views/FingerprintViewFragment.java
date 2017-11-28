@@ -33,9 +33,11 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.base.BaseDialogUIActivity;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Api;
@@ -619,13 +621,12 @@ public class FingerprintViewFragment extends BaseUIFragment {
 
 	}
 
-	public static boolean shouldBeVisible() {
-		return Music.getSize() >= 5;
-	}
-
-	public static FingerprintViewFragment create() {
-		FingerprintViewFragment f = new FingerprintViewFragment();
-		return f;
+	public static void showAsDialog(Context context) {
+		if (Music.getSize() >= 5) {
+			BaseDialogUIActivity.show(context, FingerprintViewFragment.class, Bundle.EMPTY);
+		} else {
+			Toast.makeText(context, "Play some music first!", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	public class WaveformView extends View {

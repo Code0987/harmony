@@ -68,6 +68,17 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 
+    <style name="AppTheme.Dialog" parent="Theme.AppCompat.DayNight.DialogWhenLarge">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowSoftInputMode">stateAlwaysHidden</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@color/primary_dark</item>
+        <item name="android:background">@color/primary_dark</item>
+    </style>
+
     <style name="AppTheme.SearchView" parent="Widget.AppCompat.SearchView">
         <item name="android:textColor">@color/primary_text</item>
         <item name="android:editTextColor">@color/primary_text</item>
