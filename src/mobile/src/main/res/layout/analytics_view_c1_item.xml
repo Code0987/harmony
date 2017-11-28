@@ -46,15 +46,33 @@
             >
 
             <TextView
-                android:id="@+id/text"
+                android:id="@+id/text1"
                 style="@style/TextAppearance.AppCompat.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:layout_margin="3dp"
+                android:layout_marginBottom="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
                 android:layout_marginTop="16dp"
-                android:ellipsize="none"
-                android:maxLines="2"
+                android:maxLines="1"
+                android:textColor="@color/primary_text"
+                android:textSize="9sp"
+                tools:text="Text ..."
+                />
+
+            <TextView
+                android:id="@+id/text2"
+                style="@style/TextAppearance.AppCompat.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/text1"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginTop="0dp"
+                android:maxLines="1"
                 android:textColor="@color/primary_text"
                 android:textSize="9sp"
                 tools:text="Text ..."

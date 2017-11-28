@@ -243,7 +243,8 @@ public class AnalyticsViewFragment extends Fragment {
 			} else {
 				viewHolder.image.setImageDrawable(null);
 			}
-			viewHolder.text.setText(data.getText(System.lineSeparator()));
+			viewHolder.text1.setText(data.getTitle());
+			viewHolder.text2.setText(data.getArtist());
 		}
 
 		@Override
@@ -251,7 +252,8 @@ public class AnalyticsViewFragment extends Fragment {
 			super.unbindView(holder);
 
 			holder.image.setImageDrawable(null);
-			holder.text.setText(null);
+			holder.text1.setText(null);
+			holder.text2.setText(null);
 		}
 
 		@Override
@@ -263,7 +265,8 @@ public class AnalyticsViewFragment extends Fragment {
 			protected View view;
 
 			protected ImageView image;
-			protected TextView text;
+			protected TextView text1;
+			protected TextView text2;
 
 			public ViewHolder(View v) {
 				super(v);
@@ -271,7 +274,8 @@ public class AnalyticsViewFragment extends Fragment {
 				view = v;
 
 				image = v.findViewById(R.id.image);
-				text = v.findViewById(R.id.text);
+				text1 = v.findViewById(R.id.text1);
+				text2 = v.findViewById(R.id.text2);
 			}
 		}
 	}
