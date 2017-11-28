@@ -404,17 +404,7 @@ public class AnalyticsViewFragment extends Fragment {
 	}
 
 	public static boolean shouldBeVisible() {
-		if (!MusicService.IsPremium)
-			return false;
-		try {
-			double sum = 0;
-			for (Music item : Music.getAllSortedByScore(6))
-				sum += item.getScore();
-			return sum >= 7;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
+		return true;
 	}
 
 	public static AnalyticsViewFragment create() {
