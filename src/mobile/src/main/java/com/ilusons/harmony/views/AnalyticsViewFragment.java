@@ -192,11 +192,13 @@ public class AnalyticsViewFragment extends Fragment {
 			}
 		}, 1300);
 
+		final Context context = getContext();
+
 		Analytics.getInstance().getTopTracksForLastfmForApp()
 				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 					@Override
 					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-						return Analytics.convertToLocal(tracks, N);
+						return Analytics.convertToLocal(context, tracks, N);
 					}
 				})
 				.subscribeOn(Schedulers.io())
