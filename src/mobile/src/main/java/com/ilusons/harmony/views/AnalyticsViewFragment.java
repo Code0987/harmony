@@ -414,10 +414,6 @@ public class AnalyticsViewFragment extends Fragment {
 		}
 	}
 
-	public static boolean shouldBeVisible() {
-		return true;
-	}
-
 	public static AnalyticsViewFragment create() {
 		AnalyticsViewFragment f = new AnalyticsViewFragment();
 		return f;

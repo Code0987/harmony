@@ -46,6 +46,7 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.MPPointF;
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.base.BaseDialogUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -285,6 +286,14 @@ public class TimerViewFragment extends Fragment {
 		ComponentName receiver = new ComponentName(context, BootReceiver.class);
 		PackageManager pm = context.getPackageManager();
 		pm.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+	}
+
+	public static void showAsDialog(Context context) {
+		if (MusicService.IsPremium) {
+			BaseDialogUIActivity.show(context, TimerViewFragment.class, Bundle.EMPTY);
+		} else {
+			Toast.makeText(context, "Play some music first!", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	public static boolean shouldBeVisible() {

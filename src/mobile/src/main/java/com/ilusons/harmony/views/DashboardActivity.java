@@ -622,6 +622,24 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		});
 
+		findViewById(R.id.timer).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				TimerViewFragment.showAsDialog(DashboardActivity.this);
+
+				drawer_layout.closeDrawer(GravityCompat.START);
+			}
+		});
+
+		findViewById(R.id.identify).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				FingerprintViewFragment.showAsDialog(DashboardActivity.this);
+
+				drawer_layout.closeDrawer(GravityCompat.START);
+			}
+		});
+
 		findViewById(R.id.feedback).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -697,14 +715,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 		viewPagerAdapter.add(libraryViewFragment, "Library");
 
-		if (AnalyticsViewFragment.shouldBeVisible())
-			viewPagerAdapter.add(AnalyticsViewFragment.create(), "Analytics");
-
-		if (TimerViewFragment.shouldBeVisible())
-			viewPagerAdapter.add(TimerViewFragment.create(), "Timer");
-
-		if (FingerprintViewFragment.shouldBeVisible())
-			viewPagerAdapter.add(FingerprintViewFragment.create(), "Identify");
+		viewPagerAdapter.add(AnalyticsViewFragment.create(), "Analytics");
 
 	}
 
