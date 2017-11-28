@@ -48,6 +48,7 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.ui.SpannedGridLayoutManager;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
@@ -66,6 +67,7 @@ import java.util.Collection;
 import java.util.List;
 
 import de.umass.lastfm.Track;
+import de.umass.lastfm.cache.Cache;
 import io.reactivex.ObservableSource;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -155,7 +157,7 @@ public class AnalyticsViewFragment extends Fragment {
 						if (p == 0) {
 							cs = 16;
 							rs = 8;
-						} else if (p == 1) {
+						} else if (p == 1 || p == 8) {
 							cs = 6;
 							rs = 8;
 						} else {
@@ -242,7 +244,7 @@ public class AnalyticsViewFragment extends Fragment {
 			if (bitmap != null) {
 				viewHolder.image.setImageBitmap(bitmap);
 			} else {
-				viewHolder.image.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_broken_image_black));
+				viewHolder.image.setImageDrawable(null);
 			}
 			viewHolder.text.setText(data.getText(System.lineSeparator()));
 		}

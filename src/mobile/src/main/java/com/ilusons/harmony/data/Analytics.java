@@ -223,14 +223,14 @@ public class Analytics {
 									tracks.addAll(de.umass.lastfm.User.getTopTracks(
 											getLastfmForAppUsername(),
 											Period.WEEK,
-											getLastfmForAppPassword()));
+											getKey()));
 
 									if (tracks.size() < 7) {
 										tracks.clear();
 										tracks.addAll(de.umass.lastfm.User.getTopTracks(
 												getLastfmForAppUsername(),
 												Period.OVERALL,
-												getLastfmForAppPassword()));
+												getKey()));
 									}
 
 									oe.onNext(tracks);
@@ -696,7 +696,7 @@ public class Analytics {
 	}
 
 
-	public static Observable<Collection<Music>> convertToLocal(final Collection<de.umass.lastfm.Track> tracks, int limit) {
+	public static Observable<Collection<Music>> convertToLocal(final Collection<de.umass.lastfm.Track> tracks, final int limit) {
 		return Observable.create(new ObservableOnSubscribe<Collection<Music>>() {
 			@Override
 			public void subscribe(ObservableEmitter<Collection<Music>> oe) throws Exception {
@@ -711,6 +711,8 @@ public class Analytics {
 							local.addAll(realm.copyFromRealm(realm.where(Music.class).findAll()));
 						}
 					}
+
+					int count = 0;
 
 					for (de.umass.lastfm.Track t : tracks) {
 						Music m = null;
@@ -739,6 +741,10 @@ public class Analytics {
 						}
 
 						r.add(m);
+
+						count++;
+						if (count >= limit)
+							break;
 					}
 
 					oe.onNext(r);
