@@ -535,7 +535,7 @@ public class Music extends RealmObject {
 		}
 		getCoverOrDownloadTask = (new ArtworkEx.ArtworkDownloaderAsyncTask(
 				currentCoverView.get(),
-				data.isLocal() ? data.getText() : data.getPath(),
+				data.getText(),
 				ArtworkEx.ArtworkType.Song,
 				size,
 				data.getPath(),
