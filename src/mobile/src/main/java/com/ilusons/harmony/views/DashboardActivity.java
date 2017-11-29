@@ -402,6 +402,11 @@ public class DashboardActivity extends BaseUIActivity {
 								public void accept(Playlist playlist) throws Exception {
 									info("Added all items.");
 								}
+							}, new Consumer<Throwable>() {
+								@Override
+								public void accept(Throwable throwable) throws Exception {
+									info("Can't add selected items.");
+								}
 							});
 
 					Playlist.savePlaylist(playlist);

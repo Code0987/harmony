@@ -125,6 +125,9 @@ public class Tips {
 	}
 
 	private void showDialog() {
+		if (activity == null || activity.isDestroyed() || activity.isFinishing())
+			return;
+
 		if (activity.getSupportFragmentManager().findFragmentByTag(TAG) != null) {
 			return;
 		}

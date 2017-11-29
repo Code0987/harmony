@@ -220,7 +220,6 @@ dependencies {
 	implementation('com.scand:realm-browser:0.1.15') {
 		exclude group: 'io.realm'
 	}
-	implementation 'com.github.jetradarmobile:android-snowfall:1.1.6'
 	// debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
 	debugImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 	releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'

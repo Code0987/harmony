@@ -268,6 +268,11 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 					public void accept(Playlist playlist) throws Exception {
 
 					}
+				}, new Consumer<Throwable>() {
+					@Override
+					public void accept(Throwable throwable) throws Exception {
+
+					}
 				});
 
 		Playlist.savePlaylist(playlist);
@@ -301,6 +306,11 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				.subscribe(new Consumer<Playlist>() {
 					@Override
 					public void accept(Playlist playlist) throws Exception {
+
+					}
+				}, new Consumer<Throwable>() {
+					@Override
+					public void accept(Throwable throwable) throws Exception {
 
 					}
 				});
@@ -349,6 +359,11 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 					.subscribe(new Consumer<Playlist>() {
 						@Override
 						public void accept(Playlist playlist) throws Exception {
+
+						}
+					}, new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
 
 						}
 					});

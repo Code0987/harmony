@@ -551,13 +551,16 @@ public class FingerprintViewFragment extends BaseUIFragment {
 							final Fingerprint fingerprint = Fingerprint.search(rawfp, 0.65, 0.95);
 							if (fingerprint != null) {
 								final Music music = Music.load(context, fingerprint.getId());
-								if (music != null)
+								if (music != null) try {
 									getActivity().runOnUiThread(new Runnable() {
 										@Override
 										public void run() {
 											updateLookup(music.getPath(), music.getCover(getContext(), -1), music.getText(), true);
 										}
 									});
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							} else {
 
 								// Search online
@@ -572,7 +575,7 @@ public class FingerprintViewFragment extends BaseUIFragment {
 										new JavaEx.ActionT<Map<String, String>>() {
 											@Override
 											public void execute(final Map<String, String> result) {
-												if (result.size() > 0)
+												if (result.size() > 0) try {
 													getActivity().runOnUiThread(new Runnable() {
 														@Override
 														public void run() {
@@ -585,6 +588,9 @@ public class FingerprintViewFragment extends BaseUIFragment {
 															updateLookup(artist + " - " + title, null, artist + " - " + title, false);
 														}
 													});
+												} catch (Exception e) {
+													e.printStackTrace();
+												}
 											}
 										},
 										new JavaEx.ActionT<Exception>() {
