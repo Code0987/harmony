@@ -1,18 +1,16 @@
 ﻿◾️ Work in progress, please leave feedback.
 
-☃ 3 days FREE premium, test all the features ☃
+☃ 3 days FREE premium ☃
 
 🔮️ New analytics tab, new weekly updated top music played in app, by you all.
 ✔ Bugs/crashes fixed.
-🔮️ New smart genres based groups.
+🔮️ New smart genre based groups.
 🔮️ New swipe gestures (Now playing gui, mini + full).
 ✔ Added a new visualizer, circle bars.
-✔️ Fixed playlist, add music bug.
-✔ Fixed slow scan on large media collections. (Also scanner is now fast)
-✔ Fixed reverb. not working automatically bug.
+✔️ Fixed playlist bug.
+✔ Fixed slow scan.
+✔ Fixed reverb. bug.
 ✔ Added support for MusicBrainz tags.
-✔ Added new metadata field, tags.
-✔ Updated search to include tags and genre.
 
 🔮️ Future: Smart playlist generator.
 🔮️ Future: YouTube integration.
