@@ -16,6 +16,7 @@ import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,7 +50,9 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.ui.SpannedGridLayoutManager;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
@@ -66,9 +69,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Observable;
 
 import de.umass.lastfm.Track;
 import de.umass.lastfm.cache.Cache;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -249,7 +255,7 @@ public class AnalyticsViewFragment extends Fragment {
 		}
 
 		@Override
-		public void bindView(ViewHolder viewHolder, List<Object> payloads) {
+		public void bindView(@NonNull final ViewHolder viewHolder, @NonNull List<Object> payloads) {
 			super.bindView(viewHolder, payloads);
 
 			Context context = viewHolder.view.getContext();
@@ -259,6 +265,39 @@ public class AnalyticsViewFragment extends Fragment {
 				viewHolder.image.setImageBitmap(bitmap);
 			} else {
 				viewHolder.image.setImageDrawable(null);
+
+				try {
+					ArtworkEx.ArtworkDownloaderAsyncTask artworkDownloaderAsyncTask = (new ArtworkEx.ArtworkDownloaderAsyncTask(
+							context,
+							data.getText(),
+							ArtworkEx.ArtworkType.Song,
+							-1,
+							data.getPath(),
+							Music.KEY_CACHE_DIR_COVER,
+							data.getPath(),
+							new JavaEx.ActionT<Bitmap>() {
+								@Override
+								public void execute(Bitmap bitmap) {
+									try {
+										viewHolder.image.setImageBitmap(bitmap);
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
+							},
+							new JavaEx.ActionT<Exception>() {
+								@Override
+								public void execute(Exception e) {
+									Log.w(TAG, e);
+								}
+							},
+							3000,
+							true));
+
+					artworkDownloaderAsyncTask.execute();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 			viewHolder.text1.setText(data.getTitle());
 			viewHolder.text2.setText(data.getArtist());
