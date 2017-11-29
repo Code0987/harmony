@@ -41,6 +41,8 @@
                 android:layout_width="0dp"
                 android:layout_height="588dp"
                 android:animateLayoutChanges="false"
+                android:drawingCacheQuality="low"
+                android:persistentDrawingCache="scrolling"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"
                 res:layout_constraintTop_toTopOf="parent"/>
