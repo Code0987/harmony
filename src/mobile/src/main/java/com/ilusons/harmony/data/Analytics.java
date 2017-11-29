@@ -557,6 +557,11 @@ public class Analytics {
 					public void accept(ScrobbleResult r) throws Exception {
 						Log.d(TAG, "scrobble" + "\n" + r);
 					}
+				}, new Consumer<Throwable>() {
+					@Override
+					public void accept(Throwable throwable) throws Exception {
+						Log.w(TAG, throwable);
+					}
 				});
 	}
 
