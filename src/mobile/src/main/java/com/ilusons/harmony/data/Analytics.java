@@ -725,36 +725,6 @@ public class Analytics {
 							m.setTags(StringUtils.join(t.getTags(), ','));
 							m.setLength(t.getDuration());
 							m.setPath(t.getUrl());
-
-							try {
-								ArtworkEx.ArtworkDownloaderAsyncTask artworkDownloaderAsyncTask = (new ArtworkEx.ArtworkDownloaderAsyncTask(
-										context,
-										t.getImageURL(ImageSize.LARGESQUARE),
-										ArtworkEx.ArtworkType.Song,
-										-1,
-										m.getPath(),
-										Music.KEY_CACHE_DIR_COVER,
-										m.getPath(),
-										new JavaEx.ActionT<Bitmap>() {
-											@Override
-											public void execute(Bitmap bitmap) {
-											}
-										},
-										new JavaEx.ActionT<Exception>() {
-											@Override
-											public void execute(Exception e) {
-												Log.w(TAG, e);
-											}
-										},
-										3000,
-										true));
-
-								artworkDownloaderAsyncTask.execute();
-
-								artworkDownloaderAsyncTask.wait();
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
 						}
 
 						r.add(m);
