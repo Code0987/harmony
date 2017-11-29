@@ -150,7 +150,7 @@ public class AnalyticsViewFragment extends Fragment {
 
 		recyclerView_c1 = v.findViewById(R.id.recyclerView_c1);
 		recyclerView_c1.setHasFixedSize(true);
-		recyclerView_c1.setItemViewCacheSize(7);
+		recyclerView_c1.setItemViewCacheSize(11);
 		recyclerView_c1.setDrawingCacheEnabled(true);
 		recyclerView_c1.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 
