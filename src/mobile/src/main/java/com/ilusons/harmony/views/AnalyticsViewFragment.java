@@ -145,6 +145,11 @@ public class AnalyticsViewFragment extends Fragment {
 		});
 
 		swipeRefreshLayout = v.findViewById(R.id.swipeRefreshLayout);
+		swipeRefreshLayout.setColorSchemeColors(
+				ContextCompat.getColor(v.getContext(), R.color.translucent_accent),
+				ContextCompat.getColor(v.getContext(), R.color.accent),
+				ContextCompat.getColor(v.getContext(), R.color.translucent_accent));
+		swipeRefreshLayout.setWaveColor(ContextCompat.getColor(v.getContext(), R.color.translucent_accent));
 
 		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
 		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 0);

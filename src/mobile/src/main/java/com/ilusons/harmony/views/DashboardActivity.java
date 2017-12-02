@@ -239,8 +239,6 @@ public class DashboardActivity extends BaseUIActivity {
 							.from(bitmap)
 							.into(bg_effect);
 				} catch (Exception e) {
-					bg_effect.setImageDrawable(null);
-
 					e.printStackTrace();
 				}
 			}
@@ -486,8 +484,6 @@ public class DashboardActivity extends BaseUIActivity {
 					.from(getMusicService().getMusic().getCover(this, -1))
 					.into(bg_effect);
 		} catch (Exception e) {
-			bg_effect.setImageDrawable(null);
-
 			e.printStackTrace();
 		}
 	}

@@ -54,6 +54,9 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.arasthel.spannedgridlayoutmanager.SpanLayoutParams;
+import com.arasthel.spannedgridlayoutmanager.SpanSize;
+import com.arasthel.spannedgridlayoutmanager.SpannedGridLayoutManager;
 import com.google.android.flexbox.AlignItems;
 import com.google.android.flexbox.AlignSelf;
 import com.google.android.flexbox.FlexDirection;
@@ -1254,26 +1257,31 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		private void setupLayout(View v, int p, boolean header) {
 			ViewGroup.LayoutParams lp = v.getLayoutParams();
-			if (lp instanceof FlexboxLayoutManager.LayoutParams) {
-				FlexboxLayoutManager.LayoutParams flexboxLp = (FlexboxLayoutManager.LayoutParams) lp;
 
-				flexboxLp.setAlignSelf(AlignSelf.FLEX_START);
-				flexboxLp.setWrapBefore(false);
+			if (lp instanceof SpanLayoutParams) {
+				SpanLayoutParams slp = (SpanLayoutParams) lp;
 
-				if (header) {
-					flexboxLp.setFlexBasisPercent(100);
-				} else {
-					switch (p) {
-						case 0:
-							flexboxLp.setFlexBasisPercent(100);
-							break;
-						case 1:
-							flexboxLp.setFlexBasisPercent(50);
-							break;
-						default:
-							flexboxLp.setFlexBasisPercent(25);
-							break;
+				try {
+					int cs;
+					int rs;
+
+					if (p == 0) {
+						cs = SPANS;
+						rs = SPANS;
+					} else if (p == 1 || p == 5) {
+						cs = SPANS / 2;
+						rs = SPANS;
+					} else if (p == 2 || p == 3 || p == 4 || p == 6) {
+						cs = SPANS / 4;
+						rs = SPANS / 2;
+					} else {
+						cs = SPANS / 2;
+						rs = SPANS / 2;
 					}
+
+					v.setLayoutParams(new SpanLayoutParams(new SpanSize(cs, rs)));
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
@@ -1318,7 +1326,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		public void jumpToCurrentlyPlayingItem() {
 			try {
-				if(getMusicService().getMusic() == null)
+				if (getMusicService().getMusic() == null)
 					return;
 
 				int pg = -1;
@@ -2086,12 +2094,14 @@ public class LibraryViewFragment extends BaseUIFragment {
 		});
 	}
 
+	private final int SPANS = 6;
+
 	private void UIGroup() {
 		final UIViewMode uiViewMode = getUIViewMode(getContext());
 
 		switch (uiViewMode) {
 			case Complex1: {
-				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 2) {
+				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), SPANS) {
 					@Override
 					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
 						try {
@@ -2110,10 +2120,10 @@ public class LibraryViewFragment extends BaseUIFragment {
 								==
 								RecyclerView.NO_POSITION) {
 							// group item
-							return 2;
+							return SPANS;
 						} else {
 							// child item
-							return 1;
+							return SPANS / 2;
 						}
 					}
 				});
@@ -2121,7 +2131,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 			}
 			break;
 			case Complex2: {
-				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 6) {
+				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), SPANS) {
 					@Override
 					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
 						try {
@@ -2140,58 +2150,20 @@ public class LibraryViewFragment extends BaseUIFragment {
 								==
 								RecyclerView.NO_POSITION) {
 							// group item
-							return 6;
+							return SPANS;
 						} else {
 							// child item
 							if (position % 5 == 0)
-								return 6;
-							return 3;
+								return SPANS;
+							return SPANS / 2;
 						}
 					}
 				});
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;
-			case Complex3: { // TODO: Fix it
-				/*
-				FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(getContext());
-
-				layoutManager.setFlexDirection(FlexDirection.ROW);
-				layoutManager.setFlexWrap(FlexWrap.WRAP);
-				layoutManager.setJustifyContent(JustifyContent.FLEX_START);
-				layoutManager.setAlignItems(AlignItems.STRETCH);
-
-				recyclerView.setLayoutManager(layoutManager);
-				*/
-
-				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 4) {
-					@Override
-					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-						try {
-							super.onLayoutChildren(recycler, state);
-						} catch (IndexOutOfBoundsException e) {
-							Log.w(TAG, e);
-						}
-					}
-				};
-				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-					@Override
-					public int getSpanSize(int position) {
-						if (RecyclerViewExpandableItemManager
-								.getPackedPositionChild(recyclerViewExpandableItemManager
-										.getExpandablePosition(position))
-								==
-								RecyclerView.NO_POSITION) {
-							// group item
-							return 4;
-						} else {
-							// child item
-							if (position % 2 == 0 || position % 3 == 0)
-								return 2;
-							return 4;
-						}
-					}
-				});
+			case Complex3: {
+				SpannedGridLayoutManager layoutManager = new SpannedGridLayoutManager(SpannedGridLayoutManager.Orientation.VERTICAL, SPANS);
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;
