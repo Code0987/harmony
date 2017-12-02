@@ -64,9 +64,7 @@ public class TimerViewFragment extends Fragment {
 
 	private TextView text;
 	private CountDownTimer countDownTimer;
-	private ImageButton set_timer;
-
-	private LottieAnimationView lottieAnimationView;
+	private LottieAnimationView set_timer;
 
 	@Nullable
 	@Override
@@ -78,9 +76,9 @@ public class TimerViewFragment extends Fragment {
 		root = v.findViewById(R.id.root);
 
 		// Set timer
-		text = (TextView) v.findViewById(R.id.text);
+		text = v.findViewById(R.id.text);
 
-		set_timer = (ImageButton) v.findViewById(R.id.set_timer);
+		set_timer = v.findViewById(R.id.set_timer);
 
 		set_timer.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -114,8 +112,6 @@ public class TimerViewFragment extends Fragment {
 
 			}
 		});
-
-		lottieAnimationView = v.findViewById(R.id.lottieAnimationView);
 
 		updateUI();
 
@@ -154,35 +150,28 @@ public class TimerViewFragment extends Fragment {
 
 			text.setText("...");
 
-			set_timer.setImageDrawable(getContext().getDrawable(R.drawable.ic_timer_black));
-			set_timer.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
-
-			lottieAnimationView.pauseAnimation();
-			lottieAnimationView.setAnimation("clock.json", LottieAnimationView.CacheStrategy.Weak);
-			lottieAnimationView.loop(true);
-			lottieAnimationView.setScale(1);
-			lottieAnimationView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-			lottieAnimationView.clearColorFilters();
-			lottieAnimationView.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.MULTIPLY));
-			lottieAnimationView.playAnimation();
+			set_timer.pauseAnimation();
+			set_timer.setAnimation("clock.json", LottieAnimationView.CacheStrategy.Weak);
+			set_timer.loop(true);
+			set_timer.setScale(1);
+			set_timer.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+			set_timer.clearColorFilters();
+			set_timer.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.MULTIPLY));
+			set_timer.playAnimation();
 
 		} else {
 
-			text.setText(null);
+			text.setText("Tap above");
 
-			set_timer.setImageDrawable(getContext().getDrawable(R.drawable.ic_timer_off_black));
-			set_timer.setColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
-
-			lottieAnimationView.pauseAnimation();
-			lottieAnimationView.setAnimation("no_notifications!.json", LottieAnimationView.CacheStrategy.Weak);
-			lottieAnimationView.loop(true);
-			lottieAnimationView.setScale(1);
-			lottieAnimationView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-			lottieAnimationView.clearColorFilters();
-			lottieAnimationView.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.MULTIPLY));
-			lottieAnimationView.playAnimation();
+			set_timer.pauseAnimation();
+			set_timer.setAnimation("no_notifications!.json", LottieAnimationView.CacheStrategy.Weak);
+			set_timer.loop(true);
+			set_timer.setScale(1);
+			set_timer.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+			set_timer.clearColorFilters();
+			set_timer.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.MULTIPLY));
+			set_timer.playAnimation();
 		}
-
 
 	}
 

@@ -28,7 +28,7 @@ public class BaseDialogUIActivity extends BaseUIActivity {
 		params.height = Resources.getSystem().getDisplayMetrics().heightPixels - AndroidEx.dpToPx(2 * 32);
 		params.width = Resources.getSystem().getDisplayMetrics().widthPixels - AndroidEx.dpToPx(2 * 32);
 		params.alpha = 1.0f;
-		params.dimAmount = 0.75f;
+		params.dimAmount = 0.85f;
 		getWindow().setAttributes(params);
 
 		super.onCreate(savedInstanceState);
