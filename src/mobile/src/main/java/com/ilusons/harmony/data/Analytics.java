@@ -125,17 +125,17 @@ public class Analytics {
 
 	*/
 
-	public static String getLastfmForAppUsername() {
+	private static String getLastfmForAppUsername() {
 		return "harmony_ilusons";
 	}
 
-	public static String getLastfmForAppPassword() {
+	private static String getLastfmForAppPassword() {
 		return "%\"8Gp.";
 	}
 
 	private Session lastfmSessionForApp;
 
-	public Observable<Session> getLastfmSessionForApp() {
+	private Observable<Session> getLastfmSessionForApp() {
 		return Observable.create(new ObservableOnSubscribe<Session>() {
 			@Override
 			public void subscribe(ObservableEmitter<Session> oe) throws Exception {
@@ -158,7 +158,7 @@ public class Analytics {
 		});
 	}
 
-	public Observable<ScrobbleResult> scrobbleLastfmForApp(final MusicService musicService, final Music data) {
+	private Observable<ScrobbleResult> scrobbleLastfmForApp(final MusicService musicService, final Music data) {
 		return getLastfmSessionForApp()
 				.flatMap(new Function<Session, ObservableSource<ScrobbleResult>>() {
 					@Override
@@ -539,6 +539,9 @@ public class Analytics {
 	}
 
 	public void logMusicOpened(MusicService musicService, Music data) {
+		if (!getDCEnabled())
+			return;
+
 		if (firebaseAnalytics != null) {
 			try {
 				Bundle bundle = new Bundle();
@@ -739,6 +742,8 @@ public class Analytics {
 							break;
 					}
 
+					// TODO: Disable for now
+					/*
 					try (Realm realm = DB.getDB()) {
 						if (realm != null) {
 							realm.executeTransaction(new Realm.Transaction() {
@@ -751,6 +756,7 @@ public class Analytics {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+					*/
 
 					oe.onNext(r);
 					oe.onComplete();

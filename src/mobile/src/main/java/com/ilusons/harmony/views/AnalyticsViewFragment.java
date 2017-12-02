@@ -26,6 +26,9 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.arasthel.spannedgridlayoutmanager.SpanLayoutParams;
+import com.arasthel.spannedgridlayoutmanager.SpanSize;
+import com.arasthel.spannedgridlayoutmanager.SpannedGridLayoutManager;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -53,7 +56,6 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
-import com.ilusons.harmony.ref.ui.SpannedGridLayoutManager;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.IItem;
@@ -65,9 +67,11 @@ import com.mikepenz.itemanimators.SlideDownAlphaAnimator;
 import com.mikepenz.materialize.holder.StringHolder;
 import com.wang.avi.AVLoadingIndicatorView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Observable;
 
@@ -76,12 +80,15 @@ import de.umass.lastfm.cache.Cache;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
+import jp.co.recruit_lifestyle.android.widget.WaveSwipeRefreshLayout;
 
 public class AnalyticsViewFragment extends Fragment {
 
@@ -89,8 +96,6 @@ public class AnalyticsViewFragment extends Fragment {
 	private static final String TAG = AnalyticsViewFragment.class.getSimpleName();
 
 	private View root;
-
-	private AVLoadingIndicatorView loading;
 
 	@Nullable
 	@Override
@@ -101,17 +106,8 @@ public class AnalyticsViewFragment extends Fragment {
 		// Set views
 		root = v.findViewById(R.id.root);
 
-		loading = v.findViewById(R.id.loading);
-
-		loading.smoothToShow();
-
 		// Items
 		createItems(v);
-
-		// Charts
-		createCharts(v);
-
-		loading.smoothToHide();
 
 		return v;
 	}
@@ -119,120 +115,60 @@ public class AnalyticsViewFragment extends Fragment {
 
 	//region Items
 
-	private FastAdapter<C1Item> adapter_c1;
-	private ItemAdapter<C1Item> itemAdapter_c1;
-	private RecyclerView recyclerView_c1;
-	private RecyclerView.LayoutManager layoutManager_c1;
+	private WaveSwipeRefreshLayout swipeRefreshLayout;
 
-	private Animation animation_press_c1;
+	private FastAdapter adapter;
+	private ItemAdapter<C1Item> itemAdapter_c1;
+	private ItemAdapter<P1Item> itemAdapter_p1;
+
+	private Animation animation_press;
 
 	private void createItems(View v) {
-		final int N = 7;
-
-		final List<Music> items = Music.getAllSortedByScore(N);
+		animation_press = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
 
 		itemAdapter_c1 = new ItemAdapter<>();
-		adapter_c1 = FastAdapter.with(Arrays.asList(itemAdapter_c1));
+		itemAdapter_p1 = new ItemAdapter<>();
 
-		animation_press_c1 = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
-
-		adapter_c1.withSelectable(true);
-		adapter_c1.withOnClickListener(new OnClickListener<C1Item>() {
+		adapter = FastAdapter.with(Arrays.asList(itemAdapter_c1, itemAdapter_p1));
+		adapter.setHasStableIds(true);
+		adapter.withSelectable(true);
+		adapter.withOnClickListener(new OnClickListener() {
 			@Override
-			public boolean onClick(View v, IAdapter<C1Item> adapter, C1Item item, int position) {
-				v.startAnimation(animation_press_c1);
+			public boolean onClick(@NonNull View v, @NonNull IAdapter adapter, @NonNull IItem item, int position) {
+				if (item instanceof C1Item) {
+					v.startAnimation(animation_press);
 
-				playItem(item.data.getPath());
-
+					playItem(v.getContext(), ((C1Item) item).data.getPath());
+				}
 				return true;
 			}
 		});
 
-		recyclerView_c1 = v.findViewById(R.id.recyclerView_c1);
-		recyclerView_c1.setHasFixedSize(true);
-		recyclerView_c1.setItemViewCacheSize(11);
-		recyclerView_c1.setDrawingCacheEnabled(true);
-		recyclerView_c1.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+		swipeRefreshLayout = v.findViewById(R.id.swipeRefreshLayout);
 
-		layoutManager_c1 = new SpannedGridLayoutManager(
-				new SpannedGridLayoutManager.GridSpanLookup() {
-					@Override
-					public SpannedGridLayoutManager.SpanInfo getSpanInfo(int p) {
-						int cs;
-						int rs;
+		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
+		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 0);
 
-						if (p == 0) {
-							cs = 16;
-							rs = 8;
-						} else if (p == 1 || p == 5) {
-							cs = 6;
-							rs = 8;
-						} else if (p == 2 || p == 3 || p == 4 || p == 6) {
-							cs = 10;
-							rs = 4;
-						} else {
-							cs = 8;
-							rs = 4;
-						}
+		RecyclerView.LayoutManager layoutManager = new SpannedGridLayoutManager(SpannedGridLayoutManager.Orientation.VERTICAL, 16);
+		recyclerView.setLayoutManager(layoutManager);
 
-						return new SpannedGridLayoutManager.SpanInfo(cs, rs);
-					}
-				},
-				16,
-				1f);
+		recyclerView.setAdapter(adapter);
 
-		recyclerView_c1.setLayoutManager(layoutManager_c1);
-
-		recyclerView_c1.setAdapter(adapter_c1);
-
-		recyclerView_c1.setItemAnimator(new SlideDownAlphaAnimator());
-		recyclerView_c1.getItemAnimator().setAddDuration(253);
-		recyclerView_c1.getItemAnimator().setRemoveDuration(333);
-
-		recyclerView_c1.postDelayed(new Runnable() {
+		swipeRefreshLayout.setOnRefreshListener(new WaveSwipeRefreshLayout.OnRefreshListener() {
 			@Override
-			public void run() {
-				for (final Music item : items) {
-					itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(item));
-				}
+			public void onRefresh() {
+				loadItems();
 			}
-		}, 1300);
+		});
 
-		final Context context = getContext();
-
-		loading.smoothToShow();
-
-		Analytics.getInstance().getTopTracksForLastfmForApp()
-				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
-					@Override
-					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-						return Analytics.convertToLocal(context, tracks, N);
-					}
-				})
-				.subscribeOn(Schedulers.io())
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Consumer<Collection<Music>>() {
-					@Override
-					public void accept(Collection<Music> r) throws Exception {
-						itemAdapter_c1.clear();
-						for (Music m : r) {
-							itemAdapter_c1.add(new C1Item().setAdapter(adapter_c1).setData(m));
-						}
-						loading.smoothToHide();
-					}
-				}, new Consumer<Throwable>() {
-					@Override
-					public void accept(Throwable throwable) throws Exception {
-						loading.smoothToHide();
-					}
-				});
+		loadItems();
 	}
 
 	public static class C1Item extends AbstractItem<C1Item, C1Item.ViewHolder> {
-		private FastAdapter<C1Item> adapter;
+		private FastAdapter adapter;
 		private Music data;
 
-		public C1Item setAdapter(FastAdapter<C1Item> adapter) {
+		public C1Item setAdapter(FastAdapter adapter) {
 			this.adapter = adapter;
 
 			return this;
@@ -246,7 +182,7 @@ public class AnalyticsViewFragment extends Fragment {
 
 		@Override
 		public int getType() {
-			return hashCode();
+			return R.id.analytics_view_c1_item;
 		}
 
 		@Override
@@ -258,7 +194,32 @@ public class AnalyticsViewFragment extends Fragment {
 		public void bindView(@NonNull final ViewHolder viewHolder, @NonNull List<Object> payloads) {
 			super.bindView(viewHolder, payloads);
 
-			Context context = viewHolder.view.getContext();
+			try {
+				int p = viewHolder.getLayoutPosition();
+
+				int cs;
+				int rs;
+
+				if (p == 0) {
+					cs = 16;
+					rs = 8;
+				} else if (p == 1 || p == 5) {
+					cs = 6;
+					rs = 8;
+				} else if (p == 2 || p == 3 || p == 4 || p == 6) {
+					cs = 10;
+					rs = 4;
+				} else {
+					cs = 8;
+					rs = 4;
+				}
+
+				viewHolder.view.setLayoutParams(new SpanLayoutParams(new SpanSize(cs, rs)));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			final Context context = viewHolder.view.getContext();
 
 			Bitmap bitmap = data.getCover(context, -1);
 			if (bitmap != null) {
@@ -267,7 +228,7 @@ public class AnalyticsViewFragment extends Fragment {
 				viewHolder.image.setImageDrawable(null);
 
 				try {
-					ArtworkEx.ArtworkDownloaderAsyncTask artworkDownloaderAsyncTask = (new ArtworkEx.ArtworkDownloaderAsyncTask(
+					(new ArtworkEx.ArtworkDownloaderAsyncTask(
 							context,
 							data.getText(),
 							ArtworkEx.ArtworkType.Song,
@@ -279,7 +240,37 @@ public class AnalyticsViewFragment extends Fragment {
 								@Override
 								public void execute(Bitmap bitmap) {
 									try {
-										viewHolder.image.setImageBitmap(bitmap);
+										if (bitmap == null) {
+											(new ArtworkEx.ArtworkDownloaderAsyncTask(
+													context,
+													data.getArtist(),
+													ArtworkEx.ArtworkType.Artist,
+													-1,
+													data.getPath(),
+													Music.KEY_CACHE_DIR_COVER,
+													data.getPath(),
+													new JavaEx.ActionT<Bitmap>() {
+														@Override
+														public void execute(Bitmap bitmap) {
+															try {
+																viewHolder.image.setImageBitmap(bitmap);
+															} catch (Exception e) {
+																e.printStackTrace();
+															}
+														}
+													},
+													new JavaEx.ActionT<Exception>() {
+														@Override
+														public void execute(Exception e) {
+															Log.w(TAG, e);
+														}
+													},
+													3000,
+													true))
+													.execute();
+										} else {
+											viewHolder.image.setImageBitmap(bitmap);
+										}
 									} catch (Exception e) {
 										e.printStackTrace();
 									}
@@ -292,9 +283,8 @@ public class AnalyticsViewFragment extends Fragment {
 								}
 							},
 							3000,
-							true));
-
-					artworkDownloaderAsyncTask.execute();
+							true))
+							.execute();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -336,125 +326,238 @@ public class AnalyticsViewFragment extends Fragment {
 		}
 	}
 
-	//endregion
+	public static class P1Item extends AbstractItem<P1Item, P1Item.ViewHolder> {
+		private FastAdapter adapter;
+		private Collection<Music> data;
 
-	//region Charts
+		public P1Item setAdapter(FastAdapter adapter) {
+			this.adapter = adapter;
 
-	private void createCharts(View v) {
-		PieChart chart = v.findViewById(R.id.analytics_charts_c1);
+			return this;
+		}
 
-		final int N = 5;
+		public P1Item setData(Collection<Music> data) {
+			this.data = data;
 
-		chart.setUsePercentValues(true);
-		chart.getDescription().setEnabled(false);
-		chart.setExtraOffsets(3, 3, 3, 3);
-		chart.setDragDecelerationFrictionCoef(0.95f);
+			return this;
+		}
 
-		chart.setDrawHoleEnabled(true);
-		chart.setHoleColor(ContextCompat.getColor(getContext(), R.color.transparent));
+		@Override
+		public int getType() {
+			return R.id.analytics_view_p1_item;
+		}
 
-		chart.setTransparentCircleColor(ContextCompat.getColor(getContext(), R.color.translucent_icons));
-		chart.setTransparentCircleAlpha(110);
+		@Override
+		public int getLayoutRes() {
+			return R.layout.analytics_view_p1_item;
+		}
 
-		chart.setHoleRadius(24f);
-		chart.setTransparentCircleRadius(27f);
+		@Override
+		public void bindView(@NonNull final ViewHolder viewHolder, @NonNull List<Object> payloads) {
+			super.bindView(viewHolder, payloads);
 
-		chart.setRotationAngle(0);
-		chart.setRotationEnabled(true);
-		chart.setHighlightPerTapEnabled(true);
-
-		chart.setDrawCenterText(true);
-		chart.setCenterText("Local Top " + N);
-		chart.setCenterTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-		chart.setCenterTextSize(16f);
-
-		chart.setDrawEntryLabels(true);
-		chart.setEntryLabelColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-		chart.setEntryLabelTextSize(10f);
-
-		Legend l = chart.getLegend();
-		l.setEnabled(false);
-
-		List<Music> allSortedByScore = Music.getAllSortedByScore(N);
-		float score_total = 0;
-		for (Music one : allSortedByScore)
-			score_total += one.getScore();
-
-		ArrayList<Integer> colors = new ArrayList<Integer>();
-		int defaultColor = ContextCompat.getColor(getContext(), R.color.accent);
-		ArrayList<PieEntry> data = new ArrayList<>();
-		for (Music one : allSortedByScore)
 			try {
-				Bitmap cover = one.getCover(getContext(), 64);
+				int p = viewHolder.getLayoutPosition();
 
-				data.add(new PieEntry(
-						(float) (one.getScore() * 100f / score_total),
-						one.getTitle(),
-						new BitmapDrawable(getResources(), cover),
-						one.getPath()));
-				int color = defaultColor;
-				try {
-					Palette palette = Palette.from(cover).generate();
-					int colorBackup = color;
-					color = palette.getVibrantColor(color);
-					if (color == colorBackup)
-						color = palette.getDarkVibrantColor(color);
-					if (color == colorBackup)
-						color = palette.getDarkMutedColor(color);
-				} catch (Exception e2) {
-					e2.printStackTrace();
-				}
-				colors.add(ColorUtils.setAlphaComponent(color, 160));
+				viewHolder.view.setLayoutParams(new SpanLayoutParams(new SpanSize(16, 16)));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
-		PieDataSet dataSet = new PieDataSet(data, "Local Top " + N);
-		dataSet.setSliceSpace(1f);
-		dataSet.setSelectionShift(5f);
-		dataSet.setHighlightEnabled(true);
-		dataSet.setDrawValues(true);
-		dataSet.setDrawIcons(true);
-		dataSet.setIconsOffset(new MPPointF(0, 42));
-		dataSet.setColors(colors);
+			final Context context = viewHolder.view.getContext();
 
-		PieData chartData = new PieData();
-		chartData.addDataSet(dataSet);
-		chartData.setDrawValues(true);
-		chartData.setValueFormatter(new PercentFormatter());
-		chartData.setValueTextSize(10f);
-		chartData.setValueTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+			final PieChart chart = viewHolder.pie_chart;
 
-		chart.setData(chartData);
-		chart.highlightValues(null);
-		chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-			@Override
-			public void onValueSelected(Entry e, Highlight h) {
-				playItem((String) e.getData());
+			final int N = 5;
+
+			chart.setUsePercentValues(true);
+			chart.getDescription().setEnabled(false);
+			chart.setExtraOffsets(3, 3, 3, 3);
+			chart.setDragDecelerationFrictionCoef(0.95f);
+
+			chart.setDrawHoleEnabled(true);
+			chart.setHoleColor(ContextCompat.getColor(context, R.color.transparent));
+
+			chart.setTransparentCircleColor(ContextCompat.getColor(context, R.color.translucent_icons));
+			chart.setTransparentCircleAlpha(110);
+
+			chart.setHoleRadius(24f);
+			chart.setTransparentCircleRadius(27f);
+
+			chart.setRotationAngle(0);
+			chart.setRotationEnabled(true);
+			chart.setHighlightPerTapEnabled(true);
+
+			chart.setDrawCenterText(true);
+			chart.setCenterText("Local Top " + N);
+			chart.setCenterTextColor(ContextCompat.getColor(context, R.color.primary_text));
+			chart.setCenterTextSize(16f);
+
+			chart.setDrawEntryLabels(true);
+			chart.setEntryLabelColor(ContextCompat.getColor(context, R.color.primary_text));
+			chart.setEntryLabelTextSize(10f);
+
+			Legend l = chart.getLegend();
+			l.setEnabled(false);
+
+			float score_total = 0;
+			for (Music one : data)
+				score_total += one.getScore();
+
+			ArrayList<Integer> colors = new ArrayList<Integer>();
+			int defaultColor = ContextCompat.getColor(context, R.color.accent);
+			ArrayList<PieEntry> data = new ArrayList<>();
+			for (Music one : P1Item.this.data)
+				try {
+					Bitmap cover = one.getCover(context, 64);
+
+					data.add(new PieEntry(
+							(float) (one.getScore() * 100f / score_total),
+							one.getTitle(),
+							new BitmapDrawable(context.getResources(), cover),
+							one.getPath()));
+					int color = defaultColor;
+					try {
+						Palette palette = Palette.from(cover).generate();
+						int colorBackup = color;
+						color = palette.getVibrantColor(color);
+						if (color == colorBackup)
+							color = palette.getDarkVibrantColor(color);
+						if (color == colorBackup)
+							color = palette.getDarkMutedColor(color);
+					} catch (Exception e2) {
+						e2.printStackTrace();
+					}
+					colors.add(ColorUtils.setAlphaComponent(color, 160));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			PieDataSet dataSet = new PieDataSet(data, "Local Top " + N);
+			dataSet.setSliceSpace(1f);
+			dataSet.setSelectionShift(5f);
+			dataSet.setHighlightEnabled(true);
+			dataSet.setDrawValues(true);
+			dataSet.setDrawIcons(true);
+			dataSet.setIconsOffset(new MPPointF(0, 42));
+			dataSet.setColors(colors);
+
+			PieData chartData = new PieData();
+			chartData.addDataSet(dataSet);
+			chartData.setDrawValues(true);
+			chartData.setValueFormatter(new PercentFormatter());
+			chartData.setValueTextSize(10f);
+			chartData.setValueTextColor(ContextCompat.getColor(context, R.color.primary_text));
+
+			chart.setData(chartData);
+			chart.highlightValues(null);
+			chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+				@Override
+				public void onValueSelected(Entry e, Highlight h) {
+					playItem(context, (String) e.getData());
+				}
+
+				@Override
+				public void onNothingSelected() {
+
+				}
+			});
+			chart.invalidate();
+
+			chart.animateY(3600, Easing.EasingOption.EaseInOutQuad);
+			// chart.spin(2000, 0, 360);
+
+		}
+
+		@Override
+		public void unbindView(ViewHolder holder) {
+			super.unbindView(holder);
+
+			holder.pie_chart.clear();
+		}
+
+		@Override
+		public ViewHolder getViewHolder(View v) {
+			return new ViewHolder(v);
+		}
+
+		protected static class ViewHolder extends RecyclerView.ViewHolder {
+			protected View view;
+
+			protected PieChart pie_chart;
+
+			public ViewHolder(View v) {
+				super(v);
+
+				view = v;
+
+				pie_chart = v.findViewById(R.id.pie_chart);
 			}
+		}
+	}
 
-			@Override
-			public void onNothingSelected() {
+	private void loadItems() {
+		final int N = 7;
+		final Context context = getContext();
 
-			}
-		});
-		chart.invalidate();
+		swipeRefreshLayout.setRefreshing(true);
 
-		chart.animateY(3600, Easing.EasingOption.EaseInOutQuad);
-		// chart.spin(2000, 0, 360);
+		Analytics.getInstance().getTopTracksForLastfmForApp()
+				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+					@Override
+					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+						return Analytics.convertToLocal(context, tracks, N);
+					}
+				})
+				.subscribeOn(Schedulers.io())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new Observer<Collection<Music>>() {
+					@Override
+					public void onSubscribe(Disposable d) {
 
+					}
+
+					@Override
+					public void onNext(Collection<Music> r) {
+						try {
+							itemAdapter_c1.clear();
+							for (Music m : r) {
+								itemAdapter_c1.add(new C1Item().setAdapter(adapter).setData(m));
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					@Override
+					public void onError(Throwable e) {
+						swipeRefreshLayout.setRefreshing(false);
+					}
+
+					@Override
+					public void onComplete() {
+						try {
+							itemAdapter_p1.clear();
+							itemAdapter_p1.add(new P1Item().setAdapter(adapter).setData(Music.getAllSortedByScore(5)));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						swipeRefreshLayout.setRefreshing(false);
+					}
+				});
 	}
 
 	//endregion
 
-	private void playItem(String path) {
+	private static void playItem(Context context, String path) {
 		try {
-			Intent i = new Intent(getContext(), MusicService.class);
+			Intent i = new Intent(context, MusicService.class);
 
 			i.setAction(MusicService.ACTION_OPEN);
 			i.putExtra(MusicService.KEY_URI, path);
 
-			getContext().startService(i);
+			context.startService(i);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

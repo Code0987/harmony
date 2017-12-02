@@ -217,6 +217,8 @@ dependencies {
 	implementation 'com.mikepenz:materialize:1.1.1@aar'
 	implementation "com.mikepenz:itemanimators:1.0.1@aar"
 	implementation 'com.google.android:flexbox:0.3.1'
+	implementation 'com.arasthel:spannedgridlayoutmanager:2.0.1'
+	implementation 'com.github.recruit-lifestyle:WaveSwipeRefreshLayout:1.6'
 	implementation('com.scand:realm-browser:0.1.15') {
 		exclude group: 'io.realm'
 	}
