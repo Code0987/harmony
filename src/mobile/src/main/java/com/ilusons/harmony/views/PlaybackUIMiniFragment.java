@@ -18,8 +18,8 @@ import android.widget.TextView;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.CacheEx;
-import com.ilusons.harmony.ref.ui.OnSwipeTouchListener;
 
 import java.lang.ref.WeakReference;
 
@@ -132,7 +132,7 @@ public class PlaybackUIMiniFragment extends Fragment {
 			}
 		});
 		root.setOnClickListener(onClickListener);
-		root.setOnTouchListener(new OnSwipeTouchListener() {
+		root.setOnTouchListener(new AndroidTouchEx.OnSwipeTouchListener() {
 			@Override
 			public boolean onSwipeLeft() {
 				if (musicService != null) {

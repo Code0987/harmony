@@ -23,6 +23,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
@@ -42,11 +43,11 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Api;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
-import com.ilusons.harmony.ref.ui.OnSwipeTouchListener;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.lang3.StringUtils;
@@ -213,37 +214,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			@Override
 			public void onClick(View view) {
 				toggleUI();
-			}
-		});
-		av_layout.setOnTouchListener(new OnSwipeTouchListener() {
-			@Override
-			public boolean onSwipeLeft() {
-				if (getMusicService() != null) {
-					getMusicService().prev();
-				}
-				return true;
-			}
-
-			@Override
-			public boolean onSwipeRight() {
-				if (getMusicService() != null) {
-					getMusicService().next();
-				}
-				return true;
-			}
-
-			@Override
-			public boolean onSwipeTop() {
-				if (getMusicService() != null) {
-					getMusicService().random();
-				}
-				return true;
-			}
-
-			@Override
-			public boolean onSwipeBottom() {
-				onBackPressed();
-				return true;
 			}
 		});
 
@@ -513,6 +483,34 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				dialog.show();
 
 				return true;
+			}
+		});
+		av_layout.setLongClickable(true);
+		AndroidTouchEx.SwipeEvents.detect(av_layout, new AndroidTouchEx.SwipeCallback() {
+			@Override
+			public void onSwipeTop() {
+				if (getMusicService() != null) {
+					getMusicService().random();
+				}
+			}
+
+			@Override
+			public void onSwipeRight() {
+				if (getMusicService() != null) {
+					getMusicService().next();
+				}
+			}
+
+			@Override
+			public void onSwipeBottom() {
+				onBackPressed();
+			}
+
+			@Override
+			public void onSwipeLeft() {
+				if (getMusicService() != null) {
+					getMusicService().prev();
+				}
 			}
 		});
 
