@@ -100,8 +100,8 @@ public class DashboardActivity extends BaseUIActivity {
 
 	// UI
 	private DrawerLayout drawer_layout;
-	private boolean appBarIsExpanded = false;
-	private AppBarLayout appBar_layout;
+	//private boolean appBarIsExpanded = false;
+	//private AppBarLayout appBar_layout;
 	private View root;
 	private AVLoadingIndicatorView loading;
 	private ImageView bg_effect;
@@ -118,6 +118,7 @@ public class DashboardActivity extends BaseUIActivity {
 		// Set view
 		setContentView(R.layout.dashboard_activity);
 
+		/*
 		// Set bar
 		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
@@ -147,6 +148,7 @@ public class DashboardActivity extends BaseUIActivity {
 		});
 		appBar_layout.setExpanded(appBarIsExpanded, true);
 		appBar_layout.animate();
+		*/
 
 		drawer_layout = findViewById(R.id.drawer_layout);
 		drawer_layout.closeDrawer(GravityCompat.START);
@@ -285,13 +287,15 @@ public class DashboardActivity extends BaseUIActivity {
 
 		switch (id) {
 			case android.R.id.home:
+				/*
 				if (appBarIsExpanded) {
 					// CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams) appBar_layout.getLayoutParams();
 					// lp.height = getResources().getDisplayMetrics().heightPixels / 3;
 				}
 				appBar_layout.setExpanded(!appBarIsExpanded, true);
 				if (!appBarIsExpanded)
-					onBackPressed();
+				*/
+				onBackPressed();
 				return true;
 		}
 
@@ -702,7 +706,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 	//region Tabs
 
-	private TabLayout tab_layout;
+	//private TabLayout tab_layout;
 	private ViewPager viewPager;
 	private ViewPagerAdapter viewPagerAdapter;
 
@@ -714,6 +718,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 		viewPager.setAdapter(viewPagerAdapter);
 
+		/*
 		tab_layout = findViewById(R.id.tab_layout);
 
 		tab_layout.post(new Runnable() {
@@ -722,6 +727,7 @@ public class DashboardActivity extends BaseUIActivity {
 				tab_layout.setupWithViewPager(viewPager, true);
 			}
 		});
+		*/
 
 		libraryViewFragment = LibraryViewFragment.create();
 
@@ -1153,7 +1159,7 @@ public class DashboardActivity extends BaseUIActivity {
 				.enableIcon(true)
 				.performClick(true)
 				.setInfoText("Welcome! \n\nNow, tap anywhere on blue screen!")
-				.setTarget(tab_layout)
+				.setTarget(playbackUIMini)
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_ldrawer = new MaterialIntroView.Builder(this)
@@ -1198,7 +1204,7 @@ public class DashboardActivity extends BaseUIActivity {
 				.enableIcon(true)
 				.performClick(true)
 				.setInfoText("Now go play something (Wait for initial scan...)!")
-				.setTarget(tab_layout)
+				.setTarget(viewPager)
 				.setUsageId(UUID.randomUUID().toString());
 
 		guide_final.setListener(onFinal);

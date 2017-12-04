@@ -97,6 +97,7 @@
 
         </android.support.constraint.ConstraintLayout>
 
+        <!--
         <android.support.design.widget.AppBarLayout
             android:id="@+id/appBar_layout"
             android:layout_width="match_parent"
@@ -131,6 +132,7 @@
                 app:tabMode="fixed"/>
 
         </android.support.design.widget.AppBarLayout>
+        -->
 
     </android.support.design.widget.CoordinatorLayout>
 
