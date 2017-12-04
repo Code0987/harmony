@@ -54,9 +54,6 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.arasthel.spannedgridlayoutmanager.SpanLayoutParams;
-import com.arasthel.spannedgridlayoutmanager.SpanSize;
-import com.arasthel.spannedgridlayoutmanager.SpannedGridLayoutManager;
 import com.google.android.flexbox.AlignItems;
 import com.google.android.flexbox.AlignSelf;
 import com.google.android.flexbox.FlexDirection;
@@ -871,8 +868,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 				v.setTag(d);
 
-				setupLayout(v, groupPosition, true);
-
 				TextView title = ((TextView) v.findViewById(R.id.title));
 				title.setText(d);
 
@@ -942,8 +937,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 		public void onBindChildViewHolder(ViewHolder holder, int groupPosition, int childPosition, int viewType) {
 			final Object d = dataFiltered.get(groupPosition).second.get(childPosition);
 			final View v = holder.view;
-
-			setupLayout(v, childPosition, false);
 
 			// Bind data to view here!
 			if (d instanceof Music) {
@@ -1253,37 +1246,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 					}
 				}
 			}).start();
-		}
-
-		private void setupLayout(View v, int p, boolean header) {
-			ViewGroup.LayoutParams lp = v.getLayoutParams();
-
-			if (lp instanceof SpanLayoutParams) {
-				SpanLayoutParams slp = (SpanLayoutParams) lp;
-
-				try {
-					int cs;
-					int rs;
-
-					if (p == 0) {
-						cs = SPANS;
-						rs = SPANS;
-					} else if (p == 1 || p == 5) {
-						cs = SPANS / 2;
-						rs = SPANS;
-					} else if (p == 2 || p == 3 || p == 4 || p == 6) {
-						cs = SPANS / 4;
-						rs = SPANS / 2;
-					} else {
-						cs = SPANS / 2;
-						rs = SPANS / 2;
-					}
-
-					v.setLayoutParams(new SpanLayoutParams(new SpanSize(cs, rs)));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
 		}
 
 		public void highlightView(View root) {
@@ -1999,9 +1961,9 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	public enum UIViewMode {
 		Default("Default"),
-		Complex1("Grid of 2"),
-		Complex2("Grid of 6|2"),
-		Complex3("Flow of 2"),;
+		Complex1("Something 1"),
+		Complex2("Something 2"),
+		Complex3("Something 3"),;
 
 		private String friendlyName;
 
@@ -2163,7 +2125,34 @@ public class LibraryViewFragment extends BaseUIFragment {
 			}
 			break;
 			case Complex3: {
-				SpannedGridLayoutManager layoutManager = new SpannedGridLayoutManager(SpannedGridLayoutManager.Orientation.VERTICAL, SPANS);
+				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), SPANS) {
+					@Override
+					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+						try {
+							super.onLayoutChildren(recycler, state);
+						} catch (IndexOutOfBoundsException e) {
+							Log.w(TAG, e);
+						}
+					}
+				};
+				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+					@Override
+					public int getSpanSize(int position) {
+						if (RecyclerViewExpandableItemManager
+								.getPackedPositionChild(recyclerViewExpandableItemManager
+										.getExpandablePosition(position))
+								==
+								RecyclerView.NO_POSITION) {
+							// group item
+							return SPANS;
+						} else {
+							// child item
+							if (position % 3 == 0)
+								return SPANS;
+							return SPANS / 2;
+						}
+					}
+				});
 				recyclerView.setLayoutManager(layoutManager);
 			}
 			break;

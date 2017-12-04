@@ -118,7 +118,9 @@ public class PlaybackUIMiniFragment extends Fragment {
 			public void onClick(View view) {
 				Intent intent = new Intent(getActivity(), PlaybackUIActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				startActivity(intent);
+				startActivity(
+						intent,
+						ActivityOptionsCompat.makeCustomAnimation(view.getContext(), R.anim.slide_up, R.anim.slide_down).toBundle());
 			}
 		};
 
