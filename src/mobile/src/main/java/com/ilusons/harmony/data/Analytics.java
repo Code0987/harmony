@@ -714,8 +714,8 @@ public class Analytics {
 
 						for (Music l : local)
 							try {
-								if (sa.apply(t.getName(), l.getTitle()) > 0.90
-										&& sa.apply(t.getArtist(), l.getArtist()) > 0.90) {
+								if (sa.apply(t.getName(), l.getTitle()) > 0.8
+										&& sa.apply(t.getArtist(), l.getArtist()) > 0.8) {
 									m = l;
 									local.remove(l);
 									break;

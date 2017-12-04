@@ -1252,7 +1252,7 @@ public class MusicService extends Service {
 				return;
 
 			if (!currentMusic.isLocal()) {
-				Toast.makeText(this, "Sorry, we only support local files based music currently!", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "Sorry, we only support local files based music currently! [" + currentMusic.getText() + "]", Toast.LENGTH_LONG).show();
 				nextSmart(true);
 				return;
 			}

@@ -118,18 +118,18 @@ public class AnalyticsViewFragment extends Fragment {
 	private WaveSwipeRefreshLayout swipeRefreshLayout;
 
 	private FastAdapter adapter;
-	private ItemAdapter<C1Item> itemAdapter_c1;
 	private ItemAdapter<P1Item> itemAdapter_p1;
+	private ItemAdapter<C1Item> itemAdapter_c1;
 
 	private Animation animation_press;
 
 	private void createItems(View v) {
 		animation_press = AnimationUtils.loadAnimation(getContext(), R.anim.shake);
 
-		itemAdapter_c1 = new ItemAdapter<>();
 		itemAdapter_p1 = new ItemAdapter<>();
+		itemAdapter_c1 = new ItemAdapter<>();
 
-		adapter = FastAdapter.with(Arrays.asList(itemAdapter_c1, itemAdapter_p1));
+		adapter = FastAdapter.with(Arrays.asList(itemAdapter_p1, itemAdapter_c1));
 		adapter.setHasStableIds(true);
 		adapter.withSelectable(true);
 		adapter.withOnClickListener(new OnClickListener() {
@@ -147,9 +147,9 @@ public class AnalyticsViewFragment extends Fragment {
 		swipeRefreshLayout = v.findViewById(R.id.swipeRefreshLayout);
 		swipeRefreshLayout.setColorSchemeColors(
 				ContextCompat.getColor(v.getContext(), R.color.translucent_accent),
-				ContextCompat.getColor(v.getContext(), R.color.accent),
+				ContextCompat.getColor(v.getContext(), android.R.color.holo_blue_bright),
 				ContextCompat.getColor(v.getContext(), R.color.translucent_accent));
-		swipeRefreshLayout.setWaveColor(ContextCompat.getColor(v.getContext(), R.color.translucent_accent));
+		swipeRefreshLayout.setWaveColor(ContextCompat.getColor(v.getContext(), android.R.color.holo_blue_bright));
 
 		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
 		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 0);
@@ -159,6 +159,22 @@ public class AnalyticsViewFragment extends Fragment {
 
 		recyclerView.setAdapter(adapter);
 
+		recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener(){
+			@Override
+			public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+				int topRowVerticalPosition =
+						(recyclerView == null || recyclerView.getChildCount() == 0)
+								? 0
+								: recyclerView.getChildAt(0).getTop();
+				swipeRefreshLayout.setEnabled(topRowVerticalPosition >= 0);
+			}
+
+			@Override
+			public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+				super.onScrollStateChanged(recyclerView, newState);
+			}
+		});
+
 		swipeRefreshLayout.setOnRefreshListener(new WaveSwipeRefreshLayout.OnRefreshListener() {
 			@Override
 			public void onRefresh() {
@@ -167,168 +183,6 @@ public class AnalyticsViewFragment extends Fragment {
 		});
 
 		loadItems();
-	}
-
-	public static class C1Item extends AbstractItem<C1Item, C1Item.ViewHolder> {
-		private FastAdapter adapter;
-		private Music data;
-
-		public C1Item setAdapter(FastAdapter adapter) {
-			this.adapter = adapter;
-
-			return this;
-		}
-
-		public C1Item setData(Music data) {
-			this.data = data;
-
-			return this;
-		}
-
-		@Override
-		public int getType() {
-			return R.id.analytics_view_c1_item;
-		}
-
-		@Override
-		public int getLayoutRes() {
-			return R.layout.analytics_view_c1_item;
-		}
-
-		@Override
-		public void bindView(@NonNull final ViewHolder viewHolder, @NonNull List<Object> payloads) {
-			super.bindView(viewHolder, payloads);
-
-			try {
-				int p = viewHolder.getLayoutPosition();
-
-				int cs;
-				int rs;
-
-				if (p == 0) {
-					cs = 16;
-					rs = 8;
-				} else if (p == 1 || p == 5) {
-					cs = 6;
-					rs = 8;
-				} else if (p == 2 || p == 3 || p == 4 || p == 6) {
-					cs = 10;
-					rs = 4;
-				} else {
-					cs = 8;
-					rs = 4;
-				}
-
-				viewHolder.view.setLayoutParams(new SpanLayoutParams(new SpanSize(cs, rs)));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			final Context context = viewHolder.view.getContext();
-
-			Bitmap bitmap = data.getCover(context, -1);
-			if (bitmap != null) {
-				viewHolder.image.setImageBitmap(bitmap);
-			} else {
-				viewHolder.image.setImageDrawable(null);
-
-				try {
-					(new ArtworkEx.ArtworkDownloaderAsyncTask(
-							context,
-							data.getText(),
-							ArtworkEx.ArtworkType.Song,
-							-1,
-							data.getPath(),
-							Music.KEY_CACHE_DIR_COVER,
-							data.getPath(),
-							new JavaEx.ActionT<Bitmap>() {
-								@Override
-								public void execute(Bitmap bitmap) {
-									try {
-										if (bitmap == null) {
-											(new ArtworkEx.ArtworkDownloaderAsyncTask(
-													context,
-													data.getArtist(),
-													ArtworkEx.ArtworkType.Artist,
-													-1,
-													data.getPath(),
-													Music.KEY_CACHE_DIR_COVER,
-													data.getPath(),
-													new JavaEx.ActionT<Bitmap>() {
-														@Override
-														public void execute(Bitmap bitmap) {
-															try {
-																viewHolder.image.setImageBitmap(bitmap);
-															} catch (Exception e) {
-																e.printStackTrace();
-															}
-														}
-													},
-													new JavaEx.ActionT<Exception>() {
-														@Override
-														public void execute(Exception e) {
-															Log.w(TAG, e);
-														}
-													},
-													3000,
-													true))
-													.execute();
-										} else {
-											viewHolder.image.setImageBitmap(bitmap);
-										}
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							},
-							new JavaEx.ActionT<Exception>() {
-								@Override
-								public void execute(Exception e) {
-									Log.w(TAG, e);
-								}
-							},
-							3000,
-							true))
-							.execute();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			viewHolder.text1.setText(data.getTitle());
-			viewHolder.text2.setText(data.getArtist());
-		}
-
-		@Override
-		public void unbindView(ViewHolder holder) {
-			super.unbindView(holder);
-
-			holder.image.setImageDrawable(null);
-			holder.text1.setText(null);
-			holder.text2.setText(null);
-		}
-
-		@Override
-		public ViewHolder getViewHolder(View v) {
-			return new ViewHolder(v);
-		}
-
-		protected static class ViewHolder extends RecyclerView.ViewHolder {
-			protected View view;
-
-			protected ImageView image;
-			protected TextView text1;
-			protected TextView text2;
-
-			public ViewHolder(View v) {
-				super(v);
-
-				view = v;
-
-				image = v.findViewById(R.id.image);
-				text1 = v.findViewById(R.id.text1);
-				text2 = v.findViewById(R.id.text2);
-			}
-		}
 	}
 
 	public static class P1Item extends AbstractItem<P1Item, P1Item.ViewHolder> {
@@ -501,8 +355,170 @@ public class AnalyticsViewFragment extends Fragment {
 		}
 	}
 
+	public static class C1Item extends AbstractItem<C1Item, C1Item.ViewHolder> {
+		private FastAdapter adapter;
+		private Music data;
+
+		public C1Item setAdapter(FastAdapter adapter) {
+			this.adapter = adapter;
+
+			return this;
+		}
+
+		public C1Item setData(Music data) {
+			this.data = data;
+
+			return this;
+		}
+
+		@Override
+		public int getType() {
+			return R.id.analytics_view_c1_item;
+		}
+
+		@Override
+		public int getLayoutRes() {
+			return R.layout.analytics_view_c1_item;
+		}
+
+		@Override
+		public void bindView(@NonNull final ViewHolder viewHolder, @NonNull List<Object> payloads) {
+			super.bindView(viewHolder, payloads);
+
+			try {
+				int p = viewHolder.getLayoutPosition() - 1;
+
+				int cs;
+				int rs;
+
+				if (p == 0) {
+					cs = 16;
+					rs = 10;
+				} else if (p == 1 || p == 5) {
+					cs = 6;
+					rs = 10;
+				} else if (p == 2 || p == 3 || p == 4 || p == 6) {
+					cs = 10;
+					rs = 5;
+				} else {
+					cs = 8;
+					rs = 5;
+				}
+
+				viewHolder.view.setLayoutParams(new SpanLayoutParams(new SpanSize(cs, rs)));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			final Context context = viewHolder.view.getContext();
+
+			Bitmap bitmap = data.getCover(context, -1);
+			if (bitmap != null) {
+				viewHolder.image.setImageBitmap(bitmap);
+			} else {
+				viewHolder.image.setImageDrawable(null);
+
+				try {
+					(new ArtworkEx.ArtworkDownloaderAsyncTask(
+							context,
+							data.getText(),
+							ArtworkEx.ArtworkType.Song,
+							-1,
+							data.getPath(),
+							Music.KEY_CACHE_DIR_COVER,
+							data.getPath(),
+							new JavaEx.ActionT<Bitmap>() {
+								@Override
+								public void execute(Bitmap bitmap) {
+									try {
+										if (bitmap == null) {
+											(new ArtworkEx.ArtworkDownloaderAsyncTask(
+													context,
+													data.getArtist(),
+													ArtworkEx.ArtworkType.Artist,
+													-1,
+													data.getPath(),
+													Music.KEY_CACHE_DIR_COVER,
+													data.getPath(),
+													new JavaEx.ActionT<Bitmap>() {
+														@Override
+														public void execute(Bitmap bitmap) {
+															try {
+																viewHolder.image.setImageBitmap(bitmap);
+															} catch (Exception e) {
+																e.printStackTrace();
+															}
+														}
+													},
+													new JavaEx.ActionT<Exception>() {
+														@Override
+														public void execute(Exception e) {
+															Log.w(TAG, e);
+														}
+													},
+													3000,
+													true))
+													.execute();
+										} else {
+											viewHolder.image.setImageBitmap(bitmap);
+										}
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
+							},
+							new JavaEx.ActionT<Exception>() {
+								@Override
+								public void execute(Exception e) {
+									Log.w(TAG, e);
+								}
+							},
+							3000,
+							true))
+							.execute();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			viewHolder.text1.setText(data.getTitle());
+			viewHolder.text2.setText(data.getArtist());
+		}
+
+		@Override
+		public void unbindView(ViewHolder holder) {
+			super.unbindView(holder);
+
+			holder.image.setImageDrawable(null);
+			holder.text1.setText(null);
+			holder.text2.setText(null);
+		}
+
+		@Override
+		public ViewHolder getViewHolder(View v) {
+			return new ViewHolder(v);
+		}
+
+		protected static class ViewHolder extends RecyclerView.ViewHolder {
+			protected View view;
+
+			protected ImageView image;
+			protected TextView text1;
+			protected TextView text2;
+
+			public ViewHolder(View v) {
+				super(v);
+
+				view = v;
+
+				image = v.findViewById(R.id.image);
+				text1 = v.findViewById(R.id.text1);
+				text2 = v.findViewById(R.id.text2);
+			}
+		}
+	}
+
 	private void loadItems() {
-		final int N = 7;
+		final int N = 14;
 		final Context context = getContext();
 
 		swipeRefreshLayout.setRefreshing(true);
