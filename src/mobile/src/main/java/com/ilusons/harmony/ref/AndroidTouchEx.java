@@ -9,25 +9,27 @@ public class AndroidTouchEx {
 
 	public static class OnSwipeTouchListener implements View.OnTouchListener {
 
-		private final GestureDetector gestureDetector = new GestureDetector(new GestureListener());
+		private static final int SWIPE_THRESHOLD = 180;
+
+		private float x1, x2, y1, y2;
 
 		public boolean onTouch(final View v, final MotionEvent event) {
-			return gestureDetector.onTouchEvent(event);
-		}
+			switch (event.getAction()) {
+				case MotionEvent.ACTION_DOWN:
+					x1 = event.getX();
+					y1 = event.getY();
+					break;
+				case MotionEvent.ACTION_UP:
+					x2 = event.getX();
+					y2 = event.getY();
 
-		private final class GestureListener extends GestureDetector.SimpleOnGestureListener {
+					float diffX = x2 - x1;
+					float diffY = y2 - y1;
 
-			private static final int SWIPE_THRESHOLD = 180;
-			private static final int SWIPE_VELOCITY_THRESHOLD = 180;
+					boolean result = false;
 
-			@Override
-			public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-				boolean result = false;
-				try {
-					float diffY = e2.getY() - e1.getY();
-					float diffX = e2.getX() - e1.getX();
 					if (Math.abs(diffX) > Math.abs(diffY)) {
-						if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+						if (Math.abs(diffX) > SWIPE_THRESHOLD) {
 							if (diffX > 0) {
 								result = onSwipeRight();
 							} else {
@@ -35,7 +37,7 @@ public class AndroidTouchEx {
 							}
 						}
 					} else {
-						if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
+						if (Math.abs(diffY) > SWIPE_THRESHOLD) {
 							if (diffY > 0) {
 								result = onSwipeBottom();
 							} else {
@@ -43,11 +45,14 @@ public class AndroidTouchEx {
 							}
 						}
 					}
-				} catch (Exception exception) {
-					exception.printStackTrace();
-				}
-				return result;
+
+					if (!result) {
+						v.performClick();
+					}
+
+					break;
 			}
+			return false;
 		}
 
 		public boolean onSwipeRight() {

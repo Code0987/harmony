@@ -26,6 +26,8 @@ import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.CacheEx;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import jp.wasabeef.blurry.Blurry;
 
@@ -137,7 +139,6 @@ public class PlaybackUIMiniFragment extends Fragment {
 				return true;
 			}
 		});
-		root.setOnClickListener(onClickListener);
 		root.setOnTouchListener(new AndroidTouchEx.OnSwipeTouchListener() {
 			@Override
 			public boolean onSwipeLeft() {
