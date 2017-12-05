@@ -3,6 +3,11 @@
 ☃ 3 days FREE premium ☃
 
 ✔ Bugs/crashes fixed.
-🔮️ Updated analytics tab, ui.
-🔮️ New swipe gestures (Now playing, mini + full).
+🔮️ Updated analytics tab, ui, swipe gestures.
 ✔ New visualizer, circle bars.
+
+Swipe gestures -
+left: previous
+right: next
+top: random
+bottom: close/back
