@@ -1,12 +1,17 @@
 package com.ilusons.harmony;
 
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.ilusons.harmony.base.BaseActivity;
@@ -27,16 +32,17 @@ public class MainActivity extends BaseActivity {
 	// Logger TAG
 	private static final String TAG = MainActivity.class.getSimpleName();
 
+	public static final String ACTION_ALERT = TAG + ".alert";
+	public static final String ALERT_TITLE = "title";
+	public static final String ALERT_CONTENT = "content";
+	public static final String ALERT_LINK = "link";
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		// Intent
 		handleIntent(getIntent());
-
-		// Kill self
-		finish();
-
 	}
 
 	private void handleIntent(final Intent intent) {
@@ -82,6 +88,15 @@ public class MainActivity extends BaseActivity {
 				return;
 			}
 
+			// Kill self
+			finish();
+
+		} else if (intent.getAction().equals(ACTION_ALERT)) {
+			String title = intent.getStringExtra(ALERT_TITLE);
+			String content = intent.getStringExtra(ALERT_CONTENT);
+			String link = intent.getStringExtra(ALERT_LINK);
+
+			showDialog(this, title, content, link);
 		}
 	}
 
@@ -212,6 +227,38 @@ public class MainActivity extends BaseActivity {
 			tips.setMessages(messages);
 
 			tips.run();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void showDialog(final Context context, String title, String content, final String link) {
+		try {
+			final AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.AppTheme_AlertDialogStyle))
+					.setTitle(title)
+					.setMessage(content)
+					.setCancelable(true)
+					.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialogInterface, int i) {
+							if (!TextUtils.isEmpty(link)) {
+								Intent intent = new Intent(Intent.ACTION_VIEW);
+								intent.setData(Uri.parse(link));
+								intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+								context.startActivity(intent);
+							}
+
+							dialogInterface.dismiss();
+						}
+					})
+					.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialogInterface, int i) {
+							dialogInterface.dismiss();
+						}
+					})
+					.create();
+			alertDialog.show();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

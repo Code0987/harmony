@@ -17,6 +17,7 @@ import android.view.WindowManager;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.ilusons.harmony.BuildConfig;
+import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 
 import org.w3c.dom.Text;
@@ -100,32 +101,13 @@ public class FCMService extends FirebaseMessagingService {
 
 	private void showDialog(String title, String content, final String link) {
 		try {
-			final AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
-					.setTitle(title)
-					.setMessage(content)
-					.setCancelable(true)
-					.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialogInterface, int i) {
-							if (!TextUtils.isEmpty(link)) {
-								Intent intent = new Intent(Intent.ACTION_VIEW);
-								intent.setData(Uri.parse(link));
-								intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-								startActivity(intent);
-							}
-
-							dialogInterface.dismiss();
-						}
-					})
-					.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialogInterface, int i) {
-							dialogInterface.dismiss();
-						}
-					})
-					.create();
-			alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-			alertDialog.show();
+			Intent intent = new Intent(this, MainActivity.class);
+			intent.setAction(MainActivity.ACTION_ALERT);
+			intent.putExtra(MainActivity.ALERT_TITLE, title);
+			intent.putExtra(MainActivity.ALERT_CONTENT, content);
+			intent.putExtra(MainActivity.ALERT_LINK, link);
+			intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			startActivity(intent);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
