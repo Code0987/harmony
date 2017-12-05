@@ -209,15 +209,6 @@ dependencies {
 	implementation 'com.github.turing-tech:MaterialScrollBar:12.5.0a'
 	implementation 'com.spotify.android:auth:1.0.0-alpha'
 	implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
-	implementation 'com.sdsmdg.harjot:croller:1.0.5'
-	implementation 'com.mikepenz:fastadapter:3.0.0@aar'
-	// implementation 'com.mikepenz:fastadapter-commons:3.0.0@aar'
-	// implementation 'com.mikepenz:fastadapter-extensions-expandable:3.0.0@aar'
-	// implementation 'com.mikepenz:fastadapter-extensions:3.0.0@aar'
-	implementation 'com.mikepenz:materialize:1.1.1@aar'
-	implementation "com.mikepenz:itemanimators:1.0.1@aar"
-	implementation 'com.google.android:flexbox:0.3.1'
-	implementation 'com.arasthel:spannedgridlayoutmanager:2.0.1'
 	implementation 'com.github.recruit-lifestyle:WaveSwipeRefreshLayout:1.6'
 	implementation('com.scand:realm-browser:0.1.15') {
 		exclude group: 'io.realm'

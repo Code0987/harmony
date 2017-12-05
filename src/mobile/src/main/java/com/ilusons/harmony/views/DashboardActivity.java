@@ -712,7 +712,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 	private void createTabs() {
 		viewPager = findViewById(R.id.viewPager);
-		viewPager.setOffscreenPageLimit(5);
+		viewPager.setOffscreenPageLimit(3);
 
 		viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 

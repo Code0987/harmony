@@ -62,12 +62,6 @@ Summary
             http://www.apache.org/licenses/LICENSE-2.0
         MaterialScrollBar
             http://www.apache.org/licenses/LICENSE-2.0
-        Croller
-            https://github.com/harjot-oberai/Croller/blob/master/LICENSE.md
-        FastAdapter
-            http://www.apache.org/licenses/LICENSE-2.0
-        SpannedGridLayoutManager
-            https://github.com/Arasthel/SpannedGridLayoutManager/blob/master/LICENSE
         WaveSwipeRefreshLayout
             http://www.apache.org/licenses/LICENSE-2.0
 

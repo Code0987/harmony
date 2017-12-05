@@ -17,8 +17,8 @@ public class AndroidTouchEx {
 
 		private final class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
-			private static final int SWIPE_THRESHOLD = 100;
-			private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+			private static final int SWIPE_THRESHOLD = 180;
+			private static final int SWIPE_VELOCITY_THRESHOLD = 180;
 
 			@Override
 			public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {

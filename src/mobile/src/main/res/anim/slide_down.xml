@@ -3,6 +3,7 @@
      android:shareInterpolator="false">
     <translate
         android:duration="350"
-        android:toYDelta="100%"
-        android:fromYDelta="0%" />
+        android:fromYDelta="0%"
+        android:interpolator="@android:anim/anticipate_overshoot_interpolator"
+        android:toYDelta="100%"/>
 </set>

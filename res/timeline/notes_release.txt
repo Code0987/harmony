@@ -4,9 +4,5 @@
 
 ✔ Bugs/crashes fixed.
 🔮️ Updated analytics tab, ui.
-🔮️ New smart genre group.
 🔮️ New swipe gestures (Now playing, mini + full).
 ✔ New visualizer, circle bars.
-✔️ Fixed playlist bug.
-✔ Fixed slow scan.
-✔ Fixed reverb. bug.

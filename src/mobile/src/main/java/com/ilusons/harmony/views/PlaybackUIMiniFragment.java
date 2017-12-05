@@ -1,16 +1,19 @@
 package com.ilusons.harmony.views;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.view.ViewCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -18,6 +21,7 @@ import android.widget.TextView;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.CacheEx;
 
@@ -120,7 +124,7 @@ public class PlaybackUIMiniFragment extends Fragment {
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(
 						intent,
-						ActivityOptionsCompat.makeCustomAnimation(view.getContext(), R.anim.slide_up, R.anim.slide_down).toBundle());
+						ActivityOptionsCompat.makeCustomAnimation(view.getContext(), R.anim.scale_up, R.anim.shake).toBundle());
 			}
 		};
 
@@ -139,6 +143,10 @@ public class PlaybackUIMiniFragment extends Fragment {
 			public boolean onSwipeLeft() {
 				if (musicService != null) {
 					musicService.prev();
+
+					root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
+
+					AndroidEx.vibrate(root.getContext());
 				}
 				return true;
 			}
@@ -147,6 +155,10 @@ public class PlaybackUIMiniFragment extends Fragment {
 			public boolean onSwipeRight() {
 				if (musicService != null) {
 					musicService.next();
+
+					root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
+
+					AndroidEx.vibrate(root.getContext());
 				}
 				return true;
 			}
@@ -154,6 +166,9 @@ public class PlaybackUIMiniFragment extends Fragment {
 			@Override
 			public boolean onSwipeTop() {
 				onClickListener.onClick(root);
+
+				AndroidEx.vibrate(root.getContext());
+
 				return true;
 			}
 
@@ -165,6 +180,9 @@ public class PlaybackUIMiniFragment extends Fragment {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+
+				AndroidEx.vibrate(root.getContext());
+
 				return false;
 			}
 		});
