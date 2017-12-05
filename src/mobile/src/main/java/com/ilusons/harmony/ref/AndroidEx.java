@@ -11,6 +11,8 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.IntentCompat;
 import android.util.Log;
@@ -21,6 +23,8 @@ import android.widget.ImageView;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.content.Context.VIBRATOR_SERVICE;
 
 
 public class AndroidEx {
@@ -152,6 +156,22 @@ public class AndroidEx {
 		} catch (Exception ex) {
 			Log.e(TAG, "Was not able to restart application");
 		}
+	}
+
+	public static void vibrate(final Context context, int duration) {
+		try {
+			if (Build.VERSION.SDK_INT >= 26) {
+				((Vibrator) context.getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE));
+			} else {
+				((Vibrator) context.getSystemService(VIBRATOR_SERVICE)).vibrate(duration);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void vibrate(final Context context) {
+		vibrate(context, 150);
 	}
 
 }

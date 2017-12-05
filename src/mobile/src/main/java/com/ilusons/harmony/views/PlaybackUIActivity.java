@@ -16,6 +16,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v7.graphics.Palette;
@@ -28,6 +29,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -43,6 +45,7 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Api;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
@@ -490,26 +493,40 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			@Override
 			public void onSwipeTop() {
 				if (getMusicService() != null) {
+					av_layout.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
+
 					getMusicService().random();
+
+					AndroidEx.vibrate(PlaybackUIActivity.this);
 				}
 			}
 
 			@Override
 			public void onSwipeRight() {
 				if (getMusicService() != null) {
+					av_layout.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
+
 					getMusicService().next();
+
+					AndroidEx.vibrate(PlaybackUIActivity.this);
 				}
 			}
 
 			@Override
 			public void onSwipeBottom() {
 				onBackPressed();
+
+				AndroidEx.vibrate(PlaybackUIActivity.this);
 			}
 
 			@Override
 			public void onSwipeLeft() {
 				if (getMusicService() != null) {
+					av_layout.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
+
 					getMusicService().prev();
+
+					AndroidEx.vibrate(PlaybackUIActivity.this);
 				}
 			}
 		});

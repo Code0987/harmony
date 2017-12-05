@@ -31,9 +31,6 @@
 
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimationStyle</item>
 
-        <item name="android:windowActivityTransitions">true</item>
-        <item name="android:windowEnterTransition">@transition/a</item>
-        <item name="android:windowExitTransition">@transition/b</item>
         <!--
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowSharedElementEnterTransition">@transition/shared_a</item>

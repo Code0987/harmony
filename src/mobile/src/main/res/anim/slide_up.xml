@@ -4,5 +4,6 @@
     <translate
         android:duration="350"
         android:fromYDelta="100%"
-        android:toYDelta="0%" />
+        android:interpolator="@android:anim/anticipate_overshoot_interpolator"
+        android:toYDelta="0%"/>
 </set>
