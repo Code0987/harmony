@@ -226,6 +226,48 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		cover = (ImageView) findViewById(R.id.cover);
 		video = (VideoView) findViewById(R.id.video);
 
+		AndroidTouchEx.SwipeEvents.detect(root, new AndroidTouchEx.SwipeCallback() {
+			@Override
+			public void onSwipeTop() {
+				if (getMusicService() != null) {
+					root.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
+
+					getMusicService().random();
+
+					AndroidEx.vibrate(PlaybackUIActivity.this);
+				}
+			}
+
+			@Override
+			public void onSwipeRight() {
+				if (getMusicService() != null) {
+					root.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
+
+					getMusicService().next();
+
+					AndroidEx.vibrate(PlaybackUIActivity.this);
+				}
+			}
+
+			@Override
+			public void onSwipeBottom() {
+				onBackPressed();
+
+				AndroidEx.vibrate(PlaybackUIActivity.this);
+			}
+
+			@Override
+			public void onSwipeLeft() {
+				if (getMusicService() != null) {
+					root.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
+
+					getMusicService().prev();
+
+					AndroidEx.vibrate(PlaybackUIActivity.this);
+				}
+			}
+		});
+
 		if (getPlaybackUIAVHidden(PlaybackUIActivity.this)) {
 			cover.animate().alpha(0.3f).setDuration(666).start();
 		} else {
@@ -489,47 +531,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			}
 		});
 		av_layout.setLongClickable(true);
-		AndroidTouchEx.SwipeEvents.detect(av_layout, new AndroidTouchEx.SwipeCallback() {
-			@Override
-			public void onSwipeTop() {
-				if (getMusicService() != null) {
-					av_layout.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
-
-					getMusicService().random();
-
-					AndroidEx.vibrate(PlaybackUIActivity.this);
-				}
-			}
-
-			@Override
-			public void onSwipeRight() {
-				if (getMusicService() != null) {
-					av_layout.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
-
-					getMusicService().next();
-
-					AndroidEx.vibrate(PlaybackUIActivity.this);
-				}
-			}
-
-			@Override
-			public void onSwipeBottom() {
-				onBackPressed();
-
-				AndroidEx.vibrate(PlaybackUIActivity.this);
-			}
-
-			@Override
-			public void onSwipeLeft() {
-				if (getMusicService() != null) {
-					av_layout.startAnimation(AnimationUtils.loadAnimation(PlaybackUIActivity.this, R.anim.shake));
-
-					getMusicService().prev();
-
-					AndroidEx.vibrate(PlaybackUIActivity.this);
-				}
-			}
-		});
 
 		// Video, if loaded is on mute
 		if (video != null) {
