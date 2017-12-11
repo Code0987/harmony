@@ -398,7 +398,7 @@
         android:padding="0dp"
         android:visibility="visible"
         app:indicatorColor="@color/translucent_primary_light"
-        app:indicatorName="LineScalePulseOutRapidIndicator"
+        app:indicatorName="BallGridPulseIndicator"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

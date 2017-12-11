@@ -539,11 +539,11 @@ public class AudioVFXViewFragment extends Fragment {
 
 	public static AVFXType getAVFXType(Context context) {
 		try {
-			return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.Particles)));
+			return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.CircleBars)));
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			return AVFXType.Circles;
+			return AVFXType.CircleBars;
 		}
 	}
 

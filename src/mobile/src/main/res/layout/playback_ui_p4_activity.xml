@@ -104,53 +104,8 @@
         app:layout_constraintBottom_toTopOf="@+id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
-
-    <ScrollView
-        android:id="@+id/lyrics_layout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:background="@drawable/translucent_center_edge_fade"
-        android:fadingEdgeLength="24dp"
-        android:orientation="vertical"
-        android:requiresFadingEdge="vertical"
-        android:scrollbars="none"
-        app:layout_constraintBottom_toTopOf="@+id/controls_layout"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/metadata_layout"
-        >
-
-        <TextView
-            android:id="@+id/lyrics"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="48dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginStart="32dp"
-            android:layout_marginTop="24dp"
-            android:background="@null"
-            android:fontFamily="serif"
-            android:gravity="center"
-            android:lineSpacingExtra="3dp"
-            android:lineSpacingMultiplier="1.2"
-            android:paddingBottom="72dp"
-            android:paddingTop="72dp"
-            android:shadowColor="@android:color/black"
-            android:shadowDx="0.7"
-            android:shadowDy="1.5"
-            android:shadowRadius="1.7"
-            android:textAlignment="center"
-            android:textSize="16.5sp"
-            tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii. Omnis legio! Omnis con...potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis......legio diabolica, adiuramus te! Exorcizamus te, omnis immundus spiritus, omnis satanica potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis legio diabolica, adiuramus te!"
-            />
-
-    </ScrollView>
+        />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/metadata_layout"
@@ -398,6 +353,51 @@
 
     </RelativeLayout>
 
+    <ScrollView
+        android:id="@+id/lyrics_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        android:background="@drawable/translucent_center_edge_fade"
+        android:fadingEdgeLength="24dp"
+        android:orientation="vertical"
+        android:requiresFadingEdge="vertical"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toTopOf="@id/controls_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/metadata_layout"
+        >
+
+        <TextView
+            android:id="@+id/lyrics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="48dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="24dp"
+            android:background="@null"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:lineSpacingMultiplier="1.2"
+            android:paddingBottom="72dp"
+            android:paddingTop="72dp"
+            android:shadowColor="@android:color/black"
+            android:shadowDx="0.7"
+            android:shadowDy="1.5"
+            android:shadowRadius="1.7"
+            android:textAlignment="center"
+            android:textSize="16.5sp"
+            tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii. Omnis legio! Omnis con...potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis......legio diabolica, adiuramus te! Exorcizamus te, omnis immundus spiritus, omnis satanica potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis legio diabolica, adiuramus te!"
+            />
+
+    </ScrollView>
+
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/loading"
         style="@style/AVLoadingIndicatorView.Large"
@@ -407,7 +407,7 @@
         android:padding="0dp"
         android:visibility="visible"
         app:indicatorColor="@color/translucent_primary_light"
-        app:indicatorName="LineScalePulseOutRapidIndicator"
+        app:indicatorName="BallScaleRippleMultipleIndicator"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
