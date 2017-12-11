@@ -3,7 +3,7 @@
 ☃ 3 days FREE premium ☃
 
 ✔ Bugs/crashes fixed.
-🔮️ Updated analytics tab, ui, swipe gestures.
+🔮️ Updated playback ui, swipe gestures, new layout.
 ✔ New visualizer, circle bars.
 
 Swipe gestures -

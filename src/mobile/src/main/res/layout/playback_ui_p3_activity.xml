@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <android.support.constraint.ConstraintLayout
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/translucent_accent"
-    android:clipChildren="false"
-    android:clipToPadding="false"
     android:elevation="0dp"
     app:elevation="0dp"
     >
@@ -24,6 +22,13 @@
         app:layout_constraintTop_toTopOf="parent"
         >
 
+        <ImageView
+            android:id="@+id/bg1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            />
+
     </RelativeLayout>
 
     <RelativeLayout
@@ -31,8 +36,6 @@
         android:layout_width="0dp"
         android:layout_height="64dp"
         android:background="@drawable/gradient_top_down"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:elevation="0dp"
         android:fitsSystemWindows="true"
         android:gravity="center_vertical"
@@ -48,8 +51,6 @@
         android:layout_width="0dp"
         android:layout_height="72dp"
         android:background="@drawable/gradient_bottom_up"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -64,8 +65,7 @@
         android:layout_centerHorizontal="true"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
+        android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -73,10 +73,17 @@
         >
 
         <RelativeLayout
-            android:id="@+id/av_layout"
-            android:alpha="0.75"
+            android:id="@+id/avfx_layout"
+            android:visibility="invisible"
             app:layout_aspectRatio="100%"
             app:layout_heightPercent="100%"
+            />
+
+        <RelativeLayout
+            android:id="@+id/av_layout"
+            android:padding="16dp"
+            app:layout_aspectRatio="100%"
+            app:layout_widthPercent="100%"
             >
 
             <ImageView
@@ -88,22 +95,36 @@
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:layout_centerInParent="true"
-                android:background="@drawable/lomo"
                 android:elevation="9dp"
-                android:scaleType="centerCrop"
+                android:scaleType="fitXY"
                 android:src="@drawable/logo"
+                />
+
+            <VideoView
+                android:id="@+id/video"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentStart="true"
+                android:layout_centerInParent="true"
+                android:background="@color/translucent"
+                android:visibility="invisible"
                 />
 
         </RelativeLayout>
 
-        <RelativeLayout
-            android:id="@+id/avfx_layout"
-            android:visibility="invisible"
-            app:layout_aspectRatio="100%"
-            app:layout_heightPercent="100%"
-            />
-
     </android.support.percent.PercentRelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0.65"
+        android:background="@drawable/lomo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <RelativeLayout
         android:id="@+id/controls_layout"
@@ -112,8 +133,6 @@
         android:layout_marginBottom="36dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -289,22 +308,28 @@
 
     </RelativeLayout>
 
-    <FrameLayout
-        android:id="@+id/lyrics_layout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:clipChildren="false"
-        android:clipToPadding="false"
+    <TextView
+        android:id="@+id/info"
+        style="@style/TextAppearance.AppCompat.Title.Inverse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:ellipsize="middle"
+        android:gravity="center"
+        android:shadowColor="@android:color/black"
+        android:shadowDx="1"
+        android:shadowDy="2"
+        android:shadowRadius="5"
+        android:textColor="@color/secondary_text"
+        android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_layout"
+        tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii."
         />
 
     <com.wang.avi.AVLoadingIndicatorView
-        android:id="@+id/loadingView"
+        android:id="@+id/loading"
         style="@style/AVLoadingIndicatorView.Large"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

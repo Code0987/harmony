@@ -146,8 +146,6 @@ public class PlaybackUIMiniFragment extends Fragment {
 					musicService.prev();
 
 					root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
-
-					AndroidEx.vibrate(root.getContext());
 				}
 				return true;
 			}
@@ -158,8 +156,6 @@ public class PlaybackUIMiniFragment extends Fragment {
 					musicService.next();
 
 					root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
-
-					AndroidEx.vibrate(root.getContext());
 				}
 				return true;
 			}
@@ -167,8 +163,6 @@ public class PlaybackUIMiniFragment extends Fragment {
 			@Override
 			public boolean onSwipeTop() {
 				onClickListener.onClick(root);
-
-				AndroidEx.vibrate(root.getContext());
 
 				return true;
 			}
@@ -181,8 +175,6 @@ public class PlaybackUIMiniFragment extends Fragment {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-
-				AndroidEx.vibrate(root.getContext());
 
 				return false;
 			}
