@@ -25,7 +25,6 @@ import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
 import com.ilusons.harmony.ref.SongsEx;
-import com.ilusons.harmony.views.LyricsViewFragment;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 
 import org.apache.commons.io.FileUtils;
@@ -40,11 +39,8 @@ import org.jaudiotagger.tag.images.Artwork;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -134,7 +130,7 @@ public class Music extends RealmObject {
 	}
 
 	public boolean isLocal() {
-		return (getPath() != null) && (new File(getPath())).isFile();
+		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http") || getPath().toLowerCase().startsWith("ftp"));
 	}
 
 	// Stats
@@ -607,14 +603,14 @@ public class Music extends RealmObject {
 		return file;
 	}
 
-	private static WeakReference<LyricsViewFragment> currentLyricsView = null;
+	private static WeakReference<PlaybackUIActivity> currentLyricsView = null;
 
-	public static LyricsViewFragment getCurrentLyricsView() {
+	public static PlaybackUIActivity getCurrentLyricsView() {
 		return currentLyricsView.get();
 	}
 
-	public static void setCurrentLyricsView(LyricsViewFragment v) {
-		currentLyricsView = new WeakReference<LyricsViewFragment>(v);
+	public static void setCurrentLyricsView(PlaybackUIActivity v) {
+		currentLyricsView = new WeakReference<PlaybackUIActivity>(v);
 	}
 
 	private static AsyncTask<Void, Void, String> getLyricsOrDownloadTask = null;
@@ -634,7 +630,7 @@ public class Music extends RealmObject {
 			@Override
 			protected void onPostExecute(String result) {
 				if (getCurrentLyricsView() != null)
-					getCurrentLyricsView().onReloaded(result);
+					getCurrentLyricsView().onLyricsReloaded(result);
 			}
 
 			@Override
@@ -643,16 +639,16 @@ public class Music extends RealmObject {
 					if (isCancelled() || getCurrentLyricsView() == null)
 						throw new CancellationException();
 
-					String result = data.getLyrics(getCurrentLyricsView().getActivity());
+					String result = data.getLyrics(getCurrentLyricsView());
 
 					if (!TextUtils.isEmpty(result))
 						return result;
 
 					// Refresh once more
-					if (result == null && getCurrentLyricsView().getActivity() != null) try {
-						data.refresh(getCurrentLyricsView().getActivity());
+					if (result == null && getCurrentLyricsView() != null) try {
+						data.refresh(getCurrentLyricsView());
 
-						result = data.getLyrics(getCurrentLyricsView().getActivity());
+						result = data.getLyrics(getCurrentLyricsView());
 
 						if (!TextUtils.isEmpty(result))
 							return result;
@@ -669,7 +665,7 @@ public class Music extends RealmObject {
 
 						result = lyrics.Content;
 
-						data.putLyrics(getCurrentLyricsView().getActivity(), result);
+						data.putLyrics(getCurrentLyricsView(), result);
 					} catch (Exception e) {
 						Log.w(TAG, e);
 					}
@@ -698,7 +694,7 @@ public class Music extends RealmObject {
 							if (isCancelled())
 								throw new CancellationException();
 
-							data.putLyrics(getCurrentLyricsView().getActivity(), result);
+							data.putLyrics(getCurrentLyricsView(), result);
 						} catch (Exception e) {
 							Log.w(TAG, e);
 						}
@@ -706,7 +702,7 @@ public class Music extends RealmObject {
 					if (TextUtils.isEmpty(result)) {
 						result = "";
 
-						data.putLyrics(getCurrentLyricsView().getActivity(), "");
+						data.putLyrics(getCurrentLyricsView(), "");
 					}
 
 					return result;

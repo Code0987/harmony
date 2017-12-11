@@ -303,14 +303,6 @@ public class SettingsActivity extends BaseActivity {
 		// Presets section
 		onCreateBindPresetsSection();
 
-		// UI section
-		onCreateBindUISection();
-
-		// AVFXType
-		avfxtype_spinner = (Spinner) findViewById(R.id.avfxtype_spinner);
-
-		createAVFXType();
-
 		// Library section
 		onCreateBindLibrarySection();
 
@@ -669,7 +661,6 @@ public class SettingsActivity extends BaseActivity {
 			ArrayList<String> keys = new ArrayList<>();
 
 			keys.addAll(Arrays.asList(MusicService.ExportableSPrefKeys));
-			keys.addAll(Arrays.asList(ExportableSPrefKeys));
 			keys.addAll(Arrays.asList(AudioVFXViewFragment.ExportableSPrefKeys));
 			keys.addAll(Arrays.asList(LibraryViewFragment.ExportableSPrefKeys));
 			keys.addAll(Arrays.asList(PlaybackUIActivity.ExportableSPrefKeys));
@@ -810,16 +801,6 @@ public class SettingsActivity extends BaseActivity {
 
 			notifyDataSetChanged();
 		}
-
-	}
-
-	//endregion
-
-	//region UI section
-
-	private void onCreateBindUISection() {
-
-		createPlaybackUIStyle();
 
 	}
 
@@ -1277,171 +1258,5 @@ public class SettingsActivity extends BaseActivity {
 	}
 
 	//endregion
-
-	//region PlaybackUI style
-	public enum PlaybackUIStyle {
-		Default("Default"),
-		PUI2("Lyrics"),
-		PUI3("Art");
-
-		private String friendlyName;
-
-		PlaybackUIStyle(String friendlyName) {
-			this.friendlyName = friendlyName;
-		}
-	}
-
-	public static final String TAG_SPREF_PlaybackUIStyle = SPrefEx.TAG_SPREF + ".playback_ui_style";
-
-	public static PlaybackUIStyle getPlaybackUIStyle(Context context) {
-		return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PlaybackUIStyle, String.valueOf(PlaybackUIStyle.Default)));
-	}
-
-	public static void setPlaybackUIStyle(Context context, PlaybackUIStyle value) {
-		SPrefEx.get(context)
-				.edit()
-				.putString(TAG_SPREF_PlaybackUIStyle, String.valueOf(value))
-				.apply();
-	}
-
-	private Spinner playbackUIStyle_spinner;
-
-	private void createPlaybackUIStyle() {
-		playbackUIStyle_spinner = (Spinner) findViewById(R.id.playbackUIStyle_spinner);
-
-		PlaybackUIStyle[] items = PlaybackUIStyle.values();
-
-		playbackUIStyle_spinner.setAdapter(new ArrayAdapter<PlaybackUIStyle>(this, 0, items) {
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
-
-				text.setText(text.getText());
-
-				return text;
-			}
-
-			@Override
-			public View getDropDownView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) convertView;
-
-				if (text == null) {
-					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					text.setLayoutParams(lp);
-					text.setPadding(px, px, px, px);
-				}
-
-				text.setText(getItem(position).friendlyName);
-
-				return text;
-			}
-		});
-
-		int i = 0;
-		PlaybackUIStyle lastMode = getPlaybackUIStyle(this);
-		for (; i < items.length; i++)
-			if (items[i] == lastMode)
-				break;
-		playbackUIStyle_spinner.setSelection(i, true);
-
-		playbackUIStyle_spinner.post(new Runnable() {
-			public void run() {
-				playbackUIStyle_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-						setPlaybackUIStyle(getApplicationContext(), (PlaybackUIStyle) adapterView.getItemAtPosition(position));
-
-						info("Playback UI Style will be completely applied on restart!");
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
-	}
-
-	//endregion
-
-	//region AVFXType
-
-	private Spinner avfxtype_spinner;
-
-	private void createAVFXType() {
-		avfxtype_spinner = (Spinner) findViewById(R.id.avfxtype_spinner);
-
-		AudioVFXViewFragment.AVFXType[] items = AudioVFXViewFragment.AVFXType.values();
-
-		avfxtype_spinner.setAdapter(new ArrayAdapter<AudioVFXViewFragment.AVFXType>(this, 0, items) {
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
-
-				text.setText(text.getText());
-
-				return text;
-			}
-
-			@Override
-			public View getDropDownView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) convertView;
-
-				if (text == null) {
-					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					text.setLayoutParams(lp);
-					text.setPadding(px, px, px, px);
-				}
-
-				text.setText(getItem(position).friendlyName);
-
-				return text;
-			}
-		});
-
-		int i = 0;
-		AudioVFXViewFragment.AVFXType lastMode = AudioVFXViewFragment.getAVFXType(this);
-		for (; i < items.length; i++)
-			if (items[i] == lastMode)
-				break;
-		avfxtype_spinner.setSelection(i, true);
-
-		avfxtype_spinner.post(new Runnable() {
-			public void run() {
-				avfxtype_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-						AudioVFXViewFragment.setAVFXType(getApplicationContext(), (AudioVFXViewFragment.AVFXType) adapterView.getItemAtPosition(position));
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
-	}
-
-	//endregion
-
-	public static String[] ExportableSPrefKeys = new String[]{
-			TAG_SPREF_PlaybackUIStyle,
-	};
 
 }

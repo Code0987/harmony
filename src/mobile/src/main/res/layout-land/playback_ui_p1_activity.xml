@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <android.support.constraint.ConstraintLayout
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/translucent_accent"
-    android:clipChildren="false"
-    android:clipToPadding="false"
     android:elevation="0dp"
     app:elevation="0dp"
     >
@@ -20,8 +18,7 @@
         android:layout_height="0dp"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
+        android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -78,8 +75,6 @@
         android:layout_width="72dp"
         android:layout_height="0dp"
         android:background="@color/translucent"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -207,23 +202,50 @@
 
     </RelativeLayout>
 
-    <FrameLayout
+    <ScrollView
         android:id="@+id/lyrics_layout"
         android:layout_width="216dp"
         android:layout_height="0dp"
         android:background="@drawable/gradient_right_left_transparent"
-        android:clipChildren="false"
-        android:clipToPadding="false"
+        android:clickable="true"
+        android:fadingEdgeLength="24dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical"
+        android:requiresFadingEdge="vertical"
+        android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/controls_layout"
         app:layout_constraintTop_toTopOf="parent"
-        />
+        >
+
+        <TextView
+            android:id="@+id/lyrics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@null"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:lineSpacingMultiplier="1.2"
+            android:shadowColor="@android:color/black"
+            android:shadowDx="0.7"
+            android:shadowDy="1.5"
+            android:shadowRadius="1.7"
+            android:textAlignment="center"
+            android:textSize="16.5sp"
+            tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii. Omnis legio! Omnis con...potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis......legio diabolica, adiuramus te! Exorcizamus te, omnis immundus spiritus, omnis satanica potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis legio diabolica, adiuramus te!"
+            />
+
+    </ScrollView>
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -273,7 +295,7 @@
     </android.support.constraint.ConstraintLayout>
 
     <com.wang.avi.AVLoadingIndicatorView
-        android:id="@+id/loadingView"
+        android:id="@+id/loading"
         style="@style/AVLoadingIndicatorView.Large"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

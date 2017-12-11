@@ -23,13 +23,13 @@ public class BaseDialogUIActivity extends BaseUIActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND, WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 		WindowManager.LayoutParams params = getWindow().getAttributes();
-		params.height = Resources.getSystem().getDisplayMetrics().heightPixels - AndroidEx.dpToPx(2 * 32);
+		params.height = Resources.getSystem().getDisplayMetrics().heightPixels - AndroidEx.dpToPx(2 * 48);
 		params.width = Resources.getSystem().getDisplayMetrics().widthPixels - AndroidEx.dpToPx(2 * 32);
 		params.alpha = 1.0f;
 		params.dimAmount = 0.85f;
 		getWindow().setAttributes(params);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
 		super.onCreate(savedInstanceState);
 
