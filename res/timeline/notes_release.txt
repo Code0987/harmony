@@ -2,12 +2,7 @@
 
 ☃ 3 days FREE premium ☃
 
+✔ Added new menu options (long-press now playback ui parts)
+✔ New playback UI (new)
+✔ New updated UI, settings, improved core functions.
 ✔ Bugs/crashes fixed.
-🔮️ Updated playback ui, swipe gestures, new layouts, new menu.
-✔ New visualizer, circle bars.
-
-Swipe gestures -
-left: previous
-right: next
-top: random
-bottom: close/back
