@@ -590,7 +590,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			}
 		});
 		root.setLongClickable(true);
-		root.setOnTouchListener(touchListener);
 
 		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
