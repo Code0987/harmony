@@ -97,6 +97,7 @@ public class MusicService extends Service {
 	public static final String ACTION_LIBRARY_UPDATE_CANCEL = TAG + ".library_update_cancel";
 
 	public static final String ACTION_REFRESH_SYSTEM_BINDINGS = TAG + ".refresh_system_bindings";
+	public static final String ACTION_REFRESH_SFX = TAG + ".sfx";
 
 	public static final String ACTION_PLAYLIST_CHANGED = TAG + ".playlist_changed";
 	public static final String KEY_PLAYLIST_CHANGED_PLAYLIST = "playlist";
@@ -1162,6 +1163,49 @@ public class MusicService extends Service {
 
 	//endregion
 
+	//region SFX
+
+	public void updateSFX() {
+		// Update player effects
+		try {
+			if (mediaPlayer == null)
+				return;
+
+			loadEqualizer();
+			getEqualizer();
+
+			loadPreAmp();
+			getPreAmp();
+
+			loadBassBoost();
+			getBassBoost();
+
+			loadLoudnessEnhancer();
+			getLoudnessEnhancer();
+
+			loadVirtualizer();
+			getVirtualizer();
+
+			loadEnvironmentalReverb();
+			IEnvironmentalReverb environmentalReverb = getEnvironmentalReverb();
+			if (environmentalReverb != null) {
+				mediaPlayer.attachAuxEffect(getEnvironmentalReverb().getId());
+				mediaPlayer.setAuxEffectSendLevel(1f);
+			}
+
+			loadPresetReverb();
+			IPresetReverb presetReverb = getPresetReverb();
+			if (presetReverb != null) {
+				mediaPlayer.attachAuxEffect(getPresetReverb().getId());
+				mediaPlayer.setAuxEffectSendLevel(1f);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	//endregion
+
 	private static MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
 
 	public MusicServiceLibraryUpdaterAsyncTask getLibraryUpdater() {
@@ -1425,32 +1469,7 @@ public class MusicService extends Service {
 
 			mediaSession.setActive(true);
 
-			// Update player effects
-			try {
-				getEqualizer();
-
-				getPreAmp();
-
-				getBassBoost();
-
-				getLoudnessEnhancer();
-
-				getVirtualizer();
-
-				IEnvironmentalReverb environmentalReverb = getEnvironmentalReverb();
-				if (environmentalReverb != null) {
-					mediaPlayer.attachAuxEffect(getEnvironmentalReverb().getId());
-					mediaPlayer.setAuxEffectSendLevel(1f);
-				}
-
-				IPresetReverb presetReverb = getPresetReverb();
-				if (presetReverb != null) {
-					mediaPlayer.attachAuxEffect(getPresetReverb().getId());
-					mediaPlayer.setAuxEffectSendLevel(1f);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			updateSFX();
 
 			mediaPlayer.start();
 
@@ -1817,6 +1836,8 @@ public class MusicService extends Service {
 		filter.addAction(ACTION_LIBRARY_UPDATED);
 		filter.addAction(ACTION_LIBRARY_UPDATE_CANCEL);
 		filter.addAction(ACTION_PLAYLIST_CHANGED);
+		filter.addAction(ACTION_REFRESH_SYSTEM_BINDINGS);
+		filter.addAction(ACTION_REFRESH_SFX);
 
 		filter.addAction(Intent.ACTION_HEADSET_PLUG);
 
@@ -1928,6 +1949,8 @@ public class MusicService extends Service {
 
 		} else if (action.equals(ACTION_REFRESH_SYSTEM_BINDINGS)) {
 			update();
+		} else if (action.equals(ACTION_REFRESH_SFX)) {
+			updateSFX();
 		}
 	}
 

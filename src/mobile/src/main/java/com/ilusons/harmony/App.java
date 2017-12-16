@@ -17,6 +17,7 @@ import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.RealmEx;
+import com.ilusons.harmony.ref.SPrefEx;
 import com.scand.realmbrowser.RealmBrowser;
 import com.squareup.leakcanary.LeakCanary;
 
@@ -82,19 +83,6 @@ public class App extends Application {
 		Analytics.getInstance().initSettings(this);
 		Analytics.getInstance().initLastfm(this);
 		Analytics.getInstance().initDC(this);
-
-		// Default settings
-		final String tag_preset_default = ".preset_default";
-		if (!Once.beenDone(Once.THIS_APP_INSTALL, tag_preset_default)) {
-			try {
-				try (InputStream is = getResources().openRawResource(R.raw.preset_default)) {
-					SettingsActivity.importCurrentPreset(this, is, null);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Once.markDone(tag_preset_default);
-		}
 
 		// Start scan
 		try {

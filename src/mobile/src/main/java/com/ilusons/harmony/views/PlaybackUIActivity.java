@@ -43,7 +43,6 @@ import android.widget.VideoView;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
@@ -67,7 +66,6 @@ import org.musicbrainz.android.api.data.ReleaseInfo;
 import org.musicbrainz.android.api.data.Tag;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -1606,11 +1604,21 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		tune.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
+				TunePresetsFragment.showAsDialog(view.getContext());
+
+				info("Long-press previous button for deep customization.");
+			}
+		});
+		tune.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
 				Intent intent = new Intent(PlaybackUIActivity.this, TuneActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
+				return true;
 			}
 		});
+		tune.setLongClickable(true);
 
 	}
 

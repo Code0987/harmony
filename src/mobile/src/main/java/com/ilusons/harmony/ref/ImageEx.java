@@ -1,5 +1,6 @@
 package com.ilusons.harmony.ref;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -8,6 +9,9 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.util.Log;
 import android.widget.ImageView;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class ImageEx {
 
@@ -78,6 +82,29 @@ public class ImageEx {
 		options.inPreferredConfig = Bitmap.Config.RGB_565;
 		options.inDither = true;
 		return BitmapFactory.decodeFile(filePath, options);
+	}
+
+	public static Bitmap getBitmapFromAsset(AssetManager mgr, String path) {
+		InputStream is = null;
+		Bitmap bitmap = null;
+		try {
+			is = mgr.open(path);
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = false;
+			options.inPreferredConfig = Bitmap.Config.RGB_565;
+			options.inDither = true;
+			bitmap = BitmapFactory.decodeStream(is, null, options);
+		} catch (final IOException e) {
+			bitmap = null;
+		} finally {
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException ignored) {
+				}
+			}
+		}
+		return bitmap;
 	}
 
 	/**
