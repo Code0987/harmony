@@ -78,7 +78,6 @@ public class AnalyticsViewFragment extends Fragment {
 		return v;
 	}
 
-
 	//region Items
 
 	private WaveSwipeRefreshLayout swipeRefreshLayout;
