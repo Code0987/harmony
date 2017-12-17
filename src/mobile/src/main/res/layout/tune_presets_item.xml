@@ -38,8 +38,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:background="@drawable/translucent_center_edge_fade"
-            android:padding="5dp"
+            android:background="@color/primary_dark"
+            android:padding="3dp"
             >
 
             <TextView

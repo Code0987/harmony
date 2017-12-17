@@ -622,6 +622,20 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	};
 
 	private void createMetadata() {
+		View metadata_layout = findViewById(R.id.metadata_layout);
+		if (metadata_layout != null) {
+			metadata_layout.setOnLongClickListener(new View.OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View view) {
+					showOptionsDialog();
+
+					return true;
+				}
+			});
+			metadata_layout.setLongClickable(true);
+			metadata_layout.setOnTouchListener(touchListener);
+		}
+
 		title = findViewById(R.id.title);
 		artist = findViewById(R.id.artist);
 		info = findViewById(R.id.info);
@@ -722,7 +736,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			}
 			info.setText(s);
 		}
-
 	}
 
 	private void toggleCover(boolean hide) {
@@ -763,7 +776,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	private void showOptionsDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
-		builder.setTitle("Select?");
+		builder.setTitle(getString(R.string.select_title));
 		builder.setItems(new CharSequence[]{
 				"Share lyrics",
 				"Toggle cover",
@@ -828,11 +841,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(shareCoverPath));
 		shareIntent.setType("image/*");
 		shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-		startActivity(Intent.createChooser(shareIntent, "Share lyrics for " + getMusicService().getMusic().getText() + " ..."));
+		startActivity(Intent.createChooser(shareIntent, getString(R.string.share_lyrics_for_) + getMusicService().getMusic().getText()));
 	}
 
 	private void updateCover() throws Exception {
-		info("Downloading artwork ...", true);
+		info(getString(R.string.downloading_artwork), true);
 
 		Music data = getMusicService().getMusic();
 		ArtworkEx.getArtworkDownloaderTask(
@@ -846,7 +859,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				new JavaEx.ActionT<Bitmap>() {
 					@Override
 					public void execute(Bitmap bitmap) {
-						info("Artwork downloaded!");
+						info(getString(R.string.artwork_downloaded));
 
 						onCoverReloaded(bitmap);
 					}
@@ -854,7 +867,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				new JavaEx.ActionT<Exception>() {
 					@Override
 					public void execute(Exception e) {
-						info("Artwork download failed!");
+						info(getString(R.string.artwork_download_failed));
 
 						Log.w(TAG, e);
 					}
@@ -886,11 +899,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				context.grantUriPermission(packageName, contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			}
 
-			context.startActivity(Intent.createChooser(intent, "Edit lyrics for " + getMusicService().getMusic().getText()));
+			context.startActivity(Intent.createChooser(intent, getString(R.string.edit_lyrics_for_) + getMusicService().getMusic().getText()));
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			Toast.makeText(PlaybackUIActivity.this, "Please install a text editor first!", Toast.LENGTH_LONG).show();
+			Toast.makeText(PlaybackUIActivity.this, R.string.install_text_editor, Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -901,7 +914,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			return;
 		}
 
-		info("Looking up ...", true);
+		info(getString(R.string.looking_up), true);
 
 		final Music m = getMusicService().getMusic();
 
@@ -917,7 +930,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.subscribe(new Consumer<Recording>() {
 					@Override
 					public void accept(final Recording r) throws Exception {
-						info("Found something ...");
+						info(getString(R.string.found_something));
 
 						final String mbid = r.getMbid();
 
@@ -955,7 +968,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 							sb.append("MBID: ").append(mbid).append(System.lineSeparator());
 
 						(new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle))
-								.setTitle("Apply new details?")
+								.setTitle(R.string.apply_new_details_title)
 								.setMessage(sb.toString())
 								.setCancelable(true)
 								.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -986,7 +999,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 										resetForUriIfNeeded(m.getPath(), true);
 
-										info("Music details updated, you may need to restart app to see changes!");
+										info(getString(R.string.details_applied_restart_needed));
 									}
 								})
 								.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -1002,7 +1015,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					public void accept(Throwable throwable) throws Exception {
 						Log.w(TAG, throwable);
 
-						info("Music details were not found over internet or some error occurred.");
+						info(getString(R.string.details_not_found_internet));
 
 						fingerprintAndUpdateDetails();
 					}
@@ -1010,7 +1023,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void fingerprintAndUpdateDetails() {
-		info("Generating fingerprint and looking up ...", true);
+		info(getString(R.string.gen_fp_looking_up), true);
 
 		final Music m = getMusicService().getMusic();
 		Api.lookupAndUpdateMusicData(
@@ -1019,7 +1032,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				new JavaEx.ActionT<Map<String, String>>() {
 					@Override
 					public void execute(Map<String, String> result) {
-						info("Music details found!");
+						info(getString(R.string.found_something));
 
 						final String title = result.get("title");
 						final String artist = result.get("artist");
@@ -1028,13 +1041,13 @@ public class PlaybackUIActivity extends BaseUIActivity {
 						final String id = result.get("id");
 
 						if (TextUtils.isEmpty(title)) {
-							info("Music details found were not appropriate for use!");
+							info(getString(R.string.details_found_invalid));
 
 							return;
 						}
 
 						(new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle))
-								.setTitle("Apply new details?")
+								.setTitle(getString(R.string.apply_new_details_title))
 								.setMessage("Title: " + title
 										+ "\nArtist: " + artist
 										+ "\nAlbum: " + album
@@ -1061,7 +1074,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 										resetForUriIfNeeded(m.getPath(), true);
 
-										info("Music details updated, you may need to restart app to see changes!");
+										info(getString(R.string.details_applied_restart_needed));
 									}
 								})
 								.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -1076,7 +1089,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				new JavaEx.ActionT<Exception>() {
 					@Override
 					public void execute(Exception e) {
-						info("Music details were not found over internet or some error occurred.");
+						info(getString(R.string.details_not_found_internet));
 					}
 				});
 	}
@@ -1089,18 +1102,18 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		}
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
-		builder.setTitle("Select?");
+		builder.setTitle(getString(R.string.select_title));
 		builder.setItems(items, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int itemIndex) {
 				try {
 					setPlaybackUIStyle(PlaybackUIActivity.this, values[itemIndex]);
 
-					info("Playback UI Style will be completely applied on restart!");
+					info(getString(R.string.applied_on_restart));
 				} catch (Exception e) {
 					Log.w(TAG, e);
 
-					info("Some error!");
+					info(getString(R.string.error));
 				}
 			}
 		});
@@ -1116,7 +1129,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		}
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
-		builder.setTitle("Select?");
+		builder.setTitle(R.string.select_title);
 		builder.setItems(items, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int itemIndex) {
@@ -1125,11 +1138,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
 
-					info("Now using " + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + " fx!");
+					info(getString(R.string.now_using_) + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + getString(R.string._fx));
 				} catch (Exception e) {
 					Log.w(TAG, e);
 
-					info("Some error!");
+					info(getString(R.string.error));
 				}
 			}
 		});
@@ -1487,13 +1500,13 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			public boolean onLongClick(View view) {
 				if (getMusicService() != null) {
 					getMusicService().stop();
-
-					info("Stopped!");
 				}
 
 				return true;
 			}
 		});
+		play_pause_stop.setLongClickable(true);
+		play_pause_stop.setOnTouchListener(touchListener);
 
 		prev.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -1549,9 +1562,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 						MusicService.setPlayerShuffleMusicEnabled(PlaybackUIActivity.this, value);
 
 						if (value)
-							info("Shuffle turned ON");
+							info(getString(R.string.shuffle_on));
 						else
-							info("Shuffle turned OFF");
+							info(getString(R.string.shuffle_off));
 
 						if (value)
 							shuffle.setAlpha(0.9f);
@@ -1589,9 +1602,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					MusicService.setPlayerRepeatMusicEnabled(PlaybackUIActivity.this, value);
 
 					if (value)
-						info("Repeat turned ON");
+						info(getString(R.string.repeat_on));
 					else
-						info("Repeat turned OFF");
+						info(getString(R.string.repeat_off));
 
 					if (value)
 						repeat.setAlpha(0.9f);
@@ -1605,8 +1618,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			@Override
 			public void onClick(View view) {
 				TunePresetsFragment.showAsDialog(view.getContext());
-
-				info("Long-press previous button for deep customization.");
 			}
 		});
 		tune.setOnLongClickListener(new View.OnLongClickListener() {
@@ -1702,8 +1713,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			return;
 
 		(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
-				.setTitle("Tour?")
-				.setMessage("Would you like a short tour, highlighting the basic usage of this screen?")
+				.setTitle(R.string.playback_setup_title)
+				.setMessage(R.string.playback_setup_msg)
 				.setCancelable(true)
 				.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 					@Override
@@ -1712,17 +1723,35 @@ public class PlaybackUIActivity extends BaseUIActivity {
 							@Override
 							public void onUserClicked(String usageId) {
 								try {
+									tune.performClick();
+
+									info(getString(R.string.playback_setup_tune_choose_preset));
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+
+								try {
 									Once.markDone(tag_guide);
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
 							}
 						});
+
+						dialogInterface.dismiss();
 					}
 				})
 				.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialogInterface, int i) {
+						try {
+							tune.performClick();
+
+							info(getString(R.string.playback_setup_tune_choose_preset));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
 						try {
 							Once.markDone(tag_guide);
 						} catch (Exception e) {
@@ -1733,7 +1762,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					}
 				}))
 				.show();
-
 	}
 
 	private void tour(MaterialIntroListener onFinal) {
@@ -1748,7 +1776,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("Press to Play/Pause, and long press to Stop current item.")
+				.setInfoText(getString(R.string.playback_setup_msg_1))
 				.setTarget(play_pause_stop)
 				.setUsageId(UUID.randomUUID().toString());
 
@@ -1763,7 +1791,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("Press to skip to next item in playlist. Long press to skip to random item.")
+				.setInfoText(getString(R.string.playback_setup_msg_2))
 				.setTarget(next)
 				.setUsageId(UUID.randomUUID().toString());
 
@@ -1778,7 +1806,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("Press to enable visualizations. Long press to cycle between various styles.")
+				.setInfoText(getString(R.string.playback_setup_msg_3))
 				.setTarget(avfx)
 				.setUsageId(UUID.randomUUID().toString());
 
@@ -1793,7 +1821,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("Press to open Tune view. You can fine tune your sound here!")
+				.setInfoText(getString(R.string.playback_setup_msg_4))
 				.setTarget(tune)
 				.setUsageId(UUID.randomUUID().toString());
 
@@ -1808,7 +1836,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("This is lyrics view. Turn on your internet for automatic lyrics. Long press to options menu.")
+				.setInfoText(getString(R.string.playback_setup_msg_5))
 				.setTarget(lyrics_layout == null ? root : lyrics_layout)
 				.setUsageId(UUID.randomUUID().toString());
 
@@ -1823,7 +1851,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("Cover art, video, visualizations will be here (in that order)!")
+				.setInfoText(getString(R.string.playback_setup_msg_6))
 				.setTarget(cover)
 				.setUsageId(UUID.randomUUID().toString());
 
@@ -1838,7 +1866,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.dismissOnTouch(true)
 				.enableIcon(true)
 				.performClick(true)
-				.setInfoText("That's all! Now go play something!")
+				.setInfoText(getString(R.string.playback_setup_msg_7))
 				.setTarget(play_pause_stop)
 				.setUsageId(UUID.randomUUID().toString());
 
