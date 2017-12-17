@@ -31,6 +31,26 @@
 
     </RelativeLayout>
 
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="256dp"
+            android:layout_height="256dp"
+            android:layout_marginStart="-32dp"
+            android:layout_marginTop="-96dp"
+            android:alpha="0.1"
+            android:scaleType="fitXY"
+            android:src="@drawable/logo"
+            />
+
+    </FrameLayout>
+
     <RelativeLayout
         android:id="@+id/top_layout"
         android:layout_width="0dp"
@@ -62,10 +82,10 @@
         android:id="@+id/av_layout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/metadata_layout"
         >
 
         <ImageView
@@ -123,7 +143,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:clickable="false"
             android:ellipsize="middle"
             android:focusable="false"
@@ -361,7 +381,7 @@
         android:layout_marginEnd="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginTop="0dp"
-        android:background="@drawable/translucent_center_edge_fade"
+        android:background="@color/translucent"
         android:fadingEdgeLength="24dp"
         android:orientation="vertical"
         android:requiresFadingEdge="vertical"

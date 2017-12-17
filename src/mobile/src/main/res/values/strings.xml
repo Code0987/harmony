@@ -3,6 +3,12 @@
     <string name="app_name" translatable="false">harmony</string>
     <string name="app_website" translatable="false">http://harmony.ilusons.com</string>
 
+    <string name="error">Some error!</string>
+    <string name="now_using_">Now using</string>
+    <string name="_fx">fx!</string>
+    <string name="select_title">Select?</string>
+    <string name="applied_on_restart">Will be completely applied on restart!</string>
+
     <string name="rating_dialog_experience">How was your experience with us?</string>
     <string name="rating_dialog_maybe_later">Maybe later</string>
     <string name="rating_dialog_never">Never</string>
@@ -10,5 +16,34 @@
     <string name="rating_dialog_submit">Submit</string>
     <string name="rating_dialog_cancel">Cancel</string>
     <string name="rating_dialog_suggestions">Suggest us what went wrong and we\'ll work on it!</string>
+
+    <string name="playback_setup_title">Tour?</string>
+    <string name="playback_setup_msg">Would you like a short tour, highlighting the basic usage of this screen?</string>
+    <string name="playback_setup_tune_choose_preset">Choose your music style!</string>
+    <string name="playback_setup_msg_1">Press to Play/Pause, and long press to Stop. Swipe for magic!</string>
+    <string name="playback_setup_msg_2">Press to skip. Long press to random.</string>
+    <string name="playback_setup_msg_3">Visualizations. Long-press to cycle between styles.</string>
+    <string name="playback_setup_msg_4">Tune. Long-press for advanced tune.</string>
+    <string name="playback_setup_msg_5">Lyrics view. Turn on internet for automatic lyrics. Long-press for options.</string>
+    <string name="playback_setup_msg_6">Cover art, video, visualizations will be here (in that order)! Long-press for options.</string>
+    <string name="playback_setup_msg_7">That\'s all! Now go play something!</string>
+
+    <string name="repeat_on">Repeat turned ON</string>
+    <string name="repeat_off">Repeat turned OFF</string>
+    <string name="shuffle_on">Shuffle turned ON</string>
+    <string name="shuffle_off">Shuffle turned OFF</string>
+    <string name="looking_up">Looking up …</string>
+    <string name="found_something">Found something …</string>
+    <string name="apply_new_details_title">Apply new details?</string>
+    <string name="details_applied_restart_needed">Music details updated, you may need to restart app to see changes!</string>
+    <string name="details_not_found_internet">Music details were not found over internet or some error occurred.</string>
+    <string name="gen_fp_looking_up">Generating fingerprint and looking up …</string>
+    <string name="details_found_invalid">Music details found were not appropriate for use!</string>
+    <string name="install_text_editor">Please install a text editor first!</string>
+    <string name="edit_lyrics_for_">Edit lyrics for</string>
+    <string name="artwork_downloaded">Artwork downloaded!</string>
+    <string name="artwork_download_failed">Artwork download failed!</string>
+    <string name="downloading_artwork">Downloading artwork …</string>
+    <string name="share_lyrics_for_">Share lyrics for</string>
 
 </resources>
