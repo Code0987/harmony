@@ -36,7 +36,7 @@
                 android:layout_height="match_parent"
                 >
 
-                <ImageView
+                <com.makeramen.roundedimageview.RoundedImageView
                     android:id="@+id/cover"
                     android:elevation="9dp"
                     android:scaleType="fitXY"

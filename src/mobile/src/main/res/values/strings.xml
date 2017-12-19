@@ -18,7 +18,7 @@
     <string name="rating_dialog_suggestions">Suggest us what went wrong and we\'ll work on it!</string>
 
     <string name="playback_setup_title">Tour?</string>
-    <string name="playback_setup_msg">Would you like a short tour, highlighting the basic usage of this screen?</string>
+    <string name="playback_setup_msg">Would you like a short tour, highlighting the basic usage of this screen and hidden functions?</string>
     <string name="playback_setup_tune_choose_preset">Choose your music style!</string>
     <string name="playback_setup_msg_1">Press to Play/Pause, and long press to Stop. Swipe for magic!</string>
     <string name="playback_setup_msg_2">Press to skip. Long press to random.</string>
@@ -45,5 +45,23 @@
     <string name="artwork_download_failed">Artwork download failed!</string>
     <string name="downloading_artwork">Downloading artwork …</string>
     <string name="share_lyrics_for_">Share lyrics for</string>
+    <string name="share_lyrics">Share lyrics</string>
+    <string name="toggle_cover">Toggle cover</string>
+    <string name="toggle_video">Toggle video</string>
+    <string name="toggle_lyrics">Toggle lyrics</string>
+    <string name="re_download_cover">Re-download cover</string>
+    <string name="re_load_lyrics">Re-load lyrics</string>
+    <string name="edit_lyrics">Edit lyrics</string>
+    <string name="update_metadata">Lookup and update details</string>
+    <string name="change_ui">Change ui</string>
+    <string name="change_fx">Change fx</string>
+    <string name="tour">Tour</string>
+
+    <string name="import_">Import</string>
+    <string name="export_">Export</string>
+
+    <string name="tune_presets_info1">Pre-defined presets to customize tune in one go.</string>
+    <string name="tune_presets_info2">The preset file includes Tune* configurations. Not all will work, due to in-compatibility in hardware.</string>
+    <string name="tune_presets_info3">You can e-mail us your own preset, by exporting. If we like it, you\'ll see it in next update and get a surprise*.</string>
 
 </resources>

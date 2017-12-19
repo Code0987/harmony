@@ -2,8 +2,11 @@
 
 ☃ 3 days FREE premium ☃
 
+✔ New playback UI (new, new 2, checkout both!)
+✔ Updated tips.
+✔ Updated tour and menu.
+✔ Fixed play button bug.
 ✔ New tune presets (with live demo!)
 ✔ Added new menu options (long-press now playback ui parts)
-✔ New playback UI (new)
 ✔ New updated UI, settings, improved core functions.
 ✔ Bugs/crashes fixed.

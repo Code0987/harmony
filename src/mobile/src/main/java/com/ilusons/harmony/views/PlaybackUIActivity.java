@@ -23,6 +23,7 @@ import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v4.graphics.ColorUtils;
+import android.support.v4.view.ViewPager;
 import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
 import android.util.Log;
@@ -55,6 +56,7 @@ import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.ui.CircleIndicator;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.lang3.StringUtils;
@@ -159,6 +161,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 			case P4:
 				layoutId = R.layout.playback_ui_p4_activity;
+				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+				break;
+
+			case P5:
+				layoutId = R.layout.playback_ui_p5_activity;
 				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 				break;
 
@@ -489,7 +496,10 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				}
 				break;
 
-			case P1:
+			case P5:
+				cover.setImageBitmap(bitmap);
+				break;
+
 			default:
 				if (cover.getDrawable() != null) {
 					TransitionDrawable d = new TransitionDrawable(new Drawable[]{
@@ -598,6 +608,17 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				initHelp();
 			}
 		});
+
+		final ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
+		if (viewPager != null) {
+			viewPager.post(new Runnable() {
+				@Override
+				public void run() {
+					CircleIndicator viewPagerIndicator = (CircleIndicator) findViewById(R.id.viewPagerIndicator);
+					viewPagerIndicator.setViewPager(viewPager);
+				}
+			});
+		}
 	}
 
 	//endregion
@@ -607,7 +628,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	private TextView title;
 	private TextView artist;
 	private TextView info;
-	private ImageView cover;
+	private com.makeramen.roundedimageview.RoundedImageView cover;
 	private VideoView video;
 
 	private Runnable videoSyncTask = new Runnable() {
@@ -640,8 +661,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		artist = findViewById(R.id.artist);
 		info = findViewById(R.id.info);
 
-		cover = (ImageView) findViewById(R.id.cover);
-		video = (VideoView) findViewById(R.id.video);
+		cover = findViewById(R.id.cover);
+		video = findViewById(R.id.video);
 
 		toggleCover(getPlaybackUICoverHidden(this));
 		toggleVideo(getPlaybackUIVideoHidden(this));
@@ -778,16 +799,17 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
 		builder.setTitle(getString(R.string.select_title));
 		builder.setItems(new CharSequence[]{
-				"Share lyrics",
-				"Toggle cover",
-				"Toggle video",
-				"Toggle lyrics",
-				"Re-download cover",
-				"Re-load lyrics",
-				"Edit lyrics",
-				"Lookup and update details",
-				"Change ui",
-				"Change fx"
+				getString(R.string.share_lyrics),
+				getString(R.string.toggle_cover),
+				getString(R.string.toggle_video),
+				getString(R.string.toggle_lyrics),
+				getString(R.string.re_download_cover),
+				getString(R.string.re_load_lyrics),
+				getString(R.string.edit_lyrics),
+				getString(R.string.update_metadata),
+				getString(R.string.change_ui),
+				getString(R.string.change_fx),
+				getString(R.string.tour)
 		}, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int itemIndex) {
@@ -822,6 +844,14 @@ public class PlaybackUIActivity extends BaseUIActivity {
 							break;
 						case 9:
 							changeAVFXStyle();
+							break;
+						case 10:
+							tour(new MaterialIntroListener() {
+								@Override
+								public void onUserClicked(String s) {
+									info(":)");
+								}
+							});
 							break;
 					}
 				} catch (Exception e) {
@@ -1506,7 +1536,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			}
 		});
 		play_pause_stop.setLongClickable(true);
-		play_pause_stop.setOnTouchListener(touchListener);
 
 		prev.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -1946,7 +1975,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		P1("Cover + Video + Lyrics + FX"),
 		P2("Lyrics + FX"),
 		P3("Cover + Video + FX"),
-		P4("New");
+		P4("New"),
+		P5("New 2");
 
 		private String friendlyName;
 
@@ -1959,11 +1989,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	public static PlaybackUIStyle getPlaybackUIStyle(Context context) {
 		try {
-			return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(PlaybackUIStyle.P4)));
+			return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(PlaybackUIStyle.P5)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return PlaybackUIStyle.P4;
+		return PlaybackUIStyle.P5;
 	}
 
 	public static void setPlaybackUIStyle(Context context, PlaybackUIStyle value) {

@@ -1970,11 +1970,11 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	public static UIViewMode getUIViewMode(Context context) {
 		try {
-			return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Complex1)));
+			return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Default)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return UIViewMode.Complex1;
+		return UIViewMode.Default;
 	}
 
 	public static void setUIViewMode(Context context, UIViewMode value) {

@@ -139,7 +139,8 @@ public class PlaybackUIMiniFragment extends Fragment {
 				return true;
 			}
 		});
-		root.setOnTouchListener(new AndroidTouchEx.OnSwipeTouchListener() {
+
+		View.OnTouchListener touchListener = new AndroidTouchEx.OnSwipeTouchListener() {
 			@Override
 			public boolean onSwipeLeft() {
 				if (musicService != null) {
@@ -178,7 +179,10 @@ public class PlaybackUIMiniFragment extends Fragment {
 
 				return false;
 			}
-		});
+		};
+
+		root.setOnTouchListener(touchListener);
+		v.setOnTouchListener(touchListener);
 
 		return v;
 	}

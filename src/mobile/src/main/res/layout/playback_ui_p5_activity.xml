@@ -58,81 +58,179 @@
 
     </RelativeLayout>
 
-    <android.support.percent.PercentRelativeLayout
-        android:id="@+id/cover_layout"
+    <view
+        android:id="@+id/viewPagerIndicator"
+        class="com.ilusons.harmony.ref.ui.CircleIndicator"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/viewPager"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/metadata_layout"/>
+
+    <view
+        android:id="@+id/viewPager"
+        class="com.ilusons.harmony.ref.ViewEx$StaticViewPager"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_centerHorizontal="true"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:descendantFocusability="beforeDescendants"
+        android:focusableInTouchMode="true"
+        android:gravity="center"
+        app:layout_constraintBottom_toTopOf="@id/controls_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/viewPagerIndicator"
+        >
+
+        <RelativeLayout
+            android:id="@+id/av_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:id="@+id/cover"
+                android:layout_width="212dp"
+                android:layout_height="212dp"
+                android:layout_centerInParent="true"
+                android:elevation="9dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/logo"
+                android:transitionName="transition_cover"
+                app:riv_border_color="#34000000"
+                app:riv_border_width="4dip"
+                app:riv_corner_radius="212dip"
+                app:riv_mutate_background="true"
+                app:riv_oval="true"
+                app:riv_tile_mode="mirror"
+                />
+
+        </RelativeLayout>
+
+        <ScrollView
+            android:id="@+id/lyrics_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="0dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:fadingEdgeLength="36dp"
+            android:orientation="vertical"
+            android:requiresFadingEdge="vertical"
+            android:scrollbars="none"
+            >
+
+            <TextView
+                android:id="@+id/lyrics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="48dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="24dp"
+                android:background="@null"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="72dp"
+                android:paddingTop="72dp"
+                android:shadowColor="@android:color/black"
+                android:shadowDx="0.7"
+                android:shadowDy="1.5"
+                android:shadowRadius="1.7"
+                android:textAlignment="center"
+                android:textSize="16.5sp"
+                tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii. Omnis legio! Omnis con...potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis......legio diabolica, adiuramus te! Exorcizamus te, omnis immundus spiritus, omnis satanica potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis legio diabolica, adiuramus te!"
+                />
+
+        </ScrollView>
+
+    </view>
+
+    <RelativeLayout
+        android:id="@+id/avfx_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/controls_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/metadata_layout"
+        />
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/metadata_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:padding="16dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         >
 
-        <RelativeLayout
-            android:id="@+id/avfx_layout"
-            android:visibility="invisible"
-            app:layout_aspectRatio="100%"
-            app:layout_heightPercent="100%"
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp"
+            android:clickable="false"
+            android:ellipsize="middle"
+            android:focusable="false"
+            android:fontFamily="sans-serif"
+            android:paddingEnd="15.5dp"
+            android:paddingStart="24dp"
+            android:shadowColor="@android:color/black"
+            android:shadowDx="0.7"
+            android:shadowDy="1.5"
+            android:shadowRadius="1.7"
+            android:singleLine="true"
+            android:text=""
+            android:textColor="@color/primary_text"
+            android:textSize="24sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Title"
             />
 
-        <RelativeLayout
-            android:id="@+id/av_layout"
-            android:padding="16dp"
-            app:layout_aspectRatio="100%"
-            app:layout_widthPercent="100%"
-            >
+        <TextView
+            android:id="@+id/artist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="8dp"
+            android:clickable="false"
+            android:ellipsize="middle"
+            android:focusable="false"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingEnd="24dp"
+            android:paddingStart="24dp"
+            android:shadowColor="@android:color/black"
+            android:shadowDx="0.7"
+            android:shadowDy="1.5"
+            android:shadowRadius="1.7"
+            android:singleLine="true"
+            android:text=""
+            android:textColor="@color/primary_text"
+            android:textSize="13.5sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title"
+            tools:text="Artist"
+            />
 
-            <com.makeramen.roundedimageview.RoundedImageView
-                android:id="@+id/cover"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_centerInParent="true"
-                android:elevation="9dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/logo"
-                />
-
-            <VideoView
-                android:id="@+id/video"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentStart="true"
-                android:layout_centerInParent="true"
-                android:background="@color/translucent"
-                android:visibility="invisible"
-                />
-
-        </RelativeLayout>
-
-    </android.support.percent.PercentRelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:alpha="0.65"
-        android:background="@drawable/lomo"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
+    </android.support.constraint.ConstraintLayout>
 
     <RelativeLayout
         android:id="@+id/controls_layout"
         android:layout_width="0dp"
-        android:layout_height="86dp"
-        android:layout_marginBottom="36dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
+        android:layout_height="132dp"
+        android:layout_marginBottom="16dp"
+        android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -308,26 +406,6 @@
 
     </RelativeLayout>
 
-    <TextView
-        android:id="@+id/info"
-        style="@style/TextAppearance.AppCompat.Title.Inverse"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:ellipsize="middle"
-        android:gravity="center"
-        android:shadowColor="@android:color/black"
-        android:shadowDx="1"
-        android:shadowDy="2"
-        android:shadowRadius="5"
-        android:textColor="@color/secondary_text"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@id/controls_layout"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii."
-        />
-
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/loading"
         style="@style/AVLoadingIndicatorView.Large"
@@ -337,7 +415,7 @@
         android:padding="0dp"
         android:visibility="visible"
         app:indicatorColor="@color/translucent_primary_light"
-        app:indicatorName="BallRotateIndicator"
+        app:indicatorName="BallClipRotatePulseIndicator"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

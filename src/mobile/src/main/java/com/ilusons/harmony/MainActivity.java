@@ -196,31 +196,33 @@ public class MainActivity extends BaseActivity {
 			return;
 
 		try {
+			final Context context = contextRef.get();
+			
 			ArrayList<String> messages = new ArrayList<>();
 
-			messages.add("You can play videos in background, just open any video.");
-			messages.add("Automatic headset play/pause can be adjusted from settings.");
-			messages.add("In default playback ui, you can rotate screen. It's specifically designed for video playback.");
-			messages.add("Long press play/pause button to stop/reset.");
-			messages.add("Long press skip/next/previous button to skip to random item in playlist.");
-			messages.add("Long press jump/open button to open playback ui.");
-			messages.add("Long press to open lyrics menu on lyrics view.");
-			messages.add("Long press cover art to open menu.");
-			messages.add("Long press visualization button to change styles.");
-			messages.add("If songs are not shown,\nTap Library -> Save to current playlist\nOr\nLeft drawer -> Refresh\nOr\nLeft drawer -> Settings -> Library -> Add scan location -> (previous step)");
-			messages.add("Beta version will have some of the premium features unlocked.");
-			messages.add("Visit our YouTube Channel/Playlist (Left drawer -> Help...) for demos and videos.");
-			messages.add("Visit our website (Settings -> About ...) for latest updates and more information.");
-			messages.add("Almost every button, ui, ... has long-press action. Be sure to find out.");
-			messages.add("Headset media button is sometimes supported.\n1 press - play/pause\n2 fast press - next\n3 fast press - previous");
-			messages.add("On right drawer, you can also see your playlist from other apps or on device.");
-			messages.add("Help us! By creating tour/informative videos. Send us YouTube links, you'll get surprises!");
-			messages.add("Be sure to check out Analytics, Playback UI styles, Library UI styles, Audio visualization styles, these are free for limited time!");
-			messages.add("You can now share the whole music file  with your friends using any supported app.");
-			messages.add("You can now share lyrics with your friends using any supported app.");
-			messages.add("We now support audio fingerprinting, i.e. you can get details of audio even if it has no tags.");
-			messages.add("You can download cover art again. Long-press cover art on playback ui.");
-			messages.add("This is a smart player, it'll learn and improve itself over time, as you use it.");
+			messages.add(context.getString(R.string.tip_1));
+			messages.add(context.getString(R.string.tip_2));
+			messages.add(context.getString(R.string.tip_3));			
+			messages.add(context.getString(R.string.tip_4));			
+			messages.add(context.getString(R.string.tip_5));
+			messages.add(context.getString(R.string.tip_6));			
+			messages.add(context.getString(R.string.tip_7));			
+			messages.add(context.getString(R.string.tip_8));			
+			messages.add(context.getString(R.string.tip_9));			
+			messages.add(context.getString(R.string.tip_10));			
+			messages.add(context.getString(R.string.tip_11));			
+			messages.add(context.getString(R.string.tip_12));			
+			messages.add(context.getString(R.string.tip_13));			
+			messages.add(context.getString(R.string.tip_14));
+			messages.add(context.getString(R.string.tip_15));			
+			messages.add(context.getString(R.string.tip_16));			
+			messages.add(context.getString(R.string.tip_17));			
+			messages.add(context.getString(R.string.tip_18));			
+			messages.add(context.getString(R.string.tip_19));			
+			messages.add(context.getString(R.string.tip_20));			
+			messages.add(context.getString(R.string.tip_21));			
+			messages.add(context.getString(R.string.tip_22));			
+			messages.add(context.getString(R.string.tip_23));
 
 			Tips tips = new Tips(contextRef.get());
 
