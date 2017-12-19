@@ -15,9 +15,9 @@
 
     <color name="transparent">#00000000</color>
     <color name="translucent">#94000000</color>
-    <color name="translucent_primary">#94616161</color>
-    <color name="translucent_primary_light">#94eeeeee</color>
-    <color name="translucent_primary_dark">#94424242</color>
+    <color name="translucent_primary">#b4616161</color>
+    <color name="translucent_primary_light">#b4eeeeee</color>
+    <color name="translucent_primary_dark">#b4424242</color>
     <color name="translucent_accent">#940091ea</color>
     <color name="translucent_icons">#c8eeeeee</color>
     <color name="translucent_dark">#c8000000</color>

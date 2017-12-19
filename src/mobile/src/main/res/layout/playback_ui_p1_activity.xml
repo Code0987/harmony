@@ -81,7 +81,7 @@
             app:layout_widthPercent="100%"
             >
 
-            <ImageView
+            <com.makeramen.roundedimageview.RoundedImageView
                 android:id="@+id/cover"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

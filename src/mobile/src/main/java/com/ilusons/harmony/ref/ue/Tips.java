@@ -76,6 +76,17 @@ public class Tips {
 		this.messages.addAll(messages);
 	}
 
+	public String getMessages() {
+		if (messages.size() == 0)
+			return null;
+
+		StringBuilder sb = new StringBuilder();
+		for (String msg : messages)
+			sb.append(msg).append(System.lineSeparator()).append(System.lineSeparator());
+
+		return sb.toString();
+	}
+
 	private String positiveText;
 
 	public String getPositiveText() {
@@ -240,7 +251,7 @@ public class Tips {
 			more.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					message.setText(owner.getMessage());
+					message.setText(owner.getMessages());
 				}
 			});
 

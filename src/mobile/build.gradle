@@ -210,6 +210,7 @@ dependencies {
 	implementation 'com.spotify.android:auth:1.0.0-alpha'
 	implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
 	implementation 'com.github.recruit-lifestyle:WaveSwipeRefreshLayout:1.6'
+	implementation 'com.makeramen:roundedimageview:2.3.0'
 	implementation('com.scand:realm-browser:0.1.15') {
 		exclude group: 'io.realm'
 	}

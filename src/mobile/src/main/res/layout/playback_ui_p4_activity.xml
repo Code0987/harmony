@@ -88,7 +88,7 @@
         app:layout_constraintTop_toBottomOf="@id/metadata_layout"
         >
 
-        <ImageView
+        <com.makeramen.roundedimageview.RoundedImageView
             android:id="@+id/cover"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -381,7 +381,7 @@
         android:layout_marginEnd="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginTop="0dp"
-        android:background="@color/translucent"
+        android:background="@drawable/lyrics_bg"
         android:fadingEdgeLength="24dp"
         android:orientation="vertical"
         android:requiresFadingEdge="vertical"

@@ -9,7 +9,7 @@ public class AndroidTouchEx {
 
 	public static class OnSwipeTouchListener implements View.OnTouchListener {
 
-		private static final int SWIPE_THRESHOLD = 180;
+		private static final int SWIPE_THRESHOLD = 250;
 
 		private float x1, x2, y1, y2;
 

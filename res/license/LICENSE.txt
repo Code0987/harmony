@@ -64,6 +64,8 @@ Summary
             http://www.apache.org/licenses/LICENSE-2.0
         WaveSwipeRefreshLayout
             http://www.apache.org/licenses/LICENSE-2.0
+        RoundedImageView
+            http://www.apache.org/licenses/LICENSE-2.0
 
 harmony - Terms and conditions
 

@@ -116,7 +116,7 @@ public class TuneActivity extends BaseActivity {
 		if (!Once.beenDone(Once.THIS_APP_VERSION, tag_msg_info)) {
 			(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
 					.setTitle("A note ...")
-					.setMessage("Tune allows you to deeply customize the sound you want to hear. It's currently in experimental ☢ state. Tune functions are totally device dependent. Thank you.")
+					.setMessage("Tune allows you to deeply customize the sound you want to hear. It's currently in experimental ☢ state. Tune functions are totally device dependent. Please disable device audio effects (using stock music player), if output is not optimal. Thank you.")
 					.setCancelable(false)
 					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 						@Override
