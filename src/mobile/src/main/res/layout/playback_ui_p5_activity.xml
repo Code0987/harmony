@@ -8,7 +8,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/translucent_accent"
-    android:clipChildren="false"
     android:elevation="0dp"
     app:elevation="0dp"
     >
@@ -237,24 +236,26 @@
 
     </android.support.constraint.ConstraintLayout>
 
-    <RelativeLayout
+    <android.support.constraint.ConstraintLayout
         android:id="@+id/controls_layout"
         android:layout_width="0dp"
-        android:layout_height="132dp"
-        android:layout_marginBottom="16dp"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:padding="16dp"
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
+        android:paddingEnd="16dp"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         >
 
         <android.support.constraint.ConstraintLayout
+            android:id="@+id/controls1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            >
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/position_start"
@@ -298,56 +299,26 @@
         </android.support.constraint.ConstraintLayout>
 
         <LinearLayout
+            android:id="@+id/controls2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
             android:gravity="center"
             android:orientation="horizontal"
-            >
-
-            <ImageButton
-                android:id="@+id/avfx"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="3dp"
-                android:alpha="0.5"
-                android:background="@null"
-                android:padding="3dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_gradient_black"
-                android:tint="@color/translucent_icons"
-                android:tintMode="src_in"
-                />
-
-            <ImageButton
-                android:id="@+id/shuffle"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="3dp"
-                android:alpha="0.5"
-                android:background="@null"
-                android:padding="3dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_shuffle_black"
-                android:tint="@color/translucent_icons"
-                android:tintMode="src_in"
-                />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/controls1">
 
             <ImageButton
                 android:id="@+id/prev"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
-                android:layout_marginEnd="3dp"
-                android:layout_marginStart="3dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
                 android:alpha="0.9"
                 android:background="@drawable/circle_translucent"
-                android:padding="3dp"
+                android:padding="5dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_skip_previous_black"
                 android:tint="@color/translucent_icons"
@@ -358,10 +329,10 @@
                 android:id="@+id/play_pause_stop"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:layout_marginEnd="3dp"
-                android:layout_marginStart="3dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
                 android:background="@drawable/circle_translucent"
-                android:padding="8dp"
+                android:padding="10dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_play_black"
                 android:tint="@color/translucent_icons"
@@ -373,23 +344,69 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="center_vertical"
-                android:layout_marginEnd="3dp"
-                android:layout_marginStart="3dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
                 android:alpha="0.9"
                 android:background="@drawable/circle_translucent"
-                android:padding="3dp"
+                android:padding="5dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_skip_next_black"
                 android:tint="@color/translucent_icons"
                 android:tintMode="src_in"
                 />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/controls3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/controls2">
+
+            <ImageButton
+                android:id="@+id/avfx"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_gradient_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
+            <ImageButton
+                android:id="@+id/shuffle"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_shuffle_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
             <ImageButton
                 android:id="@+id/repeat"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_gravity="center_vertical"
-                android:layout_marginEnd="3dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:alpha="0.5"
                 android:background="@null"
@@ -405,7 +422,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_gravity="center_vertical"
-                android:layout_marginEnd="3dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:alpha="0.5"
                 android:background="@null"
@@ -416,26 +433,25 @@
                 android:tintMode="src_in"
                 />
 
+            <ImageButton
+                android:id="@+id/more"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:alpha="0.5"
+                android:background="@null"
+                android:padding="3dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_more_vert_black"
+                android:tint="@color/translucent_icons"
+                android:tintMode="src_in"
+                />
+
         </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/more"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginEnd="-16dp"
-            android:layout_marginTop="-48dp"
-            android:alpha="0.6"
-            android:background="@null"
-            android:padding="3dp"
-            android:scaleType="fitXY"
-            android:src="@drawable/ic_more_vert_black"
-            android:tint="@color/translucent_icons"
-            android:tintMode="src_in"
-            />
-
-    </RelativeLayout>
+    </android.support.constraint.ConstraintLayout>
 
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/loading"
