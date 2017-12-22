@@ -248,6 +248,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 		loading.smoothToHide();
 
+		/*
 		if (BuildConfig.DEBUG)
 			try {
 				List<Class<? extends RealmObject>> classes = new ArrayList<>();
@@ -259,7 +260,7 @@ public class DashboardActivity extends BaseUIActivity {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
+		*/
 	}
 
 	@Override
@@ -666,10 +667,12 @@ public class DashboardActivity extends BaseUIActivity {
 		findViewById(R.id.exit).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				if (getMusicService() != null)
+				if (getMusicService() != null){
 					getMusicService().stop();
+					getMusicService().stopSelf();
+				}
 
-				System.exit(0);
+				finish();
 			}
 		});
 

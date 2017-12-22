@@ -539,11 +539,11 @@ public class AudioVFXViewFragment extends Fragment {
 
 	public static AVFXType getAVFXType(Context context) {
 		try {
-			return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.CircleBars)));
+			return AVFXType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_AVFXTYPE, String.valueOf(AVFXType.Circles)));
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			return AVFXType.CircleBars;
+			return AVFXType.Circles;
 		}
 	}
 
@@ -581,7 +581,7 @@ public class AudioVFXViewFragment extends Fragment {
 	public static final String TAG_SPREF_AVFXTYPE_ENABLED = SPrefEx.TAG_SPREF + ".avfx_enabled";
 
 	public static boolean getAVFXEnabled(Context context) {
-		return SPrefEx.get(context).getBoolean(TAG_SPREF_AVFXTYPE_ENABLED, false);
+		return SPrefEx.get(context).getBoolean(TAG_SPREF_AVFXTYPE_ENABLED, true);
 	}
 
 	public static void setAVFXEnabled(Context context, boolean value) {

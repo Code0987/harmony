@@ -1474,6 +1474,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	private ImageButton repeat;
 	private ImageButton avfx;
 	private ImageButton tune;
+	private ImageButton more;
 
 	private void createControls() {
 		controls_layout = findViewById(R.id.controls_layout);
@@ -1514,6 +1515,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		repeat = findViewById(R.id.repeat);
 		avfx = findViewById(R.id.avfx);
 		tune = findViewById(R.id.tune);
+		more = findViewById(R.id.more);
 
 		play_pause_stop.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -1660,6 +1662,13 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		});
 		tune.setLongClickable(true);
 
+		more.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				showOptionsDialog();
+			}
+		});
+
 	}
 
 	private Runnable progressHandlerRunnable;
@@ -1702,13 +1711,22 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
 		play_pause_stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-		play_pause_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+		if (play_pause_stop.getBackground() != null)
+			play_pause_stop.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
 		prev.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		if (prev.getBackground() != null)
+			prev.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
 		next.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		if (next.getBackground() != null)
+			next.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
 		shuffle.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 		repeat.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 		avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 		tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+
+		more.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		if (more.getBackground() != null)
+			more.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
 	}
 
 	private void toggleControls() {
