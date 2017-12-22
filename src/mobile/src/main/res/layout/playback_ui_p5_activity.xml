@@ -8,6 +8,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/translucent_accent"
+    android:clipChildren="false"
     android:elevation="0dp"
     app:elevation="0dp"
     >
@@ -68,6 +69,17 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/metadata_layout"/>
 
+    <RelativeLayout
+        android:id="@+id/avfx_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@id/controls_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/viewPagerIndicator"
+        />
+
     <view
         android:id="@+id/viewPager"
         class="com.ilusons.harmony.ref.ViewEx$StaticViewPager"
@@ -103,6 +115,17 @@
                 app:riv_mutate_background="true"
                 app:riv_oval="true"
                 app:riv_tile_mode="mirror"
+                />
+
+            <VideoView
+                android:id="@+id/video"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentStart="true"
+                android:layout_centerInParent="true"
+                android:background="@color/translucent"
+                android:visibility="invisible"
                 />
 
         </RelativeLayout>
@@ -149,23 +172,12 @@
 
     </view>
 
-    <RelativeLayout
-        android:id="@+id/avfx_layout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/controls_layout"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/metadata_layout"
-        />
-
     <android.support.constraint.ConstraintLayout
         android:id="@+id/metadata_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:padding="16dp"
+        android:padding="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -230,6 +242,8 @@
         android:layout_width="0dp"
         android:layout_height="132dp"
         android:layout_marginBottom="16dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -272,8 +286,8 @@
                 android:id="@+id/seekBar"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:paddingEnd="6dp"
-                android:paddingStart="6dp"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
                 android:progress="50"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toRightOf="@id/position_start"
@@ -332,7 +346,7 @@
                 android:layout_marginEnd="3dp"
                 android:layout_marginStart="3dp"
                 android:alpha="0.9"
-                android:background="@null"
+                android:background="@drawable/circle_translucent"
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_skip_previous_black"
@@ -346,7 +360,7 @@
                 android:layout_height="64dp"
                 android:layout_marginEnd="3dp"
                 android:layout_marginStart="3dp"
-                android:background="@drawable/circle_outline"
+                android:background="@drawable/circle_translucent"
                 android:padding="8dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_play_black"
@@ -362,7 +376,7 @@
                 android:layout_marginEnd="3dp"
                 android:layout_marginStart="3dp"
                 android:alpha="0.9"
-                android:background="@null"
+                android:background="@drawable/circle_translucent"
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_skip_next_black"
@@ -404,6 +418,23 @@
 
         </LinearLayout>
 
+        <ImageButton
+            android:id="@+id/more"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="-16dp"
+            android:layout_marginTop="-48dp"
+            android:alpha="0.6"
+            android:background="@null"
+            android:padding="3dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/ic_more_vert_black"
+            android:tint="@color/translucent_icons"
+            android:tintMode="src_in"
+            />
+
     </RelativeLayout>
 
     <com.wang.avi.AVLoadingIndicatorView
@@ -416,10 +447,10 @@
         android:visibility="visible"
         app:indicatorColor="@color/translucent_primary_light"
         app:indicatorName="BallClipRotatePulseIndicator"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/viewPagerIndicator"
         />
 
 </android.support.constraint.ConstraintLayout>

@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ue.RateMe;
 import com.ilusons.harmony.ref.ue.Tips;
@@ -50,6 +51,10 @@ public class MainActivity extends BaseActivity {
 
 		if (intent.getAction() == null) {
 			openDashboardActivity(this);
+
+			// Kill self
+			finish();
+
 			return;
 		}
 
@@ -96,7 +101,13 @@ public class MainActivity extends BaseActivity {
 			String content = intent.getStringExtra(ALERT_CONTENT);
 			String link = intent.getStringExtra(ALERT_LINK);
 
-			showDialog(this, title, content, link);
+			showDialog(this, title, content, link, new JavaEx.Action() {
+				@Override
+				public void execute() {
+					// Kill self
+					finish();
+				}
+			});
 		}
 	}
 
@@ -197,31 +208,31 @@ public class MainActivity extends BaseActivity {
 
 		try {
 			final Context context = contextRef.get();
-			
+
 			ArrayList<String> messages = new ArrayList<>();
 
 			messages.add(context.getString(R.string.tip_1));
 			messages.add(context.getString(R.string.tip_2));
-			messages.add(context.getString(R.string.tip_3));			
-			messages.add(context.getString(R.string.tip_4));			
+			messages.add(context.getString(R.string.tip_3));
+			messages.add(context.getString(R.string.tip_4));
 			messages.add(context.getString(R.string.tip_5));
-			messages.add(context.getString(R.string.tip_6));			
-			messages.add(context.getString(R.string.tip_7));			
-			messages.add(context.getString(R.string.tip_8));			
-			messages.add(context.getString(R.string.tip_9));			
-			messages.add(context.getString(R.string.tip_10));			
-			messages.add(context.getString(R.string.tip_11));			
-			messages.add(context.getString(R.string.tip_12));			
-			messages.add(context.getString(R.string.tip_13));			
+			messages.add(context.getString(R.string.tip_6));
+			messages.add(context.getString(R.string.tip_7));
+			messages.add(context.getString(R.string.tip_8));
+			messages.add(context.getString(R.string.tip_9));
+			messages.add(context.getString(R.string.tip_10));
+			messages.add(context.getString(R.string.tip_11));
+			messages.add(context.getString(R.string.tip_12));
+			messages.add(context.getString(R.string.tip_13));
 			messages.add(context.getString(R.string.tip_14));
-			messages.add(context.getString(R.string.tip_15));			
-			messages.add(context.getString(R.string.tip_16));			
-			messages.add(context.getString(R.string.tip_17));			
-			messages.add(context.getString(R.string.tip_18));			
-			messages.add(context.getString(R.string.tip_19));			
-			messages.add(context.getString(R.string.tip_20));			
-			messages.add(context.getString(R.string.tip_21));			
-			messages.add(context.getString(R.string.tip_22));			
+			messages.add(context.getString(R.string.tip_15));
+			messages.add(context.getString(R.string.tip_16));
+			messages.add(context.getString(R.string.tip_17));
+			messages.add(context.getString(R.string.tip_18));
+			messages.add(context.getString(R.string.tip_19));
+			messages.add(context.getString(R.string.tip_20));
+			messages.add(context.getString(R.string.tip_21));
+			messages.add(context.getString(R.string.tip_22));
 			messages.add(context.getString(R.string.tip_23));
 
 			Tips tips = new Tips(contextRef.get());
@@ -234,7 +245,7 @@ public class MainActivity extends BaseActivity {
 		}
 	}
 
-	public static void showDialog(final Context context, String title, String content, final String link) {
+	public static void showDialog(final Context context, String title, String content, final String link, final JavaEx.Action onFinish) {
 		try {
 			final AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.AppTheme_AlertDialogStyle))
 					.setTitle(title)
@@ -251,12 +262,18 @@ public class MainActivity extends BaseActivity {
 							}
 
 							dialogInterface.dismiss();
+
+							if (onFinish != null)
+								onFinish.execute();
 						}
 					})
 					.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialogInterface, int i) {
 							dialogInterface.dismiss();
+
+							if (onFinish != null)
+								onFinish.execute();
 						}
 					})
 					.create();
