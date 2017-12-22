@@ -1662,12 +1662,13 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		});
 		tune.setLongClickable(true);
 
-		more.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				showOptionsDialog();
-			}
-		});
+		if (more != null)
+			more.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					showOptionsDialog();
+				}
+			});
 
 	}
 
