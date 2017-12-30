@@ -286,6 +286,9 @@ public class CirclesView extends BaseAVFXCanvasView {
 
 		@Override
 		public void update() {
+			if (Items == null)
+				return;
+
 			for (FXObject item : Items) {
 				if (m > 0 && f > 0) {
 					item.c = fc.get((int) Math.min(Math.max(lf, f), uf));

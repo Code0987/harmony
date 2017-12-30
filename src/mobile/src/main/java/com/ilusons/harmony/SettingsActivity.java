@@ -1007,4 +1007,50 @@ public class SettingsActivity extends BaseActivity {
 
 	//endregion
 
+	//region Theme
+
+	public enum Theme {
+		Default("Default"),
+		Light("Light"),
+		Dark("Dark"),;
+
+		private String friendlyName;
+
+		Theme(String friendlyName) {
+			this.friendlyName = friendlyName;
+		}
+	}
+
+	public static final String TAG_SPREF_THEME = "theme";
+
+	public static Theme getTheme(Context context) {
+		try {
+			return Theme.valueOf(SPrefEx.get(context).getString(TAG_SPREF_THEME, String.valueOf(Theme.Default)));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return Theme.Default;
+	}
+
+	public static void setTheme(Context context, Theme value) {
+		SPrefEx.get(context)
+				.edit()
+				.putString(TAG_SPREF_THEME, String.valueOf(value))
+				.apply();
+	}
+
+	public static int getThemeRes(Context context) {
+		switch (getTheme(context)) {
+			case Light:
+				return R.style.AppTheme_Light;
+			case Dark:
+				return R.style.AppTheme_Dark;
+			case Default:
+			default:
+				return R.style.AppTheme;
+		}
+	}
+
+	//endregion
+
 }

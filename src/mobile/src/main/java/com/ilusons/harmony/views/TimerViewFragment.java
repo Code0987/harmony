@@ -178,14 +178,23 @@ public class TimerViewFragment extends Fragment {
 	public static final String TAG_SPREF_ST_TIME = SPrefEx.TAG_SPREF + ".st_t";
 
 	public static Long getSleepTimerTime(Context context) {
-		return SPrefEx.get(context).getLong(TAG_SPREF_ST_TIME, 0);
+		try {
+			return SPrefEx.get(context).getLong(TAG_SPREF_ST_TIME, 0);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0L;
 	}
 
 	public static void setSleepTimerTime(Context context, Long value) {
-		SPrefEx.get(context)
-				.edit()
-				.putLong(TAG_SPREF_ST_TIME, value)
-				.apply();
+		try {
+			SPrefEx.get(context)
+					.edit()
+					.putLong(TAG_SPREF_ST_TIME, value)
+					.apply();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static long getSleepTimerTimeLeft(Context context) {

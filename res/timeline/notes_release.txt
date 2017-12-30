@@ -2,9 +2,9 @@
 
 ☃ 3 days FREE premium ☃
 
+✔ Bugs/crashes fixed.
 ✔ Fixed exit button bug.
 ✔ New playback UI (new, new 2, checkout both!)
 ✔ Updated tips.
 ✔ Updated tour and menu.
 ✔ New tune presets (with live demo!)
-✔ Bugs/crashes fixed.

@@ -1062,6 +1062,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				new JavaEx.ActionT<Map<String, String>>() {
 					@Override
 					public void execute(Map<String, String> result) {
+						if (isFinishing())
+							return;
+
 						info(getString(R.string.found_something));
 
 						final String title = result.get("title");
@@ -1725,9 +1728,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 		tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 
-		more.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-		if (more.getBackground() != null)
-			more.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+		if (more != null) {
+			more.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+			if (more.getBackground() != null)
+				more.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+		}
 	}
 
 	private void toggleControls() {
