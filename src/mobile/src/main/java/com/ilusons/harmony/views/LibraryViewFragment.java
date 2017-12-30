@@ -1249,15 +1249,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 				root.clearAnimation();
 
-				AnimatorSet as = new AnimatorSet();
-				as.playSequentially(
-						ObjectAnimator.ofArgb(root, "backgroundColor", ContextCompat.getColor(getContext(), R.color.transparent), ContextCompat.getColor(getContext(), R.color.accent), ContextCompat.getColor(getContext(), R.color.transparent))
-				);
-				as.setDuration(733);
-				as.setInterpolator(new LinearInterpolator());
-				as.setTarget(root);
+				root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
 
-				as.start();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -2190,7 +2183,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	public static UIStyle getUIStyle(Context context) {
 		try {
-			return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Card5)));
+			return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Default)));
 		} catch (Exception e) {
 			e.printStackTrace();
 
