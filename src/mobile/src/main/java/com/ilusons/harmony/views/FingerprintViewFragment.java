@@ -484,6 +484,9 @@ public class FingerprintViewFragment extends BaseUIFragment {
 					if (isDetached())
 						continue;
 
+					if (getActivity() == null)
+						continue;
+
 					getActivity().runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
