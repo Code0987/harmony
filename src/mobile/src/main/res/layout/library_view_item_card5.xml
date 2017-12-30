@@ -15,7 +15,7 @@
     android:clickable="true"
     android:focusable="true"
     android:padding="0dp"
-    app:cardBackgroundColor="@color/translucent_primary_dark"
+    app:cardBackgroundColor="@color/translucent_dark"
     app:cardCornerRadius="0dp"
     app:cardElevation="0dp"
     >
