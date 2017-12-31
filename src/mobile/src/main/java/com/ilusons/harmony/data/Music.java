@@ -77,6 +77,27 @@ public class Music extends RealmObject {
 		Path = path;
 	}
 
+	public boolean isLocal() {
+		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http") || getPath().toLowerCase().startsWith("ftp"));
+	}
+
+	private String LastPlaybackUrl;
+
+	public String getLastPlaybackUrl() {
+		try {
+			if (TextUtils.isEmpty(LastPlaybackUrl))
+				if (isLocal())
+					LastPlaybackUrl = Path;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return LastPlaybackUrl;
+	}
+
+	public void setLastPlaybackUrl(String s) {
+		LastPlaybackUrl = s;
+	}
+
 	@Index
 	private String Title = "";
 
@@ -127,10 +148,6 @@ public class Music extends RealmObject {
 
 	public void setTrack(int track) {
 		Track = track;
-	}
-
-	public boolean isLocal() {
-		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http") || getPath().toLowerCase().startsWith("ftp"));
 	}
 
 	// Stats

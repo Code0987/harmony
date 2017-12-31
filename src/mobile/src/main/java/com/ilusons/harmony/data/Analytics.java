@@ -1,22 +1,37 @@
 package com.ilusons.harmony.data;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.util.SparseArray;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.model.SearchListResponse;
+import com.google.api.services.youtube.model.SearchResult;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.ilusons.harmony.BuildConfig;
+import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SecurePreferences;
+import com.ilusons.harmony.ref.SongsEx;
 
 import org.apache.http.util.TextUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,6 +39,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import at.huber.youtubeExtractor.Format;
+import at.huber.youtubeExtractor.VideoMeta;
+import at.huber.youtubeExtractor.YouTubeExtractor;
+import at.huber.youtubeExtractor.YtFile;
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Caller;
 import de.umass.lastfm.ImageSize;
@@ -733,6 +752,25 @@ public class Analytics {
 							m.setTags(StringUtils.join(t.getTags(), ','));
 							m.setLength(t.getDuration());
 							m.setPath(t.getUrl());
+							try {
+								final Music forUrl = m;
+								getYouTubeUrls(context, m.getText(), 1L)
+										.subscribe(new Consumer<Collection<String>>() {
+											@Override
+											public void accept(Collection<String> r) throws Exception {
+												if (r.iterator().hasNext())
+													forUrl.setPath(r.iterator().next());
+											}
+										}, new Consumer<Throwable>() {
+											@Override
+											public void accept(Throwable throwable) throws Exception {
+
+											}
+										});
+								m.setPath(forUrl.getPath());
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 
 						r.add(m);
@@ -742,8 +780,6 @@ public class Analytics {
 							break;
 					}
 
-					// TODO: Disable for now
-					/*
 					try (Realm realm = DB.getDB()) {
 						if (realm != null) {
 							realm.executeTransaction(new Realm.Transaction() {
@@ -756,7 +792,6 @@ public class Analytics {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					*/
 
 					oe.onNext(r);
 					oe.onComplete();
@@ -766,6 +801,120 @@ public class Analytics {
 			}
 		});
 	}
+
+	//region YT
+
+	private static String getYouTubeAPIKey() {
+		return "AIzaSyCbI-1cSfDdoMIjXhNKznhxn5L_ZOwtB3A";
+	}
+
+	public static Observable<Collection<String>> getYouTubeUrls(final Context context, final String queryTerm, final long limit) {
+		return Observable.create(new ObservableOnSubscribe<Collection<String>>() {
+			@SuppressLint("StaticFieldLeak")
+			@Override
+			public void subscribe(ObservableEmitter<Collection<String>> oe) throws Exception {
+				try {
+					final ArrayList<String> r = new ArrayList<>();
+
+					try {
+						// This object is used to make YouTube Data API requests. The last
+						// argument is required, but since we don't need anything
+						// initialized when the HttpRequest is initialized, we override
+						// the interface and provide a no-op function.
+						YouTube youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
+							public void initialize(HttpRequest request) throws IOException {
+							}
+						}).setApplicationName(context.getString(R.string.app_name)).build();
+
+						// Define the API request for retrieving search results.
+						YouTube.Search.List search = youtube.search().list("id,snippet");
+
+						// Set your developer key from the {{ Google Cloud Console }} for
+						// non-authenticated requests. See:
+						// {{ https://cloud.google.com/console }}
+						String apiKey = getYouTubeAPIKey();
+						search.setKey(apiKey);
+						search.setQ(URLDecoder.decode(queryTerm, "utf-8"));
+
+						// Restrict the search results to only include videos. See:
+						// https://developers.google.com/youtube/v3/docs/search/list#type
+						search.setType("video");
+
+						// To increase efficiency, only retrieve the fields that the
+						// application uses.
+						search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
+						search.setMaxResults(limit);
+
+						// Call the API and process results.
+						SearchListResponse searchResponse = search.execute();
+						List<SearchResult> searchResultList = searchResponse.getItems();
+						if (searchResultList != null) {
+							for (SearchResult sr : searchResultList) {
+								r.add("http://" + "youtube.com/watch?v=" + sr.getId().getVideoId());
+							}
+						}
+
+					} catch (GoogleJsonResponseException e) {
+						System.err.println("There was a service error: " + e.getDetails().getCode() + " : " + e.getDetails().getMessage());
+					} catch (IOException e) {
+						System.err.println("There was an IO error: " + e.getCause() + " : " + e.getMessage());
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+
+					oe.onNext(r);
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<String> getYouTubeAudioUrl(final Context context, final String watchUrl) {
+		return Observable.create(new ObservableOnSubscribe<String>() {
+			@SuppressLint("StaticFieldLeak")
+			@Override
+			public void subscribe(ObservableEmitter<String> oe) throws Exception {
+				try {
+					if (!watchUrl.toLowerCase().contains("youtube")) {
+						oe.onComplete();
+						return;
+					}
+
+					YouTubeExtractor yte = new YouTubeExtractor(context) {
+						@Override
+						public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
+
+						}
+					};
+					yte.setParseDashManifest(true);
+
+					SparseArray<YtFile> ytFiles = yte.execute(watchUrl).get(3L, TimeUnit.MINUTES);
+
+					if (ytFiles != null) {
+						for (int i = 0, itag; i < ytFiles.size(); i++) {
+							itag = ytFiles.keyAt(i);
+							YtFile ytFile = ytFiles.get(itag);
+							Format format = ytFile.getFormat();
+
+							if (format.getExt().contains("m4a")) {
+								oe.onNext(ytFile.getUrl());
+
+								break;
+							}
+						}
+					}
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	//endregion
 
 	//endregion
 
