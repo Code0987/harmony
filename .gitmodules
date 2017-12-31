@@ -22,3 +22,6 @@
 [submodule "res/libs/musicbrainz-android"]
 	path = res/libs/musicbrainz-android
 	url = https://github.com/jdamcd/musicbrainz-android.git
+[submodule "res/libs/android-youtubeExtractor"]
+	path = res/libs/android-youtubeExtractor
+	url = https://github.com/HaarigerHarald/android-youtubeExtractor.git

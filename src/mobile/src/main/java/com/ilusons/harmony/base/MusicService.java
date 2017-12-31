@@ -16,6 +16,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.StrictMode;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
@@ -63,6 +64,11 @@ import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.sfx.AndroidOSMediaPlayerFactory;
 import com.ilusons.harmony.sfx.MediaPlayerFactory;
 
+import java.util.Collection;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 
 import static android.provider.Settings.Secure;
@@ -326,6 +332,8 @@ public class MusicService extends Service {
 	@Override
 	public void onCreate() {
 		Log.d(TAG, "onCreate called");
+
+		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
 		initializeLicensing();
 
@@ -1275,7 +1283,7 @@ public class MusicService extends Service {
 		update();
 	}
 
-	private void prepare(final JavaEx.Action onPrepare) {
+	private void prepareA(final JavaEx.Action onPrepare) {
 		// Fix playlist position
 		if (!canPlay())
 			return;
@@ -1289,18 +1297,53 @@ public class MusicService extends Service {
 		}
 
 		synchronized (this) {
-			// Decode file
 			currentMusic = currentPlaylist.getItem();
 
 			if (currentMusic == null)
 				return;
 
 			if (!currentMusic.isLocal()) {
-				Toast.makeText(this, "Sorry, we only support local files based music currently! [" + currentMusic.getText() + "]", Toast.LENGTH_LONG).show();
-				nextSmart(true);
-				return;
-			}
+				Toast.makeText(this, R.string.yt_audio_download_info, Toast.LENGTH_LONG).show();
 
+				Analytics.getYouTubeAudioUrl(this, currentMusic.getPath())
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribeOn(Schedulers.io())
+						.subscribe(new Consumer<String>() {
+							@Override
+							public void accept(String r) throws Exception {
+								if (r == null) {
+									Toast.makeText(MusicService.this, R.string.yt_audio_not_found, Toast.LENGTH_LONG).show();
+									return;
+								}
+
+								Toast.makeText(MusicService.this, R.string.yt_audio_downloaded, Toast.LENGTH_LONG).show();
+
+								currentMusic.setLastPlaybackUrl(r);
+
+								prepareB(onPrepare);
+							}
+						}, new Consumer<Throwable>() {
+							@Override
+							public void accept(Throwable throwable) throws Exception {
+								Toast.makeText(MusicService.this, R.string.yt_audio_not_found, Toast.LENGTH_LONG).show();
+							}
+						});
+			} else {
+				prepareB(onPrepare);
+			}
+		}
+	}
+
+	private void prepareB(final JavaEx.Action onPrepare) {
+		if (TextUtils.isEmpty(currentMusic.getLastPlaybackUrl())) {
+			Toast.makeText(MusicService.this, currentMusic.getPath() + getString(R.string._not_playable), Toast.LENGTH_LONG).show();
+
+			nextSmart(true);
+
+			return;
+		}
+
+		synchronized (this) {
 			// Setup player
 			if (mediaPlayerFactory == null)
 				switch (getPlayerType(this)) {
@@ -1328,7 +1371,7 @@ public class MusicService extends Service {
 								.sendBroadcast(new Intent(ACTION_PREPARED));
 					}
 				});
-				mediaPlayer.setDataSource(currentMusic.getPath());
+				mediaPlayer.setDataSource(currentMusic.getLastPlaybackUrl());
 				mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 				mediaPlayer.prepare();
 			} catch (Exception e) {
@@ -1406,7 +1449,10 @@ public class MusicService extends Service {
 						.build());
 			}
 		}
+	}
 
+	private void prepare(final JavaEx.Action onPrepare) {
+		prepareA(onPrepare);
 	}
 
 	public boolean isPrepared() {
