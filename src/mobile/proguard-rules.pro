@@ -16,6 +16,7 @@
 #   public *;
 #}
 
+-keepattributes Signature
 -keepattributes *Annotation*
 -renamesourcefileattribute SourceFile
 -keepattributes SourceFile,LineNumberTable
@@ -65,6 +66,14 @@
 -keep class com.airbnb.lottie.**
 
 -keep class at.huber.youtubeExtractor.**
+
+# Needed by google-api-client to keep generic types and @Key annotations accessed via reflection
+-keepclassmembers class * {
+  @com.google.api.client.util.Key <fields>;
+}
+
+# Needed by Guava (google-api-client)
+-dontwarn sun.misc.Unsafe
 
 # Facebook
 
