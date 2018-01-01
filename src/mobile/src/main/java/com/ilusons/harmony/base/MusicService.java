@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.StrictMode;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
@@ -54,7 +55,9 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
+import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
+import com.ilusons.harmony.ref.RxEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
 import com.ilusons.harmony.ref.inappbilling.IabHelper;
@@ -64,10 +67,16 @@ import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.sfx.AndroidOSMediaPlayerFactory;
 import com.ilusons.harmony.sfx.MediaPlayerFactory;
 
+import java.io.File;
 import java.util.Collection;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 
@@ -337,6 +346,8 @@ public class MusicService extends Service {
 
 		initializeLicensing();
 
+		cancelAllNotification();
+
 		// Load realm
 		musicRealm = DB.getDB();
 
@@ -378,6 +389,8 @@ public class MusicService extends Service {
 		super.onDestroy();
 
 		cancelNotification();
+
+		cancelAllNotification();
 
 		unregisterReceiver(intentReceiver);
 
@@ -1303,29 +1316,13 @@ public class MusicService extends Service {
 				return;
 
 			if (!currentMusic.isLocal()) {
-				Toast.makeText(this, R.string.yt_audio_download_info, Toast.LENGTH_LONG).show();
-
-				Analytics.getYouTubeAudioUrl(this, currentMusic.getPath())
-						.observeOn(AndroidSchedulers.mainThread())
-						.subscribeOn(Schedulers.io())
-						.subscribe(new Consumer<String>() {
+				downloadAudio(currentMusic,
+						new JavaEx.ActionT<Music>() {
 							@Override
-							public void accept(String r) throws Exception {
-								if (r == null) {
-									Toast.makeText(MusicService.this, R.string.yt_audio_not_found, Toast.LENGTH_LONG).show();
-									return;
-								}
-
-								Toast.makeText(MusicService.this, R.string.yt_audio_downloaded, Toast.LENGTH_LONG).show();
-
-								currentMusic.setLastPlaybackUrl(r);
+							public void execute(Music data) {
+								currentMusic = data;
 
 								prepareB(onPrepare);
-							}
-						}, new Consumer<Throwable>() {
-							@Override
-							public void accept(Throwable throwable) throws Exception {
-								Toast.makeText(MusicService.this, R.string.yt_audio_not_found, Toast.LENGTH_LONG).show();
 							}
 						});
 			} else {
@@ -1336,7 +1333,7 @@ public class MusicService extends Service {
 
 	private void prepareB(final JavaEx.Action onPrepare) {
 		if (TextUtils.isEmpty(currentMusic.getLastPlaybackUrl())) {
-			Toast.makeText(MusicService.this, currentMusic.getPath() + getString(R.string._not_playable), Toast.LENGTH_LONG).show();
+			Toast.makeText(MusicService.this, currentMusic.getText() + " is not playable!", Toast.LENGTH_LONG).show();
 
 			nextSmart(true);
 
@@ -1803,6 +1800,11 @@ public class MusicService extends Service {
 		NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID);
 	}
 
+	private void cancelAllNotification() {
+		stopForeground(true);
+		NotificationManagerCompat.from(this).cancelAll();
+	}
+
 	private void setUpMediaSession() {
 		mediaSession = new MediaSessionCompat(this, getString(R.string.app_name));
 		mediaSession.setCallback(new MediaSessionCompat.Callback() {
@@ -1968,8 +1970,14 @@ public class MusicService extends Service {
 				// play, if it's not currently playing
 				if (!isPlaying())
 					if (currentPlaylist.getItemIndex() > -1) {
-						prepare(null);
-						// update();
+						try {
+							if (currentPlaylist.getItem().isLocal()) {
+								prepare(null);
+								// update();
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 
 				updateNotification();
@@ -1999,6 +2007,100 @@ public class MusicService extends Service {
 			updateSFX();
 		}
 	}
+
+	//region ADL
+
+	private final int NOTIFICATION_ID_ADL = 3;
+
+	private android.support.v4.app.NotificationCompat.Builder notif_builder_adl;
+
+	public void downloadAudio(final Music data, final JavaEx.ActionT<Music> onComplete) {
+		final File cache = IOEx.getDiskCacheFile(this, "yt_audio", data.getPath());
+
+		try {
+			if (cache.exists() && !data.getLastPlaybackUrl().equalsIgnoreCase(cache.getAbsolutePath()))
+				cache.delete();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if (cache.exists()) {
+			if (onComplete != null)
+				onComplete.execute(data);
+			return;
+		}
+
+		Analytics.getYouTubeAudioUrl(this, data.getPath())
+				.flatMap(new Function<String, ObservableSource<Integer>>() {
+					@Override
+					public ObservableSource<Integer> apply(String r) throws Exception {
+						return RxEx.downloadFile(r, cache);
+					}
+				})
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribeOn(Schedulers.io())
+				.subscribe(new Observer<Integer>() {
+					@Override
+					public void onSubscribe(Disposable d) {
+						Toast.makeText(MusicService.this, "Audio download started for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+						notif_builder_adl = new NotificationCompat.Builder(MusicService.this)
+								.setContentTitle("Downloading ...")
+								.setContentText(data.getText())
+								.setSmallIcon(R.drawable.ic_cloud_download)
+								.setOngoing(true);
+
+						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_ADL, notif_builder_adl.build());
+					}
+
+					@Override
+					public void onNext(Integer r) {
+						notif_builder_adl.setProgress(100, r, r <= 0);
+
+						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_ADL, notif_builder_adl.build());
+					}
+
+					@Override
+					public void onError(Throwable e) {
+						NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_ADL);
+
+						notif_builder_adl = null;
+
+						Toast.makeText(MusicService.this, "Audio download failed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+						if (onComplete != null)
+							onComplete.execute(data);
+					}
+
+					@Override
+					public void onComplete() {
+						NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_ADL);
+
+						notif_builder_adl = null;
+
+						if (cache.exists()) {
+							Toast.makeText(MusicService.this, "Audio downloaded for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+							musicRealm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(@NonNull Realm realm) {
+									data.setLastPlaybackUrl(cache.getAbsolutePath());
+
+									realm.insertOrUpdate(data);
+								}
+							});
+
+							if (onComplete != null)
+								onComplete.execute(data);
+						} else {
+							Toast.makeText(MusicService.this, "Audio download failed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+						}
+
+					}
+				});
+	}
+
+	//endregion
 
 	public class ServiceBinder extends Binder {
 

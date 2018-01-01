@@ -22,14 +22,19 @@ import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.ArtworkEx;
+import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
+import com.ilusons.harmony.ref.RxEx;
 import com.ilusons.harmony.ref.SecurePreferences;
 import com.ilusons.harmony.ref.SongsEx;
 
 import org.apache.http.util.TextUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -69,6 +74,7 @@ import java.net.URLEncoder;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import okhttp3.Response;
 
 public class Analytics {
 
@@ -892,17 +898,15 @@ public class Analytics {
 
 					SparseArray<YtFile> ytFiles = yte.execute(watchUrl).get(3L, TimeUnit.MINUTES);
 
-					if (ytFiles != null) {
-						for (int i = 0, itag; i < ytFiles.size(); i++) {
-							itag = ytFiles.keyAt(i);
-							YtFile ytFile = ytFiles.get(itag);
-							Format format = ytFile.getFormat();
+					for (int i = 0, itag; i < ytFiles.size(); i++) {
+						itag = ytFiles.keyAt(i);
+						YtFile ytFile = ytFiles.get(itag);
+						Format format = ytFile.getFormat();
 
-							if (format.getExt().contains("m4a")) {
-								oe.onNext(ytFile.getUrl());
+						if (format.getExt().contains("m4a")) {
+							oe.onNext(ytFile.getUrl());
 
-								break;
-							}
+							break;
 						}
 					}
 
