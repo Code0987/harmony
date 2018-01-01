@@ -668,7 +668,7 @@ public class DashboardActivity extends BaseUIActivity {
 		findViewById(R.id.exit).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				if (getMusicService() != null){
+				if (getMusicService() != null) {
 					getMusicService().stop();
 					getMusicService().stopSelf();
 				}
@@ -1155,6 +1155,8 @@ public class DashboardActivity extends BaseUIActivity {
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
+
+								info("Hey, swipe left to listen the top music this week!");
 							}
 						});
 					}
@@ -1167,6 +1169,8 @@ public class DashboardActivity extends BaseUIActivity {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+
+						info("Anyway, swipe left to listen the top music this week!");
 
 						dialogInterface.dismiss();
 					}
