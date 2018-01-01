@@ -44,9 +44,27 @@
 -dontwarn org.apache.commons.**
 -keep class org.apache.http.** { *; }
 -dontwarn org.apache.http.**
+-dontnote android.net.http.*
+-dontnote org.apache.commons.codec.**
+-dontnote org.apache.http.**
 
 -keep class org.acoustid.chromaprint.**
 -keep class org.acoustid.chromaprint.** { *; }
+
+-keep class com.google.firebase.**
+-keep class io.realm.**
+
+-keep class com.github.mikephil.**
+
+-keep class co.mobiwise.materialintro.**
+
+-keep class com.codetroopers.betterpickers.**
+
+-keep class com.tozny.crypto.**
+
+-keep class com.airbnb.lottie.**
+
+-keep class at.huber.youtubeExtractor.**
 
 # Facebook
 
@@ -60,25 +78,35 @@
 -keep class com.google.analytics.** { *; }
 
 
-## Google Play Services 4.3.23 specific rules ##
-## https://developer.android.com/google/play-services/setup.html#Proguard ##
-
+## Google Play Services rules ##
 -keep class * extends java.util.ListResourceBundle {
-    protected Object[][] getContents();
+    protected java.lang.Object[][] getContents();
 }
-
--keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {
-    public static final *** NULL;
-}
-
 -keepnames @com.google.android.gms.common.annotation.KeepName class *
 -keepclassmembernames class * {
     @com.google.android.gms.common.annotation.KeepName *;
 }
-
+-keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {
+    public static final *** NULL;
+}
 -keepnames class * implements android.os.Parcelable {
     public static final ** CREATOR;
 }
+-keep class com.google.android.gms.internal.** { *; }
+-dontwarn com.google.android.gms.internal.**
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+
+# com.google.android.gms.auth.api.signin.SignInApiOptions$Builder
+# references these classes but no implementation is provided.
+-dontnote com.facebook.Session
+-dontnote com.facebook.FacebookSdk
+-keepnames class com.facebook.Session {}
+-keepnames class com.facebook.FacebookSdk {}
+
+# android.app.Notification.setLatestEventInfo() was removed in
+# Marsmallow, but is still referenced (safely)
+-dontwarn com.google.android.gms.common.GooglePlayServicesUtil
 
 
 ## GSON 2.2.4 specific rules ##
@@ -95,7 +123,8 @@
 # Gson specific classes
 -keep class sun.misc.Unsafe { *; }
 -keep class com.google.gson.stream.** { *; }
-
+-dontnote libcore.icu.ICU
+-dontnote sun.misc.Unsafe
 
 # OkHttp
 -keepattributes Signature
@@ -120,6 +149,7 @@
     @com.squareup.otto.Subscribe public *;
     @com.squareup.otto.Produce public *;
 }
+-dontnote com.squareup.otto.*
 
 
 ## Square Picasso specific rules ##
@@ -147,3 +177,4 @@
 
 -keep class com.crashlytics.** { *; }
 -dontwarn com.crashlytics.**
+-keep public class * extends java.lang.Exception

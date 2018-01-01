@@ -64,9 +64,4 @@
     <string name="tune_presets_info2">The preset file includes Tune* configurations. Not all will work, due to in-compatibility in hardware.</string>
     <string name="tune_presets_info3">You can e-mail us your own preset, by exporting. If we like it, you\'ll see it in next update and get a surprise*.</string>
 
-    <string name="yt_audio_not_found">Couldn\'t get any audio to play! Sorry :(</string>
-    <string name="yt_audio_download_info">This is an online streaming file! Might not play! Downloading audio info …</string>
-    <string name="yt_audio_downloaded">Audio info downloaded …</string>
-    <string name="_not_playable">is not playable!</string>
-
 </resources>
