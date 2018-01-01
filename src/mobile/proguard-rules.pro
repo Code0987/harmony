@@ -16,13 +16,13 @@
 #   public *;
 #}
 
--keepattributes Signature
 -keepattributes *Annotation*
 -renamesourcefileattribute SourceFile
 -keepattributes SourceFile,LineNumberTable
 -dontskipnonpubliclibraryclasses
 -forceprocessing
 -optimizationpasses 5
+-keepattributes Signature
 
 -keep class * extends android.app.Activity
 -assumenosideeffects class android.util.Log {
