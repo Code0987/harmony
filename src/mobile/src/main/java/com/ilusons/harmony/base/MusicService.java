@@ -117,6 +117,8 @@ public class MusicService extends Service {
 	public static final String ACTION_PLAYLIST_CHANGED = TAG + ".playlist_changed";
 	public static final String KEY_PLAYLIST_CHANGED_PLAYLIST = "playlist";
 
+	public static final String ACTION_ADL_CANCEL = TAG + ".adl_cancel";
+
 	// Threads
 	private Handler handler = new Handler();
 
@@ -1889,6 +1891,8 @@ public class MusicService extends Service {
 
 		filter.addAction(Intent.ACTION_HEADSET_PLUG);
 
+		filter.addAction(ACTION_ADL_CANCEL);
+
 		return filter;
 	}
 
@@ -2005,6 +2009,16 @@ public class MusicService extends Service {
 			update();
 		} else if (action.equals(ACTION_REFRESH_SFX)) {
 			updateSFX();
+		} else if (action.equals(ACTION_ADL_CANCEL)) try {
+			if (disposable_adl != null) {
+				disposable_adl.dispose();
+			}
+			NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_ADL);
+			if (notif_builder_adl != null) {
+				notif_builder_adl = null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -2014,11 +2028,13 @@ public class MusicService extends Service {
 
 	private android.support.v4.app.NotificationCompat.Builder notif_builder_adl;
 
+	private Disposable disposable_adl;
+
 	public void downloadAudio(final Music data, final JavaEx.ActionT<Music> onComplete) {
 		final File cache = IOEx.getDiskCacheFile(this, "yt_audio", data.getPath());
 
 		try {
-			if (cache.exists() && !data.getLastPlaybackUrl().equalsIgnoreCase(cache.getAbsolutePath()))
+			if (cache.exists() && (data.getLastPlaybackUrl() == null || !data.getLastPlaybackUrl().equalsIgnoreCase(cache.getAbsolutePath())))
 				cache.delete();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2042,13 +2058,22 @@ public class MusicService extends Service {
 				.subscribe(new Observer<Integer>() {
 					@Override
 					public void onSubscribe(Disposable d) {
+						if (d.isDisposed())
+							return;
+
+						disposable_adl = d;
+
 						Toast.makeText(MusicService.this, "Audio download started for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+						Intent cancelIntent = new Intent(MusicService.ACTION_ADL_CANCEL);
+						PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(MusicService.this, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
 						notif_builder_adl = new NotificationCompat.Builder(MusicService.this)
 								.setContentTitle("Downloading ...")
 								.setContentText(data.getText())
 								.setSmallIcon(R.drawable.ic_cloud_download)
-								.setOngoing(true);
+								.setOngoing(true)
+								.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent);
 
 						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_ADL, notif_builder_adl.build());
 					}
@@ -2065,6 +2090,8 @@ public class MusicService extends Service {
 
 					@Override
 					public void onError(Throwable e) {
+						disposable_adl = null;
+
 						if (notif_builder_adl == null)
 							return;
 
@@ -2080,6 +2107,8 @@ public class MusicService extends Service {
 
 					@Override
 					public void onComplete() {
+						disposable_adl = null;
+
 						if (notif_builder_adl == null)
 							return;
 
