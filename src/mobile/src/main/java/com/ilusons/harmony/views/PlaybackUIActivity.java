@@ -47,7 +47,6 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
-import com.ilusons.harmony.data.Api;
 import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
@@ -69,7 +68,6 @@ import org.musicbrainz.android.api.data.Tag;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -1045,83 +1043,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					public void accept(Throwable throwable) throws Exception {
 						Log.w(TAG, throwable);
 
-						info(getString(R.string.details_not_found_internet));
-
-						fingerprintAndUpdateDetails();
-					}
-				});
-	}
-
-	private void fingerprintAndUpdateDetails() {
-		info(getString(R.string.gen_fp_looking_up), true);
-
-		final Music m = getMusicService().getMusic();
-		Api.lookupAndUpdateMusicData(
-				getMusicService(),
-				m,
-				new JavaEx.ActionT<Map<String, String>>() {
-					@Override
-					public void execute(Map<String, String> result) {
-						if (isFinishing())
-							return;
-
-						info(getString(R.string.found_something));
-
-						final String title = result.get("title");
-						final String artist = result.get("artist");
-						final String album = result.get("album");
-						final String score = result.get("score");
-						final String id = result.get("id");
-
-						if (TextUtils.isEmpty(title)) {
-							info(getString(R.string.details_found_invalid));
-
-							return;
-						}
-
-						(new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle))
-								.setTitle(getString(R.string.apply_new_details_title))
-								.setMessage("Title: " + title
-										+ "\nArtist: " + artist
-										+ "\nAlbum: " + album
-										+ "\nConfidence: " + ((int) (Double.parseDouble(score) * 100)) + "%")
-								.setCancelable(true)
-								.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialogInterface, int i) {
-										try (Realm realm = DB.getDB()) {
-											if (realm == null)
-												return;
-
-											realm.executeTransaction(new Realm.Transaction() {
-												@Override
-												public void execute(Realm realm) {
-													m.setTitle(title);
-													m.setArtist(artist);
-													m.setAlbum(album);
-
-													realm.insertOrUpdate(m);
-												}
-											});
-										}
-
-										resetForUriIfNeeded(m.getPath(), true);
-
-										info(getString(R.string.details_applied_restart_needed));
-									}
-								})
-								.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialogInterface, int i) {
-										dialogInterface.dismiss();
-									}
-								}))
-								.show();
-					}
-				},
-				new JavaEx.ActionT<Exception>() {
-					@Override
-					public void execute(Exception e) {
 						info(getString(R.string.details_not_found_internet));
 					}
 				});
