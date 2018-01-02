@@ -50,20 +50,6 @@ android {
 
 			ext.alwaysUpdateBuildId = false
 		}
-		releaseDebug {
-			buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
-			buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
-			buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
-
-			minifyEnabled true
-			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-			versionNameSuffix '-debug'
-			signingConfig signingConfigs.config
-			debuggable true
-			jniDebuggable true
-			renderscriptDebuggable true
-			zipAlignEnabled true
-		}
 		release {
 			buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
 			buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
@@ -73,7 +59,7 @@ android {
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 			versionNameSuffix '-release'
 			signingConfig signingConfigs.config
-			debuggable false
+			debuggable true
 			jniDebuggable false
 			renderscriptDebuggable false
 			zipAlignEnabled true
@@ -101,7 +87,7 @@ android {
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 			versionNameSuffix '-beta'
 			signingConfig signingConfigs.config
-			debuggable true
+			debuggable false
 			jniDebuggable false
 			renderscriptDebuggable false
 			zipAlignEnabled true
