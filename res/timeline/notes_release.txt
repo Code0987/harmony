@@ -3,4 +3,5 @@
 🤘 Online streaming supported now (Listen to top tracks for FREE, more on the way ...).
 ✔ Bugs/crashes fixed.
 ✔ Fingerprint feature removed until fixed.
+✔ APK size drastically reduced.
 ◾️ Work in progress, please leave feedback.
