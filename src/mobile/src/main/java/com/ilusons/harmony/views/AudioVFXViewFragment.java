@@ -247,7 +247,7 @@ public class AudioVFXViewFragment extends Fragment {
 
 				// use maximum rate & size
 				int rate = visualizerHQ.getMaxCaptureRate();
-				int size = 4096;
+				int size = 2048/*4096*/;
 
 				// NOTE: min = 128, max = 32768
 				size = Math.max(visualizerHQ.getCaptureSizeRange()[0], size);

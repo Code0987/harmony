@@ -112,9 +112,20 @@ public class DotsView extends BaseAVFXCanvasView {
 
 	@Override
 	protected void onRenderAudioData(Canvas canvas, int width, int height, AudioDataBuffer.Buffer data) {
-		if (data.bData != null) {
-			byte[] fft = data.bData;
+		byte[] fft = null;
 
+		if (data.fData != null) {
+			fft = new byte[data.fData.length];
+			int n = data.fData.length / 2;
+			for (int i = 0; i < n; i++) {
+				fft[i + 0] = (byte) (data.fData[i + 0] * 128);
+				fft[i + 1] = (byte) (data.fData[i + 1] * 128);
+			}
+		} else if (data.bData != null) {
+			fft = data.bData;
+		}
+
+		if (fft != null && fft.length > 0) {
 			int dataSize = fft.length / 2 - 1;
 
 			for (int i = 0; i < dots.size(); i++)
