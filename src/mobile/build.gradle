@@ -37,6 +37,9 @@ android {
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 		vectorDrawables.useSupportLibrary = true
 		multiDexEnabled = true
+		ndk {
+			abiFilters "armeabi", "armeabi-v7a"
+		}
 		playAccountConfig = playAccountConfigs.defaultAccountConfig
 	}
 	flavorDimensions "versionCode"
