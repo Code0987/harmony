@@ -2055,6 +2055,9 @@ public class MusicService extends Service {
 
 					@Override
 					public void onNext(Integer r) {
+						if (notif_builder_adl == null)
+							return;
+
 						notif_builder_adl.setProgress(100, r, r <= 0);
 
 						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_ADL, notif_builder_adl.build());
@@ -2062,6 +2065,9 @@ public class MusicService extends Service {
 
 					@Override
 					public void onError(Throwable e) {
+						if (notif_builder_adl == null)
+							return;
+
 						NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_ADL);
 
 						notif_builder_adl = null;
@@ -2074,6 +2080,9 @@ public class MusicService extends Service {
 
 					@Override
 					public void onComplete() {
+						if (notif_builder_adl == null)
+							return;
+
 						NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_ADL);
 
 						notif_builder_adl = null;
