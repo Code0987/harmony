@@ -247,8 +247,8 @@ public class MediaPlayerFactory implements IMediaPlayerFactory {
 		params.useLowLatencyIfAvailable = true;
 		params.useFloatingPointIfAvailable = true;
 
-		params.shortFadeDuration = 25;
-		params.longFadeDuration = 650;
+		params.shortFadeDuration = 75;
+		params.longFadeDuration = 750;
 
 		return params;
 	}

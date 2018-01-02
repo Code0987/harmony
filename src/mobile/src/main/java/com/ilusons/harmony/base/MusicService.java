@@ -425,10 +425,7 @@ public class MusicService extends Service {
 			visualizer = null;
 		}
 
-		if (visualizerHQ != null) {
-			visualizerHQ.release();
-			visualizerHQ = null;
-		}
+		cleanVisualizerHQ();
 
 		cleanEqualizer();
 
@@ -502,16 +499,29 @@ public class MusicService extends Service {
 	private IHQVisualizer visualizerHQ;
 
 	public IHQVisualizer getVisualizerHQ() {
-		if (visualizerHQ == null) {
-			try {
-				visualizerHQ = mediaPlayerFactory.createHQVisualizer();
-			} catch (UnsupportedOperationException e) {
-				// the effect is not supported
-			} catch (IllegalArgumentException e) {
-			}
+		if (visualizerHQ != null)
+			cleanVisualizerHQ();
+
+		try {
+			visualizerHQ = mediaPlayerFactory.createHQVisualizer();
+		} catch (UnsupportedOperationException e) {
+			// the effect is not supported
+		} catch (IllegalArgumentException e) {
 		}
 
 		return visualizerHQ;
+	}
+
+	private void cleanVisualizerHQ() {
+		if (visualizerHQ != null) {
+			try {
+				visualizerHQ.release();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			visualizerHQ = null;
+		}
 	}
 
 	//region EQ
