@@ -76,9 +76,20 @@ public class CircleBarsView extends BaseAVFXCanvasView {
 
 	@Override
 	protected void onRenderAudioData(Canvas canvas, int width, int height, AudioDataBuffer.Buffer data) {
-		if (data.bData != null) {
-			byte[] bytes = data.bData;
+		byte[] bytes = null;
 
+		if (data.fData != null) {
+			bytes = new byte[data.fData.length];
+			int n = data.fData.length / 2;
+			for (int i = 0; i < n; i++) {
+				bytes[i + 0] = (byte) (data.fData[i + 0] * 128);
+				bytes[i + 1] = (byte) (data.fData[i + 1] * 128);
+			}
+		} else if (data.bData != null) {
+			bytes = data.bData;
+		}
+
+		if (bytes != null && bytes.length > 0) {
 			canvas.drawPaint(fadePaint);
 
 			if (radius == -1) {

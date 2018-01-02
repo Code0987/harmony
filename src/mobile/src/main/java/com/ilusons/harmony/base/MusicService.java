@@ -1986,8 +1986,10 @@ public class MusicService extends Service {
 					if (currentPlaylist.getItemIndex() > -1) {
 						try {
 							if (currentPlaylist.getItem().isLocal()) {
-								prepare(null);
-								// update();
+								if (getPlayerType(this) != PlayerType.OpenSL) {
+									prepare(null);
+									// update();
+								}
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -2011,7 +2013,9 @@ public class MusicService extends Service {
 					pause();
 					break;
 				case 1:
-					play();
+					if (getPlayerType(this) != PlayerType.OpenSL) {
+						play();
+					}
 					break;
 			}
 
