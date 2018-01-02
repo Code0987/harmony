@@ -150,7 +150,7 @@ public class TunePresetsFragment extends Fragment {
 
 		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
 		recyclerView.setHasFixedSize(true);
-		recyclerView.setItemViewCacheSize(7);
+		recyclerView.setItemViewCacheSize(11);
 		recyclerView.setDrawingCacheEnabled(true);
 		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 		recyclerView.setLayoutManager(new LinearLayoutManager(v.getContext()));
@@ -162,6 +162,8 @@ public class TunePresetsFragment extends Fragment {
 	public static class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
 		private final static String ASSETS_PRESETS = "presets/tune";
+		private final static String EXT_PRESET_SQ = ".sqp";
+		private final static String EXT_PRESET_HQ = ".hqp";
 
 		private final ArrayList<String> data;
 
@@ -252,8 +254,19 @@ public class TunePresetsFragment extends Fragment {
 			data.clear();
 
 			try {
+				String suffix;
+				switch (MusicService.getPlayerType(context)) {
+					case OpenSL:
+						suffix = EXT_PRESET_HQ;
+						break;
+					case AndroidOS:
+					default:
+						suffix = EXT_PRESET_SQ;
+						break;
+				}
+
 				for (String name : Arrays.asList(context.getAssets().list(ASSETS_PRESETS)))
-					if (name.toLowerCase().endsWith(".txt") && !data.contains(name))
+					if (name.toLowerCase().endsWith(suffix) && !data.contains(name))
 						data.add(name);
 			} catch (Exception e) {
 				e.printStackTrace();
