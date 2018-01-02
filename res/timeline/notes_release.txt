@@ -1,7 +1,6 @@
 ﻿☃ 3 days FREE 🤯 premium ☃
-
-🤘 Online streaming supported now (Listen to top tracks for FREE, more on the way ...).
-✔ Bugs/crashes fixed.
-✔ Fingerprint feature removed until fixed.
+👉 HQ audio enabled by default, breaks on few devices, switch to AndroidOS, if app hangs.
+🤘 Listen to top tracks for FREE, more on the way ...
+✔ Fingerprint feature removed.
 ✔ APK size drastically reduced.
 ◾️ Work in progress, please leave feedback.
