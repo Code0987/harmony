@@ -105,12 +105,10 @@ android {
 	}
 	externalNativeBuild {
 		ndkBuild {
-			path "../../res/libs/chromaprint-android/jni/Android.mk"
 		}
 	}
 	sourceSets {
 		main {
-			java.srcDirs += '../../res/libs/chromaprint-android/src'
 			java.srcDirs += '../../res/libs/lastfm-java/src/main/java'
 			java.srcDirs += '../../res/libs/musicbrainz-android/api/src/main/java'
 			java.srcDirs += '../../res/libs/android-youtubeExtractor/youtubeExtractor/src/main/java'

@@ -8,8 +8,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.ilusons.harmony.data.FingerprintUpdaterAsyncTask;
-
 import java.lang.ref.WeakReference;
 
 public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {

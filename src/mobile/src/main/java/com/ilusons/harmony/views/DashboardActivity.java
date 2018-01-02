@@ -108,7 +108,6 @@ public class DashboardActivity extends BaseUIActivity {
 	private ImageView bg_effect;
 
 	private LibraryViewFragment libraryViewFragment;
-	private FingerprintViewFragment fingerprintViewFragment;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -644,15 +643,6 @@ public class DashboardActivity extends BaseUIActivity {
 			@Override
 			public void onClick(View view) {
 				TimerViewFragment.showAsDialog(DashboardActivity.this);
-
-				drawer_layout.closeDrawer(GravityCompat.START);
-			}
-		});
-
-		findViewById(R.id.identify).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				FingerprintViewFragment.showAsDialog(DashboardActivity.this);
 
 				drawer_layout.closeDrawer(GravityCompat.START);
 			}
