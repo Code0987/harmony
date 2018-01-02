@@ -41,6 +41,8 @@ public class AudioVFXViewFragment extends Fragment {
 	// Logger TAG
 	private static final String TAG = AudioVFXViewFragment.class.getSimpleName();
 
+	private MusicService musicService;
+
 	private IHQVisualizer visualizerHQ;
 	private IVisualizer visualizer;
 
@@ -160,7 +162,7 @@ public class AudioVFXViewFragment extends Fragment {
 			fftCanvasView.onPause();
 		}
 
-		cleanupVisualizer();
+		unbindVisualizer();
 	}
 
 	private IHQVisualizer.OnDataCaptureListener onDataCaptureListenerHQ = new IHQVisualizer.OnDataCaptureListener() {
@@ -232,68 +234,69 @@ public class AudioVFXViewFragment extends Fragment {
 		try {
 			stopVisualizer();
 
-			if (MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.OpenSL) {
-				if (visualizerHQ != null) {
-					// stop visualizerHQ
-					stopVisualizer();
+			if (musicService == null)
+				return;
 
-					visualizerHQ.setEnabled(false);
+			if (MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.OpenSL)
+				visualizerHQ = musicService.getVisualizerHQ();
+			else
+				visualizer = musicService.getVisualizer();
 
-					// use maximum rate & size
-					int rate = visualizerHQ.getMaxCaptureRate();
-					int size = 4096;
+			if (visualizerHQ != null) {
+				visualizerHQ.setEnabled(false);
 
-					// NOTE: min = 128, max = 32768
-					size = Math.max(visualizerHQ.getCaptureSizeRange()[0], size);
-					size = Math.min(visualizerHQ.getCaptureSizeRange()[1], size);
+				// use maximum rate & size
+				int rate = visualizerHQ.getMaxCaptureRate();
+				int size = 4096;
 
-					visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
-					try {
-						visualizerHQ.setCaptureSize(size);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					visualizerHQ.setDataCaptureListener(
-							onDataCaptureListenerHQ,
-							rate,
-							waveformGLView != null || waveformCanvasView != null,
-							fftGLView != null || waveDbmHandler != null || fftCanvasView != null
-					);
+				// NOTE: min = 128, max = 32768
+				size = Math.max(visualizerHQ.getCaptureSizeRange()[0], size);
+				size = Math.min(visualizerHQ.getCaptureSizeRange()[1], size);
 
-					visualizerHQ.setEnabled(true);
+				try {
+					visualizerHQ.setCaptureSize(size);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			} else {
-				if (visualizer != null) {
-					// stop visualizer
-					stopVisualizer();
 
-					visualizer.setEnabled(false);
+				visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HANN | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
 
-					// use maximum rate & size
-					int rate = visualizer.getMaxCaptureRate();
-					int size = visualizer.getCaptureSizeRange()[1];
+				visualizerHQ.setDataCaptureListener(
+						onDataCaptureListenerHQ,
+						rate,
+						waveformGLView != null || waveformCanvasView != null,
+						fftGLView != null || waveDbmHandler != null || fftCanvasView != null
+				);
 
+				visualizerHQ.setEnabled(true);
+			}
+			if (visualizer != null) {
+				visualizer.setEnabled(false);
+
+				// use maximum rate & size
+				int rate = visualizer.getMaxCaptureRate();
+				int size = visualizer.getCaptureSizeRange()[1];
+
+				try {
+					visualizer.setCaptureSize(size);
+				} catch (Exception e) {
 					try {
+						visualizer.setEnabled(false);
 						visualizer.setCaptureSize(size);
-					} catch (Exception e) {
-						try {
-							visualizer.setEnabled(false);
-							visualizer.setCaptureSize(size);
-						} catch (Exception e2) {
-							e2.printStackTrace();
-						}
+					} catch (Exception e2) {
+						e2.printStackTrace();
 					}
-					visualizer.setScalingMode(Visualizer.SCALING_MODE_AS_PLAYED);
-					visualizer.setDataCaptureListener(
-							onDataCaptureListener,
-							rate,
-							waveformGLView != null || waveformCanvasView != null,
-							fftGLView != null || waveDbmHandler != null || fftCanvasView != null
-					);
-					visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
-
-					visualizer.setEnabled(true);
 				}
+				visualizer.setScalingMode(Visualizer.SCALING_MODE_AS_PLAYED);
+				visualizer.setDataCaptureListener(
+						onDataCaptureListener,
+						rate,
+						waveformGLView != null || waveformCanvasView != null,
+						fftGLView != null || waveDbmHandler != null || fftCanvasView != null
+				);
+				visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
+
+				visualizer.setEnabled(true);
 			}
 
 			if (wavesView != null)
@@ -304,16 +307,24 @@ public class AudioVFXViewFragment extends Fragment {
 	}
 
 	private void stopVisualizer() {
-		if (visualizerHQ != null) {
+		if (visualizerHQ != null) try {
 			visualizerHQ.setEnabled(false);
 
 			visualizerHQ.release();
+
+			visualizerHQ = null;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
-		if (visualizer != null) {
+		if (visualizer != null) try {
 			visualizer.setEnabled(false);
 
 			visualizer.release();
+
+			visualizer = null;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		if (wavesView != null)
@@ -321,19 +332,19 @@ public class AudioVFXViewFragment extends Fragment {
 
 	}
 
-	private void cleanupVisualizer() {
-		try {
-			if (visualizerHQ != null) {
-				visualizerHQ.setEnabled(false);
+	private void unbindVisualizer() {
+		if (visualizerHQ != null) try {
+			visualizerHQ.setEnabled(false);
 
-				visualizerHQ.setDataCaptureListener(null, 0, false, false);
-			}
+			visualizerHQ.setDataCaptureListener(null, 0, false, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-			if (visualizer != null) {
-				visualizer.setEnabled(false);
+		if (visualizer != null) try {
+			visualizer.setEnabled(false);
 
-				visualizer.setDataCaptureListener(null, 0, false, false);
-			}
+			visualizer.setDataCaptureListener(null, 0, false, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -355,16 +366,14 @@ public class AudioVFXViewFragment extends Fragment {
 		}
 
 		try {
-			stopVisualizer();
-			cleanupVisualizer();
+			unbindVisualizer();
 
-			if (MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.OpenSL)
-				visualizerHQ = musicService.getVisualizerHQ();
-			else
-				visualizer = musicService.getVisualizer();
+			stopVisualizer();
 
 			if (isRemoving())
 				return;
+
+			this.musicService = musicService;
 
 			root.removeAllViews();
 			root.setBackground(null);
