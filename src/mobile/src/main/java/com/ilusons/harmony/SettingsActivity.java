@@ -7,14 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.ParcelFileDescriptor;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
@@ -22,7 +20,6 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.ArraySet;
 import android.util.Log;
-import android.util.Pair;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -49,14 +46,11 @@ import com.appyvet.materialrangebar.RangeBar;
 import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.HeadsetMediaButtonIntentReceiver;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
-import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -67,29 +61,20 @@ import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.views.AudioVFXViewFragment;
-import com.ilusons.harmony.views.LibraryViewFragment;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import de.umass.lastfm.Session;
@@ -555,6 +540,259 @@ public class SettingsActivity extends BaseActivity {
 
 	//endregion
 
+	//region UI section
+
+	private void onCreateBindUISection() {
+
+		createPlaylistUIStyle();
+		createPlaybackUIStyle();
+		createAVFXType();
+
+	}
+
+	//region Playlist UI style
+
+	public enum PlaylistItemUIStyle {
+		Default("Default"),
+		Simple("Simple"),
+		Card1("Card 1"),
+		Card2("Card 2"),
+		Card3("Card 3"),
+		Card4("Card 4"),
+		Card5("Card 5"),;
+
+		private String friendlyName;
+
+		PlaylistItemUIStyle(String friendlyName) {
+			this.friendlyName = friendlyName;
+		}
+	}
+
+	public static PlaylistItemUIStyle getPlaylistItemUIStyle(Context context) {
+		try {
+			return PlaylistItemUIStyle.valueOf(SPrefEx.get(context).getString(PlaylistItemUIStyle.class.getSimpleName(), String.valueOf(PlaylistItemUIStyle.Default)));
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return PlaylistItemUIStyle.Default;
+		}
+	}
+
+	public static void setPlaylistItemUIStyle(Context context, PlaylistItemUIStyle value) {
+		SPrefEx.get(context)
+				.edit()
+				.putString(PlaylistItemUIStyle.class.getSimpleName(), String.valueOf(value))
+				.apply();
+	}
+
+	private Spinner playlist_item_ui_style_spinner;
+
+	private void createPlaylistUIStyle() {
+		playlist_item_ui_style_spinner = findViewById(R.id.playlist_item_ui_style_spinner);
+
+		PlaylistItemUIStyle[] items = PlaylistItemUIStyle.values();
+
+		playlist_item_ui_style_spinner.setAdapter(new ArrayAdapter<PlaylistItemUIStyle>(this, 0, items) {
+			@Override
+			public View getView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+				text.setText("Playlist item style: " + text.getText());
+
+				return text;
+			}
+
+			@Override
+			public View getDropDownView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) convertView;
+
+				if (text == null) {
+					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+							ViewGroup.LayoutParams.MATCH_PARENT,
+							ViewGroup.LayoutParams.WRAP_CONTENT
+					);
+					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+					lp.setMargins(px, px, px, px);
+					text.setLayoutParams(lp);
+					text.setPadding(px, px, px, px);
+				}
+
+				text.setText(getItem(position).friendlyName);
+
+				return text;
+			}
+		});
+
+		int i = 0;
+		PlaylistItemUIStyle lastMode = getPlaylistItemUIStyle(this);
+		for (; i < items.length; i++)
+			if (items[i] == lastMode)
+				break;
+		playlist_item_ui_style_spinner.setSelection(i, true);
+
+		playlist_item_ui_style_spinner.post(new Runnable() {
+			public void run() {
+				playlist_item_ui_style_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+						setPlaylistItemUIStyle(SettingsActivity.this.getApplicationContext(), (PlaylistItemUIStyle) adapterView.getItemAtPosition(position));
+
+						info(getString(R.string.will_apply_after_restart));
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> adapterView) {
+					}
+				});
+			}
+		});
+	}
+
+	//endregion
+
+	//region PlaybackUI style
+
+	private Spinner playbackUIStyle_spinner;
+
+	private void createPlaybackUIStyle() {
+		playbackUIStyle_spinner = (Spinner) findViewById(R.id.playbackUIStyle_spinner);
+
+		PlaybackUIActivity.PlaybackUIStyle[] items = PlaybackUIActivity.PlaybackUIStyle.values();
+
+		playbackUIStyle_spinner.setAdapter(new ArrayAdapter<PlaybackUIActivity.PlaybackUIStyle>(this, 0, items) {
+			@Override
+			public View getView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+				text.setText(text.getText());
+
+				return text;
+			}
+
+			@Override
+			public View getDropDownView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) convertView;
+
+				if (text == null) {
+					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+							ViewGroup.LayoutParams.MATCH_PARENT,
+							ViewGroup.LayoutParams.WRAP_CONTENT
+					);
+					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+					lp.setMargins(px, px, px, px);
+					text.setLayoutParams(lp);
+					text.setPadding(px, px, px, px);
+				}
+
+				text.setText(getItem(position).friendlyName);
+
+				return text;
+			}
+		});
+
+		int i = 0;
+		PlaybackUIActivity.PlaybackUIStyle lastMode = PlaybackUIActivity.getPlaybackUIStyle(this);
+		for (; i < items.length; i++)
+			if (items[i] == lastMode)
+				break;
+		playbackUIStyle_spinner.setSelection(i, true);
+
+		playbackUIStyle_spinner.post(new Runnable() {
+			public void run() {
+				playbackUIStyle_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+						PlaybackUIActivity.setPlaybackUIStyle(getApplicationContext(), (PlaybackUIActivity.PlaybackUIStyle) adapterView.getItemAtPosition(position));
+
+						info(getString(R.string.will_apply_after_restart));
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> adapterView) {
+					}
+				});
+			}
+		});
+	}
+
+	//endregion
+
+	//region AVFXType
+
+	private Spinner avfxtype_spinner;
+
+	private void createAVFXType() {
+		avfxtype_spinner = (Spinner) findViewById(R.id.avfxtype_spinner);
+
+		AudioVFXViewFragment.AVFXType[] items = AudioVFXViewFragment.AVFXType.values();
+
+		avfxtype_spinner.setAdapter(new ArrayAdapter<AudioVFXViewFragment.AVFXType>(this, 0, items) {
+			@Override
+			public View getView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+				text.setText(text.getText());
+
+				return text;
+			}
+
+			@Override
+			public View getDropDownView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) convertView;
+
+				if (text == null) {
+					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+							ViewGroup.LayoutParams.MATCH_PARENT,
+							ViewGroup.LayoutParams.WRAP_CONTENT
+					);
+					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+					lp.setMargins(px, px, px, px);
+					text.setLayoutParams(lp);
+					text.setPadding(px, px, px, px);
+				}
+
+				text.setText(getItem(position).friendlyName);
+
+				return text;
+			}
+		});
+
+		int i = 0;
+		AudioVFXViewFragment.AVFXType lastMode = AudioVFXViewFragment.getAVFXType(this);
+		for (; i < items.length; i++)
+			if (items[i] == lastMode)
+				break;
+		avfxtype_spinner.setSelection(i, true);
+
+		avfxtype_spinner.post(new Runnable() {
+			public void run() {
+				avfxtype_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+						AudioVFXViewFragment.setAVFXType(getApplicationContext(), (AudioVFXViewFragment.AVFXType) adapterView.getItemAtPosition(position));
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> adapterView) {
+					}
+				});
+			}
+		});
+	}
+
+	//endregion
+
+	//endregion
+
 	//region Library section
 
 	public static final String TAG_BehaviourForAddScanLocationOnEmptyLibrary = TAG + "_BehaviourForAddScanLocationOnEmptyLibrary";
@@ -663,9 +901,13 @@ public class SettingsActivity extends BaseActivity {
 
 		final long FACTOR = 1000;
 
-		scan_constraint_min_max_duration_rangeBar.setRangePinsByValue(
-				MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(this) / FACTOR,
-				MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMaxDuration(this) / FACTOR);
+		try {
+			scan_constraint_min_max_duration_rangeBar.setRangePinsByValue(
+					MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(this) / FACTOR,
+					MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMaxDuration(this) / FACTOR);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		scan_constraint_min_max_duration_rangeBar.setOnRangeBarChangeListener(new RangeBar.OnRangeBarChangeListener() {
 			@Override

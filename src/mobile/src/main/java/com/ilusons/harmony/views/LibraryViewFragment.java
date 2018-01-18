@@ -19,7 +19,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
@@ -37,9 +36,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
-import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
@@ -58,6 +55,7 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
@@ -67,8 +65,6 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -116,7 +112,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 		createUISortMode(v);
 		createUIGroupMode(v);
 		createUIViewMode(v);
-		createUIStyle(v);
 
 		createItems(v);
 
@@ -741,13 +736,13 @@ public class LibraryViewFragment extends BaseUIFragment {
 		private final List<Music> data;
 		private final List<Pair<String, List<Object>>> dataFiltered;
 
-		private final UIStyle uiStyle;
+		private final SettingsActivity.PlaylistItemUIStyle style;
 
 		public RecyclerViewAdapter() {
 			data = new ArrayList<>();
 			dataFiltered = new ArrayList<>();
 
-			uiStyle = getUIStyle(getContext());
+			style = SettingsActivity.getPlaylistItemUIStyle(getContext());
 
 			setHasStableIds(true);
 		}
@@ -777,7 +772,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
 			int layoutId = -1;
-			switch (uiStyle) {
+			switch (style) {
 				case Card1:
 					layoutId = R.layout.library_view_group_card;
 					break;
@@ -818,7 +813,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
 			int layoutId = -1;
-			switch (uiStyle) {
+			switch (style) {
 				case Card1:
 					layoutId = R.layout.library_view_item_card1;
 					break;
@@ -2161,120 +2156,11 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	//endregion
 
-	//region UI style
-
-	public enum UIStyle {
-		Default("Default"),
-		Simple("Simple"),
-		Card1("Card 1"),
-		Card2("Card 2"),
-		Card3("Card 3"),
-		Card4("Card 4"),
-		Card5("Card 5"),;
-
-		private String friendlyName;
-
-		UIStyle(String friendlyName) {
-			this.friendlyName = friendlyName;
-		}
-	}
-
-	public static final String TAG_SPREF_UISTYLE = TAG + ".uistyle";
-
-	public static UIStyle getUIStyle(Context context) {
-		try {
-			return UIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_UISTYLE, String.valueOf(UIStyle.Default)));
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			return UIStyle.Default;
-		}
-	}
-
-	public static void setUIStyle(Context context, UIStyle value) {
-		SPrefEx.get(context)
-				.edit()
-				.putString(TAG_SPREF_UISTYLE, String.valueOf(value))
-				.apply();
-	}
-
-	private Spinner uiStyle_spinner;
-
-	private void createUIStyle(View v) {
-		uiStyle_spinner = (Spinner) v.findViewById(R.id.uiStyle_spinner);
-
-		UIStyle[] items = UIStyle.values();
-
-		uiStyle_spinner.setAdapter(new ArrayAdapter<UIStyle>(getContext(), 0, items) {
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
-
-				text.setText("Style: " + text.getText());
-
-				return text;
-			}
-
-			@Override
-			public View getDropDownView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) convertView;
-
-				if (text == null) {
-					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					text.setLayoutParams(lp);
-					text.setPadding(px, px, px, px);
-				}
-
-				text.setText(getItem(position).friendlyName);
-
-				return text;
-			}
-		});
-
-		int i = 0;
-		UIStyle lastMode = getUIStyle(getContext());
-		for (; i < items.length; i++)
-			if (items[i] == lastMode)
-				break;
-		uiStyle_spinner.setSelection(i, true);
-
-		uiStyle_spinner.post(new Runnable() {
-			public void run() {
-				uiStyle_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-						setUIStyle(getContext().getApplicationContext(), (UIStyle) adapterView.getItemAtPosition(position));
-
-						recyclerView.getRecycledViewPool().clear();
-						adapter.resetData();
-
-						info("UI Style will be completely applied on restart!");
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
-	}
-
-	//endregion
-
 	public static String[] ExportableSPrefKeys = new String[]{
 			TAG_SPREF_LIBRARY_UI_SORT_MODE,
 			TAG_SPREF_LIBRARY_UI_GROUP_MODE,
 			TAG_SPREF_LIBRARY_UI_VIEW_MODE,
-			TAG_SPREF_LIBRARY_UI_SORT_MODE,
-			TAG_SPREF_UISTYLE,
+			TAG_SPREF_LIBRARY_UI_SORT_MODE
 	};
 
 }
