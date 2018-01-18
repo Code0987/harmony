@@ -1,5 +1,6 @@
 ﻿☃ 3 days FREE 🤯 premium ☃
 
+✔ Added min/max audio length limits to scanner.
 👉 HQ audio enabled by default, breaks on few devices, switch to AndroidOS, if app hangs.
 🤘 Listen to top tracks for FREE, more on the way ...
 ✔ HQ audio, HQ presets, HQ visualizer back again.
