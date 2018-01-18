@@ -138,19 +138,6 @@
                 res:layout_constraintTop_toBottomOf="@id/uiGroupMode_spinner"
                 />
 
-            <Spinner
-                android:id="@+id/uiStyle_spinner"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginEnd="32dp"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="8dp"
-                res:layout_constraintLeft_toLeftOf="parent"
-                res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toBottomOf="@id/uiViewMode_spinner"
-                />
-
         </android.support.constraint.ConstraintLayout>
 
     </android.support.v7.widget.CardView>

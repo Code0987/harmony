@@ -805,8 +805,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				getString(R.string.re_load_lyrics),
 				getString(R.string.edit_lyrics),
 				getString(R.string.update_metadata),
-				getString(R.string.change_ui),
-				getString(R.string.change_fx),
 				getString(R.string.tour)
 		}, new DialogInterface.OnClickListener() {
 			@Override
@@ -838,12 +836,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 							lookupAndUpdateDetails();
 							break;
 						case 8:
-							changePlaybackUIStyle();
-							break;
-						case 9:
-							changeAVFXStyle();
-							break;
-						case 10:
 							tour(new MaterialIntroListener() {
 								@Override
 								public void onUserClicked(String s) {
@@ -1046,62 +1038,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 						info(getString(R.string.details_not_found_internet));
 					}
 				});
-	}
-
-	private void changePlaybackUIStyle() {
-		final PlaybackUIStyle[] values = PlaybackUIStyle.values();
-		CharSequence items[] = new CharSequence[values.length];
-		for (int i = 0; i < values.length; i++) {
-			items[i] = values[i].friendlyName;
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
-		builder.setTitle(getString(R.string.select_title));
-		builder.setItems(items, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int itemIndex) {
-				try {
-					setPlaybackUIStyle(PlaybackUIActivity.this, values[itemIndex]);
-
-					info(getString(R.string.applied_on_restart));
-				} catch (Exception e) {
-					Log.w(TAG, e);
-
-					info(getString(R.string.error));
-				}
-			}
-		});
-		AlertDialog dialog = builder.create();
-		dialog.show();
-	}
-
-	private void changeAVFXStyle() {
-		final AudioVFXViewFragment.AVFXType[] values = AudioVFXViewFragment.AVFXType.values();
-		CharSequence items[] = new CharSequence[values.length];
-		for (int i = 0; i < values.length; i++) {
-			items[i] = values[i].friendlyName;
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
-		builder.setTitle(R.string.select_title);
-		builder.setItems(items, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int itemIndex) {
-				try {
-					AudioVFXViewFragment.setAVFXType(getApplicationContext(), values[itemIndex]);
-
-					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-
-					info(getString(R.string.now_using_) + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + getString(R.string._fx));
-				} catch (Exception e) {
-					Log.w(TAG, e);
-
-					info(getString(R.string.error));
-				}
-			}
-		});
-		AlertDialog dialog = builder.create();
-		dialog.show();
 	}
 
 	//endregion
@@ -1335,6 +1271,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, false);
 				} else {
 					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
+
+					info(getString(R.string.avfx_tap_more));
 				}
 				updateAVFX();
 			}
@@ -1382,6 +1320,35 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			}
 		}
 
+	}
+
+	private void changeAVFXStyle() {
+		final AudioVFXViewFragment.AVFXType[] values = AudioVFXViewFragment.AVFXType.values();
+		CharSequence items[] = new CharSequence[values.length];
+		for (int i = 0; i < values.length; i++) {
+			items[i] = values[i].friendlyName;
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+		builder.setTitle(R.string.select_title);
+		builder.setItems(items, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int itemIndex) {
+				try {
+					AudioVFXViewFragment.setAVFXType(getApplicationContext(), values[itemIndex]);
+
+					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
+
+					info(getString(R.string.now_using_) + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + getString(R.string._fx));
+				} catch (Exception e) {
+					Log.w(TAG, e);
+
+					info(getString(R.string.error));
+				}
+			}
+		});
+		AlertDialog dialog = builder.create();
+		dialog.show();
 	}
 
 	//endregion
@@ -1923,7 +1890,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		P4("New"),
 		P5("New 2");
 
-		private String friendlyName;
+		public String friendlyName;
 
 		PlaybackUIStyle(String friendlyName) {
 			this.friendlyName = friendlyName;
@@ -1946,6 +1913,33 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.edit()
 				.putString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(value))
 				.apply();
+	}
+
+	private void changePlaybackUIStyle() {
+		final PlaybackUIStyle[] values = PlaybackUIStyle.values();
+		CharSequence items[] = new CharSequence[values.length];
+		for (int i = 0; i < values.length; i++) {
+			items[i] = values[i].friendlyName;
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
+		builder.setTitle(getString(R.string.select_title));
+		builder.setItems(items, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int itemIndex) {
+				try {
+					setPlaybackUIStyle(PlaybackUIActivity.this, values[itemIndex]);
+
+					info(getString(R.string.applied_on_restart));
+				} catch (Exception e) {
+					Log.w(TAG, e);
+
+					info(getString(R.string.error));
+				}
+			}
+		});
+		AlertDialog dialog = builder.create();
+		dialog.show();
 	}
 
 	public static final String TAG_SPREF_PLAYBACK_UI_COVER_HIDDEN = "playback_ui_cover_hidden";

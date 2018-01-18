@@ -53,8 +53,6 @@
     <string name="re_load_lyrics">Re-load lyrics</string>
     <string name="edit_lyrics">Edit lyrics</string>
     <string name="update_metadata">Lookup and update details</string>
-    <string name="change_ui">Change ui</string>
-    <string name="change_fx">Change fx</string>
     <string name="tour">Tour</string>
 
     <string name="import_">Import</string>
@@ -63,5 +61,7 @@
     <string name="tune_presets_info1">Pre-defined presets to customize tune in one go.</string>
     <string name="tune_presets_info2">The preset file includes Tune* configurations. Not all will work, due to in-compatibility in hardware.</string>
     <string name="tune_presets_info3">You can e-mail us your own preset, by exporting. If we like it, you\'ll see it in next update and get a surprise*.</string>
+    <string name="will_apply_after_restart">Will be completely applied on restart!</string>
+    <string name="avfx_tap_more">If does not work, tap AVFX button few times!</string>
 
 </resources>
