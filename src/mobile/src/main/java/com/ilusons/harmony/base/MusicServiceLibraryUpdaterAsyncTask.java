@@ -563,4 +563,19 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				.apply();
 	}
 
+
+	public static final String TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MAX_DURATION = SPrefEx.TAG_SPREF + ".library_scan_constraint_max_duration";
+	private static final long LIBRARY_SCAN_CONSTRAINT_MAX_DURATION_DEFAULT = (long) (15 * 60 * 1000);
+
+	public static Long getScanConstraintMaxDuration(Context context) {
+		return SPrefEx.get(context).getLong(TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MAX_DURATION, LIBRARY_SCAN_CONSTRAINT_MAX_DURATION_DEFAULT);
+	}
+
+	public static void setScanConstraintMaxDuration(Context context, Long value) {
+		SPrefEx.get(context)
+				.edit()
+				.putLong(TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MAX_DURATION, value)
+				.apply();
+	}
+
 }

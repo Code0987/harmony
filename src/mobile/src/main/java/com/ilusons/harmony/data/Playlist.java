@@ -608,7 +608,11 @@ public class Playlist extends RealmObject {
 										newItem = Music.createFromLocal(context, item.first, item.second, fastMode, null);
 									if (newItem != null) {
 										// Check constraints
-										if (!(newItem.getLength() > 0 && (MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) > newItem.getLength())) {
+										if (!(newItem.getLength() > 0
+												&&
+												(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) >= newItem.getLength()
+												&&
+												(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMaxDuration(context)) <= newItem.getLength())) {
 											newItems.add(newItem);
 										}
 									}
@@ -722,7 +726,11 @@ public class Playlist extends RealmObject {
 									Music newItem = Music.createFromLocal(context, file.getAbsolutePath(), null, fastMode, null);
 									if (newItem != null) {
 										// Check constraints
-										if (!(newItem.getLength() > 0 && (MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) > newItem.getLength())) {
+										if (!(newItem.getLength() > 0
+												&&
+												(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) >= newItem.getLength()
+												&&
+												(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMaxDuration(context)) <= newItem.getLength())) {
 											newItems.add(newItem);
 										}
 									}

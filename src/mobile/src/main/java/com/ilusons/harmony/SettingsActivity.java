@@ -45,6 +45,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.appyvet.materialrangebar.RangeBar;
 import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
@@ -657,36 +658,22 @@ public class SettingsActivity extends BaseActivity {
 			}
 		});
 
-		// Set scan constraint min duration
-		final EditText scan_constraint_min_duration_editView = (EditText) findViewById(R.id.scan_constraint_min_duration_editView);
-		scan_constraint_min_duration_editView.setText("");
-		scan_constraint_min_duration_editView.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this).toString());
-		scan_constraint_min_duration_editView.clearFocus();
-		findViewById(R.id.scan_constraint_min_duration_imageButton).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
-					@Override
-					public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
-						MusicServiceLibraryUpdaterAsyncTask.setScanConstraintMinDuration(SettingsActivity.this, ((((hours * 60L) + minutes) * 60) + seconds) * 1000);
+		// Set scan constraint min/max duration
+		final RangeBar scan_constraint_min_max_duration_rangeBar = findViewById(R.id.scan_constraint_min_max_duration_rangeBar);
 
-						scan_constraint_min_duration_editView.setText("");
-						scan_constraint_min_duration_editView.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this).toString());
-						scan_constraint_min_duration_editView.clearFocus();
-					}
-				};
-				final HmsPickerBuilder hpb = new HmsPickerBuilder()
-						.setFragmentManager(getSupportFragmentManager())
-						.setStyleResId(R.style.BetterPickersDialogFragment);
-				hpb.addHmsPickerDialogHandler(handler);
-				hpb.setOnDismissListener(new OnDialogDismissListener() {
-					@Override
-					public void onDialogDismiss(DialogInterface dialoginterface) {
-						hpb.removeHmsPickerDialogHandler(handler);
-					}
-				});
-				hpb.setTimeInMilliseconds(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(SettingsActivity.this));
-				hpb.show();
+		final long FACTOR = 1000;
+
+		scan_constraint_min_max_duration_rangeBar.setRangePinsByValue(
+				MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(this) / FACTOR,
+				MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMaxDuration(this) / FACTOR);
+
+		scan_constraint_min_max_duration_rangeBar.setOnRangeBarChangeListener(new RangeBar.OnRangeBarChangeListener() {
+			@Override
+			public void onRangeChangeListener(RangeBar rangeBar, int leftPinIndex, int rightPinIndex, String leftPinValue, String rightPinValue) {
+				final int INTERVAL = (int) scan_constraint_min_max_duration_rangeBar.getTickInterval();
+
+				MusicServiceLibraryUpdaterAsyncTask.setScanConstraintMinDuration(SettingsActivity.this, leftPinIndex * INTERVAL * FACTOR);
+				MusicServiceLibraryUpdaterAsyncTask.setScanConstraintMaxDuration(SettingsActivity.this, rightPinIndex * INTERVAL * FACTOR);
 			}
 		});
 

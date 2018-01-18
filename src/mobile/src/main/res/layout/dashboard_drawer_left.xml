@@ -28,12 +28,10 @@
             <ImageView
                 android:id="@+id/image_ui_nav_left"
                 android:layout_width="match_parent"
-                android:layout_height="256dp"
-                android:layout_marginStart="-32dp"
-                android:layout_marginTop="-96dp"
+                android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
                 android:scaleType="centerCrop"
-                android:src="@drawable/logo"
+                android:src="@mipmap/ic_launcher_foreground"
                 />
 
         </FrameLayout>

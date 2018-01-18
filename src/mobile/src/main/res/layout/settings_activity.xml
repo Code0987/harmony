@@ -223,7 +223,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
-                    android:text="Copyright (C) ilusons 2017"
+                    android:text="Copyright (C) ilusons 2018"
                     android:textSize="12sp"
                     android:textStyle="italic|bold"
                     app:layout_constraintLeft_toLeftOf="parent"
@@ -428,44 +428,44 @@
                         />
 
                     <TextView
-                        android:id="@+id/scan_constraint_min_duration_textView"
+                        android:id="@+id/scan_constraint_min_max_duration_textView"
                         style="@style/TextAppearance.AppCompat.Body1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
-                        android:text="Minimum length of media to include (seconds)"
+                        android:text="Min/max length of media to include (seconds)"
                         android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"
                         />
 
-                    <EditText
-                        android:id="@+id/scan_constraint_min_duration_editView"
+                    <com.appyvet.materialrangebar.RangeBar
+                        android:id="@+id/scan_constraint_min_max_duration_rangeBar"
                         style="@style/TextAppearance.AppCompat.Body1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
                         android:gravity="center"
-                        android:minWidth="40dp"
+                        android:minWidth="80dp"
                         app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_textView"
-                        />
-
-                    <ImageButton
-                        android:id="@+id/scan_constraint_min_duration_imageButton"
-                        style="@style/Widget.AppCompat.ImageButton"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginTop="5dp"
-                        android:background="@null"
-                        android:padding="0dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_check_black"
-                        android:tint="@color/icons"
-                        android:tintMode="src_atop"
-                        app:layout_constraintBottom_toBottomOf="@+id/scan_constraint_min_duration_editView"
-                        app:layout_constraintLeft_toRightOf="@id/scan_constraint_min_duration_editView"
-                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_textView"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_textView"
+                        app:mrb_connectingLineColor="@color/translucent_accent"
+                        app:mrb_pinColor="@color/primary_dark"
+                        app:mrb_pinMaxFont="11sp"
+                        app:mrb_pinPadding="5dp"
+                        app:mrb_pinRadius="24dp"
+                        app:mrb_pinTextColor="@color/textColorPrimary"
+                        app:mrb_rangeBar="true"
+                        app:mrb_rangeBarColor="@color/translucent_accent"
+                        app:mrb_selectorBoundaryColor="@color/accent"
+                        app:mrb_selectorBoundarySize="2dp"
+                        app:mrb_selectorColor="@color/translucent_accent"
+                        app:mrb_selectorSize="10dp"
+                        app:mrb_temporaryPins="true"
+                        app:mrb_tickColor="@color/translucent_accent"
+                        app:mrb_tickEnd="2400"
+                        app:mrb_tickInterval="30"
+                        app:mrb_tickStart="0"
                         />
 
                     <TextView
@@ -477,7 +477,7 @@
                         android:text="Library update fast mode"
                         android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_duration_editView"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_rangeBar"
                         />
 
                     <CheckBox
