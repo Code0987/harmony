@@ -7,30 +7,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/translucent_primary_dark"
     android:clipChildren="false"
     android:clipToPadding="false"
     >
-
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        res:layout_constraintLeft_toLeftOf="parent"
-        res:layout_constraintTop_toTopOf="parent"
-        >
-
-        <ImageView
-            android:id="@+id/logo"
-            android:layout_width="256dp"
-            android:layout_height="256dp"
-            android:layout_marginStart="-32dp"
-            android:layout_marginTop="-96dp"
-            android:alpha="0.7"
-            android:scaleType="fitXY"
-            android:src="@drawable/logo"
-            />
-
-    </FrameLayout>
 
     <ScrollView
         android:layout_width="match_parent"

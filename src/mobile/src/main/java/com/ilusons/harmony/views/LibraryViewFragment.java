@@ -23,6 +23,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -33,6 +34,9 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +60,7 @@ import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAda
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
+import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
@@ -63,6 +68,7 @@ import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.ViewEx;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -91,6 +97,13 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	private AVLoadingIndicatorView loading;
 
+	@Override
+	public void onCreate(@Nullable Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		setHasOptionsMenu(true);
+	}
+
 	@Nullable
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -104,8 +117,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		loading.smoothToShow();
 
-		createSearch(v);
-
 		createMenu(v);
 
 		createUIFilters(v);
@@ -117,121 +128,54 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		createPlaylists(v);
 
+		setSearchQuery("");
+
 		loading.smoothToHide();
 
 		return v;
 	}
 
-	public static LibraryViewFragment create() {
-		LibraryViewFragment f = new LibraryViewFragment();
-		return f;
-	}
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
 
-	//region Search
+		menu.clear();
 
-	private FloatingActionButton fab_search;
-	private View search;
-	private ImageButton search_close;
-	private SearchView search_view;
+		inflater.inflate(R.menu.library_view_menu, menu);
 
-	private void createSearch(View v) {
-		fab_search = v.findViewById(R.id.fab_search);
+		ViewEx.tintMenuIcons(menu, ContextCompat.getColor(getContext(), R.color.textColorPrimary));
 
-		search = v.findViewById(R.id.search);
+		MenuItem search = menu.findItem(R.id.search);
+		//noinspection ConstantConditions
+		//SearchView search = new SearchView(getBaseUIActivity().getSupportActionBar().getThemedContext());
+		//item.setActionView(search);
+		SearchView searchView = (SearchView) search.getActionView();
+		// HACK: Remove some blank space before search view
+		((LinearLayout.LayoutParams)
+				((LinearLayout) searchView.findViewById(R.id.search_edit_frame))
+						.getLayoutParams()).leftMargin = 0;
 
-		search_view = v.findViewById(R.id.search_view);
-
-		fab_search.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (search.getVisibility() != View.VISIBLE) {
-					search.setAlpha(0);
-					search.setVisibility(View.VISIBLE);
-
-					search.animate().alpha(1).setDuration(283).start();
-					search.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_up));
-
-					try {
-						search_view.requestFocus();
-						new Handler().postDelayed(new Runnable() {
-							public void run() {
-								try {
-									search_view.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, 0, 0, 0));
-									search_view.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 0, 0, 0));
-
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-						}, 283);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
-					fab_search.animate().alpha(0).setDuration(163).withEndAction(new Runnable() {
-						@Override
-						public void run() {
-							fab_search.setVisibility(View.GONE);
-						}
-					}).start();
-					fab_menu.animate().alpha(0).setDuration(163).withEndAction(new Runnable() {
-						@Override
-						public void run() {
-							fab_menu.setVisibility(View.GONE);
-						}
-					}).start();
-				} else {
-					search.setAlpha(1);
-					search.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
-						@Override
-						public void run() {
-							search.setVisibility(View.INVISIBLE);
-						}
-					}).start();
-					search.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
-
-					fab_search.setVisibility(View.VISIBLE);
-					fab_search.animate().alpha(1).setDuration(173).start();
-					fab_menu.setVisibility(View.VISIBLE);
-					fab_menu.animate().alpha(1).setDuration(173).start();
-				}
-			}
-		});
-
-		search_close = v.findViewById(R.id.search_close);
-
-		search_close.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				search.setAlpha(1);
-				search.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
-					@Override
-					public void run() {
-						search.setVisibility(View.INVISIBLE);
-					}
-				}).start();
-				search.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
-
-				fab_search.setVisibility(View.VISIBLE);
-				fab_search.animate().alpha(1).setDuration(173).start();
-				fab_menu.setVisibility(View.VISIBLE);
-				fab_menu.animate().alpha(1).setDuration(173).start();
-			}
-		});
-
-		search_view.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				if (adapter != null)
-					adapter.refresh(query);
+				setSearchQuery(query);
 
 				return true;
 			}
 
 			@Override
 			public boolean onQueryTextChange(String newText) {
-				if (adapter != null)
-					adapter.refresh(newText);
+				setSearchQuery(newText);
+
+				return true;
+			}
+		});
+
+		MenuItem more = menu.findItem(R.id.more);
+		more.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				toggleMenu();
 
 				return true;
 			}
@@ -239,57 +183,13 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	}
 
-	//endregion
-
 	//region Menu
 
-	private FloatingActionButton fab_menu;
 	private View menu;
 	private ImageButton menu_close;
 
 	private void createMenu(View v) {
-		fab_menu = v.findViewById(R.id.fab_menu);
-
 		menu = v.findViewById(R.id.menu);
-
-		fab_menu.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (menu.getVisibility() != View.VISIBLE) {
-					menu.setAlpha(0);
-					menu.setVisibility(View.VISIBLE);
-					menu.animate().alpha(1).setDuration(283).start();
-					menu.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_up));
-
-					fab_search.animate().alpha(0).setDuration(163).withEndAction(new Runnable() {
-						@Override
-						public void run() {
-							fab_search.setVisibility(View.GONE);
-						}
-					}).start();
-					fab_menu.animate().alpha(0).setDuration(163).withEndAction(new Runnable() {
-						@Override
-						public void run() {
-							fab_menu.setVisibility(View.GONE);
-						}
-					}).start();
-				} else {
-					menu.setAlpha(1);
-					menu.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
-						@Override
-						public void run() {
-							menu.setVisibility(View.GONE);
-						}
-					}).start();
-					menu.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
-
-					fab_search.setVisibility(View.VISIBLE);
-					fab_search.animate().alpha(1).setDuration(173).start();
-					fab_menu.setVisibility(View.VISIBLE);
-					fab_menu.animate().alpha(1).setDuration(173).start();
-				}
-			}
-		});
 
 		menu_close = v.findViewById(R.id.menu_close);
 
@@ -304,14 +204,27 @@ public class LibraryViewFragment extends BaseUIFragment {
 					}
 				}).start();
 				menu.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
-
-				fab_search.setVisibility(View.VISIBLE);
-				fab_search.animate().alpha(1).setDuration(173).start();
-				fab_menu.setVisibility(View.VISIBLE);
-				fab_menu.animate().alpha(1).setDuration(173).start();
 			}
 		});
 
+	}
+
+	private void toggleMenu() {
+		if (menu.getVisibility() != View.VISIBLE) {
+			menu.setAlpha(0);
+			menu.setVisibility(View.VISIBLE);
+			menu.animate().alpha(1).setDuration(283).start();
+			menu.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_up));
+		} else {
+			menu.setAlpha(1);
+			menu.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
+				@Override
+				public void run() {
+					menu.setVisibility(View.GONE);
+				}
+			}).start();
+			menu.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
+		}
 	}
 
 	//endregion
@@ -720,6 +633,26 @@ public class LibraryViewFragment extends BaseUIFragment {
 		}
 		setFromPlaylistAsyncTask = new SetFromPlaylistAsyncTask(this, playlistName, playlistId);
 		setFromPlaylistAsyncTask.execute();
+	}
+
+	//endregion
+
+	//region Search
+
+	private String searchQuery;
+
+	public void setSearchQuery(String q) {
+		searchQuery = q;
+
+		if (TextUtils.isEmpty(searchQuery))
+			searchQuery = "";
+
+		if (adapter != null)
+			adapter.refresh(searchQuery);
+	}
+
+	public String getSearchQuery() {
+		return searchQuery;
 	}
 
 	//endregion
@@ -1174,7 +1107,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 			data.clear();
 			data.addAll(d);
 
-			refresh(String.valueOf(search_view.getQuery()));
+			refresh(String.valueOf(getSearchQuery()));
 		}
 
 		public void resetData() {
@@ -1183,13 +1116,13 @@ public class LibraryViewFragment extends BaseUIFragment {
 			data.clear();
 			data.addAll(oldData);
 
-			refresh(String.valueOf(search_view.getQuery()));
+			refresh(String.valueOf(getSearchQuery()));
 		}
 
 		public void removeData(Music d) {
 			data.remove(d);
 
-			refresh(String.valueOf(search_view.getQuery()));
+			refresh(String.valueOf(getSearchQuery()));
 		}
 
 		public void refresh(final String q) {
@@ -1481,8 +1414,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 							}
 							setUIFilters(getContext(), value);
 
-							if (search_view != null)
-								adapter.refresh(String.valueOf(search_view.getQuery()));
+							adapter.refresh(getSearchQuery());
 						}
 					});
 				}
@@ -1643,8 +1575,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
 						setUISortMode(getContext(), (UISortMode) adapterView.getItemAtPosition(position));
 
-						if (search_view != null)
-							adapter.refresh(String.valueOf(search_view.getQuery()));
+						adapter.refresh(getSearchQuery());
 					}
 
 					@Override
@@ -1831,8 +1762,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
 						setUIGroupMode(getContext(), (UIGroupMode) adapterView.getItemAtPosition(position));
 
-						if (search_view != null)
-							adapter.refresh(String.valueOf(search_view.getQuery()));
+						adapter.refresh(getSearchQuery());
 					}
 
 					@Override
@@ -2155,6 +2085,11 @@ public class LibraryViewFragment extends BaseUIFragment {
 	}
 
 	//endregion
+
+	public static LibraryViewFragment create() {
+		LibraryViewFragment f = new LibraryViewFragment();
+		return f;
+	}
 
 	public static String[] ExportableSPrefKeys = new String[]{
 			TAG_SPREF_LIBRARY_UI_SORT_MODE,

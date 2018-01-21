@@ -43,7 +43,7 @@
     <android.support.v7.widget.CardView
         android:id="@+id/menu"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginBottom="0dp"
         android:layout_marginEnd="0dp"
         android:layout_marginStart="0dp"
@@ -58,16 +58,15 @@
         res:layout_constraintBottom_toBottomOf="parent"
         res:layout_constraintLeft_toLeftOf="parent"
         res:layout_constraintRight_toRightOf="parent"
+        res:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:background="@drawable/lomo"
-            android:paddingBottom="16dp"
-            android:paddingEnd="5dp"
-            android:paddingStart="5dp"
-            android:paddingTop="3dp"
+            android:padding="16dp"
             >
 
             <ImageButton
@@ -79,7 +78,7 @@
                 android:layout_marginTop="8dp"
                 android:background="?attr/actionBarItemBackground"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_arrow_downward_black"
+                android:src="@drawable/ic_dialog_close_light"
                 android:tint="@color/icons"
                 android:tintMode="src_atop"
                 res:layout_constraintRight_toRightOf="parent"
@@ -93,7 +92,7 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginEnd="32dp"
                 android:layout_marginStart="32dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="32dp"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"
                 res:layout_constraintTop_toBottomOf="@id/menu_close"
@@ -141,102 +140,6 @@
         </android.support.constraint.ConstraintLayout>
 
     </android.support.v7.widget.CardView>
-
-    <android.support.v7.widget.CardView
-        android:id="@+id/search"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:background="@null"
-        android:clickable="true"
-        android:focusable="true"
-        android:padding="0dp"
-        android:visibility="gone"
-        res:cardBackgroundColor="@color/translucent"
-        res:cardElevation="4dp"
-        res:layout_constraintLeft_toLeftOf="parent"
-        res:layout_constraintRight_toRightOf="parent"
-        res:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible">
-
-        <android.support.constraint.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/lomo"
-            android:paddingBottom="3dp"
-            android:paddingEnd="5dp"
-            android:paddingStart="5dp"
-            android:paddingTop="3dp"
-            >
-
-            <ImageButton
-                android:id="@+id/search_close"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginStart="16dp"
-                android:background="?attr/actionBarItemBackground"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_arrow_downward_black"
-                android:tint="@color/icons"
-                android:tintMode="src_atop"
-                res:layout_constraintBottom_toBottomOf="parent"
-                res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toTopOf="parent"
-                />
-
-            <android.support.v7.widget.SearchView
-                android:id="@+id/search_view"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="24dp"
-                android:focusableInTouchMode="true"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                res:iconifiedByDefault="false"
-                res:layout_constraintBottom_toBottomOf="parent"
-                res:layout_constraintLeft_toLeftOf="parent"
-                res:layout_constraintRight_toRightOf="@id/search_close"
-                res:layout_constraintTop_toTopOf="parent"
-                res:queryHint="Search"
-                res:searchIcon="@null"
-                />
-
-        </android.support.constraint.ConstraintLayout>
-
-    </android.support.v7.widget.CardView>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_search"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:alpha="0.75"
-        android:src="@drawable/ic_search_holo_light"
-        android:tint="@color/translucent_icons"
-        android:tintMode="src_atop"
-        res:backgroundTint="@color/translucent_primary_dark"
-        res:borderWidth="0dp"
-        res:fabSize="mini"
-        res:layout_constraintBottom_toBottomOf="parent"
-        res:layout_constraintLeft_toLeftOf="parent"/>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:alpha="0.75"
-        android:src="@drawable/ic_menu_black"
-        android:tint="@color/translucent_icons"
-        android:tintMode="src_atop"
-        res:backgroundTint="@color/translucent_primary_dark"
-        res:borderWidth="0dp"
-        res:fabSize="mini"
-        res:layout_constraintBottom_toBottomOf="parent"
-        res:layout_constraintRight_toRightOf="parent"/>
 
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/loading"

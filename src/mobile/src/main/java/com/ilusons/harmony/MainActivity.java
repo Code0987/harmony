@@ -11,22 +11,19 @@ import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
-import com.ilusons.harmony.ref.ue.RateMe;
-import com.ilusons.harmony.ref.ue.Tips;
+import com.ilusons.harmony.views.RateMe;
+import com.ilusons.harmony.views.Tips;
 import com.ilusons.harmony.views.DashboardActivity;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends BaseActivity {
 

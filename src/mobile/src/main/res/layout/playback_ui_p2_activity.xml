@@ -7,7 +7,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/translucent_accent"
     android:elevation="0dp"
     app:elevation="0dp"
     >
@@ -15,7 +14,6 @@
     <RelativeLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/translucent_primary_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -177,7 +175,7 @@
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_gradient_black"
-                android:tint="@color/translucent_icons"
+                android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
 
@@ -193,7 +191,7 @@
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_shuffle_black"
-                android:tint="@color/translucent_icons"
+                android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
 
@@ -209,7 +207,7 @@
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_skip_previous_black"
-                android:tint="@color/translucent_icons"
+                android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
 
@@ -223,7 +221,7 @@
                 android:padding="8dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_play_black"
-                android:tint="@color/translucent_icons"
+                android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
 
@@ -239,7 +237,7 @@
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_skip_next_black"
-                android:tint="@color/translucent_icons"
+                android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
 
@@ -255,7 +253,7 @@
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_repeat_black"
-                android:tint="@color/translucent_icons"
+                android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
 
@@ -271,7 +269,7 @@
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_tune_black"
-                android:tint="@color/translucent_icons"
+                android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
 
@@ -397,7 +395,7 @@
         android:layout_margin="0dp"
         android:padding="0dp"
         android:visibility="visible"
-        app:indicatorColor="@color/translucent_primary_light"
+        app:indicatorColor="@color/accent"
         app:indicatorName="BallGridPulseIndicator"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

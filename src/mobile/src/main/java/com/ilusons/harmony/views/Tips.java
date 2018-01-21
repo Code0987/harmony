@@ -1,4 +1,4 @@
-package com.ilusons.harmony.ref.ue;
+package com.ilusons.harmony.views;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -6,18 +6,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
-import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.ilusons.harmony.R;
@@ -215,7 +209,7 @@ public class Tips {
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
 			LayoutInflater inflater = getActivity().getLayoutInflater();
 			View v = inflater.inflate(R.layout.tips_dialog, null);
-			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
 			builder.setView(v);
 
 			TextView title = v.findViewById(R.id.tips_dialog_title);

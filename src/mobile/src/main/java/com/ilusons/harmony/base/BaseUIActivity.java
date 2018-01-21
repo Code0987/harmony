@@ -2,9 +2,20 @@ package com.ilusons.harmony.base;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v4.view.OnApplyWindowInsetsListener;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.WindowInsetsCompat;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+
+import com.ilusons.harmony.R;
 
 public abstract class BaseUIActivity extends BaseActivity {
 
@@ -27,6 +38,9 @@ public abstract class BaseUIActivity extends BaseActivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		super.onCreate(savedInstanceState);
 
@@ -75,6 +89,16 @@ public abstract class BaseUIActivity extends BaseActivity {
 
 		};
 
+		ViewCompat.setOnApplyWindowInsetsListener(
+				findViewById(android.R.id.content),
+				new OnApplyWindowInsetsListener() {
+					@Override
+					public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
+						ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+						params.bottomMargin = insets.getSystemWindowInsetBottom();
+						return insets.consumeSystemWindowInsets();
+					}
+				});
 	}
 
 	@Override

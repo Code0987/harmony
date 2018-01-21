@@ -8,21 +8,27 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.SearchView;
 import android.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
@@ -39,9 +45,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ilusons.harmony.App;
@@ -56,6 +66,7 @@ import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
@@ -99,10 +110,12 @@ public class DashboardActivity extends BaseUIActivity {
 	private static final int REQUEST_EXPORT_LOCATION_PICK_SAF = 59;
 	private static final int REQUEST_PLAYLIST_ADD_PICK = 564;
 
+	// OS
+	protected Handler handler = new Handler();
+
 	// UI
 	private DrawerLayout drawer_layout;
-	//private boolean appBarIsExpanded = false;
-	//private AppBarLayout appBar_layout;
+	private ActionBarDrawerToggle drawer_toggle;
 	private View root;
 	private AVLoadingIndicatorView loading;
 	private ImageView bg_effect;
@@ -118,55 +131,29 @@ public class DashboardActivity extends BaseUIActivity {
 		// Set view
 		setContentView(R.layout.dashboard_activity);
 
-		/*
 		// Set bar
 		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
 		getSupportActionBar().setTitle(null);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-		getSupportActionBar().setHomeButtonEnabled(false);
-
-		final DrawerArrowDrawable homeDrawable = new DrawerArrowDrawable(getSupportActionBar().getThemedContext());
-		getSupportActionBar().setHomeAsUpIndicator(homeDrawable);
-
-		appBar_layout = findViewById(R.id.appBar_layout);
-		appBar_layout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-			@Override
-			public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-				appBarIsExpanded = (verticalOffset == 0);
-
-				float percentage = ((float) Math.abs(verticalOffset) / appBarLayout.getTotalScrollRange());
-
-				if (1.0f - percentage == 1f) {
-					homeDrawable.setVerticalMirror(true);
-				} else if (1.0f - percentage == 0f) {
-					homeDrawable.setVerticalMirror(false);
-				}
-				homeDrawable.setProgress(1.0f - percentage);
-			}
-		});
-		appBar_layout.setExpanded(appBarIsExpanded, true);
-		appBar_layout.animate();
-		*/
+		getSupportActionBar().setDisplayShowHomeEnabled(true);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 		drawer_layout = findViewById(R.id.drawer_layout);
 		drawer_layout.closeDrawer(GravityCompat.START);
 
-		/*
-		ImageButton toolbar_menu = (ImageButton) findViewById(R.id.toolbar_menu);
-		toolbar_menu.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				view.animate().rotationBy(180).setDuration(330).start();
-
-				if (appBarIsExpanded) {
-				}
-
-				appBar_layout.setExpanded(!appBarIsExpanded, true);
+		drawer_toggle = new ActionBarDrawerToggle(this, drawer_layout, toolbar, R.string.app_name, R.string.app_name) {
+			public void onDrawerClosed(View view) {
+				supportInvalidateOptionsMenu();
 			}
-		});
-		*/
+
+			public void onDrawerOpened(View drawerView) {
+				supportInvalidateOptionsMenu();
+			}
+		};
+		drawer_toggle.setDrawerIndicatorEnabled(true);
+		drawer_layout.setDrawerListener(drawer_toggle);
+		drawer_toggle.syncState();
 
 		// Set views
 		root = findViewById(R.id.root);
@@ -183,8 +170,8 @@ public class DashboardActivity extends BaseUIActivity {
 		// Tabs
 		createTabs();
 
-		// PlaybackUIMini
-		createPlaybackUIMini();
+		// Playback
+		createPlayback();
 
 		// Playlists
 		createPlaylists();
@@ -216,35 +203,35 @@ public class DashboardActivity extends BaseUIActivity {
 			startService(musicServiceIntent);
 			Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
 		}
-
-		bg_effect.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Bitmap bitmap = null;
-
-					try {
-						bitmap = ImageEx.drawableToBitmap(WallpaperManager.getInstance(getApplicationContext()).getFastDrawable());
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
-					if (bitmap == null)
-						bitmap = ((BitmapDrawable) ContextCompat.getDrawable(DashboardActivity.this, R.drawable.logo)).getBitmap();
-
-					Blurry.with(DashboardActivity.this)
-							.radius(15)
-							.sampling(1)
-							.color(Color.argb(140, 0, 0, 0))
-							.animate(333)
-							.async()
-							.from(bitmap)
-							.into(bg_effect);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}, 700);
+//
+//		bg_effect.postDelayed(new Runnable() {
+//			@Override
+//			public void run() {
+//				try {
+//					Bitmap bitmap = null;
+//
+//					try {
+//						bitmap = ImageEx.drawableToBitmap(WallpaperManager.getInstance(getApplicationContext()).getFastDrawable());
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//
+//					if (bitmap == null)
+//						bitmap = ((BitmapDrawable) ContextCompat.getDrawable(DashboardActivity.this, R.drawable.logo)).getBitmap();
+//
+//					Blurry.with(DashboardActivity.this)
+//							.radius(15)
+//							.sampling(1)
+//							.color(Color.argb(140, 0, 0, 0))
+//							.animate(333)
+//							.async()
+//							.from(bitmap)
+//							.into(bg_effect);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}, 700);
 
 		loading.smoothToHide();
 
@@ -261,13 +248,30 @@ public class DashboardActivity extends BaseUIActivity {
 				e.printStackTrace();
 			}
 		*/
+
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 
-		updatePlaybackUIMini();
+		root.requestFocus();
+
+		resetPlayback();
+	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		super.onPostCreate(savedInstanceState);
+
+		drawer_toggle.syncState();
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+
+		drawer_toggle.onConfigurationChanged(newConfig);
 	}
 
 	@Override
@@ -275,7 +279,7 @@ public class DashboardActivity extends BaseUIActivity {
 		if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
 			drawer_layout.closeDrawer(GravityCompat.START);
 		} else {
-			super.onBackPressed();
+			drawer_layout.openDrawer(GravityCompat.START);
 		}
 	}
 
@@ -288,14 +292,6 @@ public class DashboardActivity extends BaseUIActivity {
 
 		switch (id) {
 			case android.R.id.home:
-				/*
-				if (appBarIsExpanded) {
-					// CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams) appBar_layout.getLayoutParams();
-					// lp.height = getResources().getDisplayMetrics().heightPixels / 3;
-				}
-				appBar_layout.setExpanded(!appBarIsExpanded, true);
-				if (!appBarIsExpanded)
-				*/
 				onBackPressed();
 				return true;
 		}
@@ -444,7 +440,7 @@ public class DashboardActivity extends BaseUIActivity {
 	protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
 		super.OnMusicServiceChanged(className, musicService, isBound);
 
-		updatePlaybackUIMini();
+		resetPlayback();
 
 		if (musicService.getLibraryUpdater() != null && !musicService.getLibraryUpdater().isCancelled()) {
 			info("Library update is in progress!", true);
@@ -457,45 +453,45 @@ public class DashboardActivity extends BaseUIActivity {
 	public void OnMusicServicePlay() {
 		super.OnMusicServicePlay();
 
-		if (playbackUIMiniFragment != null)
-			playbackUIMiniFragment.onMusicServicePlay();
+		if (play_pause_stop != null)
+			play_pause_stop.setImageResource(R.drawable.ic_pause_black);
 	}
 
 	@Override
 	public void OnMusicServicePause() {
 		super.OnMusicServicePause();
 
-		if (playbackUIMiniFragment != null)
-			playbackUIMiniFragment.onMusicServicePause();
+		if (play_pause_stop != null)
+			play_pause_stop.setImageResource(R.drawable.ic_play_black);
 	}
 
 	@Override
 	public void OnMusicServiceStop() {
 		super.OnMusicServiceStop();
 
-		if (playbackUIMiniFragment != null)
-			playbackUIMiniFragment.onMusicServiceStop();
+		if (play_pause_stop != null)
+			play_pause_stop.setImageResource(R.drawable.ic_stop_black);
 	}
 
 	@Override
 	public void OnMusicServiceOpen(String uri) {
-		try {
-			Blurry.with(this)
-					.radius(17)
-					.sampling(1)
-					.color(Color.argb(100, 0, 0, 0))
-					.animate(333)
-					.async()
-					.from(getMusicService().getMusic().getCover(this, -1))
-					.into(bg_effect);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			Blurry.with(this)
+//					.radius(17)
+//					.sampling(1)
+//					.color(Color.argb(100, 0, 0, 0))
+//					.animate(333)
+//					.async()
+//					.from(getMusicService().getMusic().getCover(this, -1))
+//					.into(bg_effect);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	@Override
 	public void OnMusicServicePrepared() {
-		updatePlaybackUIMini();
+		resetPlayback();
 	}
 
 	@Override
@@ -522,14 +518,14 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 
 			// Update mini now playing ui
-			updatePlaybackUIMini();
+			resetPlayback();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		info("Library updated!");
 
-		updatePlaybackUIMini();
+		resetPlayback();
 
 		behaviourForAddScanLocationOnEmptyLibrary();
 	}
@@ -549,7 +545,7 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 
 			// Update mini now playing ui
-			updatePlaybackUIMini();
+			resetPlayback();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -724,11 +720,13 @@ public class DashboardActivity extends BaseUIActivity {
 
 	//region Tabs
 
-	//private TabLayout tab_layout;
+	private TabLayout tab_layout;
 	private ViewPager viewPager;
 	private ViewPagerAdapter viewPagerAdapter;
 
 	private void createTabs() {
+		tab_layout = findViewById(R.id.tab_layout);
+
 		viewPager = findViewById(R.id.viewPager);
 		viewPager.setOffscreenPageLimit(3);
 
@@ -736,22 +734,13 @@ public class DashboardActivity extends BaseUIActivity {
 
 		viewPager.setAdapter(viewPagerAdapter);
 
-		/*
-		tab_layout = findViewById(R.id.tab_layout);
-
-		tab_layout.post(new Runnable() {
-			@Override
-			public void run() {
-				tab_layout.setupWithViewPager(viewPager, true);
-			}
-		});
-		*/
-
 		libraryViewFragment = LibraryViewFragment.create();
 
 		viewPagerAdapter.add(libraryViewFragment, "Library");
 
 		viewPagerAdapter.add(AnalyticsViewFragment.create(), "Analytics");
+
+		tab_layout.setupWithViewPager(viewPager, true);
 
 	}
 
@@ -809,19 +798,88 @@ public class DashboardActivity extends BaseUIActivity {
 
 	//endregion
 
-	//region PlaybackUIMini
+	//region Playback
 
-	private PlaybackUIMiniFragment playbackUIMiniFragment;
-	private View playbackUIMini;
+	private View playback_layout;
 
-	private void createPlaybackUIMini() {
-		playbackUIMini = findViewById(R.id.playbackUIMiniFragment);
-		playbackUIMiniFragment = PlaybackUIMiniFragment.create();
-		getFragmentManager()
-				.beginTransaction()
-				.replace(R.id.playbackUIMiniFragment, playbackUIMiniFragment)
-				.commit();
-		playbackUIMiniFragment.setJumpOnClickListener(new WeakReference<View.OnClickListener>(new View.OnClickListener() {
+	private ProgressBar progressBar;
+	private TextView title;
+	private TextView info;
+
+	private ImageView play_pause_stop;
+	private ImageView next_random;
+	private ImageView jump;
+
+	private void createPlayback() {
+		playback_layout = findViewById(R.id.playback_layout);
+
+		title = findViewById(R.id.title);
+		info = findViewById(R.id.info);
+
+		play_pause_stop = findViewById(R.id.play_pause_stop);
+
+		play_pause_stop.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() == null) return;
+
+				if (getMusicService().isPlaying()) {
+					getMusicService().pause();
+				} else {
+					getMusicService().play();
+				}
+			}
+		});
+		play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (getMusicService() == null) return false;
+
+				getMusicService().stop();
+
+				return true;
+			}
+		});
+
+		next_random = findViewById(R.id.next_random);
+
+		next_random.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() == null) return;
+
+				getMusicService().next();
+			}
+		});
+		next_random.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				if (getMusicService() == null) return false;
+
+				getMusicService().random();
+
+				return true;
+			}
+		});
+
+		jump = findViewById(R.id.jump);
+
+		progressBar = findViewById(R.id.progressBar);
+
+		final View.OnClickListener onClickListener = new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(DashboardActivity.this, PlaybackUIActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(
+						intent,
+						ActivityOptionsCompat.makeCustomAnimation(view.getContext(), R.anim.scale_up, R.anim.shake).toBundle());
+			}
+		};
+
+		title.setOnClickListener(onClickListener);
+		info.setOnClickListener(onClickListener);
+		jump.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				if (libraryViewFragment != null) try {
@@ -830,16 +888,106 @@ public class DashboardActivity extends BaseUIActivity {
 					e.printStackTrace();
 				}
 			}
-		}));
+		});
+		jump.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View view) {
+				onClickListener.onClick(view);
+				return true;
+			}
+		});
+
+		View.OnTouchListener touchListener = new AndroidTouchEx.OnSwipeTouchListener() {
+			@Override
+			public boolean onSwipeLeft() {
+				if (getMusicService() != null) {
+					getMusicService().prev();
+
+					root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSwipeRight() {
+				if (getMusicService() != null) {
+					getMusicService().next();
+
+					root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
+				}
+				return true;
+			}
+
+			@Override
+			public boolean onSwipeTop() {
+				onClickListener.onClick(root);
+
+				return true;
+			}
+
+			@Override
+			public boolean onSwipeBottom() {
+				try {
+					onBackPressed();
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				return false;
+			}
+		};
+
+		playback_layout.setOnTouchListener(touchListener);
+
 	}
 
-	private void updatePlaybackUIMini() {
-		if (playbackUIMiniFragment != null)
-			try {
-				playbackUIMiniFragment.reset(getMusicService());
-			} catch (Exception e) {
-				e.printStackTrace();
+	private Runnable progressHandlerRunnable;
+
+	private void setupProgressHandler() {
+		if (progressHandlerRunnable != null)
+			handler.removeCallbacks(progressHandlerRunnable);
+
+		final int dt = (int) (1000.0 / 16.0);
+
+		progressHandlerRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (getMusicService() != null && getMusicService().isPlaying()) {
+					progressBar.setProgress(getMusicService().getPosition());
+				}
+
+				handler.removeCallbacks(progressHandlerRunnable);
+				handler.postDelayed(progressHandlerRunnable, dt);
 			}
+		};
+		handler.postDelayed(progressHandlerRunnable, dt);
+	}
+
+	public void resetPlayback() {
+		if (getMusicService() == null || getMusicService().getMusic() == null)
+			return;
+
+		Music m = getMusicService().getMusic();
+
+		title.setText(m.getTitle());
+		String s;
+		try {
+			s = m.getTextExtraOnlySingleLine(getMusicService().getPlaylist().getItemIndex());
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			s = m.getTextExtraOnlySingleLine();
+		}
+		info.setText(s);
+
+		progressBar.setMax(getMusicService().getDuration());
+
+		setupProgressHandler();
+
+		if (getMusicService().isPlaying())
+			play_pause_stop.setImageResource(R.drawable.ic_pause_black);
+
 	}
 
 	//endregion
@@ -998,7 +1146,7 @@ public class DashboardActivity extends BaseUIActivity {
 			if (!TextUtils.isEmpty(dataActive) && dataActive.equals(d.second)) {
 				c = ContextCompat.getColor(DashboardActivity.this, android.R.color.holo_green_light);
 			} else {
-				c = ContextCompat.getColor(DashboardActivity.this, R.color.translucent_icons);
+				c = ContextCompat.getColor(DashboardActivity.this, R.color.icons);
 			}
 			icon.setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
 			text.setTextColor(c);
@@ -1170,7 +1318,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 	private void tour(MaterialIntroListener onFinal) {
 		final MaterialIntroView.Builder guide_start = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(this, R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1181,11 +1329,11 @@ public class DashboardActivity extends BaseUIActivity {
 				.enableIcon(true)
 				.performClick(true)
 				.setInfoText("Welcome! \n\nNow, tap anywhere on blue screen!")
-				.setTarget(playbackUIMini)
+				.setTarget(playback_layout)
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_ldrawer = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(this, R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1200,7 +1348,7 @@ public class DashboardActivity extends BaseUIActivity {
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_mini = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(this, R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1211,11 +1359,11 @@ public class DashboardActivity extends BaseUIActivity {
 				.enableIcon(true)
 				.performClick(true)
 				.setInfoText("This is mini playback ui, for quick view of now playing. Buttons in it have long-press functions too.")
-				.setTarget(playbackUIMini)
+				.setTarget(playback_layout)
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(this, R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)

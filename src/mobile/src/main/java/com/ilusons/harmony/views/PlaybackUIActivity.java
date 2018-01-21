@@ -98,23 +98,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	private int color;
 	private int colorLight;
 
-	private Runnable updateSystemUITask = new Runnable() {
-		@Override
-		public void run() {
-
-			View v = getWindow().getDecorView();
-
-			if ((v.getVisibility() & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-				v.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-						| View.SYSTEM_UI_FLAG_FULLSCREEN
-						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-
-		}
-	};
-
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -126,10 +109,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// State
 		if (savedInstanceState != null) {
@@ -177,14 +156,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		Music.setCurrentCoverView(this);
 
-		final View decorView = getWindow().getDecorView();
-		decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-			@Override
-			public void onSystemUiVisibilityChange(int visibility) {
-				handler.postDelayed(updateSystemUITask, 500);
-			}
-		});
-
 		// Set views
 
 		loading = (AVLoadingIndicatorView) findViewById(R.id.loading);
@@ -210,8 +181,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-
-		handler.postDelayed(updateSystemUITask, 500);
 
 		// Restore audio vis.
 		updateAVFX();
@@ -1707,7 +1676,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	private void tour(MaterialIntroListener onFinal) {
 		final MaterialIntroView.Builder guide_play_pause_stop = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1722,7 +1691,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_next = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1737,7 +1706,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_avfx = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1752,7 +1721,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_tune = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1767,7 +1736,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_lyrics = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1782,7 +1751,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_cover = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)
@@ -1797,7 +1766,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				.setUsageId(UUID.randomUUID().toString());
 
 		final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent_accent))
+				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
 				.setDelayMillis(500)
 				.enableFadeAnimation(true)
 				.enableDotAnimation(false)

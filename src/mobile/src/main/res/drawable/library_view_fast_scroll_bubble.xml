@@ -4,7 +4,7 @@
 
     <corners android:radius="3dp"/>
 
-    <solid android:color="@color/translucent_accent"/>
+    <solid android:color="@color/accent_inverse"/>
 
     <size
         android:width="10dp"
