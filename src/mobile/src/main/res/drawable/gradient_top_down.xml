@@ -7,6 +7,6 @@
         android:centerX="0.25"
         android:centerY="0.5"
         android:endColor="#00000000"
-        android:startColor="@color/translucent_primary_dark"
+        android:startColor="@color/translucent"
         android:type="linear"/>
 </shape>

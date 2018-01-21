@@ -20,7 +20,7 @@
         android:alpha="0.5"
         android:scaleType="fitXY"
         android:src="@drawable/ic_playlist_add_black"
-        android:tint="@color/translucent_icons"
+        android:tint="@color/translucent_light"
         android:tintMode="src_atop"
         />
 
@@ -43,7 +43,7 @@
             android:layout_marginTop="4dp"
             android:layout_weight="6"
             android:ellipsize="middle"
-            android:textColor="@color/translucent_icons"
+            android:textColor="@color/primary_text"
             tools:text="Playlist"/>
 
         <LinearLayout
@@ -71,7 +71,7 @@
                 android:padding="3dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_menu_black"
-                android:tint="@color/translucent_icons"
+                android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
 

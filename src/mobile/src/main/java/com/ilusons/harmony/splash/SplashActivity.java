@@ -21,6 +21,8 @@ public class SplashActivity extends Activity {
 	// Logger TAG
 	private static final String TAG = SplashActivity.class.getSimpleName();
 
+	private Handler handler;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// Set splash theme
@@ -30,6 +32,8 @@ public class SplashActivity extends Activity {
 		setTheme(R.style.SplashTheme);
 
 		super.onCreate(savedInstanceState);
+
+		handler = new Handler();
 
 		executePermissionsTask();
 	}
@@ -109,7 +113,12 @@ public class SplashActivity extends Activity {
 
 		startActivity(intent);
 
-		finish();
+		handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				finish();
+			}
+		}, 777);
 	}
 
 }

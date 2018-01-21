@@ -63,5 +63,8 @@
     <string name="tune_presets_info3">You can e-mail us your own preset, by exporting. If we like it, you\'ll see it in next update and get a surprise*.</string>
     <string name="will_apply_after_restart">Will be completely applied on restart!</string>
     <string name="avfx_tap_more">If does not work, tap AVFX button few times!</string>
+    <string name="tune_title">Tune 🎧</string>
+    <string name="search">Search</string>
+    <string name="more">More</string>
 
 </resources>

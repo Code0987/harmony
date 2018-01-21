@@ -1,18 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="primary">#616161</color>
+    <color name="magenta50">#ffff1ad9</color>
+    <color name="magenta60">#ffed00b5</color>
+    <color name="magenta70">#ffb5007f</color>
+    <color name="magenta80">#ff7d004f</color>
+    <color name="magenta90">#ff440027</color>
+
+    <color name="blue40">#ff45a1ff</color>
+    <color name="blue50">#ff0a84ff</color>
+    <color name="blue60">#ff0060df</color>
+    <color name="blue70">#ff003eaa</color>
+    <color name="blue80">#ff002275</color>
+    <color name="blue90">#ff000f40</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="gold">#ffd700</color>
+
+    <color name="gradient11">#21b5ff</color>
+    <color name="gradient12">#258ef8</color>
+    <color name="gradient13">#1e71c2</color>
+
+    <color name="gradient21">#ffa01142</color>
+    <color name="gradient22">#ff90116D</color>
+    <color name="gradient33">#ff5c1166</color>
+
+    <color name="primary">#ff272727</color>
     <color name="primary_inverse">#eeeeee</color>
-    <color name="primary_dark">#424242</color>
+    <color name="primary_dark">#3b546e</color>
     <color name="primary_dark_inverse">#eeeeee</color>
     <color name="primary_light">#eeeeee</color>
     <color name="primary_light_inverse">#424242</color>
-    <color name="accent">#0091ea</color>
-    <color name="accent_inverse">#0091ea</color>
-    <color name="primary_text">#bdbdbd</color>
-    <color name="primary_text_inverse">#212121</color>
-    <color name="secondary_text">#9e9e9e</color>
-    <color name="secondary_text_inverse">#757575</color>
+
+    <color name="accent">#005bb5</color>
+    <color name="accent_inverse">#002245</color>
+
+    <color name="primary_text">#ffffff</color>
+    <color name="primary_text_inverse">#111111</color>
+    <color name="secondary_text">#fcfcfc</color>
+    <color name="secondary_text_inverse">#222222</color>
+
     <color name="icons">#eeeeee</color>
     <color name="divider">#BDBDBD</color>
 
@@ -20,29 +48,18 @@
     <color name="translucent">#94000000</color>
     <color name="translucent_dark">#c8000000</color>
     <color name="translucent_light">#c8ffffff</color>
-    <color name="translucent_primary">#b4616161</color>
-    <color name="translucent_primary_light">#b4eeeeee</color>
-    <color name="translucent_primary_dark">#b4424242</color>
-    <color name="translucent_accent">#940091ea</color>
-    <color name="translucent_icons">#c8eeeeee</color>
 
     <color name="colorPrimary">@color/primary</color>
     <color name="colorPrimaryInverse">@color/primary_inverse</color>
     <color name="colorPrimaryDark">@color/primary_dark</color>
     <color name="colorPrimaryDarkInverse">@color/primary_dark_inverse</color>
+
     <color name="colorAccent">@color/accent</color>
     <color name="colorAccentInverse">@color/accent_inverse</color>
+
     <color name="textColorPrimary">@color/primary_text</color>
     <color name="textColorPrimaryInverse">@color/primary_text_inverse</color>
     <color name="textColorSecondary">@color/secondary_text</color>
     <color name="textColorSecondaryInverse">@color/secondary_text_inverse</color>
-
-    <color name="splash_background">#64000000</color>
-    <color name="grey_500">#9E9E9E</color>
-    <color name="grey_200">#EEEEEE</color>
-    <color name="grey_400">#BDBDBD</color>
-    <color name="white">#FFFFFF</color>
-    <color name="black">#000000</color>
-    <color name="gold">#ffd700</color>
 
 </resources>

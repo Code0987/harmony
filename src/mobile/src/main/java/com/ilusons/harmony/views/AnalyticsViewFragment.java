@@ -90,9 +90,9 @@ public class AnalyticsViewFragment extends Fragment {
 
 		swipeRefreshLayout = v.findViewById(R.id.swipeRefreshLayout);
 		swipeRefreshLayout.setColorSchemeColors(
-				ContextCompat.getColor(v.getContext(), R.color.translucent_accent),
+				ContextCompat.getColor(v.getContext(), R.color.accent),
 				ContextCompat.getColor(v.getContext(), android.R.color.holo_blue_bright),
-				ContextCompat.getColor(v.getContext(), R.color.translucent_accent));
+				ContextCompat.getColor(v.getContext(), R.color.accent));
 		swipeRefreshLayout.setWaveColor(ContextCompat.getColor(v.getContext(), android.R.color.holo_blue_bright));
 
 		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
@@ -335,7 +335,7 @@ public class AnalyticsViewFragment extends Fragment {
 				chart.setDrawHoleEnabled(true);
 				chart.setHoleColor(ContextCompat.getColor(context, R.color.transparent));
 
-				chart.setTransparentCircleColor(ContextCompat.getColor(context, R.color.translucent_icons));
+				chart.setTransparentCircleColor(ContextCompat.getColor(context, R.color.icons));
 				chart.setTransparentCircleAlpha(110);
 
 				chart.setHoleRadius(24f);

@@ -9,7 +9,7 @@
     android:layout_gravity="start"
     android:layout_marginEnd="@dimen/activity_horizontal_margin"
     android:layout_marginStart="@dimen/activity_horizontal_margin"
-    android:background="@color/translucent_primary_dark"
+    android:background="@color/translucent"
     android:clipChildren="true"
     android:clipToPadding="true"
     android:fadeScrollbars="true"

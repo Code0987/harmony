@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:drawable="@color/splash_background"/>
-    <item
-        android:left="512dp"
-        android:right="512dp">
+    <item>
+        <color android:color="@color/colorPrimary"/>
+    </item>
+    <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/logo"/>
+            android:src="@mipmap/ic_launcher"/>
     </item>
 </layer-list>

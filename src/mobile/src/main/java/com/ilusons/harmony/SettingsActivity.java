@@ -286,6 +286,9 @@ public class SettingsActivity extends BaseActivity {
 		// About section
 		onCreateBindAboutSection();
 
+		// UI section
+		onCreateBindUISection();
+
 		// Library section
 		onCreateBindLibrarySection();
 
@@ -597,7 +600,7 @@ public class SettingsActivity extends BaseActivity {
 			public View getView(int position, View convertView, ViewGroup parent) {
 				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
 
-				text.setText("Playlist item style: " + text.getText());
+				text.setText(text.getText());
 
 				return text;
 			}

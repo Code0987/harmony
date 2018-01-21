@@ -119,19 +119,19 @@ public class BaseActivity extends AppCompatActivity {
 
 	public void info(String s, boolean indefinite) {
 		try {
-			View view = findViewById(R.id.root);
-
-			if (view != null) {
-				final Snackbar snackbar = Snackbar.make(view, s, indefinite ? Snackbar.LENGTH_INDEFINITE : Snackbar.LENGTH_LONG);
-				View snackbarView = snackbar.getView();
-				if (snackbarView.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-					ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
-					p.setMargins(p.leftMargin,
-							p.topMargin,
-							p.rightMargin,
-							p.bottomMargin);
-					snackbarView.requestLayout();
-				}
+//			View view = findViewById(R.id.root);
+//
+//			if (view != null) {
+//				final Snackbar snackbar = Snackbar.make(view, s, indefinite ? Snackbar.LENGTH_INDEFINITE : Snackbar.LENGTH_LONG);
+//				View snackbarView = snackbar.getView();
+//				if (snackbarView.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+//					ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+//					p.setMargins(p.leftMargin,
+//							p.topMargin,
+//							p.rightMargin,
+//							p.bottomMargin);
+//					snackbarView.requestLayout();
+//				}
 
 //            final ViewGroup.LayoutParams params = snackbar.getView().getLayoutParams();
 //            if (params instanceof CoordinatorLayout.LayoutParams) {
@@ -141,16 +141,16 @@ public class BaseActivity extends AppCompatActivity {
 //            }
 //            snackbar.getView().setLayoutParams(params);
 
-				snackbar.setAction("Dismiss", new View.OnClickListener() {
-					@Override
-					public void onClick(View view) {
-						snackbar.dismiss();
-					}
-				});
-				snackbar.show();
-			} else {
+//				snackbar.setAction("Dismiss", new View.OnClickListener() {
+//					@Override
+//					public void onClick(View view) {
+//						snackbar.dismiss();
+//					}
+//				});
+//				snackbar.show();
+//			} else {
 				Toast.makeText(this, s, Toast.LENGTH_LONG).show();
-			}
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
