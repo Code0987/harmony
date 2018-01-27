@@ -386,7 +386,7 @@ public class DashboardActivity extends BaseUIActivity {
 			Bitmap bitmap = getMusicService().getMusic().getCover(this, -1);
 
 			Blurry.with(this)
-					.radius(17)
+					.radius(7)
 					.sampling(1)
 					.color(Color.argb(100, 0, 0, 0))
 					.animate(333)
@@ -411,7 +411,7 @@ public class DashboardActivity extends BaseUIActivity {
 					bg.setImageDrawable(drawable);
 
 					progress.setBarColor(ColorUtils.setAlphaComponent(vibrantColor, 255));
-					progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 120));
+					progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
 				}
 			});
 
@@ -720,6 +720,7 @@ public class DashboardActivity extends BaseUIActivity {
 	private TextView info;
 
 	private ImageView play_pause_stop;
+	private ImageView random;
 
 	private void createPlayback() {
 		title = findViewById(R.id.title);
@@ -747,6 +748,16 @@ public class DashboardActivity extends BaseUIActivity {
 				getMusicService().stop();
 
 				return true;
+			}
+		});
+
+		random = findViewById(R.id.random);
+		random.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() == null) return;
+
+				getMusicService().random();
 			}
 		});
 
@@ -823,7 +834,7 @@ public class DashboardActivity extends BaseUIActivity {
 			@Override
 			public void run() {
 				if (getMusicService() != null && getMusicService().isPlaying()) {
-					progress.setValueAnimated(getMusicService().getPosition());
+					progress.setValue(getMusicService().getPosition());
 				}
 
 				handler.removeCallbacks(progressHandlerRunnable);
