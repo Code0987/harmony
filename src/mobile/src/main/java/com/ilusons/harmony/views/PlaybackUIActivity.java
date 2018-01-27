@@ -23,13 +23,17 @@ import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v4.graphics.ColorUtils;
+import android.support.v4.view.OnApplyWindowInsetsListener;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.WindowInsetsCompat;
 import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
@@ -154,6 +158,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		}
 		setContentView(layoutId);
 
+		// Hacks
+		applyHacksToUI();
+
 		Music.setCurrentCoverView(this);
 
 		// Set views
@@ -169,6 +176,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		createControls();
 
 		createAVFX();
+
 	}
 
 	@Override
@@ -289,6 +297,18 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		resetForUriIfNeeded(uri);
 	}
+
+	//region Other
+
+	private void applyHacksToUI() {
+		View nav_bar_filler = findViewById(R.id.nav_bar_filler);
+		if (nav_bar_filler != null) {
+			ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) nav_bar_filler.getLayoutParams();
+			params.bottomMargin = AndroidEx.getNavigationBarSize(this).y;
+		}
+	}
+
+	//endregion
 
 	//region Refresh
 

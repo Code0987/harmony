@@ -68,6 +68,8 @@ Summary
             http://www.apache.org/licenses/LICENSE-2.0
         materialrangebar
             http://www.apache.org/licenses/LICENSE-2.0
+        Circle-Progress-View
+            http://www.apache.org/licenses/LICENSE-2.0
 
 harmony - Terms and conditions
 

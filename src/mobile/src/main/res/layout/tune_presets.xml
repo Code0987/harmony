@@ -7,6 +7,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_dialog"
     android:clipChildren="false"
     android:clipToPadding="false"
     >
@@ -35,8 +36,8 @@
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
                 android:minHeight="860dp"
+                android:nestedScrollingEnabled="false"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"
                 res:layout_constraintTop_toTopOf="parent"

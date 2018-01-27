@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/ic_search_black"
+        android:title="@string/search"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:iconifiedByDefault="false"
+        app:showAsAction="collapseActionView|ifRoom"
+        />
+
+    <item
+        android:id="@+id/now_playing"
+        android:icon="@drawable/ic_music_note_black"
+        android:title="@string/now_playing"
+        app:showAsAction="always"
+        />
+
+    <item
+        android:id="@+id/overflow"
+        android:icon="@drawable/ic_menu_moreoverflow_dark"
+        android:orderInCategory="101"
+        android:title="@string/more"
+        app:showAsAction="always">
+
+        <menu>
+
+            <group>
+
+                <item
+                    android:id="@+id/jump"
+                    android:icon="@drawable/ic_open_in_new_black"
+                    android:title="@string/jump_to_current_item"
+                    app:showAsAction="ifRoom"
+                    />
+
+            </group>
+
+            <group>
+
+                <item
+                    android:id="@+id/refresh"
+                    android:icon="@drawable/ic_refresh_black"
+                    android:title="@string/refresh"
+                    app:showAsAction="ifRoom"
+                    />
+
+            </group>
+
+            <group>
+
+                <item
+                    android:id="@+id/playlist_view_settings"
+                    android:icon="@drawable/ic_playlist_play_black"
+                    android:title="@string/playlist_view_settings"
+                    app:showAsAction="ifRoom"
+                    />
+
+            </group>
+
+        </menu>
+
+    </item>
+
+</menu>

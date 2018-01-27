@@ -1,48 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <ScrollView
-    android:id="@+id/nav_layout"
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="match_parent"
-    android:layout_gravity="start"
-    android:layout_marginEnd="@dimen/activity_horizontal_margin"
-    android:layout_marginStart="@dimen/activity_horizontal_margin"
-    android:background="@color/translucent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/bg_dialog"
     android:clipChildren="true"
     android:clipToPadding="true"
     android:fadeScrollbars="true"
+    android:gravity="center_horizontal"
+    android:minWidth="280dp"
     android:scrollbars="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="64dp"
+        android:paddingBottom="16dp"
+        android:paddingEnd="16dp"
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
         >
 
-        <FrameLayout
-            android:layout_width="260dp"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:id="@+id/image_ui_nav_left"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/ic_launcher_foreground"
-                />
-
-        </FrameLayout>
-
         <LinearLayout
-            android:id="@+id/open"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="12dp"
@@ -52,62 +38,23 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_play_for_work_black"
-                android:tint="@android:color/holo_green_light"
-                android:tintMode="src_atop"
-                />
-
-            <TextView
-                style="@style/TextAppearance.AppCompat.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Open"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/now_playing"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            >
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_audiotrack_black"
+                android:src="@drawable/ic_view_quilt_black"
                 android:tint="@android:color/holo_blue_bright"
                 android:tintMode="src_atop"
                 />
 
-            <TextView
-                style="@style/TextAppearance.AppCompat.Body1"
+            <Spinner
+                android:id="@+id/uiFilters_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Now playing"
+                android:padding="0dp"
                 />
 
         </LinearLayout>
 
-
         <LinearLayout
-            android:id="@+id/exit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="12dp"
@@ -117,7 +64,102 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_dialog_close_dark"
+                android:src="@drawable/ic_view_quilt_black"
+                android:tint="@android:color/holo_blue_bright"
+                android:tintMode="src_atop"
+                />
+
+            <Spinner
+                android:id="@+id/uiSortMode_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            >
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_view_quilt_black"
+                android:tint="@android:color/holo_blue_bright"
+                android:tintMode="src_atop"
+                />
+
+            <Spinner
+                android:id="@+id/uiGroupMode_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            >
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_view_quilt_black"
+                android:tint="@android:color/holo_blue_bright"
+                android:tintMode="src_atop"
+                />
+
+            <Spinner
+                android:id="@+id/uiViewMode_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/playlists_recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="false"
+            android:animationCache="true"
+            android:clipToPadding="false"
+            android:gravity="center_vertical"
+            android:minHeight="100dp"
+            android:nestedScrollingEnabled="true"
+            android:scrollbarAlwaysDrawVerticalTrack="true"
+            android:scrollbars="vertical"
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+            tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
+            tools:listitem="@layout/playlist_view_settings_playlist_item"
+            />
+
+        <LinearLayout
+            android:id="@+id/new_playlist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            >
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_playlist_add_black"
                 android:tint="@android:color/holo_red_light"
                 android:tintMode="src_atop"
                 />
@@ -126,19 +168,16 @@
                 style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Exit"
+                android:layout_margin="8dp"
+                android:text="New playlist"
                 />
 
         </LinearLayout>
 
-
         <LinearLayout
-            android:id="@+id/ytpl"
+            android:id="@+id/add_to_playlist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
@@ -151,8 +190,8 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_video_library_black"
-                android:tint="@android:color/holo_red_light"
+                android:src="@drawable/ic_playlist_add_black"
+                android:tint="@android:color/holo_purple"
                 android:tintMode="src_atop"
                 />
 
@@ -160,20 +199,18 @@
                 style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Help &amp; Videos"
+                android:layout_margin="8dp"
+                android:text="Add music"
                 />
 
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/feedback"
+            android:id="@+id/save_active_playlist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
-            android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="12dp"
@@ -183,7 +220,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_feedback_black"
+                android:src="@drawable/ic_playlist_add_black"
                 android:tint="@android:color/holo_green_light"
                 android:tintMode="src_atop"
                 />
@@ -192,22 +229,18 @@
                 style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Feedback"
+                android:layout_margin="8dp"
+                android:text="Save changes"
                 />
 
         </LinearLayout>
 
-
         <LinearLayout
-            android:id="@+id/timer"
+            android:id="@+id/export_active_playlist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
-            android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="12dp"
@@ -217,7 +250,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_timer_black"
+                android:src="@drawable/ic_open_in_new_black"
                 android:tint="@android:color/holo_orange_light"
                 android:tintMode="src_atop"
                 />
@@ -226,74 +259,8 @@
                 style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Timer"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/tune"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            >
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_tune_black"
-                android:tint="@android:color/holo_green_light"
-                android:tintMode="src_atop"
-                />
-
-            <TextView
-                style="@style/TextAppearance.AppCompat.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Tune"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/settings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            >
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_settings_black"
-                android:tint="@android:color/holo_orange_light"
-                android:tintMode="src_atop"
-                />
-
-            <TextView
-                style="@style/TextAppearance.AppCompat.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:text="Settings"
+                android:layout_margin="8dp"
+                android:text="Export to m3u"
                 />
 
         </LinearLayout>

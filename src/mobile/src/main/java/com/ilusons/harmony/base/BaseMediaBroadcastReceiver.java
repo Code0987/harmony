@@ -1,5 +1,6 @@
 package com.ilusons.harmony.base;
 
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -71,6 +72,13 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 			if (!TextUtils.isEmpty(name))
 				OnMusicServicePlaylistChanged(name);
 		}
+
+		if (action.equals(Intent.ACTION_SEARCH)) {
+			String query = intent.getStringExtra(SearchManager.QUERY);
+
+			if (!TextUtils.isEmpty(query))
+				OnSearchQueryReceived(query);
+		}
 	}
 
 	LocalBroadcastManager broadcastManager;
@@ -88,6 +96,8 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 		intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATE_BEGINS);
 		intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATED);
 		intentFilter.addAction(MusicService.ACTION_PLAYLIST_CHANGED);
+
+		intentFilter.addAction(Intent.ACTION_SEARCH);
 
 		broadcastManager.registerReceiver(this, intentFilter);
 	}
@@ -125,6 +135,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 	}
 
 	public void OnMusicServicePlaylistChanged(String name) {
+
+	}
+
+	public void OnSearchQueryReceived(String query) {
 
 	}
 

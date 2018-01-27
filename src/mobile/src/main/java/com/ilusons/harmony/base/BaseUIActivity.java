@@ -87,18 +87,12 @@ public abstract class BaseUIActivity extends BaseActivity {
 				BaseUIActivity.this.OnMusicServicePlaylistChanged(name);
 			}
 
+			@Override
+			public void OnSearchQueryReceived(String query) {
+				BaseUIActivity.this.OnSearchQueryReceived(query);
+			}
 		};
 
-		ViewCompat.setOnApplyWindowInsetsListener(
-				findViewById(android.R.id.content),
-				new OnApplyWindowInsetsListener() {
-					@Override
-					public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
-						ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-						params.bottomMargin = insets.getSystemWindowInsetBottom();
-						return insets.consumeSystemWindowInsets();
-					}
-				});
 	}
 
 	@Override
@@ -187,6 +181,10 @@ public abstract class BaseUIActivity extends BaseActivity {
 	}
 
 	public void OnMusicServicePlaylistChanged(String name) {
+
+	}
+
+	public void OnSearchQueryReceived(String query){
 
 	}
 

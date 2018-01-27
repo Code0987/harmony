@@ -8,6 +8,6 @@
         android:topLeftRadius="20dp"
         android:topRightRadius="5dp"/>
 
-    <solid android:color="@color/accent_inverse"/>
+    <solid android:color="@color/translucent_light"/>
 
 </shape>

@@ -1,6 +1,7 @@
 package com.ilusons.harmony;
 
 import android.app.AlertDialog;
+import android.app.SearchManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,6 +9,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -106,6 +108,20 @@ public class MainActivity extends BaseActivity {
 				}
 			});
 		}
+
+		// Search
+
+		else if (intent.getAction().equals(Intent.ACTION_SEARCH)) {
+			String query = intent.getStringExtra(SearchManager.QUERY);
+
+			Intent queryIntent = new Intent(Intent.ACTION_SEARCH);
+			queryIntent.putExtra(SearchManager.QUERY, query);
+
+			LocalBroadcastManager
+					.getInstance(this)
+					.sendBroadcast(queryIntent);
+		}
+
 	}
 
 	public static synchronized Intent getDashboardActivityIntent(final Context context) {

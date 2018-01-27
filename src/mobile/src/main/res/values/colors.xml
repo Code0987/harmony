@@ -24,7 +24,7 @@
 
     <color name="gradient21">#ffa01142</color>
     <color name="gradient22">#ff90116D</color>
-    <color name="gradient33">#ff5c1166</color>
+    <color name="gradient23">#ff5c1166</color>
 
     <color name="primary">#ff272727</color>
     <color name="primary_inverse">#eeeeee</color>
@@ -33,8 +33,8 @@
     <color name="primary_light">#eeeeee</color>
     <color name="primary_light_inverse">#424242</color>
 
-    <color name="accent">#005bb5</color>
-    <color name="accent_inverse">#002245</color>
+    <color name="accent">#0091eb</color>
+    <color name="accent_inverse">#0d47a1</color>
 
     <color name="primary_text">#ffffff</color>
     <color name="primary_text_inverse">#111111</color>

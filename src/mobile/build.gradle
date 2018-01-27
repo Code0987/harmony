@@ -213,6 +213,7 @@ dependencies {
 	implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
 	implementation 'com.github.recruit-lifestyle:WaveSwipeRefreshLayout:1.6'
 	implementation 'com.makeramen:roundedimageview:2.3.0'
+	implementation 'com.github.jakob-grabner:Circle-Progress-View:v1.3'
 	implementation  ('com.appyvet:materialrangebar:1.4.1') {
 		exclude module: 'support-compat'
 	}
