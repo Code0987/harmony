@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,7 +23,6 @@ public class BaseDialogUIActivity extends BaseUIActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		WindowManager.LayoutParams params = getWindow().getAttributes();
 		params.height = Resources.getSystem().getDisplayMetrics().heightPixels - AndroidEx.dpToPx(2 * 48);
 		params.width = Resources.getSystem().getDisplayMetrics().widthPixels - AndroidEx.dpToPx(2 * 32);
@@ -30,6 +30,7 @@ public class BaseDialogUIActivity extends BaseUIActivity {
 		params.dimAmount = 0.85f;
 		getWindow().setAttributes(params);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		super.onCreate(savedInstanceState);
 

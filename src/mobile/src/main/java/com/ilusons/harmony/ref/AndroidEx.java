@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -14,13 +15,18 @@ import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.content.IntentCompat;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -158,6 +164,8 @@ public class AndroidEx {
 		}
 	}
 
+	//region Haptic
+
 	public static void vibrate(final Context context, int duration) {
 		try {
 			if (Build.VERSION.SDK_INT >= 26) {
@@ -173,5 +181,79 @@ public class AndroidEx {
 	public static void vibrate(final Context context) {
 		vibrate(context, 150);
 	}
+
+	//endregion
+
+	//region Display
+
+	public static Point getNavigationBarSize(Context context) {
+		Point appUsableSize = getAppUsableScreenSize(context);
+		Point realScreenSize = getRealScreenSize(context);
+
+		// navigation bar on the right
+		if (appUsableSize.x < realScreenSize.x) {
+			return new Point(realScreenSize.x - appUsableSize.x, appUsableSize.y);
+		}
+
+		// navigation bar at the bottom
+		if (appUsableSize.y < realScreenSize.y) {
+			return new Point(appUsableSize.x, realScreenSize.y - appUsableSize.y);
+		}
+
+		// navigation bar is not present
+		return new Point();
+	}
+
+	public static Point getAppUsableScreenSize(Context context) {
+		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		Display display = windowManager.getDefaultDisplay();
+		Point size = new Point();
+		display.getSize(size);
+		return size;
+	}
+
+	public static Point getRealScreenSize(Context context) {
+		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		Display display = windowManager.getDefaultDisplay();
+		Point size = new Point();
+
+		if (Build.VERSION.SDK_INT >= 17) {
+			display.getRealSize(size);
+		} else if (Build.VERSION.SDK_INT >= 14) {
+			try {
+				size.x = (Integer) Display.class.getMethod("getRawWidth").invoke(display);
+				size.y = (Integer) Display.class.getMethod("getRawHeight").invoke(display);
+			} catch (IllegalAccessException e) {
+			} catch (InvocationTargetException e) {
+			} catch (NoSuchMethodException e) {
+			}
+		}
+
+		return size;
+	}
+
+	//endregion
+
+	//region View
+
+	public static void trimChildMargins(@NonNull ViewGroup vg) {
+		final int childCount = vg.getChildCount();
+		for (int i = 0; i < childCount; i++) {
+			final View child = vg.getChildAt(i);
+
+			if (child instanceof ViewGroup) {
+				trimChildMargins((ViewGroup) child);
+			}
+
+			final ViewGroup.LayoutParams lp = child.getLayoutParams();
+			if (lp instanceof ViewGroup.MarginLayoutParams) {
+				((ViewGroup.MarginLayoutParams) lp).leftMargin = 0;
+			}
+			child.setBackground(null);
+			child.setPadding(0, 0, 0, 0);
+		}
+	}
+
+	//endregion
 
 }

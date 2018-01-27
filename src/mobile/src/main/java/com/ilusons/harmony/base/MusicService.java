@@ -2087,19 +2087,22 @@ public class MusicService extends Service {
 								.setContentText(data.getText())
 								.setSmallIcon(R.drawable.ic_cloud_download)
 								.setOngoing(true)
-								.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent);
+								.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
+								.setProgress(100, 0, true);
 
 						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_ADL, notif_builder_adl.build());
 					}
 
 					@Override
 					public void onNext(Integer r) {
+						/*
 						if (notif_builder_adl == null)
 							return;
 
 						notif_builder_adl.setProgress(100, r, r <= 0);
 
 						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_ADL, notif_builder_adl.build());
+						*/
 					}
 
 					@Override

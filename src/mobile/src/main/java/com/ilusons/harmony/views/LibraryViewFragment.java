@@ -5,25 +5,27 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.SearchManager;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.SystemClock;
+import android.os.ParcelFileDescriptor;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -46,7 +48,6 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.support.v7.widget.SearchView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -60,19 +61,25 @@ import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAda
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
-import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
+import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ViewEx;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -86,7 +93,10 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.functions.Consumer;
 import jonathanfinerty.once.Once;
+
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 public class LibraryViewFragment extends BaseUIFragment {
 
@@ -117,13 +127,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		loading.smoothToShow();
 
-		createMenu(v);
-
-		createUIFilters(v);
-		createUISortMode(v);
-		createUIGroupMode(v);
-		createUIViewMode(v);
-
 		createItems(v);
 
 		createPlaylists(v);
@@ -141,20 +144,12 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		menu.clear();
 
-		inflater.inflate(R.menu.library_view_menu, menu);
+		inflater.inflate(R.menu.playlist_view_menu, menu);
 
 		ViewEx.tintMenuIcons(menu, ContextCompat.getColor(getContext(), R.color.textColorPrimary));
 
 		MenuItem search = menu.findItem(R.id.search);
-		//noinspection ConstantConditions
-		//SearchView search = new SearchView(getBaseUIActivity().getSupportActionBar().getThemedContext());
-		//item.setActionView(search);
 		SearchView searchView = (SearchView) search.getActionView();
-		// HACK: Remove some blank space before search view
-		((LinearLayout.LayoutParams)
-				((LinearLayout) searchView.findViewById(R.id.search_edit_frame))
-						.getLayoutParams()).leftMargin = 0;
-
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
@@ -170,60 +165,229 @@ public class LibraryViewFragment extends BaseUIFragment {
 				return true;
 			}
 		});
+		AndroidEx.trimChildMargins(searchView);
+		try {
+			SearchManager searchManager = (SearchManager) getContext().getSystemService(Context.SEARCH_SERVICE);
+			if (searchManager != null) {
+				searchView.setSearchableInfo(searchManager.getSearchableInfo(getBaseUIActivity().getComponentName()));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			LinearLayout searchEditFrame = searchView.findViewById(R.id.search_edit_frame);
+			((LinearLayout.LayoutParams) searchEditFrame.getLayoutParams()).leftMargin = 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-		MenuItem more = menu.findItem(R.id.more);
-		more.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+		MenuItem now_playing = menu.findItem(R.id.now_playing);
+		now_playing.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
-				toggleMenu();
+				Intent intent = new Intent(getContext(), PlaybackUIActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
 
 				return true;
 			}
 		});
 
-	}
-
-	//region Menu
-
-	private View menu;
-	private ImageButton menu_close;
-
-	private void createMenu(View v) {
-		menu = v.findViewById(R.id.menu);
-
-		menu_close = v.findViewById(R.id.menu_close);
-
-		menu_close.setOnClickListener(new View.OnClickListener() {
+		MenuItem jump = menu.findItem(R.id.jump);
+		jump.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
-			public void onClick(View view) {
-				menu.setAlpha(1);
-				menu.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
-					@Override
-					public void run() {
-						menu.setVisibility(View.GONE);
-					}
-				}).start();
-				menu.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					getAdapter().jumpToCurrentlyPlayingItem();
+
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+		});
+
+		MenuItem refresh = menu.findItem(R.id.refresh);
+		refresh.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					Intent musicServiceIntent = new Intent(getContext(), MusicService.class);
+					musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+					musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+					getContext().startService(musicServiceIntent);
+
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+		});
+
+		MenuItem playlist_view_settings = menu.findItem(R.id.playlist_view_settings);
+		playlist_view_settings.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					toggleSettings(getActivity().findViewById(android.R.id.content));
+
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
 			}
 		});
 
 	}
 
-	private void toggleMenu() {
-		if (menu.getVisibility() != View.VISIBLE) {
-			menu.setAlpha(0);
-			menu.setVisibility(View.VISIBLE);
-			menu.animate().alpha(1).setDuration(283).start();
-			menu.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_up));
-		} else {
-			menu.setAlpha(1);
-			menu.animate().alpha(0).setDuration(333).withEndAction(new Runnable() {
-				@Override
-				public void run() {
-					menu.setVisibility(View.GONE);
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == REQUEST_EXPORT_LOCATION_PICK_SAF && resultCode == Activity.RESULT_OK) {
+			Uri uri = null;
+			if (data != null) {
+				uri = data.getData();
+
+				try {
+					ParcelFileDescriptor pfd = getContext().getContentResolver().openFileDescriptor(uri, "w");
+					FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+
+					boolean result = true;
+
+					//noinspection ConstantConditions
+					String base = (new File(StorageEx.getPath(getContext(), uri))).getParent();
+					String nl = System.getProperty("line.separator");
+					StringBuilder sb = new StringBuilder();
+					for (Music music : getViewPlaylist().getItems()) {
+						String url = IOEx.getRelativePath(base, music.getPath());
+						sb.append(url).append(nl);
+					}
+
+					try {
+						IOUtils.write(sb.toString(), fileOutputStream, "utf-8");
+					} catch (Exception e) {
+						result = false;
+
+						e.printStackTrace();
+					}
+
+					if (result)
+						info("Current playlist exported!");
+					else
+						info("Export failed!", true);
+
+					fileOutputStream.close();
+					pfd.close();
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			}).start();
-			menu.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_down));
+
+			}
+
+		} else if (requestCode == REQUEST_PLAYLIST_ADD_PICK && resultCode == Activity.RESULT_OK) {
+			if (data != null) {
+				try {
+					final ArrayList<android.util.Pair<String, Uri>> newScanItems = new ArrayList<>();
+
+					ClipData clipData = data.getClipData();
+					if (clipData != null) {
+						for (int i = 0; i < clipData.getItemCount(); i++)
+							try {
+								String path = StorageEx.getPath(getContext(), clipData.getItemAt(i).getUri());
+								if (path != null)
+									newScanItems.add(android.util.Pair.create(path, (Uri) null));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+					} else {
+						try {
+							String path = StorageEx.getPath(getContext(), data.getData());
+							if (path != null)
+								newScanItems.add(android.util.Pair.create(path, (Uri) null));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					final Playlist playlist = getViewPlaylist();
+
+					Playlist.update(
+							getContext(),
+							playlist,
+							newScanItems,
+							false,
+							true,
+							new JavaEx.ActionExT<String>() {
+								@Override
+								public void execute(String s) throws Exception {
+									info(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
+								}
+							})
+							.subscribe(new Consumer<Playlist>() {
+								@Override
+								public void accept(Playlist playlist) throws Exception {
+									info("Added all items.");
+								}
+							}, new Consumer<Throwable>() {
+								@Override
+								public void accept(Throwable throwable) throws Exception {
+									info("Can't add selected items.");
+								}
+							});
+
+					Playlist.savePlaylist(playlist);
+
+					setViewPlaylist(playlist);
+
+					try {
+						if (Playlist.getActivePlaylist(getContext()).equals(playlist.getName())) {
+							Intent musicServiceIntent = new Intent(getContext(), MusicService.class);
+							musicServiceIntent.setAction(MusicService.ACTION_PLAYLIST_CHANGED);
+							musicServiceIntent.putExtra(MusicService.KEY_PLAYLIST_CHANGED_PLAYLIST, playlist.getName());
+							getContext().startService(musicServiceIntent);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					info("Playlist updated!");
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					info("Unable to add selected items to the playlist!");
+				}
+
+			}
+		}
+
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	//region Settings
+
+	private void toggleSettings(View ref) {
+		try {
+			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
+					.inflate(R.layout.playlist_view_settings, null);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
+			builder.setView(v);
+
+			createUIFilters(v);
+			createUISortMode(v);
+			createUIGroupMode(v);
+			createUIViewMode(v);
+			createPlaylistsSettings(v);
+
+			AlertDialog alert = builder.create();
+
+			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
+
+			alert.show();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -472,170 +636,6 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	//endregion
 
-	//region Playlists
-
-	private Playlist viewPlaylist;
-
-	public Playlist getViewPlaylist() {
-		return viewPlaylist;
-	}
-
-	public void setViewPlaylist(Playlist playlist) {
-		boolean set = false;
-		if (viewPlaylist == null)
-			set = true;
-
-		viewPlaylist = playlist;
-
-		adapter.setData(viewPlaylist.getItems());
-
-		if (set)
-			recyclerView.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					adapter.jumpToCurrentlyPlayingItem();
-				}
-			}, 1000);
-	}
-
-	private void createPlaylists(View v) {
-
-		UIGroup();
-
-		setFromPlaylist(-1L, Playlist.getActivePlaylist(getContext()));
-
-	}
-
-	private static class SetFromPlaylistAsyncTask extends AsyncTask<Object, Object, Object> {
-		private String playlistName;
-		private Long playlistId;
-		private WeakReference<LibraryViewFragment> contextRef;
-
-		public SetFromPlaylistAsyncTask(LibraryViewFragment context, String playlistName, Long playlistId) {
-			this.contextRef = new WeakReference<LibraryViewFragment>(context);
-			this.playlistName = playlistName;
-			this.playlistId = playlistId;
-		}
-
-		@Override
-		protected Object doInBackground(Object... objects) {
-			final LibraryViewFragment context = contextRef.get();
-			if (context == null)
-				return null;
-
-			Playlist.setActivePlaylist(
-					context.getContext(),
-					playlistName,
-					playlistId,
-					new JavaEx.ActionT<Collection<Music>>() {
-						@Override
-						public void execute(Collection<Music> data) {
-							if (data.size() % RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW == 0)
-								context.adapter.setData(data);
-						}
-					},
-					new JavaEx.ActionT<Playlist>() {
-						@Override
-						public void execute(final Playlist playlist) {
-							try {
-								context.viewPlaylist = playlist;
-
-								context.getActivity().runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										try {
-											context.adapter.setData(playlist.getItems());
-											context.recyclerView.postDelayed(new Runnable() {
-												@Override
-												public void run() {
-													context.adapter.jumpToCurrentlyPlayingItem();
-												}
-											}, 1000);
-											context.loading.smoothToHide();
-											context.info("Loaded playlist!");
-										} catch (Exception e) {
-											e.printStackTrace();
-										}
-									}
-								});
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-						}
-					},
-					new JavaEx.ActionT<Exception>() {
-						@Override
-						public void execute(Exception e) {
-							try {
-								context.getActivity().runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										try {
-											context.loading.smoothToHide();
-											context.info("Playlist load failed!");
-										} catch (Exception e) {
-											e.printStackTrace();
-										}
-									}
-								});
-							} catch (Exception e2) {
-								e2.printStackTrace();
-							}
-						}
-					},
-					false);
-
-			return null;
-		}
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-
-			final LibraryViewFragment context = contextRef.get();
-			if (context == null)
-				return;
-
-			try {
-				context.loading.smoothToShow();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		protected void onPostExecute(Object o) {
-			super.onPostExecute(o);
-
-			final LibraryViewFragment context = contextRef.get();
-			if (context == null)
-				return;
-
-			try {
-				context.loading.smoothToHide();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private static AsyncTask<Object, Object, Object> setFromPlaylistAsyncTask = null;
-
-	public void setFromPlaylist(Long playlistId, final String playlistName) {
-		if (setFromPlaylistAsyncTask != null) {
-			setFromPlaylistAsyncTask.cancel(true);
-			try {
-				setFromPlaylistAsyncTask.get(1, TimeUnit.MILLISECONDS);
-			} catch (Exception e) {
-				Log.w(TAG, e);
-			}
-			setFromPlaylistAsyncTask = null;
-		}
-		setFromPlaylistAsyncTask = new SetFromPlaylistAsyncTask(this, playlistName, playlistId);
-		setFromPlaylistAsyncTask.execute();
-	}
-
-	//endregion
 
 	//region Search
 
@@ -1289,6 +1289,426 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	//endregion
 
+	//region Playlists
+
+	private Playlist viewPlaylist;
+
+	public Playlist getViewPlaylist() {
+		return viewPlaylist;
+	}
+
+	public void setViewPlaylist(Playlist playlist) {
+		boolean set = false;
+		if (viewPlaylist == null)
+			set = true;
+
+		viewPlaylist = playlist;
+
+		adapter.setData(viewPlaylist.getItems());
+
+		if (set)
+			recyclerView.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					adapter.jumpToCurrentlyPlayingItem();
+				}
+			}, 1000);
+	}
+
+	private void createPlaylists(View v) {
+
+		UIGroup();
+
+		setFromPlaylist(-1L, Playlist.getActivePlaylist(getContext()));
+
+	}
+
+	private static class SetFromPlaylistAsyncTask extends AsyncTask<Object, Object, Object> {
+		private String playlistName;
+		private Long playlistId;
+		private WeakReference<LibraryViewFragment> contextRef;
+
+		public SetFromPlaylistAsyncTask(LibraryViewFragment context, String playlistName, Long playlistId) {
+			this.contextRef = new WeakReference<LibraryViewFragment>(context);
+			this.playlistName = playlistName;
+			this.playlistId = playlistId;
+		}
+
+		@Override
+		protected Object doInBackground(Object... objects) {
+			final LibraryViewFragment context = contextRef.get();
+			if (context == null)
+				return null;
+
+			Playlist.setActivePlaylist(
+					context.getContext(),
+					playlistName,
+					playlistId,
+					new JavaEx.ActionT<Collection<Music>>() {
+						@Override
+						public void execute(Collection<Music> data) {
+							if (data.size() % RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW == 0)
+								context.adapter.setData(data);
+						}
+					},
+					new JavaEx.ActionT<Playlist>() {
+						@Override
+						public void execute(final Playlist playlist) {
+							try {
+								context.viewPlaylist = playlist;
+
+								context.getActivity().runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										try {
+											context.adapter.setData(playlist.getItems());
+											context.recyclerView.postDelayed(new Runnable() {
+												@Override
+												public void run() {
+													context.adapter.jumpToCurrentlyPlayingItem();
+												}
+											}, 1000);
+											context.loading.smoothToHide();
+											context.info("Loaded playlist!");
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+									}
+								});
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					},
+					new JavaEx.ActionT<Exception>() {
+						@Override
+						public void execute(Exception e) {
+							try {
+								context.getActivity().runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										try {
+											context.loading.smoothToHide();
+											context.info("Playlist load failed!");
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+									}
+								});
+							} catch (Exception e2) {
+								e2.printStackTrace();
+							}
+						}
+					},
+					false);
+
+			return null;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+
+			final LibraryViewFragment context = contextRef.get();
+			if (context == null)
+				return;
+
+			try {
+				context.loading.smoothToShow();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		protected void onPostExecute(Object o) {
+			super.onPostExecute(o);
+
+			final LibraryViewFragment context = contextRef.get();
+			if (context == null)
+				return;
+
+			try {
+				context.loading.smoothToHide();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private static AsyncTask<Object, Object, Object> setFromPlaylistAsyncTask = null;
+
+	public void setFromPlaylist(Long playlistId, final String playlistName) {
+		if (setFromPlaylistAsyncTask != null) {
+			setFromPlaylistAsyncTask.cancel(true);
+			try {
+				setFromPlaylistAsyncTask.get(1, TimeUnit.MILLISECONDS);
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+			setFromPlaylistAsyncTask = null;
+		}
+		setFromPlaylistAsyncTask = new SetFromPlaylistAsyncTask(this, playlistName, playlistId);
+		setFromPlaylistAsyncTask.execute();
+	}
+
+	//endregion
+
+	//region Playlist settings
+
+	private static final int REQUEST_EXPORT_LOCATION_PICK_SAF = 59;
+	private static final int REQUEST_PLAYLIST_ADD_PICK = 564;
+
+	private PlaylistsRecyclerViewAdapter playlistsRecyclerViewAdapter;
+
+	private void createPlaylistsSettings(View v) {
+		v.findViewById(R.id.new_playlist).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				try {
+					final EditText editText = new EditText(getContext());
+
+					new AlertDialog.Builder(getContext())
+							.setTitle("Create new playlist")
+							.setMessage("Enter name for new playlist ...")
+							.setView(editText)
+							.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+									try {
+										String name = editText.getText().toString().trim();
+
+										Playlist playlist = Playlist.loadOrCreatePlaylist(name);
+
+										if (playlist != null) {
+											Playlist.setActivePlaylist(getContext(), name, true);
+											setViewPlaylist(playlist);
+											playlistsRecyclerViewAdapter.refresh();
+											info("Playlist created!");
+										} else
+											throw new Exception("Some error.");
+									} catch (Exception e) {
+										e.printStackTrace();
+
+										info("Playlist creation failed!");
+									}
+								}
+							})
+							.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int whichButton) {
+								}
+							})
+							.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		v.findViewById(R.id.add_to_playlist).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				try {
+					Intent i = new Intent();
+					String[] mimes = new String[]{"audio/*", "video/*"};
+					i.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
+					i.setType(StringUtils.join(mimes, '|'));
+					i.setAction(Intent.ACTION_OPEN_DOCUMENT);
+					i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+					startActivityForResult(i, REQUEST_PLAYLIST_ADD_PICK);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		v.findViewById(R.id.save_active_playlist).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				try {
+					Playlist.savePlaylist(getViewPlaylist());
+
+					info("Playlist updated!");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		v.findViewById(R.id.export_active_playlist).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+				intent.addCategory(Intent.CATEGORY_OPENABLE);
+				intent.putExtra(Intent.EXTRA_TITLE, "Playlist.m3u");
+				intent.setType("*/*");
+				if (intent.resolveActivity(getContext().getPackageManager()) != null) {
+					startActivityForResult(intent, REQUEST_EXPORT_LOCATION_PICK_SAF);
+				} else {
+					info("SAF not found!");
+				}
+			}
+		});
+
+		// Set playlist(s)
+		RecyclerView playlists_recyclerView = (RecyclerView) v.findViewById(R.id.playlists_recyclerView);
+		playlists_recyclerView.setHasFixedSize(true);
+		playlists_recyclerView.setItemViewCacheSize(5);
+		playlists_recyclerView.setDrawingCacheEnabled(true);
+		playlists_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+
+		playlistsRecyclerViewAdapter = new PlaylistsRecyclerViewAdapter();
+		playlists_recyclerView.setAdapter(playlistsRecyclerViewAdapter);
+		playlistsRecyclerViewAdapter.refresh();
+
+	}
+
+	public class PlaylistsRecyclerViewAdapter extends RecyclerView.Adapter<PlaylistsRecyclerViewAdapter.ViewHolder> {
+
+		private final ArrayList<android.util.Pair<Long, String>> data;
+		private String dataActive;
+
+		public PlaylistsRecyclerViewAdapter() {
+			data = new ArrayList<>();
+		}
+
+		@Override
+		public int getItemCount() {
+			return data.size();
+		}
+
+		@Override
+		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+			View view = inflater.inflate(R.layout.playlist_view_settings_playlist_item, parent, false);
+
+			return new ViewHolder(view);
+		}
+
+		@Override
+		public void onBindViewHolder(final ViewHolder holder, int position) {
+			final android.util.Pair<Long, String> d = data.get(position);
+			final View v = holder.view;
+
+			v.setTag(d.first);
+
+			ImageView icon = v.findViewById(R.id.icon);
+
+			TextView text = (TextView) v.findViewById(R.id.text);
+			text.setText(d.second);
+
+			ImageView menu = v.findViewById(R.id.menu);
+
+			int c;
+			if (!TextUtils.isEmpty(dataActive) && dataActive.equals(d.second)) {
+				c = ContextCompat.getColor(getContext(), android.R.color.holo_green_light);
+			} else {
+				c = ContextCompat.getColor(getContext(), R.color.icons);
+			}
+			icon.setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
+			text.setTextColor(c);
+			menu.setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
+
+			View.OnClickListener onClickListener = new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getContext(), R.style.AppTheme_AlertDialogStyle));
+					builder.setTitle("Are you sure?");
+					builder.setMessage("This will replace the visible playlist with this one.");
+					builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							setFromPlaylist(d.first, d.second);
+							refresh();
+
+							dialog.dismiss();
+						}
+					});
+					builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.dismiss();
+						}
+					});
+					AlertDialog dialog = builder.create();
+					dialog.show();
+				}
+			};
+			icon.setOnClickListener(onClickListener);
+			text.setOnClickListener(onClickListener);
+
+			menu.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getContext(), R.style.AppTheme_AlertDialogStyle));
+					builder.setTitle("Select the action");
+					builder.setItems(new CharSequence[]{
+							"Set active",
+							"Edit / Open in view",
+							"Delete"
+					}, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int item) {
+							switch (item) {
+								case 0:
+									Playlist.setActivePlaylist(getContext(), d.second, true);
+									refresh();
+									break;
+								case 1:
+									setFromPlaylist(d.first, d.second);
+									refresh();
+									break;
+								case 2:
+									Playlist.delete(getContext(), d.second, d.first, true);
+									refresh();
+									break;
+							}
+
+							dialog.dismiss();
+						}
+					});
+					AlertDialog dialog = builder.create();
+					dialog.show();
+				}
+			});
+
+		}
+
+		public class ViewHolder extends RecyclerView.ViewHolder {
+			public View view;
+
+			public ViewHolder(View view) {
+				super(view);
+
+				this.view = view;
+			}
+
+		}
+
+		public void setData(Collection<android.util.Pair<Long, String>> d, String active) {
+			data.clear();
+			data.addAll(d);
+			dataActive = active;
+			notifyDataSetChanged();
+		}
+
+		public void refresh() {
+			final ArrayList<android.util.Pair<Long, String>> playlists = new ArrayList<>();
+			for (Playlist playlist : Playlist.loadAllPlaylists())
+				playlists.add(android.util.Pair.create(playlist.getLinkedAndroidOSPlaylistId(), playlist.getName()));
+			Playlist.allPlaylist(getContext().getContentResolver(), new JavaEx.ActionTU<Long, String>() {
+				@Override
+				public void execute(Long id, String name) {
+					android.util.Pair<Long, String> item = new android.util.Pair<Long, String>(id, name);
+					if (!playlists.contains(item))
+						playlists.add(item);
+				}
+			});
+			setData(playlists, Playlist.getActivePlaylist(getContext()));
+		}
+
+	}
+
+	//endregion
+
 	//region UI filters
 
 	public enum UIFilters {
@@ -1350,7 +1770,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 				if (v == null) {
 					v = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
 					v.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					v.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					v.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
 					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
 							ViewGroup.LayoutParams.MATCH_PARENT,
 							ViewGroup.LayoutParams.WRAP_CONTENT
@@ -1379,7 +1799,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 					Switch sv = new Switch(getContext());
 					sv.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					sv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					sv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
 					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
 							ViewGroup.LayoutParams.MATCH_PARENT,
 							ViewGroup.LayoutParams.WRAP_CONTENT
@@ -1388,7 +1808,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 					lp.setMargins(px, px, px, px);
 					sv.setLayoutParams(lp);
 					sv.setPadding(px, px, px, px);
-					sv.setMinWidth((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 160, getResources().getDisplayMetrics()));
+					sv.setMinWidth((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 140, getResources().getDisplayMetrics()));
 
 					v.addView(sv);
 
@@ -1544,7 +1964,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 				if (text == null) {
 					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
 					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
 					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
 							ViewGroup.LayoutParams.MATCH_PARENT,
 							ViewGroup.LayoutParams.WRAP_CONTENT
@@ -1731,7 +2151,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 				if (text == null) {
 					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
 					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
 					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
 							ViewGroup.LayoutParams.MATCH_PARENT,
 							ViewGroup.LayoutParams.WRAP_CONTENT
@@ -1926,7 +2346,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 				if (text == null) {
 					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
 					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
 					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
 							ViewGroup.LayoutParams.MATCH_PARENT,
 							ViewGroup.LayoutParams.WRAP_CONTENT
