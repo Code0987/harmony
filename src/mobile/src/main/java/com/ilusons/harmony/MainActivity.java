@@ -41,6 +41,8 @@ public class MainActivity extends BaseActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		getWindow().setBackgroundDrawable(null);
+
 		// Intent
 		handleIntent(getIntent());
 	}
@@ -120,6 +122,9 @@ public class MainActivity extends BaseActivity {
 			LocalBroadcastManager
 					.getInstance(this)
 					.sendBroadcast(queryIntent);
+
+			// Kill self
+			finish();
 		}
 
 	}

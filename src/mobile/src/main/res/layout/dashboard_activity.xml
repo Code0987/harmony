@@ -24,6 +24,7 @@
             android:id="@+id/bg"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/bg"
             android:scaleType="centerCrop"
             />
 
@@ -69,7 +70,8 @@
                         android:id="@+id/parallax_image"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
-                        android:scaleType="fitXY"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/logo"
                         app:layout_collapseMode="parallax"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintLeft_toLeftOf="parent"
@@ -160,6 +162,7 @@
                         android:tintMode="src_in"
                         app:layout_constraintBottom_toBottomOf="@+id/play_pause_stop_layout"
                         app:layout_constraintLeft_toRightOf="@+id/play_pause_stop_layout"
+                        app:layout_constraintTop_toTopOf="@+id/play_pause_stop_layout"
                         />
 
                     <TextView

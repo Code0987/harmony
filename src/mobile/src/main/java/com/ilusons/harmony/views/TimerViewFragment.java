@@ -8,24 +8,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
-import android.support.v4.graphics.ColorUtils;
-import android.support.v7.graphics.Palette;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,26 +28,10 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.codetroopers.betterpickers.OnDialogDismissListener;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
 import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.MPPointF;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.base.BaseDialogUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.SPrefEx;
-import com.wang.avi.AVLoadingIndicatorView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TimerViewFragment extends Fragment {
 
@@ -288,7 +266,7 @@ public class TimerViewFragment extends Fragment {
 
 	public static void showAsDialog(Context context) {
 		if (MusicService.IsPremium) {
-			BaseDialogUIActivity.show(context, TimerViewFragment.class, Bundle.EMPTY);
+			FragmentDialogActivity.show(context, TimerViewFragment.class, Bundle.EMPTY);
 		} else {
 			Toast.makeText(context, "Play some music first!", Toast.LENGTH_LONG).show();
 		}

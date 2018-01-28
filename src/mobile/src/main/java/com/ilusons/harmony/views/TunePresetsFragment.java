@@ -22,9 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.base.BaseDialogUIActivity;
 import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.SPrefEx;
 
@@ -289,7 +287,7 @@ public class TunePresetsFragment extends Fragment {
 	}
 
 	public static void showAsDialog(Context context) {
-		BaseDialogUIActivity.show(context, TunePresetsFragment.class, Bundle.EMPTY);
+		FragmentDialogActivity.show(context, TunePresetsFragment.class, Bundle.EMPTY);
 	}
 
 	public static TunePresetsFragment create() {

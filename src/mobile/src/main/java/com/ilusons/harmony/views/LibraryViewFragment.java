@@ -138,6 +138,8 @@ public class LibraryViewFragment extends BaseUIFragment {
 		return v;
 	}
 
+	private SearchView searchView;
+
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
@@ -149,7 +151,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 		ViewEx.tintMenuIcons(menu, ContextCompat.getColor(getContext(), R.color.textColorPrimary));
 
 		MenuItem search = menu.findItem(R.id.search);
-		SearchView searchView = (SearchView) search.getActionView();
+		searchView = (SearchView) search.getActionView();
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
@@ -646,6 +648,9 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 		if (TextUtils.isEmpty(searchQuery))
 			searchQuery = "";
+
+		if(searchView !=null)
+			searchView.setQuery(searchQuery, false);
 
 		if (adapter != null)
 			adapter.refresh(searchQuery);

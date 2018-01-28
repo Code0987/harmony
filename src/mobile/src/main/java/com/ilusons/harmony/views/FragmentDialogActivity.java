@@ -1,12 +1,8 @@
-package com.ilusons.harmony.base;
+package com.ilusons.harmony.views;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,9 +10,11 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.base.BaseActivity;
+import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.ref.AndroidEx;
 
-public class BaseDialogUIActivity extends BaseUIActivity {
+public class FragmentDialogActivity extends AppCompatActivity {
 
 	public static final String FRAGMENT_CLASS = "fragmentClass";
 	public static final String FRAGMENT_ARGUMENTS = "fragmentArguments";
@@ -48,7 +46,7 @@ public class BaseDialogUIActivity extends BaseUIActivity {
 	}
 
 	public static void show(Context context, Class<?> fragmentClass, Bundle arguments) {
-		Intent intent = new Intent(context, BaseDialogUIActivity.class);
+		Intent intent = new Intent(context, FragmentDialogActivity.class);
 		intent.putExtra(FRAGMENT_CLASS, fragmentClass.getName());
 		intent.putExtra(FRAGMENT_ARGUMENTS, arguments);
 		context.startActivity(intent);
