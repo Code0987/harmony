@@ -143,6 +143,9 @@ public class DashboardActivity extends BaseUIActivity {
 		// Set view
 		setContentView(R.layout.dashboard_activity);
 
+		// Hacks
+		applyHacksToUI();
+
 		// Set bar
 		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
@@ -216,37 +219,6 @@ public class DashboardActivity extends BaseUIActivity {
 			startService(musicServiceIntent);
 			Once.markDone(MusicServiceLibraryUpdaterAsyncTask.TAG);
 		}
-//
-//		bg_effect.postDelayed(new Runnable() {
-//			@Override
-//			public void run() {
-//				try {
-//					Bitmap bitmap = null;
-//
-//					try {
-//						bitmap = ImageEx.drawableToBitmap(WallpaperManager.getInstance(getApplicationContext()).getFastDrawable());
-//					} catch (Exception e) {
-//						e.printStackTrace();
-//					}
-//
-//					if (bitmap == null)
-//						bitmap = ((BitmapDrawable) ContextCompat.getDrawable(DashboardActivity.this, R.drawable.logo)).getBitmap();
-//
-//					Blurry.with(DashboardActivity.this)
-//							.radius(15)
-//							.sampling(1)
-//							.color(Color.argb(140, 0, 0, 0))
-//							.animate(333)
-//							.async()
-//							.from(bitmap)
-//							.into(bg_effect);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}, 700);
-
-		applyHacksToUI();
 
 		loading.smoothToHide();
 
@@ -418,7 +390,7 @@ public class DashboardActivity extends BaseUIActivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			bg.setImageDrawable(null);
+			parallax_image.setImageDrawable(null);
 		}
 	}
 
@@ -473,6 +445,17 @@ public class DashboardActivity extends BaseUIActivity {
 
 			// Update mini now playing ui
 			resetPlayback();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void OnSearchQueryReceived(String query) {
+		try {
+			if (libraryViewFragment != null) {
+				libraryViewFragment.setSearchQuery(query);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

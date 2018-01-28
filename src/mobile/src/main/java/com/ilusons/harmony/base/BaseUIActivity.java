@@ -6,14 +6,21 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.OnApplyWindowInsetsListener;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.WindowInsetsCompat;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.ilusons.harmony.R;
 
@@ -184,7 +191,7 @@ public abstract class BaseUIActivity extends BaseActivity {
 
 	}
 
-	public void OnSearchQueryReceived(String query){
+	public void OnSearchQueryReceived(String query) {
 
 	}
 

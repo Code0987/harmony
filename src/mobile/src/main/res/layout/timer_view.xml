@@ -9,22 +9,22 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_dialog"
     android:clipChildren="false"
-    android:clipToPadding="false">
+    android:clipToPadding="false"
+    android:padding="12dp">
 
     <ScrollView
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:animateLayoutChanges="false"
-        android:animationCache="true"
         android:clipChildren="true"
-        android:clipToPadding="false"
-        android:fadeScrollbars="true"
-        android:nestedScrollingEnabled="true"
+        android:clipToPadding="true"
+        android:descendantFocusability="beforeDescendants"
+        android:fadeScrollbars="false"
+        android:focusableInTouchMode="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbarFadeDuration="0"
         android:scrollbars="none"
-        res:layout_constraintBottom_toBottomOf="parent"
-        res:layout_constraintLeft_toLeftOf="parent"
-        res:layout_constraintRight_toRightOf="parent"
-        res:layout_constraintTop_toTopOf="parent"
         >
 
         <android.support.constraint.ConstraintLayout

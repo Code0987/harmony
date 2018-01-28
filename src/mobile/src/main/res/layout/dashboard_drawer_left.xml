@@ -282,7 +282,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_settings_black"
+                android:src="@drawable/ic_settings"
                 android:tint="@android:color/holo_orange_light"
                 android:tintMode="src_atop"
                 />

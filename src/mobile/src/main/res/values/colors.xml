@@ -26,6 +26,10 @@
     <color name="gradient22">#ff90116D</color>
     <color name="gradient23">#ff5c1166</color>
 
+    <color name="gradient31">#8e24ab</color>
+    <color name="gradient32">#7c1fa3</color>
+    <color name="gradient33">#4a148c</color>
+
     <color name="primary">#ff272727</color>
     <color name="primary_inverse">#eeeeee</color>
     <color name="primary_dark">#3b546e</color>

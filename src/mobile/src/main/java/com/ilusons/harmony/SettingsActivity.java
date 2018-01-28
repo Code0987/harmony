@@ -1139,7 +1139,7 @@ public class SettingsActivity extends BaseActivity {
 			analytics_lfm_status.setImageResource(R.drawable.ic_error_outline_black);
 		} else {
 			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
-			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote_black);
+			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote);
 		}
 		if (session == null) {
 			analytics_lfm_username.setVisibility(View.VISIBLE);
@@ -1230,7 +1230,7 @@ public class SettingsActivity extends BaseActivity {
 	private void updateDCState() {
 		if (Analytics.getInstance().getDCEnabled()) {
 			analytics_dc_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
-			analytics_dc_status.setImageResource(R.drawable.ic_settings_remote_black);
+			analytics_dc_status.setImageResource(R.drawable.ic_settings_remote);
 		} else {
 			analytics_dc_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
 			analytics_dc_status.setImageResource(R.drawable.ic_error_outline_black);

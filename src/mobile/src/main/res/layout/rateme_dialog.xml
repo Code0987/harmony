@@ -23,7 +23,7 @@
             android:layout_marginTop="12dp"
             android:contentDescription="@null"
             android:src="@drawable/ic_rate_review_black"
-            android:tint="@android:color/holo_green_light"
+            android:tint="@color/colorAccent"
             android:tintMode="src_atop"/>
 
         <TextView
