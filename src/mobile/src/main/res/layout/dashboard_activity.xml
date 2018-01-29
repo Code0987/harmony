@@ -49,7 +49,8 @@
             <android.support.design.widget.CollapsingToolbarLayout
                 android:id="@+id/collapse_toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="292dp"
+                android:layout_height="320dp"
+                android:minHeight="128dp"
                 android:elevation="0dp"
                 android:fitsSystemWindows="true"
                 app:contentScrim="@color/transparent"
@@ -178,7 +179,7 @@
                         android:paddingBottom="0dp"
                         android:paddingEnd="36dp"
                         android:paddingStart="36dp"
-                        android:paddingTop="16dp"
+                        android:paddingTop="8dp"
                         android:text="..."
                         android:textColor="@color/primary_text"
                         android:textSize="13sp"

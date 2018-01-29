@@ -716,6 +716,29 @@ public class Analytics {
 		});
 	}
 
+	public static Observable<Collection<de.umass.lastfm.Track>> findTracks(final String query, final int limit) {
+		return Observable.create(new ObservableOnSubscribe<Collection<de.umass.lastfm.Track>>() {
+			@Override
+			public void subscribe(ObservableEmitter<Collection<de.umass.lastfm.Track>> oe) throws Exception {
+				try {
+					boolean f = false;
+
+					if (canCall()) {
+						Collection<de.umass.lastfm.Track> similar = de.umass.lastfm.Track.search(null, query, limit, getKey());
+						oe.onNext(similar);
+						f = true;
+					}
+
+					if (!f)
+						throw new Exception("Not found");
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
 	public static Observable<Collection<Music>> convertToLocal(final Context context, final Collection<de.umass.lastfm.Track> tracks, final int limit) {
 		return Observable.create(new ObservableOnSubscribe<Collection<Music>>() {
 			@Override

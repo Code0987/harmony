@@ -127,6 +127,31 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            >
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_view_quilt_black"
+                android:tint="@android:color/holo_blue_bright"
+                android:tintMode="src_atop"
+                />
+
+            <Spinner
+                android:id="@+id/playlist_item_ui_style_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
+
         <android.support.v7.widget.RecyclerView
             android:id="@+id/playlists_recyclerView"
             android:layout_width="match_parent"

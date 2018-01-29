@@ -20,24 +20,13 @@
         android:clipToPadding="false"
         android:nestedScrollingEnabled="true"
         android:paddingBottom="128dp"
-        android:paddingTop="72dp"
         android:scrollbars="none"
         res:layout_constraintBottom_toBottomOf="parent"
         res:layout_constraintLeft_toLeftOf="parent"
         res:layout_constraintRight_toRightOf="parent"
         res:layout_constraintTop_toTopOf="parent"
         tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
-        tools:listitem="@layout/library_view_item_default"
-        />
-
-    <view
-        android:id="@+id/fastScrollLayout"
-        class="com.ilusons.harmony.views.LibraryViewFragment$FastScrollLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        res:layout_constraintBottom_toBottomOf="@id/recyclerView"
-        res:layout_constraintRight_toRightOf="@id/recyclerView"
-        res:layout_constraintTop_toTopOf="@id/recyclerView"
+        tools:listitem="@layout/playlist_view_item_default"
         />
 
     <com.wang.avi.AVLoadingIndicatorView
@@ -48,7 +37,7 @@
         android:layout_margin="0dp"
         android:padding="0dp"
         android:visibility="visible"
-        res:indicatorColor="@android:color/holo_green_light"
+        res:indicatorColor="@color/icons"
         res:indicatorName="BallScaleMultipleIndicator"
         res:layout_constraintBottom_toBottomOf="parent"
         res:layout_constraintLeft_toLeftOf="parent"

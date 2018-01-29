@@ -98,10 +98,10 @@ import jonathanfinerty.once.Once;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
-public class LibraryViewFragment extends BaseUIFragment {
+public class PlaylistViewFragment extends BaseUIFragment {
 
 	// Logger TAG
-	private static final String TAG = LibraryViewFragment.class.getSimpleName();
+	private static final String TAG = PlaylistViewFragment.class.getSimpleName();
 
 	private View root;
 
@@ -118,7 +118,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		// Set view
-		View v = inflater.inflate(R.layout.library_view, container, false);
+		View v = inflater.inflate(R.layout.playlist_view, container, false);
 
 		// Set views
 		root = v.findViewById(R.id.root);
@@ -381,6 +381,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 			createUISortMode(v);
 			createUIGroupMode(v);
 			createUIViewMode(v);
+			createPlaylistItemUIStyle(v);
 			createPlaylistsSettings(v);
 
 			AlertDialog alert = builder.create();
@@ -475,7 +476,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 			setOrientation(HORIZONTAL);
 			setClipChildren(false);
 			LayoutInflater inflater = LayoutInflater.from(context);
-			inflater.inflate(R.layout.library_view_fast_scroll, this);
+			inflater.inflate(R.layout.playlist_view_fast_scroll, this);
 			bubble = findViewById(R.id.bubble);
 			handle = findViewById(R.id.handle);
 			text = findViewById(R.id.text);
@@ -641,23 +642,19 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	//region Search
 
-	private String searchQuery;
+	public void setSearchQuery(CharSequence q) {
+		if (TextUtils.isEmpty(q))
+			q = "";
 
-	public void setSearchQuery(String q) {
-		searchQuery = q;
-
-		if (TextUtils.isEmpty(searchQuery))
-			searchQuery = "";
-
-		if(searchView !=null)
-			searchView.setQuery(searchQuery, false);
+		if (searchView != null && !searchView.getQuery().equals(q))
+			searchView.setQuery(q, false);
 
 		if (adapter != null)
-			adapter.refresh(searchQuery);
+			adapter.refresh(q);
 	}
 
-	public String getSearchQuery() {
-		return searchQuery;
+	public CharSequence getSearchQuery() {
+		return searchView != null ? searchView.getQuery() : "";
 	}
 
 	//endregion
@@ -674,13 +671,13 @@ public class LibraryViewFragment extends BaseUIFragment {
 		private final List<Music> data;
 		private final List<Pair<String, List<Object>>> dataFiltered;
 
-		private final SettingsActivity.PlaylistItemUIStyle style;
+		private final PlaylistItemUIStyle style;
 
 		public RecyclerViewAdapter() {
 			data = new ArrayList<>();
 			dataFiltered = new ArrayList<>();
 
-			style = SettingsActivity.getPlaylistItemUIStyle(getContext());
+			style = getPlaylistItemUIStyle(getContext());
 
 			setHasStableIds(true);
 		}
@@ -712,32 +709,32 @@ public class LibraryViewFragment extends BaseUIFragment {
 			int layoutId = -1;
 			switch (style) {
 				case Card1:
-					layoutId = R.layout.library_view_group_card;
+					layoutId = R.layout.playlist_view_group_card;
 					break;
 
 				case Card2:
-					layoutId = R.layout.library_view_group_card;
+					layoutId = R.layout.playlist_view_group_card;
 					break;
 
 				case Card3:
-					layoutId = R.layout.library_view_group_card;
+					layoutId = R.layout.playlist_view_group_card;
 					break;
 
 				case Card4:
-					layoutId = R.layout.library_view_group_card;
+					layoutId = R.layout.playlist_view_group_card;
 					break;
 
 				case Card5:
-					layoutId = R.layout.library_view_group_card;
+					layoutId = R.layout.playlist_view_group_card;
 					break;
 
 				case Simple:
-					layoutId = R.layout.library_view_group_simple;
+					layoutId = R.layout.playlist_view_group_simple;
 					break;
 
 				case Default:
 				default:
-					layoutId = R.layout.library_view_group_default;
+					layoutId = R.layout.playlist_view_group_default;
 					break;
 			}
 
@@ -753,32 +750,32 @@ public class LibraryViewFragment extends BaseUIFragment {
 			int layoutId = -1;
 			switch (style) {
 				case Card1:
-					layoutId = R.layout.library_view_item_card1;
+					layoutId = R.layout.playlist_view_item_card1;
 					break;
 
 				case Card2:
-					layoutId = R.layout.library_view_item_card2;
+					layoutId = R.layout.playlist_view_item_card2;
 					break;
 
 				case Card3:
-					layoutId = R.layout.library_view_item_card3;
+					layoutId = R.layout.playlist_view_item_card3;
 					break;
 
 				case Card4:
-					layoutId = R.layout.library_view_item_card4;
+					layoutId = R.layout.playlist_view_item_card4;
 					break;
 
 				case Card5:
-					layoutId = R.layout.library_view_item_card5;
+					layoutId = R.layout.playlist_view_item_card5;
 					break;
 
 				case Simple:
-					layoutId = R.layout.library_view_item_simple;
+					layoutId = R.layout.playlist_view_item_simple;
 					break;
 
 				case Default:
 				default:
-					layoutId = R.layout.library_view_item_default;
+					layoutId = R.layout.playlist_view_item_default;
 					break;
 			}
 
@@ -1130,7 +1127,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 			refresh(String.valueOf(getSearchQuery()));
 		}
 
-		public void refresh(final String q) {
+		public void refresh(final CharSequence q) {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -1146,7 +1143,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 						// Filter
 						List<Music> filtered = new ArrayList<>();
 						filtered.addAll(data);
-						filtered = UIFilter(filtered, q);
+						filtered = UIFilter(filtered, q.toString());
 
 						// Sort
 						List<Music> sorted = UISort(filtered);
@@ -1331,17 +1328,17 @@ public class LibraryViewFragment extends BaseUIFragment {
 	private static class SetFromPlaylistAsyncTask extends AsyncTask<Object, Object, Object> {
 		private String playlistName;
 		private Long playlistId;
-		private WeakReference<LibraryViewFragment> contextRef;
+		private WeakReference<PlaylistViewFragment> contextRef;
 
-		public SetFromPlaylistAsyncTask(LibraryViewFragment context, String playlistName, Long playlistId) {
-			this.contextRef = new WeakReference<LibraryViewFragment>(context);
+		public SetFromPlaylistAsyncTask(PlaylistViewFragment context, String playlistName, Long playlistId) {
+			this.contextRef = new WeakReference<PlaylistViewFragment>(context);
 			this.playlistName = playlistName;
 			this.playlistId = playlistId;
 		}
 
 		@Override
 		protected Object doInBackground(Object... objects) {
-			final LibraryViewFragment context = contextRef.get();
+			final PlaylistViewFragment context = contextRef.get();
 			if (context == null)
 				return null;
 
@@ -1414,7 +1411,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 		protected void onPreExecute() {
 			super.onPreExecute();
 
-			final LibraryViewFragment context = contextRef.get();
+			final PlaylistViewFragment context = contextRef.get();
 			if (context == null)
 				return;
 
@@ -1429,7 +1426,7 @@ public class LibraryViewFragment extends BaseUIFragment {
 		protected void onPostExecute(Object o) {
 			super.onPostExecute(o);
 
-			final LibraryViewFragment context = contextRef.get();
+			final PlaylistViewFragment context = contextRef.get();
 			if (context == null)
 				return;
 
@@ -2511,8 +2508,111 @@ public class LibraryViewFragment extends BaseUIFragment {
 
 	//endregion
 
-	public static LibraryViewFragment create() {
-		LibraryViewFragment f = new LibraryViewFragment();
+	//region Playlist Item UI style
+
+	public enum PlaylistItemUIStyle {
+		Default("Default"),
+		Simple("Simple"),
+		Card1("Card 1"),
+		Card2("Card 2"),
+		Card3("Card 3"),
+		Card4("Card 4"),
+		Card5("Card 5"),;
+
+		private String friendlyName;
+
+		PlaylistItemUIStyle(String friendlyName) {
+			this.friendlyName = friendlyName;
+		}
+	}
+
+	public static PlaylistItemUIStyle getPlaylistItemUIStyle(Context context) {
+		try {
+			return PlaylistItemUIStyle.valueOf(SPrefEx.get(context).getString(PlaylistItemUIStyle.class.getSimpleName(), String.valueOf(PlaylistItemUIStyle.Default)));
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return PlaylistItemUIStyle.Default;
+		}
+	}
+
+	public static void setPlaylistItemUIStyle(Context context, PlaylistItemUIStyle value) {
+		SPrefEx.get(context)
+				.edit()
+				.putString(PlaylistItemUIStyle.class.getSimpleName(), String.valueOf(value))
+				.apply();
+	}
+
+	private Spinner playlist_item_ui_style_spinner;
+
+	private void createPlaylistItemUIStyle(View v) {
+		playlist_item_ui_style_spinner = v.findViewById(R.id.playlist_item_ui_style_spinner);
+
+		PlaylistItemUIStyle[] items = PlaylistItemUIStyle.values();
+
+		playlist_item_ui_style_spinner.setAdapter(new ArrayAdapter<PlaylistItemUIStyle>(v.getContext(), 0, items) {
+			@Override
+			public View getView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+
+				text.setText(text.getText());
+
+				return text;
+			}
+
+			@Override
+			public View getDropDownView(int position, View convertView, ViewGroup parent) {
+				CheckedTextView text = (CheckedTextView) convertView;
+
+				if (text == null) {
+					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
+					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
+					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
+							ViewGroup.LayoutParams.MATCH_PARENT,
+							ViewGroup.LayoutParams.WRAP_CONTENT
+					);
+					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+					lp.setMargins(px, px, px, px);
+					text.setLayoutParams(lp);
+					text.setPadding(px, px, px, px);
+				}
+
+				text.setText("Item style: " + getItem(position).friendlyName);
+
+				return text;
+			}
+		});
+
+		int i = 0;
+		PlaylistItemUIStyle lastMode = getPlaylistItemUIStyle(v.getContext());
+		for (; i < items.length; i++)
+			if (items[i] == lastMode)
+				break;
+		playlist_item_ui_style_spinner.setSelection(i, true);
+
+		playlist_item_ui_style_spinner.post(new Runnable() {
+			public void run() {
+				playlist_item_ui_style_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+						setPlaylistItemUIStyle(view.getContext().getApplicationContext(), (PlaylistItemUIStyle) adapterView.getItemAtPosition(position));
+
+						info(getString(R.string.will_apply_after_restart));
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> adapterView) {
+					}
+				});
+			}
+		});
+	}
+
+	//endregion
+
+	public static PlaylistViewFragment create() {
+		PlaylistViewFragment f = new PlaylistViewFragment();
 		return f;
 	}
 
