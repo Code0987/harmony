@@ -73,5 +73,6 @@
     <string name="tune">Tune</string>
     <string name="timer">Timer</string>
     <string name="refresh">Refresh</string>
+    <string name="downloads">Downloads</string>
 
 </resources>

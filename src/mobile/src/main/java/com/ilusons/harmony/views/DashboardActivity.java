@@ -2,8 +2,6 @@ package com.ilusons.harmony.views;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.WallpaperManager;
-import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,15 +9,11 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -31,39 +25,27 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
-import android.support.v4.view.OnApplyWindowInsetsListener;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.WindowInsetsCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.graphics.Palette;
-import android.support.v7.widget.SearchView;
-import android.util.Pair;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.ilusons.harmony.App;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -71,26 +53,17 @@ import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
-import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.AndroidTouchEx;
-import com.ilusons.harmony.ref.IOEx;
-import com.ilusons.harmony.ref.ImageEx;
-import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
-import com.scand.realmbrowser.RealmBrowser;
 import com.wang.avi.AVLoadingIndicatorView;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -99,12 +72,6 @@ import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
-import de.umass.lastfm.Image;
-import io.reactivex.ObservableSource;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.realm.Realm;
-import io.realm.RealmObject;
 import jonathanfinerty.once.Once;
 import jp.wasabeef.blurry.Blurry;
 
@@ -125,6 +92,7 @@ public class DashboardActivity extends BaseUIActivity {
 	// UI
 	private DrawerLayout drawer_layout;
 	private ActionBarDrawerToggle drawer_toggle;
+	private AppBarLayout appbar;
 	private CollapsingToolbarLayout collapse_toolbar;
 	private View parallax_layout;
 	private ImageView parallax_image;
@@ -132,7 +100,7 @@ public class DashboardActivity extends BaseUIActivity {
 	private View root;
 	private AVLoadingIndicatorView loading;
 
-	private LibraryViewFragment libraryViewFragment;
+	private PlaylistViewFragment playlistViewFragment;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -168,6 +136,17 @@ public class DashboardActivity extends BaseUIActivity {
 		drawer_layout.setDrawerListener(drawer_toggle);
 		drawer_toggle.syncState();
 
+		appbar = findViewById(R.id.appbar);
+
+		appbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+			@Override
+			public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+				boolean expanded = !(Math.abs(verticalOffset) - appBarLayout.getTotalScrollRange() == 0);
+
+				onAppBarStateChanged(expanded);
+			}
+		});
+
 		collapse_toolbar = findViewById(R.id.collapse_toolbar);
 
 		// Set views
@@ -202,7 +181,6 @@ public class DashboardActivity extends BaseUIActivity {
 
 		// Help
 		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-
 			@Override
 			public void onGlobalLayout() {
 				root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
@@ -411,12 +389,12 @@ public class DashboardActivity extends BaseUIActivity {
 		loading.smoothToHide();
 		try {
 			// Refresh view playlist
-			if (libraryViewFragment.getViewPlaylist() != null) {
-				libraryViewFragment.setViewPlaylist(Playlist.loadOrCreatePlaylist(libraryViewFragment.getViewPlaylist().getName()));
+			if (playlistViewFragment.getViewPlaylist() != null) {
+				playlistViewFragment.setViewPlaylist(Playlist.loadOrCreatePlaylist(playlistViewFragment.getViewPlaylist().getName()));
 			} else {
 				String name = Playlist.getActivePlaylist(this);
 				if (!TextUtils.isEmpty(name))
-					libraryViewFragment.setFromPlaylist(-1L, name);
+					playlistViewFragment.setFromPlaylist(-1L, name);
 			}
 
 			// Update mini now playing ui
@@ -436,11 +414,11 @@ public class DashboardActivity extends BaseUIActivity {
 	public void OnMusicServicePlaylistChanged(String name) {
 		try {
 			// Refresh view playlist
-			if (libraryViewFragment.getViewPlaylist().getName().equals(name)) {
-				libraryViewFragment.setViewPlaylist(libraryViewFragment.getViewPlaylist());
+			if (playlistViewFragment.getViewPlaylist().getName().equals(name)) {
+				playlistViewFragment.setViewPlaylist(playlistViewFragment.getViewPlaylist());
 			} else {
 				if (!TextUtils.isEmpty(name))
-					libraryViewFragment.setFromPlaylist(-1L, name);
+					playlistViewFragment.setFromPlaylist(-1L, name);
 			}
 
 			// Update mini now playing ui
@@ -453,8 +431,8 @@ public class DashboardActivity extends BaseUIActivity {
 	@Override
 	public void OnSearchQueryReceived(String query) {
 		try {
-			if (libraryViewFragment != null) {
-				libraryViewFragment.setSearchQuery(query);
+			if (playlistViewFragment != null) {
+				playlistViewFragment.setSearchQuery(query);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -470,6 +448,20 @@ public class DashboardActivity extends BaseUIActivity {
 		if (nav_bar_filler != null) {
 			ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) nav_bar_filler.getLayoutParams();
 			params.bottomMargin = AndroidEx.getNavigationBarSize(this).y;
+		}
+	}
+
+	private void onAppBarStateChanged(boolean expanded) {
+		if (!expanded) {
+			if (title != null)
+				title.setVisibility(View.INVISIBLE);
+			if (info != null)
+				info.setVisibility(View.INVISIBLE);
+		} else {
+			if (title != null)
+				title.setVisibility(View.VISIBLE);
+			if (info != null)
+				info.setVisibility(View.VISIBLE);
 		}
 	}
 
@@ -632,9 +624,11 @@ public class DashboardActivity extends BaseUIActivity {
 
 		viewPager.setAdapter(viewPagerAdapter);
 
-		libraryViewFragment = LibraryViewFragment.create();
+		playlistViewFragment = PlaylistViewFragment.create();
 
-		viewPagerAdapter.add(libraryViewFragment, "Library");
+		viewPagerAdapter.add(OnlineViewFragment.create(), "Online");
+
+		viewPagerAdapter.add(playlistViewFragment, "Playlist");
 
 		viewPagerAdapter.add(AnalyticsViewFragment.create(), "Analytics");
 
