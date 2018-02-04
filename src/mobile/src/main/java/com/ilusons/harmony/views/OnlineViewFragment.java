@@ -18,6 +18,7 @@ import android.support.v7.graphics.Palette;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -98,6 +99,13 @@ public class OnlineViewFragment extends BaseUIFragment {
 		createItems(v);
 
 		loading.smoothToHide();
+
+		v.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				searchTopTracks();
+			}
+		}, 1500);
 
 		return v;
 	}
@@ -216,14 +224,19 @@ public class OnlineViewFragment extends BaseUIFragment {
 	}
 
 	private void searchTracks(String query) {
+		if (TextUtils.isEmpty(query)) {
+			searchTopTracks();
+			return;
+		}
+
 		final int N = 14;
 		final Context context = getContext();
 
-		Analytics.getInstance().findTracks(query, N)
+		Analytics.findTracks(query, N)
 				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 					@Override
 					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-						return Analytics.convertToLocal(context, tracks, N);
+						return Analytics.convertToLocal(context, tracks, N, false);
 					}
 				})
 				.subscribeOn(Schedulers.io())
@@ -255,6 +268,67 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 					@Override
 					public void onComplete() {
+						adapter.notifyDataSetChanged();
+
+						loading.smoothToHide();
+					}
+				});
+	}
+
+	private void searchTopTracks() {
+		final int N = 64;
+		final Context context = getContext();
+
+		Analytics.getTopTracksForLastfm(getContext())
+				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+					@Override
+					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+						return Analytics.convertToLocal(context, tracks, N, false);
+					}
+				})
+				.subscribeOn(Schedulers.io())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new Observer<Collection<Music>>() {
+					@Override
+					public void onSubscribe(Disposable d) {
+						loading.smoothToShow();
+					}
+
+					@Override
+					public void onNext(Collection<Music> r) {
+						try {
+							adapter.clear(Music.class);
+							for (Music m : r) {
+								adapter.add(m);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					@Override
+					public void onError(Throwable e) {
+						try {
+							adapter.clear(Collection.class);
+							adapter.add(Music.getAllSortedByScore(5));
+						} catch (Exception e2) {
+							e2.printStackTrace();
+						}
+
+						adapter.notifyDataSetChanged();
+
+						loading.smoothToHide();
+					}
+
+					@Override
+					public void onComplete() {
+						try {
+							adapter.clear(Collection.class);
+							adapter.add(Music.getAllSortedByScore(5));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
 						adapter.notifyDataSetChanged();
 
 						loading.smoothToHide();

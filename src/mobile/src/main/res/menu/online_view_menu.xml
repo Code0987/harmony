@@ -15,7 +15,7 @@
         android:id="@+id/now_playing"
         android:icon="@drawable/ic_music_note_black"
         android:title="@string/now_playing"
-        app:showAsAction="always"
+        app:showAsAction="ifRoom"
         />
 
     <item
@@ -23,7 +23,7 @@
         android:icon="@drawable/ic_file_download"
         android:orderInCategory="101"
         android:title="@string/downloads"
-        app:showAsAction="always">
+        app:showAsAction="ifRoom">
 
 
     </item>

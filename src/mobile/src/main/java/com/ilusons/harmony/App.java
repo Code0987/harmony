@@ -18,7 +18,6 @@ import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.RealmEx;
 import com.ilusons.harmony.ref.SPrefEx;
-import com.scand.realmbrowser.RealmBrowser;
 import com.squareup.leakcanary.LeakCanary;
 
 import java.io.InputStream;

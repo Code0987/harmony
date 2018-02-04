@@ -39,6 +39,7 @@ import java.lang.ref.WeakReference;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,8 +52,10 @@ import at.huber.youtubeExtractor.YtFile;
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Caller;
 import de.umass.lastfm.ImageSize;
+import de.umass.lastfm.PaginatedResult;
 import de.umass.lastfm.Period;
 import de.umass.lastfm.Session;
+import de.umass.lastfm.Track;
 import de.umass.lastfm.cache.FileSystemCache;
 import de.umass.lastfm.scrobble.ScrobbleData;
 import de.umass.lastfm.scrobble.ScrobbleResult;
@@ -739,7 +742,37 @@ public class Analytics {
 		});
 	}
 
-	public static Observable<Collection<Music>> convertToLocal(final Context context, final Collection<de.umass.lastfm.Track> tracks, final int limit) {
+	public static Observable<Collection<de.umass.lastfm.Track>> getTopTracksForLastfm(final Context context) {
+		return Observable.create(new ObservableOnSubscribe<Collection<de.umass.lastfm.Track>>() {
+			@Override
+			public void subscribe(ObservableEmitter<Collection<de.umass.lastfm.Track>> oe) throws Exception {
+				try {
+					if (!canCall())
+						throw new Exception("Calls exceeded!");
+
+					ArrayList<Track> tracks = new ArrayList<>();
+
+					final String country = context.getResources().getConfiguration().locale.getDisplayCountry();
+
+					Collection<Track> regionalTracks = de.umass.lastfm.Geo.getTopTracks(country, getKey());
+					tracks.addAll(regionalTracks);
+
+					PaginatedResult<Track> topTracks = de.umass.lastfm.Chart.getTopTracks(getKey());
+					tracks.addAll(topTracks.getPageResults());
+
+					Collections.shuffle(tracks);
+
+					oe.onNext(tracks);
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Collection<Music>> convertToLocal(final Context context, final Collection<de.umass.lastfm.Track> tracks, final int limit, final boolean saveInDB) {
 		return Observable.create(new ObservableOnSubscribe<Collection<Music>>() {
 			@Override
 			public void subscribe(ObservableEmitter<Collection<Music>> oe) throws Exception {
@@ -809,18 +842,19 @@ public class Analytics {
 							break;
 					}
 
-					try (Realm realm = DB.getDB()) {
-						if (realm != null) {
-							realm.executeTransaction(new Realm.Transaction() {
-								@Override
-								public void execute(@NonNull Realm realm) {
-									realm.insertOrUpdate(r);
-								}
-							});
+					if (saveInDB)
+						try (Realm realm = DB.getDB()) {
+							if (realm != null) {
+								realm.executeTransaction(new Realm.Transaction() {
+									@Override
+									public void execute(@NonNull Realm realm) {
+										realm.insertOrUpdate(r);
+									}
+								});
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
 
 					oe.onNext(r);
 					oe.onComplete();

@@ -13,6 +13,7 @@ import com.h6ah4i.android.media.audiofx.IPreAmp;
 import com.h6ah4i.android.media.audiofx.IPresetReverb;
 import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
+import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayer;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerContext;
 import com.h6ah4i.android.media.opensl.audiofx.OpenSLHQEqualizer;

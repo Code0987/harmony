@@ -155,14 +155,16 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				setSearchQuery(query);
+				if (adapter != null)
+					adapter.refresh(query);
 
 				return true;
 			}
 
 			@Override
 			public boolean onQueryTextChange(String newText) {
-				setSearchQuery(newText);
+				if (adapter != null)
+					adapter.refresh(newText);
 
 				return true;
 			}
@@ -639,7 +641,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	//endregion
 
-
 	//region Search
 
 	public void setSearchQuery(CharSequence q) {
@@ -647,10 +648,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			q = "";
 
 		if (searchView != null && !searchView.getQuery().equals(q))
-			searchView.setQuery(q, false);
-
-		if (adapter != null)
-			adapter.refresh(q);
+			searchView.setQuery(q, true);
 	}
 
 	public CharSequence getSearchQuery() {

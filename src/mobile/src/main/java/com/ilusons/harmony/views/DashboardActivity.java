@@ -200,20 +200,6 @@ public class DashboardActivity extends BaseUIActivity {
 
 		loading.smoothToHide();
 
-		/*
-		if (BuildConfig.DEBUG)
-			try {
-				List<Class<? extends RealmObject>> classes = new ArrayList<>();
-				classes.add(Music.class);
-				classes.add(Playlist.class);
-				new RealmBrowser.Builder(this)
-						.add(DB.getDBConfig(), classes)
-						.showNotification();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		*/
-
 	}
 
 	@Override
