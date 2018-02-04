@@ -148,16 +148,6 @@ android {
 	}
 }
 
-repositories {
-	maven {
-		url 's3://assets.scand.com/maven/repository/RealmBrowser'
-		credentials(AwsCredentials) {
-			accessKey "AKIAIQXKP5XUVFLEEAKA"
-			secretKey "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"
-		}
-	}
-}
-
 dependencies {
 	implementation fileTree(include: ['*.jar'], dir: 'libs')
 	androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -209,21 +199,19 @@ dependencies {
 	implementation 'com.github.tozny:java-aes-crypto:1.1.0'
 	implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
 	implementation 'com.github.turing-tech:MaterialScrollBar:12.5.0a'
-	implementation 'com.spotify.android:auth:1.0.0-alpha'
-	implementation 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
 	implementation 'com.github.recruit-lifestyle:WaveSwipeRefreshLayout:1.6'
 	implementation 'com.makeramen:roundedimageview:2.3.0'
 	implementation 'com.github.jakob-grabner:Circle-Progress-View:v1.3'
 	implementation  ('com.appyvet:materialrangebar:1.4.1') {
 		exclude module: 'support-compat'
 	}
-	implementation('com.scand:realm-browser:0.1.15') {
-		exclude group: 'io.realm'
-	}
 	implementation('com.github.evgenyneu:js-evaluator-for-android:v1.0.7') {
 		exclude module: 'appcompat-v7'
 	}
 	implementation 'com.google.apis:google-api-services-youtube:v3-rev189-1.23.0'
+	implementation "com.tonyodev.fetch2:fetch2:2.0.0-RC8"
+	implementation "com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC8"
+	implementation "com.tonyodev.fetch2rx:fetch2rx:2.0.0-RC8"
 	// debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
 	debugImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 	releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'

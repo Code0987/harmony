@@ -118,6 +118,7 @@ public class MusicService extends Service {
 	public static final String KEY_PLAYLIST_CHANGED_PLAYLIST = "playlist";
 
 	public static final String ACTION_ADL_CANCEL = TAG + ".adl_cancel";
+	public static final String ACTION_Stream_CANCEL = TAG + ".stream_cancel";
 
 	// Threads
 	private Handler handler = new Handler();
@@ -1239,13 +1240,14 @@ public class MusicService extends Service {
 
 	//endregion
 
+	//region Playlist
+
 	private static MusicServiceLibraryUpdaterAsyncTask libraryUpdater = null;
 
 	public MusicServiceLibraryUpdaterAsyncTask getLibraryUpdater() {
 		return libraryUpdater;
 	}
 
-	private Music currentMusic;
 	private Playlist currentPlaylist;
 
 	public Playlist getPlaylist() {
@@ -1258,6 +1260,8 @@ public class MusicService extends Service {
 		return currentPlaylist;
 	}
 
+	private Music currentMusic;
+
 	public Music getMusic() {
 		if (currentMusic == null)
 			try {
@@ -1268,32 +1272,16 @@ public class MusicService extends Service {
 		return currentMusic;
 	}
 
+	//endregion
+
+	//region Player controls
+
 	public IBasicMediaPlayer getMediaPlayer() {
 		return mediaPlayer;
 	}
 
 	public boolean canPlay() {
-		if (currentPlaylist != null && currentPlaylist.getItems().size() >= 0)
-			return true;
-		return false;
-	}
-
-	public boolean isPlaying() {
-		if (mediaPlayer != null && mediaPlayer.isPlaying())
-			return true;
-		return false;
-	}
-
-	public int getPosition() {
-		if (mediaPlayer == null)
-			return -1;
-		return mediaPlayer.getCurrentPosition();
-	}
-
-	public int getDuration() {
-		if (mediaPlayer == null)
-			return -1;
-		return mediaPlayer.getDuration();
+		return currentPlaylist != null && currentPlaylist.getItems().size() >= 0;
 	}
 
 	public void seek(int position) {
@@ -1306,6 +1294,12 @@ public class MusicService extends Service {
 		mediaPlayer.seekTo(position);
 
 		update();
+	}
+
+	private boolean isPrepared = false;
+
+	public boolean isPrepared() {
+		return !(currentMusic == null || mediaPlayer == null || !isPrepared);
 	}
 
 	private void prepareA(final JavaEx.Action onPrepare) {
@@ -1322,13 +1316,15 @@ public class MusicService extends Service {
 		}
 
 		synchronized (this) {
+			isPrepared = false;
+
 			currentMusic = currentPlaylist.getItem();
 
 			if (currentMusic == null)
 				return;
 
 			if (!currentMusic.isLocal()) {
-				downloadAudio(currentMusic,
+				streamAudio(currentMusic,
 						new JavaEx.ActionT<Music>() {
 							@Override
 							public void execute(Music data) {
@@ -1372,6 +1368,8 @@ public class MusicService extends Service {
 				mediaPlayer.setOnPreparedListener(new IBasicMediaPlayer.OnPreparedListener() {
 					@Override
 					public void onPrepared(IBasicMediaPlayer mediaPlayer) {
+						isPrepared = true;
+
 						if (onPrepare != null)
 							onPrepare.execute();
 
@@ -1382,7 +1380,7 @@ public class MusicService extends Service {
 				});
 				mediaPlayer.setDataSource(currentMusic.getLastPlaybackUrl());
 				mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-				mediaPlayer.prepare();
+				mediaPlayer.prepareAsync();
 			} catch (Exception e) {
 				Log.w(TAG, "media init failed", e);
 			}
@@ -1420,6 +1418,8 @@ public class MusicService extends Service {
 				@Override
 				public boolean onError(IBasicMediaPlayer mediaPlayer, int what, int extra) {
 					Log.w(TAG, "onError\nwhat = " + what + "\nextra = " + extra);
+
+					isPrepared = false;
 
 					try {
 						Toast.makeText(MusicService.this, "There was a problem while playing [" + currentMusic.getPath() + "]!", Toast.LENGTH_LONG).show();
@@ -1464,10 +1464,16 @@ public class MusicService extends Service {
 		prepareA(onPrepare);
 	}
 
-	public boolean isPrepared() {
-		if (currentMusic == null || mediaPlayer == null)
-			return false;
-		return true;
+	public int getPosition() {
+		if (!isPrepared() || currentMusic == null || !currentMusic.isLocal())
+			return -1;
+		return mediaPlayer.getCurrentPosition();
+	}
+
+	public int getDuration() {
+		if (!isPrepared() || currentMusic == null || !currentMusic.isLocal())
+			return -1;
+		return mediaPlayer.getDuration();
 	}
 
 	public void stop() {
@@ -1566,6 +1572,12 @@ public class MusicService extends Service {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public boolean isPlaying() {
+		if (mediaPlayer != null && mediaPlayer.isPlaying())
+			return true;
+		return false;
 	}
 
 	public void pause() {
@@ -1692,6 +1704,10 @@ public class MusicService extends Service {
 		nextSmart(forceNext, true);
 	}
 
+	//endregion
+
+	//region Notification controls
+
 	private static final int NOTIFICATION_ID = 4524;
 
 	private android.support.v4.app.NotificationCompat.Builder builder;
@@ -1816,6 +1832,8 @@ public class MusicService extends Service {
 		stopForeground(true);
 		NotificationManagerCompat.from(this).cancelAll();
 	}
+
+	//endregion
 
 	private void setUpMediaSession() {
 		mediaSession = new MediaSessionCompat(this, getString(R.string.app_name));
@@ -2034,6 +2052,17 @@ public class MusicService extends Service {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		else if (action.equals(ACTION_Stream_CANCEL)) try {
+			if (disposable_stream != null) {
+				disposable_stream.dispose();
+			}
+			NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_Stream);
+			if (notif_builder_stream != null) {
+				notif_builder_stream = null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	//region ADL
@@ -2151,6 +2180,96 @@ public class MusicService extends Service {
 							Toast.makeText(MusicService.this, "Audio download failed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
 						}
 
+					}
+				});
+	}
+
+	//endregion
+
+	//region Stream
+
+	private final int NOTIFICATION_ID_Stream = 3;
+
+	private android.support.v4.app.NotificationCompat.Builder notif_builder_stream;
+
+	private Disposable disposable_stream;
+
+	public void streamAudio(final Music data, final JavaEx.ActionT<Music> onComplete) {
+		Analytics.getYouTubeAudioUrl(this, data.getPath())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribeOn(Schedulers.io())
+				.subscribe(new Observer<String>() {
+					@Override
+					public void onSubscribe(Disposable d) {
+						if (d.isDisposed())
+							return;
+
+						disposable_stream = d;
+
+						Toast.makeText(MusicService.this, "Audio stream started for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+						Intent cancelIntent = new Intent(MusicService.ACTION_Stream_CANCEL);
+						PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(MusicService.this, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+						notif_builder_stream = new NotificationCompat.Builder(MusicService.this)
+								.setContentTitle("Streaming ...")
+								.setContentText(data.getText())
+								.setSmallIcon(R.drawable.ic_cloud_download)
+								.setOngoing(true)
+								.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
+								.setProgress(100, 0, true);
+
+						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_Stream, notif_builder_stream.build());
+					}
+
+					@Override
+					public void onNext(final String r) {
+						if (!TextUtils.isEmpty(r)) {
+							Toast.makeText(MusicService.this, "Audio streamed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+							musicRealm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(@NonNull Realm realm) {
+									data.setLastPlaybackUrl(r);
+
+									realm.insertOrUpdate(data);
+								}
+							});
+
+							if (onComplete != null)
+								onComplete.execute(data);
+						} else {
+							Toast.makeText(MusicService.this, "Audio stream failed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+						}
+					}
+
+					@Override
+					public void onError(Throwable e) {
+						disposable_stream = null;
+
+						if (notif_builder_stream == null)
+							return;
+
+						NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_Stream);
+
+						notif_builder_stream = null;
+
+						Toast.makeText(MusicService.this, "Audio stream failed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+						if (onComplete != null)
+							onComplete.execute(data);
+					}
+
+					@Override
+					public void onComplete() {
+						disposable_stream = null;
+
+						if (notif_builder_stream == null)
+							return;
+
+						NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_Stream);
+
+						notif_builder_stream = null;
 					}
 				});
 	}
