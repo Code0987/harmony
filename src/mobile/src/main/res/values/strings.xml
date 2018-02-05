@@ -74,5 +74,6 @@
     <string name="timer">Timer</string>
     <string name="refresh">Refresh</string>
     <string name="downloads">Downloads</string>
+    <string name="waiting">Waiting ...</string>
 
 </resources>

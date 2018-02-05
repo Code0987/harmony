@@ -49,6 +49,11 @@
             android:enabled="true"
             android:exported="true">
         </service>
+        <service
+            android:name=".base.IOService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
         <service android:name=".base.FCMService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>

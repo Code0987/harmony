@@ -166,7 +166,7 @@ public class AnalyticsViewFragment extends Fragment {
 				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 					@Override
 					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-						return Analytics.convertToLocal(context, tracks, N, false);
+						return Analytics.convertToLocal(context, tracks, N, true);
 					}
 				})
 				.subscribeOn(Schedulers.io())

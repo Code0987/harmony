@@ -616,8 +616,6 @@ public class DashboardActivity extends BaseUIActivity {
 
 		viewPagerAdapter.add(playlistViewFragment, "Playlist");
 
-		viewPagerAdapter.add(AnalyticsViewFragment.create(), "Analytics");
-
 		tab_layout.setupWithViewPager(viewPager, true);
 
 	}

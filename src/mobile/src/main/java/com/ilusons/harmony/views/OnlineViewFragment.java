@@ -11,11 +11,10 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.ColorUtils;
-import android.support.v7.graphics.Palette;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
@@ -29,21 +28,12 @@ import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.MPPointF;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIFragment;
+import com.ilusons.harmony.base.IOService;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
@@ -51,6 +41,9 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.ViewEx;
+import com.tonyodev.fetch2.Download;
+import com.tonyodev.fetch2.Fetch;
+import com.tonyodev.fetch2.Func;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
@@ -64,7 +57,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import jp.co.recruit_lifestyle.android.widget.WaveSwipeRefreshLayout;
+
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 public class OnlineViewFragment extends BaseUIFragment {
 
@@ -171,6 +165,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
+					toggleDownloads();
 
 					return true;
 				} catch (Exception e) {
@@ -182,43 +177,18 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 	}
 
-
 	//region Items
 
 	private RecyclerViewAdapter adapter;
 
 	private void createItems(View v) {
-		adapter = new RecyclerViewAdapter();
+		adapter = new RecyclerViewAdapter(this);
 		adapter.setHasStableIds(true);
 
 		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
-		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 0);
+		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 7);
 
-		GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 16) {
-			@Override
-			public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-				try {
-					super.onLayoutChildren(recycler, state);
-				} catch (IndexOutOfBoundsException e) {
-					Log.w(TAG, e);
-				}
-			}
-		};
-		layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-			@Override
-			public int getSpanSize(int p) {
-				int cs;
-
-				if (p == 0) {
-					cs = 16;
-				} else {
-					cs = 8;
-				}
-
-				return cs;
-			}
-		});
-		recyclerView.setLayoutManager(layoutManager);
+		recyclerView.setLayoutManager(new LinearLayoutManager(v.getContext()));
 
 		recyclerView.setAdapter(adapter);
 	}
@@ -276,14 +246,14 @@ public class OnlineViewFragment extends BaseUIFragment {
 	}
 
 	private void searchTopTracks() {
-		final int N = 64;
+		final int N = 50;
 		final Context context = getContext();
 
 		Analytics.getTopTracksForLastfm(getContext())
 				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 					@Override
 					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-						return Analytics.convertToLocal(context, tracks, N, false);
+						return Analytics.convertToLocal(context, tracks, N, true);
 					}
 				})
 				.subscribeOn(Schedulers.io())
@@ -338,9 +308,13 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 	public static class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+		private final OnlineViewFragment fragment;
+
 		private ArrayList<Object> data;
 
-		public RecyclerViewAdapter() {
+		public RecyclerViewAdapter(OnlineViewFragment fragment) {
+			this.fragment = fragment;
+
 			data = new ArrayList<>();
 		}
 
@@ -348,7 +322,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 		public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 			View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.online_view_item, parent, false);
 
-			return new ViewHolder(v);
+			return new ViewHolder(fragment, v);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -396,14 +370,18 @@ public class OnlineViewFragment extends BaseUIFragment {
 		}
 
 		protected static class ViewHolder extends RecyclerView.ViewHolder {
+			private final OnlineViewFragment fragment;
+
 			protected View view;
 
 			protected ImageView image;
 			protected TextView text1;
 			protected TextView text2;
 
-			public ViewHolder(View v) {
+			public ViewHolder(final OnlineViewFragment fragment, View v) {
 				super(v);
+
+				this.fragment = fragment;
 
 				view = v;
 
@@ -521,7 +499,24 @@ public class OnlineViewFragment extends BaseUIFragment {
 					public void onClick(View view) {
 						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
 
-						playItem(view.getContext(), d.getPath());
+						IOService ioService = fragment.getIOService();
+						if (ioService != null) {
+							ioService.download(d, true, true);
+
+							fragment.info("Download scheduled for " + d.getText() + ".");
+						}
+						/*
+						try {
+							Intent intent = new Intent(context.getApplicationContext(), MusicService.class);
+
+							intent.setAction(MusicService.ACTION_OPEN);
+							intent.putExtra(MusicService.KEY_URI, d.getPath());
+
+							context.getApplicationContext().startService(intent);
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+						*/
 					}
 				});
 			}
@@ -531,18 +526,148 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 	//endregion
 
-	private static void playItem(Context context, String path) {
+	//region Downloads
+
+	private void toggleDownloads() {
 		try {
-			Intent i = new Intent(context, MusicService.class);
+			if (getIOService() == null) {
+				info("IO service is not running!");
+				return;
+			}
 
-			i.setAction(MusicService.ACTION_OPEN);
-			i.putExtra(MusicService.KEY_URI, path);
+			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
+					.inflate(R.layout.online_view_downloads, null);
 
-			context.startService(i);
-		} catch (Exception ex) {
-			ex.printStackTrace();
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
+			builder.setView(v);
+
+			createDownloads(v);
+
+			AlertDialog alert = builder.create();
+
+			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
+
+			alert.show();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
+
+	private DownloadsRecyclerViewAdapter downloadsRecyclerViewAdapter;
+
+	private Runnable downloadsUpdater;
+
+	private void createDownloads(final View v) {
+		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
+		recyclerView.setHasFixedSize(true);
+		recyclerView.setItemViewCacheSize(5);
+		recyclerView.setDrawingCacheEnabled(true);
+		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+
+		downloadsRecyclerViewAdapter = new DownloadsRecyclerViewAdapter();
+		recyclerView.setAdapter(downloadsRecyclerViewAdapter);
+
+		downloadsUpdater = new Runnable() {
+			@Override
+			public void run() {
+				downloadsRecyclerViewAdapter.refresh();
+
+				if (downloadsUpdater != null)
+					v.postDelayed(downloadsUpdater, 2500);
+			}
+		};
+		v.postDelayed(downloadsUpdater, 500);
+
+	}
+
+	public class DownloadsRecyclerViewAdapter extends RecyclerView.Adapter<DownloadsRecyclerViewAdapter.ViewHolder> {
+
+		private final ArrayList<IOService.AudioDownload> data;
+
+		public DownloadsRecyclerViewAdapter() {
+			data = new ArrayList<>();
+		}
+
+		@Override
+		public int getItemCount() {
+			return data.size();
+		}
+
+		@Override
+		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+
+			View view = inflater.inflate(R.layout.online_view_downloads_item, parent, false);
+
+			return new ViewHolder(view);
+		}
+
+		@Override
+		public void onBindViewHolder(final ViewHolder holder, int position) {
+			final IOService.AudioDownload d = data.get(position);
+			final View v = holder.view;
+
+			holder.progress.setIndeterminate(true);
+			holder.text.setText(d.Music.getText());
+			if (d.Download != null) {
+				holder.info.setText((new StringBuilder())
+						.append(d.Download.getStatus())
+						.append(" ")
+						.append(d.Download.getProgress())
+						.append("%")
+						.toString());
+			} else {
+				holder.info.setText(R.string.waiting);
+			}
+			holder.stop.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					if (getIOService() == null)
+						return;
+
+					if (d.Download == null)
+						return;
+
+					getIOService().cancelDownload(d.Download.getId());
+				}
+			});
+
+		}
+
+		public class ViewHolder extends RecyclerView.ViewHolder {
+			public View view;
+
+			public ProgressBar progress;
+			public TextView text;
+			public TextView info;
+			public ImageView stop;
+
+			public ViewHolder(View v) {
+				super(v);
+
+				view = v;
+
+				progress = v.findViewById(R.id.progress);
+				text = v.findViewById(R.id.text);
+				info = v.findViewById(R.id.info);
+				stop = v.findViewById(R.id.stop);
+			}
+		}
+
+		public void refresh() {
+			if (getIOService() == null)
+				return;
+
+			data.clear();
+
+			data.addAll(getIOService().getAudioDownloads());
+
+			notifyDataSetChanged();
+		}
+
+	}
+
+	//endregion
 
 	public static OnlineViewFragment create() {
 		OnlineViewFragment f = new OnlineViewFragment();
