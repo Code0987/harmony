@@ -57,7 +57,8 @@ public class App extends Application {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread thread, Throwable e) {
-				Toast.makeText(App.this, "Aw, snap!", Toast.LENGTH_LONG).show();
+				if (getMainLooper() != null)
+					Toast.makeText(App.this, "Aw, snap!", Toast.LENGTH_LONG).show();
 
 				Log.wtf(TAG, e);
 

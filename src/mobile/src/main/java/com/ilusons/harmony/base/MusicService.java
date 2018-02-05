@@ -66,8 +66,18 @@ import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.sfx.AndroidOSMediaPlayerFactory;
 import com.ilusons.harmony.sfx.MediaPlayerFactory;
+import com.tonyodev.fetch2.Download;
+import com.tonyodev.fetch2.Fetch;
+import com.tonyodev.fetch2.FetchListener;
+import com.tonyodev.fetch2.Func;
+import com.tonyodev.fetch2.NetworkType;
+import com.tonyodev.fetch2.Request;
+import com.tonyodev.fetch2rx.RxFetch;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 
 import io.reactivex.Observable;
@@ -117,7 +127,6 @@ public class MusicService extends Service {
 	public static final String ACTION_PLAYLIST_CHANGED = TAG + ".playlist_changed";
 	public static final String KEY_PLAYLIST_CHANGED_PLAYLIST = "playlist";
 
-	public static final String ACTION_ADL_CANCEL = TAG + ".adl_cancel";
 	public static final String ACTION_Stream_CANCEL = TAG + ".stream_cancel";
 
 	// Threads
@@ -351,9 +360,6 @@ public class MusicService extends Service {
 
 		cancelAllNotification();
 
-		// Load realm
-		musicRealm = DB.getDB();
-
 		// Load playlist
 		getPlaylist();
 
@@ -442,14 +448,10 @@ public class MusicService extends Service {
 
 		cleanPresetReverb();
 
-
 		if (mediaPlayerFactory != null) {
 			mediaPlayerFactory.release();
 			mediaPlayerFactory = null;
 		}
-
-		if (musicRealm != null)
-			musicRealm.close();
 	}
 
 	@Override
@@ -474,12 +476,6 @@ public class MusicService extends Service {
 		if (mediaPlayer == null)
 			return 0;
 		return mediaPlayer.getAudioSessionId();
-	}
-
-	private Realm musicRealm;
-
-	private Realm getMusicRealm() {
-		return musicRealm;
 	}
 
 	private IVisualizer visualizer;
@@ -1318,12 +1314,16 @@ public class MusicService extends Service {
 		synchronized (this) {
 			isPrepared = false;
 
-			currentMusic = currentPlaylist.getItem();
+			currentMusic = Music.get(currentPlaylist.getItem().getPath());
 
 			if (currentMusic == null)
 				return;
 
 			if (!currentMusic.isLocal()) {
+				if (currentMusic.getLastPlaybackUrl() != null)
+					prepareB(onPrepare);
+
+/*
 				streamAudio(currentMusic,
 						new JavaEx.ActionT<Music>() {
 							@Override
@@ -1332,7 +1332,7 @@ public class MusicService extends Service {
 
 								prepareB(onPrepare);
 							}
-						});
+						});*/
 			} else {
 				prepareB(onPrepare);
 			}
@@ -1390,8 +1390,8 @@ public class MusicService extends Service {
 					Log.d(TAG, "onCompletion");
 
 					if (currentMusic != null) {
-						try {
-							musicRealm.executeTransaction(new Realm.Transaction() {
+						try (Realm realm = DB.getDB()) {
+							realm.executeTransaction(new Realm.Transaction() {
 								@Override
 								public void execute(Realm realm) {
 									currentMusic.setTotalDurationPlayed(currentMusic.getTotalDurationPlayed() + getPosition());
@@ -1426,8 +1426,6 @@ public class MusicService extends Service {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-
-					nextSmart(true);
 
 					return false;
 				}
@@ -1542,8 +1540,8 @@ public class MusicService extends Service {
 					.sendBroadcast(new Intent(ACTION_PLAY));
 
 			// Update db
-			try {
-				musicRealm.executeTransaction(new Realm.Transaction() {
+			try (Realm realm = DB.getDB()) {
+				realm.executeTransaction(new Realm.Transaction() {
 					@Override
 					public void execute(Realm realm) {
 						currentMusic.setPlayed(currentMusic.getPlayed() + 1);
@@ -1615,8 +1613,8 @@ public class MusicService extends Service {
 		}
 
 		if (currentMusic != null) {
-			try {
-				musicRealm.executeTransaction(new Realm.Transaction() {
+			try (Realm realm = DB.getDB()) {
+				realm.executeTransaction(new Realm.Transaction() {
 					@Override
 					public void execute(Realm realm) {
 						if (((float) getPosition() / (float) getDuration()) < 0.65) {
@@ -1919,8 +1917,6 @@ public class MusicService extends Service {
 
 		filter.addAction(Intent.ACTION_HEADSET_PLUG);
 
-		filter.addAction(ACTION_ADL_CANCEL);
-
 		return filter;
 	}
 
@@ -2041,18 +2037,7 @@ public class MusicService extends Service {
 			update();
 		} else if (action.equals(ACTION_REFRESH_SFX)) {
 			updateSFX();
-		} else if (action.equals(ACTION_ADL_CANCEL)) try {
-			if (disposable_adl != null) {
-				disposable_adl.dispose();
-			}
-			NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_ADL);
-			if (notif_builder_adl != null) {
-				notif_builder_adl = null;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		else if (action.equals(ACTION_Stream_CANCEL)) try {
+		} else if (action.equals(ACTION_Stream_CANCEL)) try {
 			if (disposable_stream != null) {
 				disposable_stream.dispose();
 			}
@@ -2064,127 +2049,6 @@ public class MusicService extends Service {
 			e.printStackTrace();
 		}
 	}
-
-	//region ADL
-
-	private final int NOTIFICATION_ID_ADL = 3;
-
-	private android.support.v4.app.NotificationCompat.Builder notif_builder_adl;
-
-	private Disposable disposable_adl;
-
-	public void downloadAudio(final Music data, final JavaEx.ActionT<Music> onComplete) {
-		final File cache = IOEx.getDiskCacheFile(this, "yt_audio", data.getPath());
-
-		try {
-			if (cache.exists() && (data.getLastPlaybackUrl() == null || !data.getLastPlaybackUrl().equalsIgnoreCase(cache.getAbsolutePath())))
-				cache.delete();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (cache.exists()) {
-			if (onComplete != null)
-				onComplete.execute(data);
-			return;
-		}
-
-		Analytics.getYouTubeAudioUrl(this, data.getPath())
-				.flatMap(new Function<String, ObservableSource<Integer>>() {
-					@Override
-					public ObservableSource<Integer> apply(String r) throws Exception {
-						return RxEx.downloadFile(r, cache);
-					}
-				})
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribeOn(Schedulers.io())
-				.subscribe(new Observer<Integer>() {
-					@Override
-					public void onSubscribe(Disposable d) {
-						if (d.isDisposed())
-							return;
-
-						disposable_adl = d;
-
-						Toast.makeText(MusicService.this, "Audio download started for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
-
-						Intent cancelIntent = new Intent(MusicService.ACTION_ADL_CANCEL);
-						PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(MusicService.this, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-						notif_builder_adl = new NotificationCompat.Builder(MusicService.this)
-								.setContentTitle("Downloading ...")
-								.setContentText(data.getText())
-								.setSmallIcon(R.drawable.ic_cloud_download)
-								.setOngoing(true)
-								.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
-								.setProgress(100, 0, true);
-
-						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_ADL, notif_builder_adl.build());
-					}
-
-					@Override
-					public void onNext(Integer r) {
-						/*
-						if (notif_builder_adl == null)
-							return;
-
-						notif_builder_adl.setProgress(100, r, r <= 0);
-
-						NotificationManagerCompat.from(MusicService.this).notify(NOTIFICATION_ID_ADL, notif_builder_adl.build());
-						*/
-					}
-
-					@Override
-					public void onError(Throwable e) {
-						disposable_adl = null;
-
-						if (notif_builder_adl == null)
-							return;
-
-						NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_ADL);
-
-						notif_builder_adl = null;
-
-						Toast.makeText(MusicService.this, "Audio download failed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
-
-						if (onComplete != null)
-							onComplete.execute(data);
-					}
-
-					@Override
-					public void onComplete() {
-						disposable_adl = null;
-
-						if (notif_builder_adl == null)
-							return;
-
-						NotificationManagerCompat.from(MusicService.this).cancel(NOTIFICATION_ID_ADL);
-
-						notif_builder_adl = null;
-
-						if (cache.exists()) {
-							Toast.makeText(MusicService.this, "Audio downloaded for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
-
-							musicRealm.executeTransaction(new Realm.Transaction() {
-								@Override
-								public void execute(@NonNull Realm realm) {
-									data.setLastPlaybackUrl(cache.getAbsolutePath());
-
-									realm.insertOrUpdate(data);
-								}
-							});
-
-							if (onComplete != null)
-								onComplete.execute(data);
-						} else {
-							Toast.makeText(MusicService.this, "Audio download failed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
-						}
-
-					}
-				});
-	}
-
-	//endregion
 
 	//region Stream
 
@@ -2227,14 +2091,16 @@ public class MusicService extends Service {
 						if (!TextUtils.isEmpty(r)) {
 							Toast.makeText(MusicService.this, "Audio streamed for [" + data.getText() + "] ...", Toast.LENGTH_LONG).show();
 
-							musicRealm.executeTransaction(new Realm.Transaction() {
-								@Override
-								public void execute(@NonNull Realm realm) {
-									data.setLastPlaybackUrl(r);
+							try (Realm realm = DB.getDB()) {
+								realm.executeTransaction(new Realm.Transaction() {
+									@Override
+									public void execute(@NonNull Realm realm) {
+										data.setLastPlaybackUrl(r);
 
-									realm.insertOrUpdate(data);
-								}
-							});
+										realm.insertOrUpdate(data);
+									}
+								});
+							}
 
 							if (onComplete != null)
 								onComplete.execute(data);
