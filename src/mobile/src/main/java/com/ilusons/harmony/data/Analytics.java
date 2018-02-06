@@ -2,7 +2,6 @@ package com.ilusons.harmony.data;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,28 +20,17 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.ref.ArtworkEx;
-import com.ilusons.harmony.ref.IOEx;
-import com.ilusons.harmony.ref.JavaEx;
-import com.ilusons.harmony.ref.RxEx;
 import com.ilusons.harmony.ref.SecurePreferences;
-import com.ilusons.harmony.ref.SongsEx;
 
 import org.apache.http.util.TextUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import at.huber.youtubeExtractor.Format;
@@ -51,7 +39,6 @@ import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Caller;
-import de.umass.lastfm.ImageSize;
 import de.umass.lastfm.PaginatedResult;
 import de.umass.lastfm.Period;
 import de.umass.lastfm.Session;
@@ -77,7 +64,6 @@ import java.net.URLEncoder;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import okhttp3.Response;
 
 public class Analytics {
 
@@ -782,7 +768,7 @@ public class Analytics {
 					JaroWinklerDistance sa = new JaroWinklerDistance();
 
 					Collection<Music> local = new ArrayList<>();
-					try (Realm realm = DB.getDB()) {
+					try (Realm realm = Music.getDB()) {
 						if (realm != null) {
 							local.addAll(realm.copyFromRealm(realm.where(Music.class).findAll()));
 						}
@@ -843,7 +829,7 @@ public class Analytics {
 					}
 
 					if (saveInDB)
-						try (Realm realm = DB.getDB()) {
+						try (Realm realm = Music.getDB()) {
 							if (realm != null) {
 								realm.executeTransaction(new Realm.Transaction() {
 									@Override

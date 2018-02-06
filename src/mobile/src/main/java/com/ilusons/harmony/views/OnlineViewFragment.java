@@ -499,24 +499,20 @@ public class OnlineViewFragment extends BaseUIFragment {
 					public void onClick(View view) {
 						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
 
-						IOService ioService = fragment.getIOService();
-						if (ioService != null) {
-							ioService.download(d, true, true);
+						if (d.isLastPlaybackUrlUpdateNeeded()) {
+							IOService.startIntentForScheduleDownload(context, d.getPath());
+						} else {
+							try {
+								Intent intent = new Intent(context.getApplicationContext(), MusicService.class);
 
-							fragment.info("Download scheduled for " + d.getText() + ".");
+								intent.setAction(MusicService.ACTION_OPEN);
+								intent.putExtra(MusicService.KEY_URI, d.getPath());
+
+								context.getApplicationContext().startService(intent);
+							} catch (Exception ex) {
+								ex.printStackTrace();
+							}
 						}
-						/*
-						try {
-							Intent intent = new Intent(context.getApplicationContext(), MusicService.class);
-
-							intent.setAction(MusicService.ACTION_OPEN);
-							intent.putExtra(MusicService.KEY_URI, d.getPath());
-
-							context.getApplicationContext().startService(intent);
-						} catch (Exception ex) {
-							ex.printStackTrace();
-						}
-						*/
 					}
 				});
 			}

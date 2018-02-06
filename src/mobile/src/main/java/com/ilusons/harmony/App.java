@@ -8,26 +8,14 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
-import com.ilusons.harmony.data.DB;
-import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.RealmEx;
-import com.ilusons.harmony.ref.SPrefEx;
 import com.squareup.leakcanary.LeakCanary;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import io.fabric.sdk.android.Fabric;
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
-import io.realm.RealmObject;
 import jonathanfinerty.once.Once;
 
 public class App extends Application {

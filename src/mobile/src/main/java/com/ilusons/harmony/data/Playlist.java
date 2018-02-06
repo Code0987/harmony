@@ -179,7 +179,7 @@ public class Playlist extends RealmObject {
 	}
 
 	public void delete(Music item, final MusicService musicService, boolean notify) {
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = Music.getDB()) {
 			delete(item, musicService, realm, notify);
 		}
 	}
@@ -201,7 +201,7 @@ public class Playlist extends RealmObject {
 	public static ArrayList<Playlist> loadAllPlaylists() {
 		ArrayList<Playlist> result = new ArrayList<>();
 
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = Music.getDB()) {
 			if (realm != null)
 				result.addAll(realm.copyFromRealm(loadAllPlaylists(realm)));
 		}
@@ -234,7 +234,7 @@ public class Playlist extends RealmObject {
 	}
 
 	public static Playlist loadOrCreatePlaylist(String name) {
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = Music.getDB()) {
 			if (realm != null) {
 				return realm.copyFromRealm(loadOrCreatePlaylist(realm, name));
 			}
@@ -259,7 +259,7 @@ public class Playlist extends RealmObject {
 	}
 
 	public static void savePlaylist(Playlist playlist) {
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = Music.getDB()) {
 			savePlaylist(realm, playlist);
 		}
 	}
@@ -368,7 +368,7 @@ public class Playlist extends RealmObject {
 			if (!(playlistId <= -1L)) {
 				deletePlaylist(context.getContentResolver(), playlistId);
 			} else {
-				try (Realm realm = DB.getDB()) {
+				try (Realm realm = Music.getDB()) {
 					if (realm != null)
 						realm.executeTransaction(new Realm.Transaction() {
 							@Override
@@ -502,7 +502,7 @@ public class Playlist extends RealmObject {
 							}
 						}
 						if (toRemove.size() > 0) {
-							try (Realm realm = DB.getDB()) {
+							try (Realm realm = Music.getDB()) {
 								if (realm != null) {
 									realm.executeTransaction(new Realm.Transaction() {
 										@Override
@@ -563,7 +563,7 @@ public class Playlist extends RealmObject {
 						}
 						timeIt.split("waste collect");
 						if (toRemove.size() > 0) {
-							try (Realm realm = DB.getDB()) {
+							try (Realm realm = Music.getDB()) {
 								if (realm != null) {
 									realm.executeTransaction(new Realm.Transaction() {
 										@Override
@@ -626,7 +626,7 @@ public class Playlist extends RealmObject {
 					timeIt.split("scan");
 
 					// Update db
-					try (Realm realm = DB.getDB()) {
+					try (Realm realm = Music.getDB()) {
 						if (realm != null) {
 							realm.executeTransaction(new Realm.Transaction() {
 								@Override
@@ -679,7 +679,7 @@ public class Playlist extends RealmObject {
 							}
 						}
 						if (toRemove.size() > 0) {
-							try (Realm realm = DB.getDB()) {
+							try (Realm realm = Music.getDB()) {
 								if (realm != null) {
 									realm.executeTransaction(new Realm.Transaction() {
 										@Override
@@ -742,7 +742,7 @@ public class Playlist extends RealmObject {
 					}
 
 					// Update db
-					try (Realm realm = DB.getDB()) {
+					try (Realm realm = Music.getDB()) {
 						if (realm != null) {
 							realm.executeTransaction(new Realm.Transaction() {
 								@Override
@@ -1029,7 +1029,7 @@ public class Playlist extends RealmObject {
 	}
 
 	public static void exportM3U(Context context, final Collection<Music> data) {
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = Music.getDB()) {
 			exportM3U(realm, context, data);
 		}
 	}
