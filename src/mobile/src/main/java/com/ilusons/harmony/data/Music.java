@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -41,7 +42,6 @@ import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -51,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.Case;
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -79,7 +80,7 @@ public class Music extends RealmObject {
 	}
 
 	public boolean isLocal() {
-		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http") || getPath().toLowerCase().startsWith("ftp"));
+		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http"));
 	}
 
 	private String LastPlaybackUrl;
@@ -97,6 +98,27 @@ public class Music extends RealmObject {
 
 	public void setLastPlaybackUrl(String s) {
 		LastPlaybackUrl = s;
+
+		setTimeLastPlaybackUrlUpdated(System.currentTimeMillis());
+	}
+
+	private long TimeLastPlaybackUrlUpdated = -1L;
+
+	public long getTimeLastPlaybackUrlUpdated() {
+		return TimeLastPlaybackUrlUpdated;
+	}
+
+	public void setTimeLastPlaybackUrlUpdated(long value) {
+		TimeLastPlaybackUrlUpdated = value;
+	}
+
+	public boolean isLastPlaybackUrlUpdateNeeded() {
+		if (getLastPlaybackUrl() == null)
+			return true;
+		if (getLastPlaybackUrl().toLowerCase().startsWith("http"))
+			if ((System.currentTimeMillis() - getTimeLastPlaybackUrlUpdated()) >= 24 * 60 * 60 * 1000L) // HACK: 1 day
+				return true;
+		return false;
 	}
 
 	@Index
@@ -1089,22 +1111,78 @@ public class Music extends RealmObject {
 
 	//region DB
 
-	public static Music get(String path) {
+	private static RealmConfiguration realmConfiguration;
+
+	public static RealmConfiguration getDBConfig() {
+		if (realmConfiguration == null)
+			realmConfiguration = new RealmConfiguration.Builder()
+					.name("music.realm")
+					.deleteRealmIfMigrationNeeded()
+					.build();
+		return realmConfiguration;
+	}
+
+	public static Realm getDB() {
+		try {
+			Realm.setDefaultConfiguration(getDBConfig());
+			return Realm.getDefaultInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static void getDBOnLooper(Looper looper, final JavaEx.ActionT<Realm> action) {
+		(new Handler(looper))
+				.post(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							Realm realm = Realm.getInstance(getDBConfig());
+							realm.refresh();
+							action.execute(realm);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+	}
+
+	public static void getDBOnMainLooper(final JavaEx.ActionT<Realm> action) {
+		(new Handler(Looper.getMainLooper()))
+				.post(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							Realm realm = Realm.getInstance(getDBConfig());
+							realm.refresh();
+							action.execute(realm);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+	}
+
+	public static Music get(Realm realm, String path) {
 		Music data = null;
-		try (Realm realm = DB.getDB()) {
-			if (realm != null) {
-				data = realm.where(Music.class).equalTo("Path", path).findFirst();
-				if (data != null) {
-					data = realm.copyFromRealm(data);
-				}
-			}
-			return data;
+		if (realm != null) {
+			data = realm.where(Music.class).equalTo("Path", path).findFirst();
+		}
+		return data;
+	}
+
+	public static Music get(String path) {
+		try (Realm realm = getDB()) {
+			if (realm == null)
+				return null;
+			return realm.copyFromRealm(get(realm, path));
 		}
 	}
 
 	public static Music load(Context context, String path) {
 		Music data = null;
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = getDB()) {
 			if (realm != null) {
 				data = realm.where(Music.class).equalTo("Path", path).findFirst();
 				if (data == null) {
@@ -1127,7 +1205,7 @@ public class Music extends RealmObject {
 	}
 
 	public void update() {
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = getDB()) {
 			if (realm != null) {
 				realm.insertOrUpdate(this);
 			}
@@ -1140,7 +1218,7 @@ public class Music extends RealmObject {
 		try {
 			final Music data = this;
 			Music.createFromLocal(context, data.getPath(), null, false, data);
-			try (Realm realm = DB.getDB()) {
+			try (Realm realm = getDB()) {
 				if (realm != null) {
 					realm.executeTransaction(new Realm.Transaction() {
 						@Override
@@ -1192,14 +1270,14 @@ public class Music extends RealmObject {
 	}
 
 	public static void delete(final MusicService musicService, final String path, boolean notify) {
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = getDB()) {
 			delete(musicService, realm, path, notify);
 		}
 	}
 
 	public static long getSize() {
 		long r = 0;
-		try (Realm realm = DB.getDB()) {
+		try (Realm realm = getDB()) {
 			if (realm != null) {
 				r = realm.where(Music.class).count();
 			}
@@ -1345,7 +1423,7 @@ public class Music extends RealmObject {
 	public static Music getAtTopByScore() {
 		try {
 			if (atTopByScore == null)
-				try (Realm realm = DB.getDB()) {
+				try (Realm realm = getDB()) {
 					RealmResults<Music> result = realm
 							.where(Music.class)
 							.findAllSorted("Score", Sort.DESCENDING);
@@ -1364,7 +1442,7 @@ public class Music extends RealmObject {
 		ArrayList<Music> result = new ArrayList<>();
 
 		try {
-			try (Realm realm = DB.getDB()) {
+			try (Realm realm = getDB()) {
 				RealmResults<Music> realmResults = realm
 						.where(Music.class)
 						.findAllSorted(field, order);

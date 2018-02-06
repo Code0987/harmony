@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -20,7 +21,6 @@ import android.widget.Toast;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Analytics;
-import com.ilusons.harmony.data.DB;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.IOEx;
 import com.tonyodev.fetch2.Download;
@@ -29,20 +29,18 @@ import com.tonyodev.fetch2.FetchListener;
 import com.tonyodev.fetch2.Logger;
 import com.tonyodev.fetch2.NetworkType;
 import com.tonyodev.fetch2.Request;
-import com.tonyodev.fetch2.RequestInfo;
 import com.tonyodev.fetch2rx.RxFetch;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
@@ -144,7 +142,21 @@ public class IOService extends Service {
 
 		if (action.equals(ACTION_CLOSE)) {
 			stopSelf();
-		} else if (action.equals(ACTION_DOWNLOADER_CANCEL)) try {
+		} else if (action.equals(ACTION_UPDATE_STREAM_DATA)) try {
+			String id = intent.getStringExtra(UPDATE_STREAM_DATA_MUSIC_ID);
+
+			updateStreamData(id, true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		else if (action.equals(ACTION_DOWNLOADER_SCHEDULE_AUDIO)) try {
+			String id = intent.getStringExtra(DOWNLOADER_SCHEDULE_MUSIC_ID);
+
+			download(id, true, true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		else if (action.equals(ACTION_DOWNLOADER_CANCEL)) try {
 			int id = intent.getIntExtra(DOWNLOADER_CANCEL_ID, -1);
 
 			cancelDownload(id);
@@ -167,7 +179,81 @@ public class IOService extends Service {
 
 	//endregion
 
+	//region Stream
+
+	public static final String ACTION_UPDATE_STREAM_DATA = TAG + ".stream_update_data";
+	public static final String UPDATE_STREAM_DATA_MUSIC_ID = "id";
+
+	private void updateStreamData(final String musicId, final boolean autoPlay) {
+		final Music music = Music.get(musicId);
+		if (music == null)
+			return;
+
+		Analytics.getYouTubeAudioUrl(this, music.getPath())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribeOn(Schedulers.io())
+				.subscribe(new Observer<String>() {
+					@Override
+					public void onSubscribe(Disposable d) {
+						if (d.isDisposed())
+							return;
+
+						Toast.makeText(IOService.this, "Audio stream started for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
+					}
+
+					@Override
+					public void onNext(final String r) {
+						if (!TextUtils.isEmpty(r)) {
+							Toast.makeText(IOService.this, "Audio streaming for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+							try (Realm realm = Music.getDB()) {
+								if (realm != null) {
+									realm.executeTransaction(new Realm.Transaction() {
+										@Override
+										public void execute(@NonNull Realm realm) {
+											music.setLastPlaybackUrl(r);
+
+											realm.insertOrUpdate(music);
+										}
+									});
+								}
+							}
+
+						} else {
+							Toast.makeText(IOService.this, "Audio stream failed for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
+						}
+					}
+
+					@Override
+					public void onError(Throwable e) {
+						Toast.makeText(IOService.this, "Audio stream failed for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
+					}
+
+					@Override
+					public void onComplete() {
+					}
+				});
+	}
+
+	public static void startIntentForUpdateStreamData(final Context context, final String musicId) {
+		try {
+			Intent intent = new Intent(context.getApplicationContext(), IOService.class);
+
+			intent.setAction(IOService.ACTION_UPDATE_STREAM_DATA);
+			intent.putExtra(IOService.UPDATE_STREAM_DATA_MUSIC_ID, musicId);
+
+			context.getApplicationContext().startService(intent);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	//endregion
+
 	//region Downloader
+
+	public static final String ACTION_DOWNLOADER_SCHEDULE_AUDIO = TAG + ".downloader_schedule_audio";
+	public static final String DOWNLOADER_SCHEDULE_MUSIC_ID = "id";
 
 	public static final String ACTION_DOWNLOADER_CANCEL = TAG + ".downloader_cancel";
 	public static final String DOWNLOADER_CANCEL_ID = "id";
@@ -289,7 +375,7 @@ public class IOService extends Service {
 				return;
 
 			if (audioDownload.AddToDatabase || audioDownload.PlayAfterDownload)
-				try (Realm realm = DB.getDB()) {
+				try (Realm realm = Music.getDB()) {
 					if (realm != null) {
 						final String file = audioDownload.Download.getFile();
 						final Music data = audioDownload.Music;
@@ -420,113 +506,128 @@ public class IOService extends Service {
 					.enableLogging(true)
 					.build();
 			fetch.addListener(fetchListener);
+			fetch.removeAll();
 		}
 		return fetch;
 	}
 
-	public Observable<AudioDownload> download(final AudioDownload audioDownload, Music music, boolean playAfterDownload, boolean addToDatabase) {
-		final Context context = this;
+	private void download(final String musicKey, final boolean playAfterDownload, final boolean addToDatabase) {
+		final AudioDownload audioDownload = new AudioDownload(this, Music.get(musicKey), playAfterDownload, addToDatabase);
 
-		return Observable.create(new ObservableOnSubscribe<AudioDownload>() {
-			@SuppressLint("StaticFieldLeak")
-			@Override
-			public void subscribe(final ObservableEmitter<AudioDownload> oe) throws Exception {
-				try {
-					AudioDownload lastAudioDownload = getAudioDownloadFor(audioDownload.Music);
-					if (lastAudioDownload != null) {
-						audioDownloads.remove(lastAudioDownload);
-						if (lastAudioDownload.Download != null)
-							fetch.remove(lastAudioDownload.Download.getId());
-					}
-
-					audioDownloads.add(audioDownload);
-
-					// Delete file from cache
-					final File cache = IOEx.getDiskCacheFile(context, "yt_audio", audioDownload.Music.getPath());
-
-					try {
-						if (cache.exists())
-							//noinspection ResultOfMethodCallIgnored
-							cache.delete();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
-					// If url is not of YT, update it
-					if (!audioDownload.Music.getPath().toLowerCase().contains("youtube")) {
+		Observable
+				.create(new ObservableOnSubscribe<AudioDownload>() {
+					@Override
+					public void subscribe(ObservableEmitter<AudioDownload> oe) throws Exception {
 						try {
-							final Music forUrl = audioDownload.Music;
-							Analytics.getYouTubeUrls(context, audioDownload.Music.getText(), 1L)
-									.subscribe(new Consumer<Collection<String>>() {
-										@Override
-										public void accept(Collection<String> r) throws Exception {
-											if (r.iterator().hasNext())
-												forUrl.setPath(r.iterator().next());
-										}
-									}, new Consumer<Throwable>() {
-										@Override
-										public void accept(Throwable throwable) throws Exception {
+							if (audioDownload.Music == null)
+								throw new Exception();
 
-										}
-									});
-							audioDownload.Music.setPath(forUrl.getPath());
+							AudioDownload lastAudioDownload = getAudioDownloadFor(audioDownload.Music);
+							if (lastAudioDownload != null) {
+								audioDownloads.remove(lastAudioDownload);
+								if (lastAudioDownload.Download != null)
+									fetch.remove(lastAudioDownload.Download.getId());
+							}
+
+							audioDownloads.add(audioDownload);
+
+							// Delete file from cache
+							final File cache = IOEx.getDiskCacheFile(audioDownload.context, "yt_audio", audioDownload.Music.getPath());
+
+							try {
+								if (cache.exists())
+									//noinspection ResultOfMethodCallIgnored
+									cache.delete();
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+
+							// If url is not of YT, update it
+							if (!audioDownload.Music.getPath().toLowerCase().contains("youtube")) {
+								try {
+									final Music forUrl = audioDownload.Music;
+									Analytics.getYouTubeUrls(audioDownload.context, audioDownload.Music.getText(), 1L)
+											.subscribe(new Consumer<Collection<String>>() {
+												@Override
+												public void accept(Collection<String> r) throws Exception {
+													if (r.iterator().hasNext())
+														forUrl.setPath(r.iterator().next());
+												}
+											}, new Consumer<Throwable>() {
+												@Override
+												public void accept(Throwable throwable) throws Exception {
+													throwable.printStackTrace();
+												}
+											});
+									audioDownload.Music.setPath(forUrl.getPath());
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+
+							// Find stream url
+							try {
+								Analytics.getYouTubeAudioUrl(audioDownload.context, audioDownload.Music.getPath())
+										.observeOn(AndroidSchedulers.mainThread())
+										.subscribeOn(Schedulers.io())
+										.subscribe(new Consumer<String>() {
+											@Override
+											public void accept(final String r) throws Exception {
+												try (Realm realm = Music.getDB()) {
+													if (realm != null) {
+														realm.executeTransaction(new Realm.Transaction() {
+															@Override
+															public void execute(@NonNull Realm realm) {
+																audioDownload.Music.setLastPlaybackUrl(r);
+
+																realm.insertOrUpdate(audioDownload.Music);
+															}
+														});
+													}
+												}
+
+												createDownload(audioDownload, cache.getPath());
+											}
+										}, new Consumer<Throwable>() {
+											@Override
+											public void accept(Throwable throwable) throws Exception {
+												throwable.printStackTrace();
+											}
+										});
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+
+							oe.onNext(audioDownload);
+
+							oe.onComplete();
 						} catch (Exception e) {
-							e.printStackTrace();
+							oe.onError(e);
 						}
 					}
-
-					// Find stream url
-					try {
-						Analytics.getYouTubeAudioUrl(context, audioDownload.Music.getPath())
-								.subscribe(new Consumer<String>() {
-									@Override
-									public void accept(String r) throws Exception {
-										audioDownload.Music.setLastPlaybackUrl(r);
-									}
-								}, new Consumer<Throwable>() {
-									@Override
-									public void accept(Throwable throwable) throws Exception {
-
-									}
-								});
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
-					// Create download
-					getDownloader()
-							.enqueue(new Request(audioDownload.Music.getLastPlaybackUrl(), cache.getAbsolutePath()))
-							.asObservable()
-							.subscribe(new Consumer<Download>() {
-								@Override
-								public void accept(Download download) throws Exception {
-									audioDownload.Download = download;
-
-									oe.onNext(audioDownload);
-								}
-							}, new Consumer<Throwable>() {
-								@Override
-								public void accept(Throwable throwable) throws Exception {
-									oe.onError(throwable);
-								}
-							});
-
-					oe.onComplete();
-				} catch (Exception e) {
-					oe.onError(e);
-				}
-			}
-		});
-	}
-
-	public void download(Music music, boolean playAfterDownload, boolean addToDatabase) {
-		final Context context = this;
-		final AudioDownload audioDownload = new AudioDownload(context, music, playAfterDownload, addToDatabase);
-
-		download(audioDownload, music, playAfterDownload, addToDatabase)
-				.observeOn(Schedulers.io())
+				})
+				.observeOn(AndroidSchedulers.mainThread())
 				.subscribeOn(Schedulers.io())
 				.subscribe();
+	}
+
+	private void createDownload(final AudioDownload audioDownload, final String toPath) {
+		getDownloader()
+				.enqueue(new Request(audioDownload.Music.getLastPlaybackUrl(), toPath))
+				.asObservable()
+				.observeOn(Schedulers.io())
+				.subscribeOn(Schedulers.io())
+				.subscribe(new Consumer<Download>() {
+					@Override
+					public void accept(Download download) throws Exception {
+						audioDownload.Download = download;
+					}
+				}, new Consumer<Throwable>() {
+					@Override
+					public void accept(Throwable throwable) throws Exception {
+
+					}
+				});
 	}
 
 	public void cancelDownload(int id) {
@@ -540,6 +641,19 @@ public class IOService extends Service {
 			getDownloader().cancel(audioDownload.Download.getId());
 
 			audioDownload.updateNotification();
+		}
+	}
+
+	public static void startIntentForScheduleDownload(final Context context, final String musicId) {
+		try {
+			Intent intent = new Intent(context.getApplicationContext(), IOService.class);
+
+			intent.setAction(IOService.ACTION_DOWNLOADER_SCHEDULE_AUDIO);
+			intent.putExtra(IOService.DOWNLOADER_SCHEDULE_MUSIC_ID, musicId);
+
+			context.getApplicationContext().startService(intent);
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
 
