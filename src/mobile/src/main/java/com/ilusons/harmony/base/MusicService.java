@@ -2115,6 +2115,23 @@ public class MusicService extends Service {
 				.apply();
 	}
 
+	//reion Intent
+
+	public static void startIntentForOpen(final Context context, final String musicId) {
+		try {
+			Intent intent = new Intent(context.getApplicationContext(), MusicService.class);
+
+			intent.setAction(MusicService.ACTION_OPEN);
+			intent.putExtra(MusicService.KEY_URI, musicId);
+
+			context.getApplicationContext().startService(intent);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	//endregion
+
 	public static String[] ExportableSPrefKeys = new String[]{
 			TAG_SPREF_PLAYER_EQ,
 			TAG_SPREF_PLAYER_EQ_ENABLED,

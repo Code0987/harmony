@@ -3,11 +3,13 @@ package com.ilusons.harmony.views;
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,6 +21,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -47,6 +51,7 @@ import com.tonyodev.fetch2.Fetch;
 import com.tonyodev.fetch2.Func;
 import com.wang.avi.AVLoadingIndicatorView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -232,22 +237,20 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 					@Override
 					public void onError(Throwable e) {
-						adapter.notifyDataSetChanged();
+						loadOnlinePlaylistTracks(true);
 
 						loading.smoothToHide();
 					}
 
 					@Override
 					public void onComplete() {
-						adapter.notifyDataSetChanged();
-
 						loading.smoothToHide();
 					}
 				});
 	}
 
 	private void searchTopTracks() {
-		final int N = 50;
+		final int N = 64;
 		final Context context = getContext();
 
 		if (AndroidEx.isNetworkAvailable(context)) {
@@ -280,52 +283,43 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 						@Override
 						public void onError(Throwable e) {
-							try {
-								adapter.clear(Collection.class);
-								adapter.add(Music.getAllSortedByScore(5));
-							} catch (Exception e2) {
-								e2.printStackTrace();
-							}
-
-							adapter.notifyDataSetChanged();
+							loadOnlinePlaylistTracks(true);
 
 							loading.smoothToHide();
 						}
 
 						@Override
 						public void onComplete() {
-							try {
-								adapter.clear(Collection.class);
-								adapter.add(Music.getAllSortedByScore(5));
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-
-							adapter.notifyDataSetChanged();
-
 							loading.smoothToHide();
 						}
 					});
 		} else {
-			loading.smoothToShow();
+			loadOnlinePlaylistTracks(true);
 
-			try {
-				adapter.clear(Collection.class);
-
-				Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
-				if (playlist != null) {
-					adapter.add(playlist.getItems());
-				}
-			} catch (Exception e2) {
-				e2.printStackTrace();
-			}
-
-			adapter.notifyDataSetChanged();
-
-			loading.smoothToHide();
-
-			info("Turn on your internet for updated music.");
+			info("Turn on your internet for new music.");
 		}
+	}
+
+	private void loadOnlinePlaylistTracks(boolean reset) {
+		loading.smoothToShow();
+
+		try {
+			if (reset)
+				adapter.clear(Music.class);
+
+			Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
+			if (playlist != null) {
+				for (Music item : playlist.getItems()) {
+					adapter.add(item);
+				}
+			}
+		} catch (Exception e2) {
+			e2.printStackTrace();
+		}
+
+		adapter.notifyDataSetChanged();
+
+		loading.smoothToHide();
 	}
 
 	public static class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -521,25 +515,65 @@ public class OnlineViewFragment extends BaseUIFragment {
 					public void onClick(View view) {
 						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
 
-						if (d.isLastPlaybackUrlUpdateNeeded()) {
-							IOService.startIntentForScheduleDownload(context, d.getPath());
-						} else {
-							try {
-								Intent intent = new Intent(context.getApplicationContext(), MusicService.class);
-
-								intent.setAction(MusicService.ACTION_OPEN);
-								intent.putExtra(MusicService.KEY_URI, d.getPath());
-
-								context.getApplicationContext().startService(intent);
-							} catch (Exception ex) {
-								ex.printStackTrace();
-							}
-						}
+						MusicService.startIntentForOpen(view.getContext(), d.getPath());
 					}
 				});
+				view.setOnLongClickListener(new View.OnLongClickListener() {
+					@Override
+					public boolean onLongClick(final View view) {
+
+						android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(new ContextThemeWrapper(view.getContext(), R.style.AppTheme_AlertDialogStyle));
+						builder.setTitle("Select?");
+						builder.setItems(new CharSequence[]{
+								"Download",
+								"Stream",
+						}, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int itemIndex) {
+								try {
+									switch (itemIndex) {
+										case 0:
+											IOService.startIntentForScheduleDownload(context, d.getPath());
+											break;
+										case 1:
+											if (MusicService.getPlayerType(view.getContext()) == MusicService.PlayerType.AndroidOS)
+												IOService.startIntentForUpdateStreamData(context, d.getPath());
+											else
+												fragment.info("Streaming is only supported in [" + MusicService.PlayerType.AndroidOS.getFriendlyName() + "] player. You can change it from Settings.");
+
+											break;
+									}
+								} catch (Exception e) {
+									Log.w(TAG, e);
+								}
+							}
+						});
+						android.app.AlertDialog dialog = builder.create();
+						dialog.show();
+
+						return true;
+					}
+				});
+				view.setLongClickable(true);
 			}
 		}
 
+	}
+
+	//endregion
+
+	//region Search
+
+	public void setSearchQuery(CharSequence q) {
+		if (TextUtils.isEmpty(q))
+			q = "";
+
+		if (searchView != null && !searchView.getQuery().equals(q))
+			searchView.setQuery(q, true);
+	}
+
+	public CharSequence getSearchQuery() {
+		return searchView != null ? searchView.getQuery() : "";
 	}
 
 	//endregion
@@ -628,6 +662,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 			holder.progress.setIndeterminate(true);
 			holder.text.setText(d.Music.getText());
 			if (d.Download != null) {
+				holder.progress.setIndeterminate(false);
+				holder.progress.setProgress(d.Download.getProgress());
 				holder.info.setText((new StringBuilder())
 						.append(d.Download.getStatus())
 						.append(" ")

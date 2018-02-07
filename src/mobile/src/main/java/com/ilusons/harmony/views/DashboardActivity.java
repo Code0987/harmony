@@ -100,8 +100,6 @@ public class DashboardActivity extends BaseUIActivity {
 	private View root;
 	private AVLoadingIndicatorView loading;
 
-	private PlaylistViewFragment playlistViewFragment;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -417,7 +415,10 @@ public class DashboardActivity extends BaseUIActivity {
 	@Override
 	public void OnSearchQueryReceived(String query) {
 		try {
-			if (playlistViewFragment != null) {
+			if (onlineViewFragment != null && onlineViewFragment.isVisible()) {
+				onlineViewFragment.setSearchQuery(query);
+			}
+			if (playlistViewFragment != null && playlistViewFragment.isVisible()) {
 				playlistViewFragment.setSearchQuery(query);
 			}
 		} catch (Exception e) {
@@ -563,6 +564,15 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		});
 
+		findViewById(R.id.about).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				AboutViewFragment.showAsDialog(DashboardActivity.this);
+
+				drawer_layout.closeDrawer(GravityCompat.START);
+			}
+		});
+
 		drawer_layout.closeDrawer(GravityCompat.START);
 
 	}
@@ -600,6 +610,9 @@ public class DashboardActivity extends BaseUIActivity {
 	private ViewPager viewPager;
 	private ViewPagerAdapter viewPagerAdapter;
 
+	private OnlineViewFragment onlineViewFragment;
+	private PlaylistViewFragment playlistViewFragment;
+
 	private void createTabs() {
 		tab_layout = findViewById(R.id.tab_layout);
 
@@ -610,10 +623,10 @@ public class DashboardActivity extends BaseUIActivity {
 
 		viewPager.setAdapter(viewPagerAdapter);
 
+		onlineViewFragment = OnlineViewFragment.create();
+		viewPagerAdapter.add(onlineViewFragment, "Online");
+
 		playlistViewFragment = PlaylistViewFragment.create();
-
-		viewPagerAdapter.add(OnlineViewFragment.create(), "Online");
-
 		viewPagerAdapter.add(playlistViewFragment, "Playlist");
 
 		tab_layout.setupWithViewPager(viewPager, true);

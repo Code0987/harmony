@@ -1,6 +1,5 @@
 package com.ilusons.harmony.base;
 
-import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -11,7 +10,6 @@ import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -199,6 +197,8 @@ public class IOService extends Service {
 							return;
 
 						Toast.makeText(IOService.this, "Audio stream started for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+						updateNotificationForUpdateStreamData(true);
 					}
 
 					@Override
@@ -219,20 +219,58 @@ public class IOService extends Service {
 								}
 							}
 
+							if (autoPlay)
+								MusicService.startIntentForOpen(IOService.this, music.getPath());
+
 						} else {
 							Toast.makeText(IOService.this, "Audio stream failed for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
 						}
+
+						updateNotificationForUpdateStreamData(true);
 					}
 
 					@Override
 					public void onError(Throwable e) {
 						Toast.makeText(IOService.this, "Audio stream failed for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+						updateNotificationForUpdateStreamData(false);
 					}
 
 					@Override
 					public void onComplete() {
+						updateNotificationForUpdateStreamData(false);
 					}
 				});
+	}
+
+	private final int NOTIFICATION_ID_UPDATE_STREAM_DATA = 1256;
+	private NotificationCompat.Builder nb_update_stream_data;
+
+	protected void updateNotificationForUpdateStreamData(final boolean isActive) {
+		if (nb_update_stream_data == null) {
+			nb_update_stream_data = new NotificationCompat.Builder(this)
+					.setContentTitle("Streaming ...")
+					.setContentText("Streaming ...")
+					.setSmallIcon(R.drawable.ic_cloud_download)
+					.setOngoing(true)
+					.setProgress(100, 0, true);
+
+			NotificationManagerCompat.from(this).notify(NOTIFICATION_ID_UPDATE_STREAM_DATA, nb_update_stream_data.build());
+		}
+
+		if (isActive) {
+			if (nb_update_stream_data == null)
+				return;
+
+			NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID_UPDATE_STREAM_DATA);
+
+			nb_update_stream_data = null;
+		} else {
+			nb_update_stream_data.setContentText("Finding available stream ...");
+
+			NotificationManagerCompat.from(this).notify(NOTIFICATION_ID_UPDATE_STREAM_DATA, nb_update_stream_data.build());
+		}
+
 	}
 
 	public static void startIntentForUpdateStreamData(final Context context, final String musicId) {
@@ -390,16 +428,7 @@ public class IOService extends Service {
 				}
 
 			if (audioDownload.PlayAfterDownload)
-				try {
-					Intent intent = new Intent(audioDownload.context.getApplicationContext(), MusicService.class);
-
-					intent.setAction(MusicService.ACTION_OPEN);
-					intent.putExtra(MusicService.KEY_URI, audioDownload.Music.getPath());
-
-					audioDownload.context.getApplicationContext().startService(intent);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+				MusicService.startIntentForOpen(audioDownload.context, audioDownload.Music.getPath());
 
 			audioDownload.updateNotification();
 
@@ -440,7 +469,7 @@ public class IOService extends Service {
 
 			audioDownload.updateNotification();
 
-			Toast.makeText(audioDownload.context, "Download FAILED for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
+			Toast.makeText(audioDownload.context, "Download cancelled for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
 
 		@Override
@@ -451,7 +480,7 @@ public class IOService extends Service {
 
 			audioDownload.updateNotification();
 
-			Toast.makeText(audioDownload.context, "Download FAILED for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
+			Toast.makeText(audioDownload.context, "Download removed for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
 
 		@Override
@@ -462,7 +491,7 @@ public class IOService extends Service {
 
 			audioDownload.updateNotification();
 
-			Toast.makeText(audioDownload.context, "Download FAILED for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
+			Toast.makeText(audioDownload.context, "Download deleted for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
 	};
 
@@ -638,7 +667,8 @@ public class IOService extends Service {
 				break;
 			}
 		if (audioDownload != null) {
-			getDownloader().cancel(audioDownload.Download.getId());
+			getDownloader().remove(audioDownload.Download.getId());
+			audioDownloads.remove(audioDownload);
 
 			audioDownload.updateNotification();
 		}

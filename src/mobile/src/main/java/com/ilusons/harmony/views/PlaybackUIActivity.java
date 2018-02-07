@@ -1550,9 +1550,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	private void updateControls() {
 		if (!getMusicService().getMusic().isLocal()) {
-			position_start.setVisibility(View.INVISIBLE);
-			position_end.setVisibility(View.INVISIBLE);
-			seekBar.setVisibility(View.INVISIBLE);
+			position_start.setVisibility(View.GONE);
+			position_end.setVisibility(View.GONE);
+			seekBar.setVisibility(View.GONE);
 
 			if (progressHandlerRunnable != null)
 				handler.removeCallbacks(progressHandlerRunnable);

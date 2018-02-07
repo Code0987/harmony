@@ -6,6 +6,7 @@ import android.content.res.Resources;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -36,7 +37,9 @@ public class FragmentDialogActivity extends AppCompatActivity {
 			getSupportActionBar().hide();
 
 		if (savedInstanceState == null) {
-			Fragment fragment = Fragment.instantiate(this, getIntent().getStringExtra(FRAGMENT_CLASS));
+			ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(this, R.style.AppTheme);
+
+			Fragment fragment = Fragment.instantiate(contextThemeWrapper, getIntent().getStringExtra(FRAGMENT_CLASS));
 
 			fragment.setArguments(getIntent().getBundleExtra(FRAGMENT_ARGUMENTS));
 
