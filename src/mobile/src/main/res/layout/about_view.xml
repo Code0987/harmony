@@ -19,6 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         >
 
@@ -26,7 +27,6 @@
             android:id="@+id/logo"
             android:layout_width="256dp"
             android:layout_height="256dp"
-            android:layout_marginStart="-32dp"
             android:layout_marginTop="-96dp"
             android:alpha="0.7"
             android:scaleType="fitXY"
@@ -53,15 +53,15 @@
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="6dp"
+            android:layout_margin="12dp"
             android:descendantFocusability="beforeDescendants"
             android:focusableInTouchMode="true"
             >
 
             <com.airbnb.lottie.LottieAnimationView
                 android:id="@+id/about_animation_view"
-                android:layout_width="192dp"
-                android:layout_height="192dp"
+                android:layout_width="124dp"
+                android:layout_height="124dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_gravity="center"
@@ -128,31 +128,17 @@
                 />
 
             <Button
-                android:id="@+id/about_license"
+                android:id="@+id/about_info"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:padding="5dp"
-                android:text="Licenses"
-                android:textSize="12sp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/about_copyright"
-                />
-
-            <Button
-                android:id="@+id/about_info"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:padding="5dp"
                 android:text="Information"
                 android:textSize="12sp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/about_license"
+                app:layout_constraintTop_toBottomOf="@id/about_copyright"
                 />
 
             <Button
@@ -167,6 +153,34 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/about_info"
+                />
+
+            <Button
+                android:id="@+id/about_license"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:padding="5dp"
+                android:text="Licenses"
+                android:textSize="12sp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/about_release_notes"
+                />
+
+            <Button
+                android:id="@+id/about_credits"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:padding="5dp"
+                android:text="Credits, copyrights &amp; logos"
+                android:textSize="12sp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/about_license"
                 />
 
         </android.support.constraint.ConstraintLayout>

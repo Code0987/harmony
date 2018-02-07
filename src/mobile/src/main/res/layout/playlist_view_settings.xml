@@ -9,8 +9,6 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:background="@drawable/bg_dialog"
-    android:clipChildren="true"
-    android:clipToPadding="true"
     android:fadeScrollbars="true"
     android:gravity="center_horizontal"
     android:minWidth="280dp"
