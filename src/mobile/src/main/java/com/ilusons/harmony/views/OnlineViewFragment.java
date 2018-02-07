@@ -37,6 +37,7 @@ import com.ilusons.harmony.base.IOService;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
+import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.JavaEx;
@@ -249,61 +250,82 @@ public class OnlineViewFragment extends BaseUIFragment {
 		final int N = 50;
 		final Context context = getContext();
 
-		Analytics.getTopTracksForLastfm(getContext())
-				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
-					@Override
-					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-						return Analytics.convertToLocal(context, tracks, N, true);
-					}
-				})
-				.subscribeOn(Schedulers.io())
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Observer<Collection<Music>>() {
-					@Override
-					public void onSubscribe(Disposable d) {
-						loading.smoothToShow();
-					}
+		if (AndroidEx.isNetworkAvailable(context)) {
+			Analytics.getTopTracksForLastfm(getContext())
+					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+						@Override
+						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+							return Analytics.convertToLocal(context, tracks, N, true);
+						}
+					})
+					.subscribeOn(Schedulers.io())
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribe(new Observer<Collection<Music>>() {
+						@Override
+						public void onSubscribe(Disposable d) {
+							loading.smoothToShow();
+						}
 
-					@Override
-					public void onNext(Collection<Music> r) {
-						try {
-							adapter.clear(Music.class);
-							for (Music m : r) {
-								adapter.add(m);
+						@Override
+						public void onNext(Collection<Music> r) {
+							try {
+								adapter.clear(Music.class);
+								for (Music m : r) {
+									adapter.add(m);
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-
-					@Override
-					public void onError(Throwable e) {
-						try {
-							adapter.clear(Collection.class);
-							adapter.add(Music.getAllSortedByScore(5));
-						} catch (Exception e2) {
-							e2.printStackTrace();
 						}
 
-						adapter.notifyDataSetChanged();
+						@Override
+						public void onError(Throwable e) {
+							try {
+								adapter.clear(Collection.class);
+								adapter.add(Music.getAllSortedByScore(5));
+							} catch (Exception e2) {
+								e2.printStackTrace();
+							}
 
-						loading.smoothToHide();
-					}
+							adapter.notifyDataSetChanged();
 
-					@Override
-					public void onComplete() {
-						try {
-							adapter.clear(Collection.class);
-							adapter.add(Music.getAllSortedByScore(5));
-						} catch (Exception e) {
-							e.printStackTrace();
+							loading.smoothToHide();
 						}
 
-						adapter.notifyDataSetChanged();
+						@Override
+						public void onComplete() {
+							try {
+								adapter.clear(Collection.class);
+								adapter.add(Music.getAllSortedByScore(5));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 
-						loading.smoothToHide();
-					}
-				});
+							adapter.notifyDataSetChanged();
+
+							loading.smoothToHide();
+						}
+					});
+		} else {
+			loading.smoothToShow();
+
+			try {
+				adapter.clear(Collection.class);
+
+				Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
+				if (playlist != null) {
+					adapter.add(playlist.getItems());
+				}
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+
+			adapter.notifyDataSetChanged();
+
+			loading.smoothToHide();
+
+			info("Turn on your internet for updated music.");
+		}
 	}
 
 	public static class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {

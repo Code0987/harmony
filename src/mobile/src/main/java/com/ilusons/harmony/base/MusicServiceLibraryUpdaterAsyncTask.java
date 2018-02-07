@@ -120,6 +120,9 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 					// Scan all
 					scanAll();
 
+					// Scan online
+					scanOnline();
+
 					updateNotification("Final scan completed.", true);
 
 					Log.d(TAG, "Library update from all took " + (System.currentTimeMillis() - time) + "ms");
@@ -314,6 +317,61 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				public void execute(@NonNull Realm realm) {
 					playlist.clear();
 					playlist.addAll(realm.where(Music.class).findAll());
+					realm.insertOrUpdate(playlist);
+				}
+			});
+
+			Playlist.update(
+					context,
+					playlist,
+					true,
+					new JavaEx.ActionExT<String>() {
+						@Override
+						public void execute(String s) throws Exception {
+							if (isCancelled())
+								throw new Exception("Canceled by user");
+
+							updateNotification(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
+						}
+					})
+					.subscribe(new Consumer<Playlist>() {
+						@Override
+						public void accept(Playlist playlist) throws Exception {
+
+						}
+					}, new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+
+						}
+					});
+		}
+
+		Playlist.savePlaylist(playlist);
+	}
+
+	private void scanOnline() {
+		if (isCancelled())
+			return;
+
+		Context context = contextRef.get();
+		if (context == null)
+			return;
+
+		updateNotification("Updating [" + Playlist.KEY_PLAYLIST_ONLINE + "] ...", true);
+
+		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
+
+		try (Realm realm = Music.getDB()) {
+			if (realm == null)
+				return;
+			realm.executeTransaction(new Realm.Transaction() {
+				@Override
+				public void execute(@NonNull Realm realm) {
+					playlist.clear();
+					for (Music item : realm.where(Music.class).findAll())
+						if (!item.isLocal())
+							playlist.add(item);
 					realm.insertOrUpdate(playlist);
 				}
 			});
