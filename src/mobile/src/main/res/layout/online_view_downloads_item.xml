@@ -9,17 +9,24 @@
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    android:padding="12dp">
+    android:paddingBottom="3dp"
+    android:paddingEnd="6dp"
+    android:paddingStart="6dp"
+    android:paddingTop="6dp">
 
     <ProgressBar
         android:id="@+id/progress"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:layout_width="0dp"
-        android:layout_height="6dp"
-        android:indeterminate="true"
+        android:layout_height="0dp"
+        android:layout_margin="0dp"
+        android:indeterminate="false"
+        android:padding="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        tools:progress="75"
         />
 
     <TextView
@@ -31,10 +38,10 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/primary_text"
-        android:textSize="14sp"
+        android:textSize="13sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/stop"
-        app:layout_constraintTop_toBottomOf="@+id/progress"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="Text"
         />
 
@@ -60,15 +67,16 @@
         style="@android:style/Widget.Material.Light.Button.Borderless.Small"
         android:layout_width="36dp"
         android:layout_height="36dp"
+        android:layout_margin="3dp"
         android:background="@null"
-        android:padding="3dp"
+        android:padding="0dp"
         android:scaleType="fitXY"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:tint="@android:color/holo_red_light"
         android:tintMode="src_in"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progress"/>
+        app:layout_constraintTop_toTopOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>
 

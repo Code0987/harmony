@@ -283,9 +283,6 @@ public class SettingsActivity extends BaseActivity {
 		TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
 		tabs.setupWithViewPager(viewPager);
 
-		// About section
-		onCreateBindAboutSection();
-
 		// UI section
 		onCreateBindUISection();
 
@@ -460,88 +457,6 @@ public class SettingsActivity extends BaseActivity {
 				}))
 				.show();
 	}
-
-	//region About section
-
-	private void onCreateBindAboutSection() {
-
-		((TextView) findViewById(R.id.about_version)).setText(BuildConfig.VERSION_NAME);
-
-		findViewById(R.id.about_license).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (isFinishing())
-					return;
-
-				String content;
-				try (InputStream is = getResources().openRawResource(R.raw.license)) {
-					content = IOUtils.toString(is, "UTF-8");
-				} catch (Exception e) {
-					e.printStackTrace();
-
-					content = "Error loading data!";
-				}
-
-				(new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
-						.setTitle("Licenses")
-						.setMessage(content)
-						.setCancelable(false)
-						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialogInterface, int i) {
-								dialogInterface.dismiss();
-							}
-						}))
-						.show();
-			}
-		});
-
-		findViewById(R.id.about_info).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (isFinishing())
-					return;
-
-				String content;
-				try (InputStream is = getResources().openRawResource(R.raw.gps_listing)) {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-						content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>"), Html.FROM_HTML_MODE_LEGACY).toString();
-					} else {
-						content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>")).toString();
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-
-					content = "Error loading data!";
-				}
-
-				(new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle))
-						.setTitle("Information")
-						.setMessage(content)
-						.setCancelable(false)
-						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialogInterface, int i) {
-								dialogInterface.dismiss();
-							}
-						}))
-						.show();
-			}
-		});
-
-		findViewById(R.id.about_release_notes).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (isFinishing())
-					return;
-
-				showReleaseNotesDialog(SettingsActivity.this);
-			}
-		});
-
-	}
-
-	//endregion
 
 	//region UI section
 
