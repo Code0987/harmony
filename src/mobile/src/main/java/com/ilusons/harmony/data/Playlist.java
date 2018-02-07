@@ -61,6 +61,7 @@ public class Playlist extends RealmObject {
 	public static final String KEY_PLAYLIST_ALL = "all";
 	public static final String KEY_PLAYLIST_MEDIASTORE = "mediastore";
 	public static final String KEY_PLAYLIST_STORAGE = "storage";
+	public static final String KEY_PLAYLIST_ONLINE = "online";
 
 	@PrimaryKey
 	private String Name;

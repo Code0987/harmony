@@ -11,6 +11,8 @@ import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -260,5 +262,18 @@ public class AndroidEx {
 	}
 
 	//endregion
+
+	//region Network
+
+	public static boolean isNetworkAvailable(final Context context) {
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetworkInfo = null;
+		if (connectivityManager != null) {
+			activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		}
+		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+	}
+
+	//endnetwork
 
 }

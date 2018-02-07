@@ -1549,11 +1549,26 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	private Runnable progressHandlerRunnable;
 
 	private void updateControls() {
+		if (!getMusicService().getMusic().isLocal()) {
+			position_start.setVisibility(View.INVISIBLE);
+			position_end.setVisibility(View.INVISIBLE);
+			seekBar.setVisibility(View.INVISIBLE);
+
+			if (progressHandlerRunnable != null)
+				handler.removeCallbacks(progressHandlerRunnable);
+
+			return;
+		} else {
+			position_start.setVisibility(View.VISIBLE);
+			position_end.setVisibility(View.VISIBLE);
+			seekBar.setVisibility(View.VISIBLE);
+
+			if (progressHandlerRunnable != null)
+				handler.removeCallbacks(progressHandlerRunnable);
+		}
+
 		seekBar.setMax(getMusicService().getDuration());
 		position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "mm:ss", false));
-
-		if (progressHandlerRunnable != null)
-			handler.removeCallbacks(progressHandlerRunnable);
 
 		final int dt = (int) (1000.0 / 24.0);
 
