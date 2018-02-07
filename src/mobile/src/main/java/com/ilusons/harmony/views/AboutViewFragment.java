@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
@@ -43,6 +44,8 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
 
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
+
 public class AboutViewFragment extends Fragment {
 
 	// Logger TAG
@@ -53,8 +56,11 @@ public class AboutViewFragment extends Fragment {
 	@Nullable
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+		// Context
+		ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(getContext(), R.style.AppTheme);
+
 		// Set view
-		View v = inflater.inflate(R.layout.about_view, container, false);
+		View v = inflater.cloneInContext(contextThemeWrapper).inflate(R.layout.about_view, container, false);
 
 		// Set views
 		root = v.findViewById(R.id.root);
@@ -65,6 +71,7 @@ public class AboutViewFragment extends Fragment {
 	}
 
 	private void createAbout(final View v) {
+		/*
 		try {
 			LottieAnimationView about_animation_view = v.findViewById(R.id.about_animation_view);
 			about_animation_view.pauseAnimation();
@@ -77,6 +84,7 @@ public class AboutViewFragment extends Fragment {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		*/
 
 		((TextView) v.findViewById(R.id.about_version)).setText(BuildConfig.VERSION_NAME);
 
@@ -143,6 +151,31 @@ public class AboutViewFragment extends Fragment {
 			}
 		});
 
+		v.findViewById(R.id.about_credits).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				showAboutCredits();
+			}
+		});
+
+	}
+
+	private void showAboutCredits() {
+		try {
+			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
+					.inflate(R.layout.about_credits, null);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
+			builder.setView(v);
+
+			AlertDialog alert = builder.create();
+
+			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
+
+			alert.show();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void showAsDialog(Context context) {
