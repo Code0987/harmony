@@ -37,7 +37,7 @@ import android.widget.TextView;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIFragment;
-import com.ilusons.harmony.base.IOService;
+import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
@@ -533,11 +533,11 @@ public class OnlineViewFragment extends BaseUIFragment {
 								try {
 									switch (itemIndex) {
 										case 0:
-											IOService.startIntentForScheduleDownload(context, d.getPath());
+											fragment.getMusicService().download(d);
 											break;
 										case 1:
 											if (MusicService.getPlayerType(view.getContext()) == MusicService.PlayerType.AndroidOS)
-												IOService.startIntentForUpdateStreamData(context, d.getPath());
+												fragment.getMusicService().stream(d);
 											else
 												fragment.info("Streaming is only supported in [" + MusicService.PlayerType.AndroidOS.getFriendlyName() + "] player. You can change it from Settings.");
 
@@ -582,7 +582,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 	private void toggleDownloads() {
 		try {
-			if (getIOService() == null) {
+			if (getMusicService() == null) {
 				info("IO service is not running!");
 				return;
 			}
@@ -634,7 +634,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 	public class DownloadsRecyclerViewAdapter extends RecyclerView.Adapter<DownloadsRecyclerViewAdapter.ViewHolder> {
 
-		private final ArrayList<IOService.AudioDownload> data;
+		private final ArrayList<MusicService.AudioDownload> data;
 
 		public DownloadsRecyclerViewAdapter() {
 			data = new ArrayList<>();
@@ -656,7 +656,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 		@Override
 		public void onBindViewHolder(final ViewHolder holder, int position) {
-			final IOService.AudioDownload d = data.get(position);
+			final MusicService.AudioDownload d = data.get(position);
 			final View v = holder.view;
 
 			holder.progress.setIndeterminate(true);
@@ -676,13 +676,23 @@ public class OnlineViewFragment extends BaseUIFragment {
 			holder.stop.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					if (getIOService() == null)
+					if (getMusicService() == null)
 						return;
 
 					if (d.Download == null)
 						return;
 
-					getIOService().cancelDownload(d.Download.getId());
+					getMusicService().cancelDownload(d.Download.getId());
+				}
+			});
+
+			v.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					if (d.Download.getProgress() == 100)
+						MusicService.startIntentForOpen(view.getContext(), d.Music.getPath());
+					else
+						info("Not completed yet!");
 				}
 			});
 
@@ -709,12 +719,12 @@ public class OnlineViewFragment extends BaseUIFragment {
 		}
 
 		public void refresh() {
-			if (getIOService() == null)
+			if (getMusicService() == null)
 				return;
 
 			data.clear();
 
-			data.addAll(getIOService().getAudioDownloads());
+			data.addAll(getMusicService().getAudioDownloads());
 
 			notifyDataSetChanged();
 		}

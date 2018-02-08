@@ -56,8 +56,6 @@ public class BaseActivity extends AppCompatActivity {
 		// Start service
 		startService(new Intent(this, MusicService.class));
 
-		createIOService();
-
 		super.onCreate(savedInstanceState);
 
 	}
@@ -84,8 +82,6 @@ public class BaseActivity extends AppCompatActivity {
 		Intent intent = new Intent(getApplicationContext(), MusicService.class);
 		bindService(intent, musicServiceConnection, Context.BIND_AUTO_CREATE);
 
-		bindIOService();
-
 	}
 
 	@Override
@@ -98,9 +94,7 @@ public class BaseActivity extends AppCompatActivity {
 			unbindService(musicServiceConnection);
 			isMusicServiceBound = false;
 		}
-
-		unbindIOService();
-
+		
 	}
 
 	public MusicService getMusicService() {
@@ -112,56 +106,6 @@ public class BaseActivity extends AppCompatActivity {
 	protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
 
 	}
-
-	//region IO service
-
-	private IOService ioService;
-	private boolean isIOServiceBound = false;
-	ServiceConnection ioServiceConnection = new ServiceConnection() {
-		@Override
-		public void onServiceConnected(ComponentName className, IBinder service) {
-			IOService.ServiceBinder binder = (IOService.ServiceBinder) service;
-			ioService = binder.getService();
-			isIOServiceBound = true;
-
-			OnIOServiceChanged(className, ioService, isIOServiceBound);
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName className) {
-			isIOServiceBound = false;
-
-			OnIOServiceChanged(className, ioService, isIOServiceBound);
-		}
-	};
-
-	private void createIOService() {
-		getApplicationContext().startService(new Intent(this, IOService.class));
-	}
-
-	private void bindIOService() {
-		Intent intent = new Intent(getApplicationContext(), IOService.class);
-		getApplicationContext().bindService(intent, ioServiceConnection, Context.BIND_AUTO_CREATE);
-	}
-
-	private void unbindIOService() {
-		if (isIOServiceBound) {
-			getApplicationContext().unbindService(ioServiceConnection);
-			isIOServiceBound = false;
-		}
-	}
-
-	public IOService getIOService() {
-		if (ioService == null)
-			return null;
-		return ioService;
-	}
-
-	protected void OnIOServiceChanged(ComponentName className, IOService ioService, boolean isBound) {
-
-	}
-
-	//endregion
 
 	/**
 	 * Shows toast or snack bar as per appropriate

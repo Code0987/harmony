@@ -23,13 +23,6 @@ public class BaseUIFragment extends Fragment {
 			return null;
 	}
 
-	public IOService getIOService() {
-		if (getBaseUIActivity() != null)
-			return getBaseUIActivity().getIOService();
-		else
-			return null;
-	}
-
 	public void info(String s) {
 		try {
 			if (getBaseUIActivity() != null)
