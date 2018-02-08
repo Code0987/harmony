@@ -515,7 +515,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 					public void onClick(View view) {
 						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
 
-						MusicService.startIntentForOpen(view.getContext(), d.getPath());
+						fragment.getMusicService().open(d);
 					}
 				});
 				view.setOnLongClickListener(new View.OnLongClickListener() {
@@ -690,7 +690,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 				@Override
 				public void onClick(View view) {
 					if (d.Download.getProgress() == 100)
-						MusicService.startIntentForOpen(view.getContext(), d.Music.getPath());
+						getMusicService().open(d.Music);
 					else
 						info("Not completed yet!");
 				}

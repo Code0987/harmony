@@ -23,6 +23,7 @@ import com.ilusons.harmony.avfx.BarsView;
 import com.ilusons.harmony.avfx.BaseAVFXCanvasView;
 import com.ilusons.harmony.avfx.BaseAVFXGLView;
 import com.ilusons.harmony.avfx.CircleBarsView;
+import com.ilusons.harmony.avfx.CircleDotsView;
 import com.ilusons.harmony.avfx.CirclesView;
 import com.ilusons.harmony.avfx.DotsView;
 import com.ilusons.harmony.avfx.FFTView;
@@ -456,6 +457,14 @@ public class AudioVFXViewFragment extends Fragment {
 					root.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.lomo));
 					break;
 
+				case CircleDots:
+					CircleDotsView circleDots = new CircleDotsView(getActivity());
+
+					root.addView(circleDots);
+
+					fftCanvasView = circleDots;
+					break;
+
 				case Dots:
 					DotsView dots = new DotsView(getActivity());
 
@@ -534,6 +543,7 @@ public class AudioVFXViewFragment extends Fragment {
 		Bars("Bars"),
 		Particles("Particles"),
 		Circles("Circles"),
+		CircleDots("CircleDots"),
 		Dots("Dots"),
 		CircleBars("CircleBars");
 

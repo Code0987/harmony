@@ -1971,6 +1971,19 @@ public class MusicService extends Service {
 	}
 
 	public void open(final Music music) {
+		try (Realm realm = Music.getDB()) {
+			if (realm != null) {
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(@NonNull Realm realm) {
+						realm.insertOrUpdate(music);
+					}
+				});
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		open(music.getPath());
 	}
 
@@ -2194,7 +2207,7 @@ public class MusicService extends Service {
 							}
 
 							if (autoPlay)
-								open(music);
+								open(music.getPath());
 
 						} else {
 							Toast.makeText(MusicService.this, "Audio stream failed for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
@@ -2396,7 +2409,7 @@ public class MusicService extends Service {
 									}
 
 								if (audioDownload.PlayAfterDownload)
-									open(audioDownload.Music);
+									open(audioDownload.Music.getPath());
 
 								audioDownload.updateNotification();
 
