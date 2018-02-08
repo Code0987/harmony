@@ -13,7 +13,8 @@
     android:layout_marginTop="24dp"
     android:background="@drawable/bg_dialog"
     android:clipChildren="false"
-    android:clipToPadding="false">
+    android:clipToPadding="false"
+    android:minWidth="300dp">
 
     <FrameLayout
         android:layout_width="wrap_content"
@@ -41,13 +42,13 @@
         android:clipChildren="true"
         android:clipToPadding="true"
         android:descendantFocusability="beforeDescendants"
-        android:fadeScrollbars="false"
+        android:fadeScrollbars="true"
         android:focusableInTouchMode="true"
         android:gravity="center"
         android:orientation="vertical"
-        android:scrollbarAlwaysDrawVerticalTrack="true"
-        android:scrollbarFadeDuration="0"
-        android:scrollbars="none"
+        android:scrollbarAlwaysDrawVerticalTrack="false"
+        android:scrollbarFadeDuration="183"
+        android:scrollbars="vertical"
         >
 
         <android.support.constraint.ConstraintLayout
@@ -174,6 +175,7 @@
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
                 android:layout_marginTop="8dp"
                 android:padding="5dp"
                 android:text="Credits, copyrights &amp; logos"

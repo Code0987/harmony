@@ -11,11 +11,14 @@ import com.crashlytics.android.core.CrashlyticsCore;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
+import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.RealmEx;
 import com.squareup.leakcanary.LeakCanary;
 
 import io.fabric.sdk.android.Fabric;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import jonathanfinerty.once.Once;
 
 public class App extends Application {
@@ -60,11 +63,14 @@ public class App extends Application {
 				.build();
 		Fabric.with(this, crashlyticsKit);
 
-		// Firebase
-
 		// DB
-		RealmEx.init(this);
+		try {
+			Realm.init(this);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
+		// Prefs
 		Once.initialise(this);
 
 		// Analytics

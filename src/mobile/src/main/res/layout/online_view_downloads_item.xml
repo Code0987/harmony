@@ -15,7 +15,7 @@
     android:clickable="true"
     android:focusable="true"
     app:cardBackgroundColor="@color/translucent_dark"
-    app:cardCornerRadius="1dp"
+    app:cardCornerRadius="5dp"
     app:cardElevation="3dp"
     >
 
@@ -78,8 +78,10 @@
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="0dp"
             android:layout_height="4dp"
+            android:layout_marginBottom="3dp"
             android:layout_marginEnd="3dp"
             android:layout_marginStart="3dp"
+            android:layout_marginTop="3dp"
             android:indeterminate="false"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"

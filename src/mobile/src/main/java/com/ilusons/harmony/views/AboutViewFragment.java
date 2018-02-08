@@ -165,7 +165,7 @@ public class AboutViewFragment extends Fragment {
 			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
 					.inflate(R.layout.about_credits, null);
 
-			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
+			AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.AppTheme_AlertDialogStyle);
 			builder.setView(v);
 
 			AlertDialog alert = builder.create();

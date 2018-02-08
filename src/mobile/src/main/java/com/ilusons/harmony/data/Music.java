@@ -1114,60 +1114,32 @@ public class Music extends RealmObject {
 	private static RealmConfiguration realmConfiguration;
 
 	public static RealmConfiguration getDBConfig() {
-		if (realmConfiguration == null)
+		if (realmConfiguration == null) {
 			realmConfiguration = new RealmConfiguration.Builder()
 					.name("music.realm")
 					.deleteRealmIfMigrationNeeded()
 					.build();
+		}
 		return realmConfiguration;
 	}
 
 	public static Realm getDB() {
+		Realm realm = null;
 		try {
-			Realm.setDefaultConfiguration(getDBConfig());
-			return Realm.getDefaultInstance();
+			realm = Realm.getInstance(getDBConfig());
+
+			Log.i(TAG, "Realm: " + realm.getPath() + " " + realm.getVersion());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return realm;
 	}
 
-	public static void getDBOnLooper(Looper looper, final JavaEx.ActionT<Realm> action) {
-		(new Handler(looper))
-				.post(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							Realm realm = Realm.getInstance(getDBConfig());
-							realm.refresh();
-							action.execute(realm);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				});
-	}
-
-	public static void getDBOnMainLooper(final JavaEx.ActionT<Realm> action) {
-		(new Handler(Looper.getMainLooper()))
-				.post(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							Realm realm = Realm.getInstance(getDBConfig());
-							realm.refresh();
-							action.execute(realm);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				});
-	}
-
-	public static Music get(Realm realm, String path) {
+	public static Music get(Realm realm, final String path) {
 		Music data = null;
 		if (realm != null) {
 			data = realm.where(Music.class).equalTo("Path", path).findFirst();
+
 		}
 		return data;
 	}
