@@ -725,16 +725,6 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		});
 
-		random = findViewById(R.id.random);
-		random.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (getMusicService() == null) return;
-
-				getMusicService().random();
-			}
-		});
-
 		progress = findViewById(R.id.progress);
 
 		final View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -792,7 +782,7 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		};
 
-		parallax_layout.setOnTouchListener(touchListener);
+		findViewById(R.id.touch_layout).setOnTouchListener(touchListener);
 
 	}
 
