@@ -348,7 +348,7 @@
         android:layout_margin="0dp"
         android:padding="0dp"
         android:visibility="visible"
-        app:indicatorColor="@color/accent"
+        app:indicatorColor="@color/icons"
         app:indicatorName="BallClipRotateMultipleIndicator"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

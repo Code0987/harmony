@@ -53,6 +53,7 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -1276,19 +1277,8 @@ public class MusicService extends Service {
 		return currentMusic;
 	}
 
-	public Music setMusic() {
-		try {
-			final String path = getPlaylist().getItem().getPath();
-
-			try (Realm realm = Music.getDB()) {
-				if (realm != null) {
-					currentMusic = realm.copyFromRealm(Music.get(realm, path));
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return currentMusic;
+	private void setMusic(Music music) {
+		currentMusic = music;
 	}
 
 	//endregion
@@ -1346,22 +1336,48 @@ public class MusicService extends Service {
 		synchronized (this) {
 			isPrepared = false;
 
-			if (setMusic() == null)
+			Music newMusic = null;
+			try {
+				final String path = getPlaylist().getItem().getPath();
+				try (Realm realm = Music.getDB()) {
+					if (realm != null) {
+						newMusic = realm.copyFromRealm(Music.get(realm, path));
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			if (newMusic == null)
 				return;
 
+			if (getMusic().equals(newMusic) && newMusic.isLastPlaybackUrlUpdateNeeded()) {
+				Toast.makeText(MusicService.this, getMusic().getText() + " cannot be played. Please restart manually!", Toast.LENGTH_LONG).show();
+
+				return;
+			}
+
+			setMusic(newMusic);
+
 			if (getMusic().isLastPlaybackUrlUpdateNeeded()) {
-				switch (getPlayerType(this)) {
-					case OpenSL:
-						download(getMusic());
+				if (AndroidEx.isNetworkAvailable(this)) {
+					switch (getPlayerType(this)) {
+						case OpenSL:
+							download(getMusic());
 
-						Toast.makeText(MusicService.this, getMusic().getText() + " will be played shortly. Downloading audio!", Toast.LENGTH_LONG).show();
-						break;
-					case AndroidOS:
-					default:
-						stream(getMusic());
+							Toast.makeText(MusicService.this, getMusic().getText() + " will be played shortly. Downloading audio!", Toast.LENGTH_LONG).show();
+							break;
+						case AndroidOS:
+						default:
+							stream(getMusic());
 
-						Toast.makeText(MusicService.this, getMusic().getText() + " will be played shortly. Streaming audio!", Toast.LENGTH_LONG).show();
-						break;
+							Toast.makeText(MusicService.this, getMusic().getText() + " will be played shortly. Streaming audio!", Toast.LENGTH_LONG).show();
+							break;
+					}
+				} else {
+					Toast.makeText(MusicService.this, getMusic().getText() + " requires internet! Skipping!", Toast.LENGTH_LONG).show();
+
+					nextSmart(true);
 				}
 			} else {
 				prepareB(onPrepare);
@@ -1970,21 +1986,26 @@ public class MusicService extends Service {
 		}
 	}
 
-	public void open(final Music music) {
-		try (Realm realm = Music.getDB()) {
-			if (realm != null) {
-				realm.executeTransaction(new Realm.Transaction() {
-					@Override
-					public void execute(@NonNull Realm realm) {
-						realm.insertOrUpdate(music);
-					}
-				});
+	public void open(final Music music, final boolean insertOrUpdate) {
+		if (insertOrUpdate)
+			try (Realm realm = Music.getDB()) {
+				if (realm != null) {
+					realm.executeTransaction(new Realm.Transaction() {
+						@Override
+						public void execute(@NonNull Realm realm) {
+							realm.insertOrUpdate(music);
+						}
+					});
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		open(music.getPath());
+	}
+
+	public void open(final Music music) {
+		open(music, true);
 	}
 
 	public static void startIntentForOpen(final Context context, final String musicId) {
@@ -2207,7 +2228,7 @@ public class MusicService extends Service {
 							}
 
 							if (autoPlay)
-								open(music.getPath());
+								open(music);
 
 						} else {
 							Toast.makeText(MusicService.this, "Audio stream failed for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
@@ -2409,7 +2430,7 @@ public class MusicService extends Service {
 									}
 
 								if (audioDownload.PlayAfterDownload)
-									open(audioDownload.Music.getPath());
+									open(audioDownload.Music);
 
 								audioDownload.updateNotification();
 

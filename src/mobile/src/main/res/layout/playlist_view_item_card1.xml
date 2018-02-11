@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="96dp"
+    android:layout_height="wrap_content"
     android:layout_marginBottom="1dp"
     android:layout_marginEnd="1dp"
     android:layout_marginStart="1dp"
@@ -20,70 +20,64 @@
     app:cardElevation="0dp"
     >
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         >
 
-        <ImageView
-            android:id="@+id/cover"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:background="@drawable/lomo"
-            android:scaleType="centerInside"
-            android:src="@drawable/logo"
-            tools:ignore="ContentDescription"
-            />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <android.support.percent.PercentRelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_margin="8dp"
-            android:layout_marginStart="12dp"
-            android:layout_toEndOf="@id/cover"
-            android:orientation="vertical"
             >
 
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@color/primary_text"
-                android:textSize="14sp"
-                tools:text="Title"
+            <com.ilusons.harmony.ref.ui.ParallaxImageView
+                android:id="@+id/cover"
+                android:elevation="9dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/lomo"
+                android:transitionName="action_image"
+                app:layout_aspectRatio="100%"
+                app:layout_widthPercent="100%"
                 />
 
-            <TextView
-                android:id="@+id/artist"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@color/secondary_text"
-                android:textSize="12sp"
-                tools:text="Artist"
-                />
+        </android.support.percent.PercentRelativeLayout>
 
-            <TextView
-                android:id="@+id/album"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@color/secondary_text"
-                android:textSize="12sp"
-                android:textStyle="italic"
-                tools:text="Album"
-                />
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="5dp"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/secondary_text"
+            android:textSize="12sp"
+            tools:text="Title"
+            />
 
-        </LinearLayout>
+        <TextView
+            android:id="@+id/info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="2dp"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@color/secondary_text"
+            android:textSize="11sp"
+            tools:text="Info"
+            />
 
-    </RelativeLayout>
+    </LinearLayout>
 
 </android.support.v7.widget.CardView>

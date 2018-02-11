@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <FrameLayout
-    android:id="@+id/analytics_view_c1_item"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -25,7 +24,7 @@
         android:background="@drawable/lomo"
         >
 
-        <ImageView
+        <com.ilusons.harmony.ref.ui.ParallaxImageView
             android:id="@+id/image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -34,12 +33,11 @@
             android:scaleType="centerCrop"
             android:transitionName="action_image"
             android:translationZ="0dp"
-            tools:src="@drawable/logo"
             />
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="72dp"
             android:layout_alignParentBottom="true"
             android:background="@drawable/gradient_bottom_up_transparent"
             android:padding="5dp"
@@ -63,7 +61,7 @@
                 android:shadowDy="1.5"
                 android:shadowRadius="1.7"
                 android:textColor="@color/primary_text"
-                android:textSize="9sp"
+                android:textSize="10sp"
                 tools:text="Text ..."
                 />
 

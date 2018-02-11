@@ -60,7 +60,6 @@ import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandab
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
@@ -72,6 +71,7 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.ViewEx;
+import com.ilusons.harmony.ref.ui.ParallaxImageView;
 import com.turingtechnologies.materialscrollbar.ICustomAdapter;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -230,12 +230,27 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			}
 		});
 
+		MenuItem playlist_settings = menu.findItem(R.id.playlist_settings);
+		playlist_settings.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					togglePlaylistSettings(getActivity().findViewById(android.R.id.content));
+
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+		});
+
 		MenuItem playlist_view_settings = menu.findItem(R.id.playlist_view_settings);
 		playlist_view_settings.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
-					toggleSettings(getActivity().findViewById(android.R.id.content));
+					togglePlaylistViewSettings(getActivity().findViewById(android.R.id.content));
 
 					return true;
 				} catch (Exception e) {
@@ -369,43 +384,39 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	//region Settings
-
-	private void toggleSettings(View ref) {
-		try {
-			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
-					.inflate(R.layout.playlist_view_settings, null);
-
-			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
-			builder.setView(v);
-
-			createUIFilters(v);
-			createUISortMode(v);
-			createUIGroupMode(v);
-			createUIViewMode(v);
-			createPlaylistItemUIStyle(v);
-			createPlaylistsSettings(v);
-
-			AlertDialog alert = builder.create();
-
-			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
-
-			alert.show();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	//endregion
-
 	//region Items
 
 	private RecyclerViewAdapter adapter;
+
 	private RecyclerViewExpandableItemManager recyclerViewExpandableItemManager;
 
 	private static final int RECYCLER_VIEW_ASSUMED_ITEMS_IN_VIEW = 5;
 
 	private RecyclerView recyclerView;
+
+	private RecyclerView.OnScrollListener recyclerViewScrollListener = new RecyclerView.OnScrollListener() {
+		@Override
+		public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+			super.onScrolled(recyclerView, dx, dy);
+
+			for (int i = 0; i < recyclerView.getChildCount(); i++) {
+				RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(recyclerView.getChildAt(i));
+
+				if (viewHolder instanceof GroupViewHolder) {
+					GroupViewHolder vh = (GroupViewHolder) viewHolder;
+					if (vh.parallaxCover != null)
+						vh.parallaxCover.translate();
+				}
+
+				if (viewHolder instanceof ViewHolder) {
+					ViewHolder vh = (ViewHolder) viewHolder;
+					if (vh.parallaxCover != null)
+						vh.parallaxCover.translate();
+				}
+			}
+		}
+	};
+
 	private FastScrollLayout fastScrollLayout;
 
 	public RecyclerViewAdapter getAdapter() {
@@ -430,6 +441,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				}
 			}
 		});
+		recyclerView.addOnScrollListener(recyclerViewScrollListener);
 
 		recyclerViewExpandableItemManager = new RecyclerViewExpandableItemManager(null);
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -706,26 +718,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 			int layoutId = -1;
 			switch (style) {
-				case Card1:
-					layoutId = R.layout.playlist_view_group_card;
-					break;
-
-				case Card2:
-					layoutId = R.layout.playlist_view_group_card;
-					break;
-
-				case Card3:
-					layoutId = R.layout.playlist_view_group_card;
-					break;
-
-				case Card4:
-					layoutId = R.layout.playlist_view_group_card;
-					break;
-
-				case Card5:
-					layoutId = R.layout.playlist_view_group_card;
-					break;
-
 				case Simple:
 					layoutId = R.layout.playlist_view_group_simple;
 					break;
@@ -755,18 +747,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					layoutId = R.layout.playlist_view_item_card2;
 					break;
 
-				case Card3:
-					layoutId = R.layout.playlist_view_item_card3;
-					break;
-
-				case Card4:
-					layoutId = R.layout.playlist_view_item_card4;
-					break;
-
-				case Card5:
-					layoutId = R.layout.playlist_view_item_card5;
-					break;
-
 				case Simple:
 					layoutId = R.layout.playlist_view_item_simple;
 					break;
@@ -786,14 +766,12 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		public void onBindGroupViewHolder(GroupViewHolder holder, int groupPosition, int viewType) {
 			try {
 				final String d = dataFiltered.get(groupPosition).first;
-				final View v = holder.view;
 
-				v.setTag(d);
+				holder.view.setTag(d);
 
-				TextView title = ((TextView) v.findViewById(R.id.title));
-				title.setText(d);
+				holder.title.setText(d);
 
-				final ImageView cover = (ImageView) v.findViewById(R.id.cover);
+				final ImageView cover = holder.cover;
 				if (cover != null) {
 					cover.setImageBitmap(null);
 					final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
@@ -858,18 +836,15 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		@Override
 		public void onBindChildViewHolder(ViewHolder holder, int groupPosition, int childPosition, int viewType) {
 			final Object d = dataFiltered.get(groupPosition).second.get(childPosition);
-			final View v = holder.view;
 
 			// Bind data to view here!
 			if (d instanceof Music) {
 
 				final Music item = (Music) d;
 
-				v.setTag(item.getText());
+				holder.view.setTag(item.getText());
 
-				final View root = v.findViewById(R.id.root);
-
-				final ImageView cover = (ImageView) v.findViewById(R.id.cover);
+				final ImageView cover = holder.cover;
 				if (cover != null) {
 					cover.setImageBitmap(null);
 					// HACK: This animates as well as reduces load on image view
@@ -899,20 +874,16 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					}).execute();
 				}
 
-				TextView title = (TextView) v.findViewById(R.id.title);
-				if (title != null)
-					title.setText(item.getTitle());
+				if (holder.title != null)
+					holder.title.setText(item.getTitle());
 
-				TextView artist = (TextView) v.findViewById(R.id.artist);
-				if (artist != null)
-					artist.setText(item.getArtist());
+				if (holder.artist != null)
+					holder.artist.setText(item.getArtist());
 
-				TextView album = (TextView) v.findViewById(R.id.album);
-				if (album != null)
-					album.setText(item.getAlbum());
+				if (holder.album != null)
+					holder.album.setText(item.getAlbum());
 
-				TextView info = (TextView) v.findViewById(R.id.info);
-				if (info != null) {
+				if (holder.info != null) {
 					String s;
 					try {
 						s = item.getTextExtraOnlySingleLine(getMusicService().getPlaylist().getItems().lastIndexOf(item));
@@ -921,10 +892,10 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 						s = item.getTextExtraOnlySingleLine();
 					}
-					info.setText(s);
-					info.setHorizontallyScrolling(true);
-					info.setSelected(true);
-					info.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+					holder.info.setText(s);
+					holder.info.setHorizontallyScrolling(true);
+					holder.info.setSelected(true);
+					holder.info.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 						@Override
 						public void onFocusChange(View v, boolean hasFocus) {
 							TextView tv = (TextView) v;
@@ -935,7 +906,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					});
 				}
 
-				v.setOnClickListener(new View.OnClickListener() {
+				holder.view.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
 						Intent i = new Intent(getContext(), MusicService.class);
@@ -949,7 +920,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					}
 				});
 
-				v.setOnLongClickListener(new View.OnLongClickListener() {
+				holder.view.setOnLongClickListener(new View.OnLongClickListener() {
 					@Override
 					public boolean onLongClick(View view) {
 						if (viewPlaylist == null) {
@@ -1268,10 +1239,42 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	public class GroupViewHolder extends AbstractExpandableItemViewHolder {
 		public View view;
 
+		public TextView title;
+		public ImageView cover;
+		public ParallaxImageView parallaxCover;
+
 		public GroupViewHolder(View view) {
 			super(view);
 
 			this.view = view;
+
+			title = view.findViewById(R.id.title);
+			cover = view.findViewById(R.id.cover);
+			if (cover instanceof ParallaxImageView)
+				parallaxCover = (ParallaxImageView) cover;
+
+			if (parallaxCover != null) {
+				parallaxCover.setListener(new ParallaxImageView.ParallaxImageListener() {
+					@Override
+					public int[] getValuesForTranslate() {
+						if (itemView.getParent() == null) {
+							return null;
+						} else {
+							int[] itemPosition = new int[2];
+							itemView.getLocationOnScreen(itemPosition);
+
+							int[] recyclerPosition = new int[2];
+							((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
+
+							return new int[]{
+									itemPosition[1],
+									((RecyclerView) itemView.getParent()).getMeasuredHeight(),
+									recyclerPosition[1]
+							};
+						}
+					}
+				});
+			}
 		}
 
 	}
@@ -1279,10 +1282,48 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	public class ViewHolder extends AbstractExpandableItemViewHolder {
 		public View view;
 
+		public TextView title;
+		public TextView album;
+		public TextView artist;
+		public TextView info;
+		public ImageView cover;
+		public ParallaxImageView parallaxCover;
+
 		public ViewHolder(View view) {
 			super(view);
 
 			this.view = view;
+
+			title = view.findViewById(R.id.title);
+			album = view.findViewById(R.id.album);
+			artist = view.findViewById(R.id.artist);
+			info = view.findViewById(R.id.info);
+			cover = view.findViewById(R.id.cover);
+			if (cover instanceof ParallaxImageView)
+				parallaxCover = (ParallaxImageView) cover;
+
+			if (parallaxCover != null) {
+				parallaxCover.setListener(new ParallaxImageView.ParallaxImageListener() {
+					@Override
+					public int[] getValuesForTranslate() {
+						if (itemView.getParent() == null) {
+							return null;
+						} else {
+							int[] itemPosition = new int[2];
+							itemView.getLocationOnScreen(itemPosition);
+
+							int[] recyclerPosition = new int[2];
+							((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
+
+							return new int[]{
+									itemPosition[1],
+									((RecyclerView) itemView.getParent()).getMeasuredHeight(),
+									recyclerPosition[1]
+							};
+						}
+					}
+				});
+			}
 		}
 
 	}
@@ -1521,7 +1562,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			}
 		});
 
-		v.findViewById(R.id.save_active_playlist).setOnClickListener(new View.OnClickListener() {
+		v.findViewById(R.id.save_playlist).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				try {
@@ -1534,7 +1575,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			}
 		});
 
-		v.findViewById(R.id.export_active_playlist).setOnClickListener(new View.OnClickListener() {
+		v.findViewById(R.id.export_playlist).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
@@ -1550,14 +1591,14 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		});
 
 		// Set playlist(s)
-		RecyclerView playlists_recyclerView = (RecyclerView) v.findViewById(R.id.playlists_recyclerView);
-		playlists_recyclerView.setHasFixedSize(true);
-		playlists_recyclerView.setItemViewCacheSize(5);
-		playlists_recyclerView.setDrawingCacheEnabled(true);
-		playlists_recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
+		recyclerView.setHasFixedSize(true);
+		recyclerView.setItemViewCacheSize(5);
+		recyclerView.setDrawingCacheEnabled(true);
+		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 
 		playlistsRecyclerViewAdapter = new PlaylistsRecyclerViewAdapter();
-		playlists_recyclerView.setAdapter(playlistsRecyclerViewAdapter);
+		recyclerView.setAdapter(playlistsRecyclerViewAdapter);
 		playlistsRecyclerViewAdapter.refresh();
 
 	}
@@ -1580,7 +1621,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
-			View view = inflater.inflate(R.layout.playlist_view_settings_playlist_item, parent, false);
+			View view = inflater.inflate(R.layout.playlist_settings_playlist_item, parent, false);
 
 			return new ViewHolder(view);
 		}
@@ -1591,8 +1632,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			final View v = holder.view;
 
 			v.setTag(d.first);
-
-			ImageView icon = v.findViewById(R.id.icon);
 
 			TextView text = (TextView) v.findViewById(R.id.text);
 			text.setText(d.second);
@@ -1605,7 +1644,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			} else {
 				c = ContextCompat.getColor(getContext(), R.color.icons);
 			}
-			icon.setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
 			text.setTextColor(c);
 			menu.setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
 
@@ -1632,7 +1670,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					dialog.show();
 				}
 			};
-			icon.setOnClickListener(onClickListener);
 			text.setOnClickListener(onClickListener);
 
 			menu.setOnClickListener(new View.OnClickListener() {
@@ -1707,7 +1744,29 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	}
 
+	private void togglePlaylistSettings(View ref) {
+		try {
+			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
+					.inflate(R.layout.playlist_settings, null);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
+			builder.setView(v);
+
+			createPlaylistsSettings(v);
+
+			AlertDialog alert = builder.create();
+
+			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
+
+			alert.show();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	//endregion
+
+	//region Playlist view settings
 
 	//region UI filters
 
@@ -2512,10 +2571,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		Default("Default"),
 		Simple("Simple"),
 		Card1("Card 1"),
-		Card2("Card 2"),
-		Card3("Card 3"),
-		Card4("Card 4"),
-		Card5("Card 5"),;
+		Card2("Card 2"),;
 
 		private String friendlyName;
 
@@ -2605,6 +2661,32 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				});
 			}
 		});
+	}
+
+	//endregion
+
+	private void togglePlaylistViewSettings(View ref) {
+		try {
+			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
+					.inflate(R.layout.playlist_view_settings, null);
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
+			builder.setView(v);
+
+			createUIFilters(v);
+			createUISortMode(v);
+			createUIGroupMode(v);
+			createUIViewMode(v);
+			createPlaylistItemUIStyle(v);
+
+			AlertDialog alert = builder.create();
+
+			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
+
+			alert.show();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	//endregion

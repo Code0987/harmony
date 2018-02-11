@@ -44,7 +44,8 @@
             android:elevation="0dp"
             android:fitsSystemWindows="true"
             android:theme="@style/AppTheme.AppBarOverlay"
-            app:elevation="0dp">
+            app:elevation="0dp"
+            app:expanded="false">
 
             <android.support.design.widget.CollapsingToolbarLayout
                 android:id="@+id/collapse_toolbar"
@@ -78,6 +79,65 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toTopOf="parent"/>
+
+                    <TextView
+                        android:id="@+id/title"
+                        style="@style/TextAppearance.Compat.Notification.Title.Media"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.68"
+                        android:clickable="false"
+                        android:ellipsize="end"
+                        android:focusable="false"
+                        android:maxLines="1"
+                        android:paddingBottom="0dp"
+                        android:paddingEnd="36dp"
+                        android:paddingStart="36dp"
+                        android:paddingTop="8dp"
+                        android:text="..."
+                        android:textColor="@color/primary_text"
+                        android:textSize="13sp"
+                        app:layout_collapseMode="pin"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/play_pause_stop_layout"
+                        tools:text="Title"
+                        />
+
+                    <TextView
+                        android:id="@+id/info"
+                        style="@style/TextAppearance.Compat.Notification.Info.Media"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.68"
+                        android:clickable="false"
+                        android:ellipsize="end"
+                        android:focusable="false"
+                        android:maxLines="1"
+                        android:paddingBottom="16dp"
+                        android:paddingEnd="24dp"
+                        android:paddingStart="24dp"
+                        android:paddingTop="3dp"
+                        android:text="..."
+                        android:textColor="@color/primary_text"
+                        android:textSize="9sp"
+                        app:layout_collapseMode="pin"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/title"
+                        tools:text="Artist"
+                        />
+
+                    <FrameLayout
+                        android:id="@+id/touch_layout"
+                        android:layout_width="256dp"
+                        android:layout_height="256dp"
+                        android:clickable="true"
+                        android:focusable="auto"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"></FrameLayout>
 
                     <android.support.constraint.ConstraintLayout
                         android:id="@+id/play_pause_stop_layout"
@@ -146,65 +206,6 @@
                             />
 
                     </android.support.constraint.ConstraintLayout>
-
-                    <TextView
-                        android:id="@+id/title"
-                        style="@style/TextAppearance.Compat.Notification.Title.Media"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:alpha="0.68"
-                        android:clickable="false"
-                        android:ellipsize="end"
-                        android:focusable="false"
-                        android:maxLines="1"
-                        android:paddingBottom="0dp"
-                        android:paddingEnd="36dp"
-                        android:paddingStart="36dp"
-                        android:paddingTop="8dp"
-                        android:text="..."
-                        android:textColor="@color/primary_text"
-                        android:textSize="13sp"
-                        app:layout_collapseMode="pin"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/play_pause_stop_layout"
-                        tools:text="Title"
-                        />
-
-                    <TextView
-                        android:id="@+id/info"
-                        style="@style/TextAppearance.Compat.Notification.Info.Media"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:alpha="0.68"
-                        android:clickable="false"
-                        android:ellipsize="end"
-                        android:focusable="false"
-                        android:maxLines="1"
-                        android:paddingBottom="16dp"
-                        android:paddingEnd="24dp"
-                        android:paddingStart="24dp"
-                        android:paddingTop="3dp"
-                        android:text="..."
-                        android:textColor="@color/primary_text"
-                        android:textSize="9sp"
-                        app:layout_collapseMode="pin"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/title"
-                        tools:text="Artist"
-                        />
-
-                    <FrameLayout
-                        android:id="@+id/touch_layout"
-                        android:layout_width="256dp"
-                        android:layout_height="256dp"
-                        android:clickable="true"
-                        android:focusable="auto"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"></FrameLayout>
 
                 </android.support.constraint.ConstraintLayout>
 

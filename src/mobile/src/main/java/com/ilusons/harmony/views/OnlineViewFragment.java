@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -29,7 +28,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -38,7 +36,6 @@ import android.widget.TextView;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
@@ -46,15 +43,11 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.ViewEx;
-import com.tonyodev.fetch2.Download;
-import com.tonyodev.fetch2.Fetch;
-import com.tonyodev.fetch2.Func;
+import com.ilusons.harmony.ref.ui.ParallaxImageView;
 import com.wang.avi.AVLoadingIndicatorView;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import de.umass.lastfm.Track;
 import io.reactivex.ObservableSource;
@@ -187,6 +180,20 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 	private RecyclerViewAdapter adapter;
 
+	private RecyclerView.OnScrollListener recyclerViewScrollListener = new RecyclerView.OnScrollListener() {
+		@Override
+		public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+			super.onScrolled(recyclerView, dx, dy);
+
+			for (int i = 0; i < recyclerView.getChildCount(); i++) {
+				RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(recyclerView.getChildAt(i));
+				if (viewHolder instanceof RecyclerViewAdapter.ViewHolder) {
+					((RecyclerViewAdapter.ViewHolder) viewHolder).image.translate();
+				}
+			}
+		}
+	};
+
 	private void createItems(View v) {
 		adapter = new RecyclerViewAdapter(this);
 		adapter.setHasStableIds(true);
@@ -197,6 +204,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 		recyclerView.setLayoutManager(new LinearLayoutManager(v.getContext()));
 
 		recyclerView.setAdapter(adapter);
+
+		recyclerView.addOnScrollListener(recyclerViewScrollListener);
 	}
 
 	private void searchTracks(String query) {
@@ -390,7 +399,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 			protected View view;
 
-			protected ImageView image;
+			protected ParallaxImageView image;
 			protected TextView text1;
 			protected TextView text2;
 
@@ -404,6 +413,27 @@ public class OnlineViewFragment extends BaseUIFragment {
 				image = v.findViewById(R.id.image);
 				text1 = v.findViewById(R.id.text1);
 				text2 = v.findViewById(R.id.text2);
+
+				image.setListener(new ParallaxImageView.ParallaxImageListener() {
+					@Override
+					public int[] getValuesForTranslate() {
+						if (itemView.getParent() == null) {
+							return null;
+						} else {
+							int[] itemPosition = new int[2];
+							itemView.getLocationOnScreen(itemPosition);
+
+							int[] recyclerPosition = new int[2];
+							((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
+
+							return new int[]{
+									itemPosition[1],
+									((RecyclerView) itemView.getParent()).getMeasuredHeight(),
+									recyclerPosition[1]
+							};
+						}
+					}
+				});
 			}
 
 			@SuppressLint("StaticFieldLeak")
@@ -515,7 +545,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 					public void onClick(View view) {
 						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
 
-						fragment.getMusicService().open(d);
+						fragment.getMusicService().open(d, false);
 					}
 				});
 				view.setOnLongClickListener(new View.OnLongClickListener() {

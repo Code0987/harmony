@@ -134,16 +134,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 				break;
 
-			case P4:
-				layoutId = R.layout.playback_ui_p4_activity;
-				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-				break;
-
-			case P5:
-				layoutId = R.layout.playback_ui_p5_activity;
-				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-				break;
-
 			case P1:
 			default:
 				layoutId = R.layout.playback_ui_p1_activity;
@@ -462,22 +452,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				break;
 
 			case P3:
-				if (cover.getDrawable() != null) {
-					TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-							cover.getDrawable(),
-							new BitmapDrawable(getResources(), bitmap)
-					});
-
-					cover.setImageDrawable(d);
-
-					d.setCrossFadeEnabled(true);
-					d.startTransition(450);
-				} else {
-					cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
-				}
-				break;
-
-			case P5:
 				cover.setImageBitmap(bitmap);
 				break;
 
@@ -1882,11 +1856,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	//region SPref
 
 	public enum PlaybackUIStyle {
-		P1("Cover + Video + Lyrics + FX"),
-		P2("Lyrics + FX"),
-		P3("Cover + Video + FX"),
-		P4("New"),
-		P5("New 2");
+		P1("All in one"),
+		P2("Lyrics focused"),
+		P3("Circled");
 
 		public String friendlyName;
 
@@ -1899,11 +1871,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	public static PlaybackUIStyle getPlaybackUIStyle(Context context) {
 		try {
-			return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(PlaybackUIStyle.P5)));
+			return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(PlaybackUIStyle.P3)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return PlaybackUIStyle.P5;
+		return PlaybackUIStyle.P3;
 	}
 
 	public static void setPlaybackUIStyle(Context context, PlaybackUIStyle value) {
