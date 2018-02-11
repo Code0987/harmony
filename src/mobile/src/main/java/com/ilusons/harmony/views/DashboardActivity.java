@@ -623,11 +623,19 @@ public class DashboardActivity extends BaseUIActivity {
 
 		viewPager.setAdapter(viewPagerAdapter);
 
-		onlineViewFragment = OnlineViewFragment.create();
-		viewPagerAdapter.add(onlineViewFragment, "Online");
+		if (!AndroidEx.isNetworkAvailable(this)) {
+			playlistViewFragment = PlaylistViewFragment.create();
+			viewPagerAdapter.add(playlistViewFragment, "Playlist");
 
-		playlistViewFragment = PlaylistViewFragment.create();
-		viewPagerAdapter.add(playlistViewFragment, "Playlist");
+			onlineViewFragment = OnlineViewFragment.create();
+			viewPagerAdapter.add(onlineViewFragment, "Online");
+		} else {
+			onlineViewFragment = OnlineViewFragment.create();
+			viewPagerAdapter.add(onlineViewFragment, "Online");
+
+			playlistViewFragment = PlaylistViewFragment.create();
+			viewPagerAdapter.add(playlistViewFragment, "Playlist");
+		}
 
 		tab_layout.setupWithViewPager(viewPager, true);
 

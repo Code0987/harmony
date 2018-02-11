@@ -21,34 +21,21 @@
         android:layout_height="match_parent"
         >
 
-        <RelativeLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/title"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:padding="5dp"
-            android:translationZ="30dp"
-            >
-
-            <TextView
-                android:id="@+id/title"
-                style="@style/TextAppearance.AppCompat.Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_margin="8dp"
-                android:layout_marginTop="16dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:shadowColor="@android:color/black"
-                android:shadowDx="2"
-                android:shadowDy="1"
-                android:shadowRadius="3"
-                android:textColor="@color/primary_text"
-                android:textSize="13sp"
-                tools:text="Text ..."
-                />
-
-        </RelativeLayout>
+            android:layout_centerHorizontal="true"
+            android:layout_margin="12dp"
+            android:layout_marginTop="16dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/primary_text"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            tools:text="Text ..."
+            />
 
     </RelativeLayout>
 
