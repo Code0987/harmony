@@ -37,7 +37,7 @@
             android:gravity="start|center_vertical"
             android:padding="3dp"
             android:scaleType="fitXY"
-            android:src="@drawable/ic_menu_black"
+            android:src="@drawable/ic_more_vertical"
             android:tint="@color/translucent_light"
             android:tintMode="src_in"
             />

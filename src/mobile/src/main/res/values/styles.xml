@@ -31,6 +31,23 @@
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimationStyle</item>
         <item name="android:statusBarColor">@color/transparent</item>
         <item name="android:alertDialogTheme">@style/AppTheme.AlertDialogStyle</item>
+        <item name="android:homeAsUpIndicator">@drawable/ic_arrows_left</item>
+        <item name="homeAsUpIndicator">@drawable/ic_arrows_left</item>
+        <item name="android:typeface">sans</item>
+        <item name="android:fontFamily">sans-serif-thin</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textViewStyle">@style/AppTheme.TextViewStyle</item>
+        <item name="android:buttonStyle">@style/AppTheme.ButtonStyle</item>
+        <item name="textViewStyle">@style/AppTheme.TextViewStyle</item>
+        <item name="buttonStyle">@style/AppTheme.ButtonStyle</item>
+    </style>
+
+    <style name="AppTheme.TextViewStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">sans-serif-thin</item>
+    </style>
+
+    <style name="AppTheme.ButtonStyle" parent="android:Widget.Holo.Button">
+        <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
     <!-- light -->

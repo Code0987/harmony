@@ -33,7 +33,6 @@
             android:maxLines="1"
             android:textColor="@color/primary_text"
             android:textSize="14sp"
-            android:textStyle="italic"
             tools:text="Text ..."
             />
 

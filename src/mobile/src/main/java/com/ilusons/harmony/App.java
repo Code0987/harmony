@@ -93,15 +93,6 @@ public class App extends Application {
 		// TODO: Ads later
 		// MobileAds.initialize(this, BuildConfig.AD_PUB_ID);
 
-		try {
-			AndroidEx.overrideFont(getApplicationContext(), "DEFAULT", "fonts/open-sans.light.ttf");
-			AndroidEx.overrideFont(getApplicationContext(), "NORMAL", "fonts/open-sans.light.ttf");
-			AndroidEx.overrideFont(getApplicationContext(), "SANS_SERIF", "fonts/open-sans.light.ttf");
-			AndroidEx.overrideFont(getApplicationContext(), "SERIF", "fonts/roboto-slab.light.ttf");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
 	}
 
 	// Called by the system when the device configuration changes while your component is running.

@@ -319,7 +319,7 @@
                 android:background="@drawable/circle_translucent"
                 android:padding="5dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_skip_previous_black"
+                android:src="@drawable/ic_music_beginning"
                 android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
@@ -333,7 +333,7 @@
                 android:background="@drawable/circle_translucent"
                 android:padding="10dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_play_black"
+                android:src="@drawable/ic_music_play"
                 android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
@@ -349,7 +349,7 @@
                 android:background="@drawable/circle_translucent"
                 android:padding="5dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_skip_next_black"
+                android:src="@drawable/ic_music_end"
                 android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
@@ -379,7 +379,7 @@
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_gradient_black"
+                android:src="@drawable/ic_magic_wand"
                 android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
@@ -395,7 +395,7 @@
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_shuffle"
+                android:src="@drawable/ic_music_shuffle"
                 android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
@@ -411,7 +411,7 @@
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_repeat_black"
+                android:src="@drawable/ic_music_repeat"
                 android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
@@ -427,7 +427,7 @@
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_tune_black"
+                android:src="@drawable/ic_music_mixer"
                 android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
@@ -443,7 +443,7 @@
                 android:background="@null"
                 android:padding="3dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_more_vert_black"
+                android:src="@drawable/ic_more_vertical"
                 android:tint="@color/translucent_light"
                 android:tintMode="src_in"
                 />
@@ -455,13 +455,12 @@
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/loading"
         style="@style/AVLoadingIndicatorView.Large"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="0dp"
-        android:padding="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/lomo"
         android:visibility="visible"
         app:indicatorColor="@color/icons"
-        app:indicatorName="BallClipRotatePulseIndicator"
+        app:indicatorName="BallScaleMultipleIndicator"
         app:layout_constraintBottom_toTopOf="@id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

@@ -77,7 +77,6 @@
                 android:maxLines="1"
                 android:textColor="@color/secondary_text"
                 android:textSize="12sp"
-                android:textStyle="italic"
                 tools:text="Album"
                 />
 

@@ -39,7 +39,6 @@
         android:paddingEnd="8dp"
         android:paddingStart="8dp"
         android:textSize="12sp"
-        android:textStyle="italic"
         tools:text="Location"
         />
 

@@ -21,8 +21,8 @@
             android:layout_height="24dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:src="@drawable/ic_live_help_black"
-            android:tint="@android:color/holo_blue_light"
+            android:src="@drawable/ic_idea"
+            android:tint="@color/icons"
             android:tintMode="src_atop"/>
 
         <TextView

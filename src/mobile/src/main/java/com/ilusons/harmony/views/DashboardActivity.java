@@ -23,7 +23,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.graphics.Palette;
@@ -35,14 +34,12 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -56,7 +53,6 @@ import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
-import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -65,13 +61,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import at.grabner.circleprogress.CircleProgressView;
-import co.mobiwise.materialintro.animation.MaterialIntroListener;
-import co.mobiwise.materialintro.shape.Focus;
-import co.mobiwise.materialintro.shape.FocusGravity;
-import co.mobiwise.materialintro.view.MaterialIntroView;
 import jonathanfinerty.once.Once;
 import jp.wasabeef.blurry.Blurry;
 
@@ -117,6 +108,8 @@ public class DashboardActivity extends BaseUIActivity {
 		setSupportActionBar(toolbar);
 
 		getSupportActionBar().setTitle(null);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		getSupportActionBar().setHomeButtonEnabled(true);
 
 		drawer_layout = findViewById(R.id.drawer_layout);
 		drawer_layout.closeDrawer(GravityCompat.START);
@@ -134,12 +127,17 @@ public class DashboardActivity extends BaseUIActivity {
 		drawer_layout.setDrawerListener(drawer_toggle);
 		drawer_toggle.syncState();
 
+		//final DrawerArrow.DrawerArrowDrawableToggle homeDrawable = new DrawerArrow.DrawerArrowDrawableToggle((this), (this).getSupportActionBar().getThemedContext());
+		getSupportActionBar().setHomeAsUpIndicator(getDrawable(R.drawable.ic_arrows_left));
+
 		appbar = findViewById(R.id.appbar);
 
 		appbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
 			@Override
 			public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
 				boolean expanded = !(Math.abs(verticalOffset) - appBarLayout.getTotalScrollRange() == 0);
+
+				//homeDrawable.setPosition(1.0f - ((float) Math.abs(verticalOffset) / appBarLayout.getTotalScrollRange()));
 
 				onAppBarStateChanged(expanded);
 			}
@@ -183,7 +181,7 @@ public class DashboardActivity extends BaseUIActivity {
 			public void onGlobalLayout() {
 				root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
-				initHelp();
+				showInfo();
 			}
 		});
 
@@ -295,7 +293,7 @@ public class DashboardActivity extends BaseUIActivity {
 		super.OnMusicServicePlay();
 
 		if (play_pause_stop != null)
-			play_pause_stop.setImageResource(R.drawable.ic_pause_black);
+			play_pause_stop.setImageResource(R.drawable.ic_music_pause);
 	}
 
 	@Override
@@ -303,7 +301,7 @@ public class DashboardActivity extends BaseUIActivity {
 		super.OnMusicServicePause();
 
 		if (play_pause_stop != null)
-			play_pause_stop.setImageResource(R.drawable.ic_play_black);
+			play_pause_stop.setImageResource(R.drawable.ic_music_play);
 	}
 
 	@Override
@@ -311,49 +309,12 @@ public class DashboardActivity extends BaseUIActivity {
 		super.OnMusicServiceStop();
 
 		if (play_pause_stop != null)
-			play_pause_stop.setImageResource(R.drawable.ic_stop_black);
+			play_pause_stop.setImageResource(R.drawable.ic_music_stop);
 	}
 
 	@Override
 	public void OnMusicServiceOpen(String uri) {
-		try {
-			Bitmap bitmap = getMusicService().getMusic().getCover(this, -1);
-
-			Blurry.with(this)
-					.radius(7)
-					.sampling(1)
-					.color(Color.argb(100, 0, 0, 0))
-					.animate(333)
-					.async()
-					.from(bitmap)
-					.into(parallax_image);
-
-			Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-				@SuppressWarnings("ResourceType")
-				@Override
-				public void onGenerated(@NonNull Palette palette) {
-					int vibrantColor = palette.getVibrantColor(R.color.accent);
-					int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
-
-					Drawable drawable = new GradientDrawable(
-							GradientDrawable.Orientation.TL_BR,
-							new int[]{
-									vibrantDarkColor,
-									vibrantColor
-							});
-					drawable = drawable.mutate();
-					bg.setImageDrawable(drawable);
-
-					progress.setBarColor(ColorUtils.setAlphaComponent(vibrantColor, 255));
-					progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
-				}
-			});
-
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			parallax_image.setImageDrawable(null);
-		}
+		resetPlayback();
 	}
 
 	@Override
@@ -577,13 +538,20 @@ public class DashboardActivity extends BaseUIActivity {
 
 	}
 
-	public class DrawerArrowAnimation {
-		public class DrawerArrowDrawableToggle extends DrawerArrowDrawable {
-			private final Activity mActivity;
+	public static class DrawerArrow {
+		public static class DrawerArrowDrawableToggle extends DrawerArrowDrawable {
+			private final Activity activity;
 
 			public DrawerArrowDrawableToggle(Activity activity, Context themedContext) {
 				super(themedContext);
-				mActivity = activity;
+
+				this.activity = activity;
+
+				setBarThickness(AndroidEx.dpToPx(1) / 2);
+				setArrowShaftLength(AndroidEx.dpToPx(18));
+				setArrowHeadLength(AndroidEx.dpToPx(6));
+				setBarLength(AndroidEx.dpToPx(18));
+				setGapSize(AndroidEx.dpToPx(4));
 			}
 
 			public void setPosition(float position) {
@@ -702,7 +670,10 @@ public class DashboardActivity extends BaseUIActivity {
 	private TextView info;
 
 	private ImageView play_pause_stop;
-	private ImageView random;
+	private ImageView next;
+	private ImageView prev;
+	private ImageView shuffle;
+	private ImageView repeat;
 
 	private void createPlayback() {
 		title = findViewById(R.id.title);
@@ -725,9 +696,7 @@ public class DashboardActivity extends BaseUIActivity {
 		play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View view) {
-				if (getMusicService() == null) return false;
-
-				getMusicService().stop();
+				togglePlaybackExtras();
 
 				return true;
 			}
@@ -749,49 +718,95 @@ public class DashboardActivity extends BaseUIActivity {
 		title.setOnClickListener(onClickListener);
 		info.setOnClickListener(onClickListener);
 
-		View.OnTouchListener touchListener = new AndroidTouchEx.OnSwipeTouchListener() {
+		next = findViewById(R.id.next);
+		next.setOnClickListener(new View.OnClickListener() {
 			@Override
-			public boolean onSwipeLeft() {
+			public void onClick(View view) {
+				if (getMusicService() == null) return;
+
+				getMusicService().next();
+			}
+		});
+
+		prev = findViewById(R.id.prev);
+		prev.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (getMusicService() == null) return;
+
+				getMusicService().prev();
+			}
+		});
+
+		shuffle = findViewById(R.id.shuffle);
+		if (MusicService.getPlayerShuffleMusicEnabled(this))
+			shuffle.setAlpha(0.9f);
+		else
+			shuffle.setAlpha(0.3f);
+		shuffle.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
 				if (getMusicService() != null) {
-					getMusicService().prev();
+					try {
+						boolean value = MusicService.getPlayerShuffleMusicEnabled(DashboardActivity.this);
 
-					root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
+						value = !value;
+
+						MusicService.setPlayerShuffleMusicEnabled(DashboardActivity.this, value);
+
+						if (value)
+							info(getString(R.string.shuffle_on));
+						else
+							info(getString(R.string.shuffle_off));
+
+						if (value)
+							shuffle.setAlpha(0.9f);
+						else
+							shuffle.setAlpha(0.3f);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-				return true;
 			}
-
+		});
+		shuffle.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
-			public boolean onSwipeRight() {
+			public boolean onLongClick(View view) {
 				if (getMusicService() != null) {
-					getMusicService().next();
-
-					root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
+					getMusicService().random();
 				}
-				return true;
-			}
-
-			@Override
-			public boolean onSwipeTop() {
-				onClickListener.onClick(root);
 
 				return true;
 			}
+		});
 
+		repeat = findViewById(R.id.repeat);
+		if (MusicService.getPlayerRepeatMusicEnabled(this))
+			repeat.setAlpha(0.9f);
+		else
+			repeat.setAlpha(0.3f);
+		repeat.setOnClickListener(new View.OnClickListener() {
 			@Override
-			public boolean onSwipeBottom() {
-				try {
-					onBackPressed();
-					return true;
-				} catch (Exception e) {
-					e.printStackTrace();
+			public void onClick(View view) {
+				if (getMusicService() != null) {
+					boolean value = MusicService.getPlayerRepeatMusicEnabled(DashboardActivity.this);
+
+					value = !value;
+
+					MusicService.setPlayerRepeatMusicEnabled(DashboardActivity.this, value);
+
+					if (value)
+						info(getString(R.string.repeat_on));
+					else
+						info(getString(R.string.repeat_off));
+
+					if (value)
+						repeat.setAlpha(0.9f);
+					else
+						repeat.setAlpha(0.3f);
 				}
-
-				return false;
 			}
-		};
-
-		findViewById(R.id.touch_layout).setOnTouchListener(touchListener);
-
+		});
 	}
 
 	private Runnable progressHandlerRunnable;
@@ -838,170 +853,79 @@ public class DashboardActivity extends BaseUIActivity {
 		setupProgressHandler();
 
 		if (getMusicService().isPlaying())
-			play_pause_stop.setImageResource(R.drawable.ic_pause_black);
+			play_pause_stop.setImageResource(R.drawable.ic_music_pause);
 
+		try {
+			Bitmap bitmap = m.getCover(this, -1);
+
+			Blurry.with(this)
+					.radius(7)
+					.sampling(1)
+					.color(Color.argb(100, 0, 0, 0))
+					.animate(333)
+					.async()
+					.from(bitmap)
+					.into(parallax_image);
+
+			Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+				@SuppressWarnings("ResourceType")
+				@Override
+				public void onGenerated(@NonNull Palette palette) {
+					int vibrantColor = palette.getVibrantColor(R.color.accent);
+					int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
+
+					Drawable drawable = new GradientDrawable(
+							GradientDrawable.Orientation.TL_BR,
+							new int[]{
+									vibrantDarkColor,
+									vibrantColor
+							});
+					drawable = drawable.mutate();
+					bg.setImageDrawable(drawable);
+
+					progress.setBarColor(ColorUtils.setAlphaComponent(vibrantColor, 255));
+					progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
+				}
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			parallax_image.setImageDrawable(null);
+		}
+
+	}
+
+	private void togglePlaybackExtras() {
+		if (next.getVisibility() == View.VISIBLE)
+			next.setVisibility(View.GONE);
+		else
+			next.setVisibility(View.VISIBLE);
+		if (prev.getVisibility() == View.VISIBLE)
+			prev.setVisibility(View.GONE);
+		else
+			prev.setVisibility(View.VISIBLE);
+		if (shuffle.getVisibility() == View.VISIBLE)
+			shuffle.setVisibility(View.GONE);
+		else
+			shuffle.setVisibility(View.VISIBLE);
+		if (repeat.getVisibility() == View.VISIBLE)
+			repeat.setVisibility(View.GONE);
+		else
+			repeat.setVisibility(View.VISIBLE);
 	}
 
 	//endregion
 
-	//region Help
+	//region Other
 
-	private void initHelp() {
-		final String tag_guide = TAG + ".guide";
-
-		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide)) {
-
-			final String tag_release_notes = TAG + ".release_notes";
-			if (!BuildConfig.DEBUG && !Once.beenDone(Once.THIS_APP_VERSION, tag_release_notes)) {
-				SettingsActivity.showReleaseNotesDialog(this);
-				Once.markDone(tag_release_notes);
-			} else {
-
-				MainActivity.initTips(new WeakReference<FragmentActivity>(this));
-
-			}
-
-			return;
-		}
-
-		(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
-				.setTitle("Tour?")
-				.setMessage("Would you like a short tour, highlighting the basic usage of this screen?")
-				.setCancelable(true)
-				.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialogInterface, int i) {
-						tour(new MaterialIntroListener() {
-							@Override
-							public void onUserClicked(String usageId) {
-								try {
-									Once.markDone(tag_guide);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-
-								info("Hey, swipe left to listen the top music this week!");
-							}
-						});
-					}
-				})
-				.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialogInterface, int i) {
-						try {
-							Once.markDone(tag_guide);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-
-						info("Anyway, swipe left to listen the top music this week!");
-
-						dialogInterface.dismiss();
-					}
-				}))
-				.show();
-	}
-
-	private void tour(MaterialIntroListener onFinal) {
-		final MaterialIntroView.Builder guide_start = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText("Welcome! \n\nNow, tap anywhere on blue screen!")
-				.setTarget(parallax_layout)
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_ldrawer = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText("Left drawer. So many options here, be sure to checkout all, later.")
-				.setTarget(findViewById(R.id.nav_layout))
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_mini = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText("This is mini playback ui, for quick view of now playing. Buttons in it have long-press functions too.")
-				.setTarget(parallax_layout)
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(this, R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText("Now go play something (Wait for initial scan...)!")
-				.setTarget(viewPager)
-				.setUsageId(UUID.randomUUID().toString());
-
-		guide_final.setListener(onFinal);
-		guide_mini.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					guide_final.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		guide_ldrawer.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				drawer_layout.closeDrawer(Gravity.START);
-
-				try {
-					guide_mini.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		guide_start.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				drawer_layout.openDrawer(Gravity.START);
-
-				try {
-					guide_ldrawer.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		try {
-			guide_start.show();
-		} catch (Exception e) {
-			e.printStackTrace();
+	private void showInfo() {
+		final String tag_release_notes = TAG + ".release_notes";
+		if (!BuildConfig.DEBUG && !Once.beenDone(Once.THIS_APP_VERSION, tag_release_notes)) {
+			SettingsActivity.showReleaseNotesDialog(this);
+			Once.markDone(tag_release_notes);
+		} else {
+			MainActivity.initTips(new WeakReference<FragmentActivity>(this));
 		}
 	}
 

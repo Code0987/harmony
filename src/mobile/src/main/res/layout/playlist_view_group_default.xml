@@ -51,7 +51,6 @@
                 android:ellipsize="end"
                 android:textColor="@color/primary_text"
                 android:textSize="14sp"
-                android:textStyle="bold|italic"
                 tools:text="Text ..."
                 />
 

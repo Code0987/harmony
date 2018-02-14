@@ -22,8 +22,8 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="12dp"
             android:contentDescription="@null"
-            android:src="@drawable/ic_rate_review_black"
-            android:tint="@color/colorAccent"
+            android:src="@drawable/ic_message_happy"
+            android:tint="@android:color/holo_green_light"
             android:tintMode="src_atop"/>
 
         <TextView

@@ -36,7 +36,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_view_quilt_black"
+                android:src="@drawable/ic_arrows_squares"
                 android:tint="@android:color/holo_blue_bright"
                 android:tintMode="src_atop"
                 />
@@ -62,7 +62,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_view_quilt_black"
+                android:src="@drawable/ic_arrows_squares"
                 android:tint="@android:color/holo_blue_bright"
                 android:tintMode="src_atop"
                 />
@@ -87,7 +87,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_view_quilt_black"
+                android:src="@drawable/ic_arrows_squares"
                 android:tint="@android:color/holo_blue_bright"
                 android:tintMode="src_atop"
                 />
@@ -112,7 +112,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_view_quilt_black"
+                android:src="@drawable/ic_arrows_squares"
                 android:tint="@android:color/holo_blue_bright"
                 android:tintMode="src_atop"
                 />
@@ -137,7 +137,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_view_quilt_black"
+                android:src="@drawable/ic_arrows_squares"
                 android:tint="@android:color/holo_blue_bright"
                 android:tintMode="src_atop"
                 />

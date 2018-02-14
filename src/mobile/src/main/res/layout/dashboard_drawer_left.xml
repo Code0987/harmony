@@ -52,7 +52,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_play_for_work_black"
+                android:src="@drawable/ic_arrows_down_double"
                 android:tint="@android:color/holo_green_light"
                 android:tintMode="src_atop"
                 />
@@ -83,7 +83,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_audiotrack_black"
+                android:src="@drawable/ic_music_note_single"
                 android:tint="@android:color/holo_blue_bright"
                 android:tintMode="src_atop"
                 />
@@ -151,7 +151,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_video_library_black"
+                android:src="@drawable/ic_info"
                 android:tint="@android:color/holo_red_light"
                 android:tintMode="src_atop"
                 />
@@ -183,7 +183,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_feedback_black"
+                android:src="@drawable/ic_message_happy"
                 android:tint="@android:color/holo_green_light"
                 android:tintMode="src_atop"
                 />
@@ -217,7 +217,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_timer_black"
+                android:src="@drawable/ic_chronometer"
                 android:tint="@android:color/holo_orange_light"
                 android:tintMode="src_atop"
                 />
@@ -250,7 +250,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_tune_black"
+                android:src="@drawable/ic_music_mixer"
                 android:tint="@android:color/holo_green_light"
                 android:tintMode="src_atop"
                 />
@@ -314,7 +314,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_live_help_black"
+                android:src="@drawable/ic_idea"
                 android:tint="@android:color/holo_blue_light"
                 android:tintMode="src_atop"
                 />

@@ -58,7 +58,6 @@
                 android:singleLine="true"
                 android:textColor="@color/primary_text"
                 android:textSize="13sp"
-                android:textStyle="italic"
                 tools:text="Text ..."
                 />
 

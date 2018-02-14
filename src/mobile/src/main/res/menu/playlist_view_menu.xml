@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/search"
-        android:icon="@drawable/ic_search_black"
+        android:icon="@drawable/ic_magnifier"
         android:title="@string/search"
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:iconifiedByDefault="false"
@@ -13,14 +13,14 @@
 
     <item
         android:id="@+id/now_playing"
-        android:icon="@drawable/ic_music_note_black"
+        android:icon="@drawable/ic_music_note_single"
         android:title="@string/now_playing"
         app:showAsAction="ifRoom"
         />
 
     <item
         android:id="@+id/overflow"
-        android:icon="@drawable/ic_menu_moreoverflow_dark"
+        android:icon="@drawable/ic_more_vertical"
         android:orderInCategory="101"
         android:title="@string/more"
         app:showAsAction="always">
@@ -31,7 +31,7 @@
 
                 <item
                     android:id="@+id/jump"
-                    android:icon="@drawable/ic_open_in_new_black"
+                    android:icon="@drawable/ic_arrows_glide"
                     android:title="@string/jump_to_current_item"
                     app:showAsAction="ifRoom"
                     />
@@ -42,7 +42,7 @@
 
                 <item
                     android:id="@+id/refresh"
-                    android:icon="@drawable/ic_refresh_black"
+                    android:icon="@drawable/ic_arrows_clockwise_dashed"
                     android:title="@string/refresh"
                     app:showAsAction="ifRoom"
                     />
@@ -53,14 +53,14 @@
 
                 <item
                     android:id="@+id/playlist_settings"
-                    android:icon="@drawable/ic_playlist_add_black"
+                    android:icon="@drawable/ic_music_playlist"
                     android:title="@string/playlist_settings"
                     app:showAsAction="ifRoom"
                     />
 
                 <item
                     android:id="@+id/playlist_view_settings"
-                    android:icon="@drawable/ic_playlist_play_black"
+                    android:icon="@drawable/ic_music_playlist"
                     android:title="@string/playlist_view_settings"
                     app:showAsAction="ifRoom"
                     />

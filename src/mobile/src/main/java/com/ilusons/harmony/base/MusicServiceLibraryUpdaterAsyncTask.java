@@ -424,7 +424,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				.setContentTitle(context.getString(R.string.app_name))
 				.setContentText("Updating ...")
 				.setProgress(100, 0, true)
-				.setSmallIcon(R.drawable.ic_scan)
+				.setSmallIcon(R.drawable.ic_arrows_clockwise_dashed)
 				.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent);
 
 		notificationManager.notify(KEY_NOTIFICATION_ID, notificationBuilder.build());
