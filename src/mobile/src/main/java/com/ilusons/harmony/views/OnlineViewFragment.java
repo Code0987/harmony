@@ -545,7 +545,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 					public void onClick(View view) {
 						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
 
-						fragment.getMusicService().open(d, false);
+						fragment.getMusicService().open(d);
 					}
 				});
 				view.setOnLongClickListener(new View.OnLongClickListener() {

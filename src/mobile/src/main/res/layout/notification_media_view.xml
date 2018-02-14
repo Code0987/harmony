@@ -92,7 +92,6 @@
                 android:paddingTop="5dp"
                 android:textColor="@color/primary_text"
                 android:textSize="9sp"
-                android:textStyle="italic"
                 tools:text="Info"
                 />
 

@@ -947,10 +947,10 @@ public class SettingsActivity extends BaseActivity {
 		Session session = Analytics.getInstance().getLastfmSession();
 		if (session == null) {
 			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
-			analytics_lfm_status.setImageResource(R.drawable.ic_error_outline_black);
+			analytics_lfm_status.setImageResource(R.drawable.ic_exclamation);
 		} else {
 			analytics_lfm_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
-			analytics_lfm_status.setImageResource(R.drawable.ic_settings_remote);
+			analytics_lfm_status.setImageResource(R.drawable.ic_cloud_refresh);
 		}
 		if (session == null) {
 			analytics_lfm_username.setVisibility(View.VISIBLE);
@@ -1041,10 +1041,10 @@ public class SettingsActivity extends BaseActivity {
 	private void updateDCState() {
 		if (Analytics.getInstance().getDCEnabled()) {
 			analytics_dc_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_light), PorterDuff.Mode.SRC_ATOP);
-			analytics_dc_status.setImageResource(R.drawable.ic_settings_remote);
+			analytics_dc_status.setImageResource(R.drawable.ic_cloud_refresh);
 		} else {
 			analytics_dc_status.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
-			analytics_dc_status.setImageResource(R.drawable.ic_error_outline_black);
+			analytics_dc_status.setImageResource(R.drawable.ic_exclamation);
 		}
 	}
 

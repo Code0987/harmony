@@ -1152,6 +1152,17 @@ public class Music extends RealmObject {
 		}
 	}
 
+	public static boolean exists(String path) {
+		try (Realm realm = getDB()) {
+			if (realm == null)
+				return false;
+			return realm.where(Music.class).equalTo("Path", path).count() > 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 	public static Music load(Context context, String path) {
 		Music data = null;
 		try (Realm realm = getDB()) {

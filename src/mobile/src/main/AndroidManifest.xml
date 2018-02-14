@@ -40,9 +40,6 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel"
             android:value="general"/>
-        <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts"/>
 
         <service
             android:name=".base.MusicService"

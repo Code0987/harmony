@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/search"
-        android:icon="@drawable/ic_search_black"
+        android:icon="@drawable/ic_magnifier"
         android:title="@string/search"
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:iconifiedByDefault="false"
@@ -13,14 +13,14 @@
 
     <item
         android:id="@+id/now_playing"
-        android:icon="@drawable/ic_music_note_black"
+        android:icon="@drawable/ic_music_note_multiple"
         android:title="@string/now_playing"
         app:showAsAction="ifRoom"
         />
 
     <item
         android:id="@+id/downloads"
-        android:icon="@drawable/ic_file_download"
+        android:icon="@drawable/ic_download"
         android:orderInCategory="101"
         android:title="@string/downloads"
         app:showAsAction="ifRoom">

@@ -96,7 +96,7 @@
             android:minWidth="0dp"
             android:padding="0dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_shop_black"
+            android:src="@drawable/ic_ecommerce_bag_check"
             android:tint="@color/icons"
             android:tintMode="src_atop"
             />
@@ -168,7 +168,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
                     android:text="Playback UI Style"
-                    android:textStyle="italic"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     />
@@ -190,7 +189,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
                     android:text="Audio visualization type"
-                    android:textStyle="italic"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/playbackUIStyle_spinner"
                     />
@@ -234,7 +232,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Scan automatically for updated media"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         />
@@ -257,7 +254,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Automatic scan interval (in seconds)"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/library_scan_auto_checkBox"
                         />
@@ -283,7 +279,7 @@
                         android:background="@null"
                         android:padding="0dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/ic_check_black"
+                        android:src="@drawable/ic_check"
                         android:tint="@color/icons"
                         android:tintMode="src_atop"
                         app:layout_constraintBottom_toBottomOf="@+id/library_scan_auto_interval_editText"
@@ -298,7 +294,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Scan locations"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_editText"
                         />
@@ -329,7 +324,7 @@
                         android:background="@null"
                         android:padding="0dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/ic_playlist_add_black"
+                        android:src="@drawable/ic_music_playlist"
                         android:tint="@android:color/holo_green_light"
                         android:tintMode="src_atop"
                         app:layout_constraintLeft_toLeftOf="parent"
@@ -343,7 +338,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Include Android media store in library"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/scan_locations_imageButton"
                         />
@@ -366,7 +360,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Min/max length of media to include (seconds)"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"
                         />
@@ -407,7 +400,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Library update fast mode"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_rangeBar"
                         />
@@ -433,7 +425,6 @@
                         android:lines="3"
                         android:text="Fast mode will ignore reading tags from file itself, and only use system provided data"
                         android:textSize="11sp"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_checkBox"
                         />
@@ -467,7 +458,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Headset auto play on plug"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         />
@@ -493,7 +483,6 @@
                         android:lines="3"
                         android:text="Last played music will start playing automatically when a headset is plugged in."
                         android:textSize="11sp"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/headset_auto_play_on_plug_checkBox"
                         />
@@ -527,7 +516,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Reset everything"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         />
@@ -556,7 +544,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Player type"
-                        android:textStyle="italic"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/reset_imageButton"
                         />
@@ -601,7 +588,7 @@
                         android:layout_width="42dp"
                         android:layout_height="42dp"
                         android:scaleType="fitXY"
-                        android:src="@drawable/ic_error_outline_black"
+                        android:src="@drawable/ic_exclamation"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
@@ -765,7 +752,7 @@
                         android:layout_width="42dp"
                         android:layout_height="42dp"
                         android:scaleType="fitXY"
-                        android:src="@drawable/ic_error_outline_black"
+                        android:src="@drawable/ic_exclamation"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toTopOf="parent"

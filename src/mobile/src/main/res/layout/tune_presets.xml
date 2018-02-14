@@ -53,7 +53,7 @@
                 android:layout_height="42dp"
                 android:layout_marginTop="16dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_tune_black"
+                android:src="@drawable/ic_music_mixer"
                 android:tint="@android:color/holo_green_light"
                 android:tintMode="src_atop"
                 res:layout_constraintLeft_toLeftOf="parent"

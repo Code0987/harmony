@@ -2005,7 +2005,7 @@ public class MusicService extends Service {
 	}
 
 	public void open(final Music music) {
-		open(music, true);
+		open(music, !Music.exists(music.getPath()));
 	}
 
 	public static void startIntentForOpen(final Context context, final String musicId) {

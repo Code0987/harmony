@@ -31,7 +31,6 @@ import android.view.ContextThemeWrapper;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -67,21 +66,15 @@ import org.musicbrainz.android.api.data.Tag;
 import java.io.File;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import co.mobiwise.materialintro.animation.MaterialIntroListener;
-import co.mobiwise.materialintro.shape.Focus;
-import co.mobiwise.materialintro.shape.FocusGravity;
-import co.mobiwise.materialintro.view.MaterialIntroView;
 import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
-import jonathanfinerty.once.Once;
 import jp.wasabeef.blurry.Blurry;
 
 public class PlaybackUIActivity extends BaseUIActivity {
@@ -225,7 +218,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	public void OnMusicServicePlay() {
 		super.OnMusicServicePlay();
 
-		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_pause_black));
+		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_music_pause));
 
 		try {
 			if (getMusicService() != null) {
@@ -246,7 +239,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	public void OnMusicServicePause() {
 		super.OnMusicServicePlay();
 
-		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
+		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_music_play));
 
 		try {
 			if (getMusicService() != null) {
@@ -267,7 +260,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	public void OnMusicServiceStop() {
 		super.OnMusicServicePlay();
 
-		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_play_black));
+		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_music_play));
 
 		if (video != null && video.getVisibility() == View.VISIBLE) {
 			video.stopPlayback();
@@ -554,16 +547,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		});
 		root.setLongClickable(true);
 
-		root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-
-			@Override
-			public void onGlobalLayout() {
-				root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-				initHelp();
-			}
-		});
-
 		final ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
 		if (viewPager != null) {
 			viewPager.post(new Runnable() {
@@ -762,7 +745,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				getString(R.string.re_load_lyrics),
 				getString(R.string.edit_lyrics),
 				getString(R.string.update_metadata),
-				getString(R.string.tour)
 		}, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int itemIndex) {
@@ -791,14 +773,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 							break;
 						case 7:
 							lookupAndUpdateDetails();
-							break;
-						case 8:
-							tour(new MaterialIntroListener() {
-								@Override
-								public void onUserClicked(String s) {
-									info(":)");
-								}
-							});
 							break;
 					}
 				} catch (Exception e) {
@@ -1132,8 +1106,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		}
 
 		lyricsScrollBy = ((float) lyrics.getLineHeight() * lines) / ((float) getMusicService().getMusic().getLength() / 1000);
-		if (lyricsScrollBy < 1)
-			lyricsScrollBy = 1;
+		if (lyricsScrollBy < 1 || lyricsScrollBy > 7)
+			lyricsScrollBy = lyrics.getLineHeight() / 2;
 
 		lyrics.setText(lyricsContentFormatted);
 
@@ -1188,7 +1162,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		}
 
 		// For un-synced (no else to show little scroll always)
-		if (p - lyricsLastPScroll > 750) { // Scroll every 3/4 sec
+		if (p - lyricsLastPScroll > 1000 || p < 0) {
 			lyrics_layout.smoothScrollBy(0, Math.round(lyricsScrollBy));
 			lyricsLastPScroll = p;
 		}
@@ -1226,8 +1200,12 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			public void onClick(View view) {
 				if (audioVFXViewFragment != null) {
 					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, false);
+					setPlaybackUICoverHidden(PlaybackUIActivity.this, false);
+					toggleCover(getPlaybackUICoverHidden(PlaybackUIActivity.this));
 				} else {
 					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
+					setPlaybackUICoverHidden(PlaybackUIActivity.this, true);
+					toggleCover(getPlaybackUICoverHidden(PlaybackUIActivity.this));
 
 					info(getString(R.string.avfx_tap_more));
 				}
@@ -1527,33 +1505,23 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			position_start.setVisibility(View.GONE);
 			position_end.setVisibility(View.GONE);
 			seekBar.setVisibility(View.GONE);
-
-			if (progressHandlerRunnable != null)
-				handler.removeCallbacks(progressHandlerRunnable);
-
-			return;
 		} else {
 			position_start.setVisibility(View.VISIBLE);
 			position_end.setVisibility(View.VISIBLE);
 			seekBar.setVisibility(View.VISIBLE);
 
-			if (progressHandlerRunnable != null)
-				handler.removeCallbacks(progressHandlerRunnable);
+			seekBar.setMax(getMusicService().getDuration());
+			position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "mm:ss", false));
 		}
-
-		seekBar.setMax(getMusicService().getDuration());
-		position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "mm:ss", false));
-
-		final int dt = (int) (1000.0 / 24.0);
 
 		progressHandlerRunnable = new Runnable() {
 			@Override
 			public void run() {
 				if (getMusicService() != null && getMusicService().isPlaying()) {
-
-					seekBar.setProgress(getMusicService().getPosition());
-					position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "mm:ss", false));
-
+					if (seekBar.getVisibility() == View.VISIBLE)
+						seekBar.setProgress(getMusicService().getPosition());
+					if (position_start.getVisibility() == View.VISIBLE)
+						position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "mm:ss", false));
 					if (lyrics_layout != null)
 						updateLyricsScroll();
 				}
@@ -1564,10 +1532,10 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					return;
 
 				handler.removeCallbacks(progressHandlerRunnable);
-				handler.postDelayed(progressHandlerRunnable, dt);
+				handler.postDelayed(progressHandlerRunnable, 1000);
 			}
 		};
-		handler.postDelayed(progressHandlerRunnable, dt);
+		handler.postDelayed(progressHandlerRunnable, 1000);
 	}
 
 	private void updateControls(int color, int colorLight) {
@@ -1612,242 +1580,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			} else {
 				controls_layout.animate().alpha(1).setDuration(333).start();
 			}
-		}
-	}
-
-	//endregion
-
-	//region Help
-
-	private void initHelp() {
-		final String tag_guide = TAG + ".guide";
-
-		if (Once.beenDone(Once.THIS_APP_INSTALL, tag_guide))
-			return;
-
-		(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
-				.setTitle(R.string.playback_setup_title)
-				.setMessage(R.string.playback_setup_msg)
-				.setCancelable(true)
-				.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialogInterface, int i) {
-						tour(new MaterialIntroListener() {
-							@Override
-							public void onUserClicked(String usageId) {
-								try {
-									tune.performClick();
-
-									info(getString(R.string.playback_setup_tune_choose_preset));
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-
-								try {
-									Once.markDone(tag_guide);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-						});
-
-						dialogInterface.dismiss();
-					}
-				})
-				.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialogInterface, int i) {
-						try {
-							tune.performClick();
-
-							info(getString(R.string.playback_setup_tune_choose_preset));
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-
-						try {
-							Once.markDone(tag_guide);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-
-						dialogInterface.dismiss();
-					}
-				}))
-				.show();
-	}
-
-	private void tour(MaterialIntroListener onFinal) {
-		final MaterialIntroView.Builder guide_play_pause_stop = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText(getString(R.string.playback_setup_msg_1))
-				.setTarget(play_pause_stop)
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_next = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText(getString(R.string.playback_setup_msg_2))
-				.setTarget(next)
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_avfx = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText(getString(R.string.playback_setup_msg_3))
-				.setTarget(avfx)
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_tune = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText(getString(R.string.playback_setup_msg_4))
-				.setTarget(tune)
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_lyrics = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText(getString(R.string.playback_setup_msg_5))
-				.setTarget(lyrics_layout == null ? root : lyrics_layout)
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_cover = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText(getString(R.string.playback_setup_msg_6))
-				.setTarget(cover)
-				.setUsageId(UUID.randomUUID().toString());
-
-		final MaterialIntroView.Builder guide_final = new MaterialIntroView.Builder(this)
-				.setMaskColor(ContextCompat.getColor(getApplicationContext(), R.color.translucent))
-				.setDelayMillis(500)
-				.enableFadeAnimation(true)
-				.enableDotAnimation(false)
-				.setFocusType(Focus.MINIMUM)
-				.setFocusGravity(FocusGravity.CENTER)
-				.setTargetPadding(32)
-				.dismissOnTouch(true)
-				.enableIcon(true)
-				.performClick(true)
-				.setInfoText(getString(R.string.playback_setup_msg_7))
-				.setTarget(play_pause_stop)
-				.setUsageId(UUID.randomUUID().toString());
-
-		guide_final.setListener(onFinal);
-		guide_cover.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					guide_final.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		guide_lyrics.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					guide_cover.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		guide_tune.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					guide_lyrics.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		guide_avfx.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					guide_tune.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		guide_next.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					guide_avfx.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		guide_play_pause_stop.setListener(new MaterialIntroListener() {
-			@Override
-			public void onUserClicked(String usageId) {
-				try {
-					guide_next.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		try {
-			guide_play_pause_stop.show();
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
