@@ -18,7 +18,6 @@
 
     <TextView
         android:id="@+id/title"
-        style="@style/TextAppearance.AppCompat.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="2dp"
@@ -33,7 +32,6 @@
 
     <TextView
         android:id="@+id/info"
-        style="@style/TextAppearance.AppCompat.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"

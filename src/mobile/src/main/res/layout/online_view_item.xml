@@ -46,7 +46,6 @@
 
             <TextView
                 android:id="@+id/text1"
-                style="@style/TextAppearance.AppCompat.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
@@ -67,7 +66,6 @@
 
             <TextView
                 android:id="@+id/text2"
-                style="@style/TextAppearance.AppCompat.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/text1"
