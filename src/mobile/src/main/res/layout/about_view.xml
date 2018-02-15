@@ -73,7 +73,6 @@
 
             <TextView
                 android:id="@+id/about_title"
-                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -86,7 +85,6 @@
 
             <TextView
                 android:id="@+id/about_website"
-                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
@@ -100,7 +98,6 @@
 
             <TextView
                 android:id="@+id/about_version"
-                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -113,7 +110,6 @@
 
             <TextView
                 android:id="@+id/about_copyright"
-                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"

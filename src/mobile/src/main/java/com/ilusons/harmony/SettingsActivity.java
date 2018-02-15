@@ -180,7 +180,7 @@ public class SettingsActivity extends BaseActivity {
 
 		// Set views
 		root = findViewById(R.id.root);
-		loading = (AVLoadingIndicatorView) findViewById(R.id.loading);
+		loading = findViewById(R.id.loading);
 
 		// IAB
 		iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);

@@ -82,7 +82,6 @@
 
                     <TextView
                         android:id="@+id/title"
-                        style="@style/TextAppearance.Compat.Notification.Title.Media"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.68"
@@ -105,8 +104,7 @@
                         />
 
                     <TextView
-                        android:id="@+id/info"
-                        style="@style/TextAppearance.Compat.Notification.Info.Media"
+                        android:id="@+id/info "
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.68"
@@ -143,10 +141,10 @@
                             xmlns:CircleProgressView="http://schemas.android.com/apk/res-auto"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:alpha="0.65"
+                            android:alpha="0.75"
                             CircleProgressView:cpv_autoTextSize="true"
                             CircleProgressView:cpv_barColor="@color/icons"
-                            CircleProgressView:cpv_barWidth="4dp"
+                            CircleProgressView:cpv_barWidth="1.1dp"
                             CircleProgressView:cpv_fillColor="@color/transparent"
                             CircleProgressView:cpv_innerContourColor="@color/transparent"
                             CircleProgressView:cpv_innerContourSize="0dp"

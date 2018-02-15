@@ -110,6 +110,7 @@ public class DashboardActivity extends BaseUIActivity {
 		getSupportActionBar().setTitle(null);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setHomeButtonEnabled(true);
+		getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_hamburger);
 
 		drawer_layout = findViewById(R.id.drawer_layout);
 		drawer_layout.closeDrawer(GravityCompat.START);
@@ -123,21 +124,21 @@ public class DashboardActivity extends BaseUIActivity {
 				supportInvalidateOptionsMenu();
 			}
 		};
+
+		final DrawerArrow.DrawerArrowDrawableToggle homeDrawable = new DrawerArrow.DrawerArrowDrawableToggle((this), (this).getSupportActionBar().getThemedContext());
+		drawer_toggle.setDrawerArrowDrawable(homeDrawable);
 		drawer_toggle.setDrawerIndicatorEnabled(true);
+		drawer_toggle.setHomeAsUpIndicator(homeDrawable);
 		drawer_layout.setDrawerListener(drawer_toggle);
 		drawer_toggle.syncState();
 
-		//final DrawerArrow.DrawerArrowDrawableToggle homeDrawable = new DrawerArrow.DrawerArrowDrawableToggle((this), (this).getSupportActionBar().getThemedContext());
-		getSupportActionBar().setHomeAsUpIndicator(getDrawable(R.drawable.ic_arrows_left));
-
 		appbar = findViewById(R.id.appbar);
-
 		appbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
 			@Override
 			public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
 				boolean expanded = !(Math.abs(verticalOffset) - appBarLayout.getTotalScrollRange() == 0);
 
-				//homeDrawable.setPosition(1.0f - ((float) Math.abs(verticalOffset) / appBarLayout.getTotalScrollRange()));
+				homeDrawable.setPosition(1.0f - ((float) Math.abs(verticalOffset) / appBarLayout.getTotalScrollRange()));
 
 				onAppBarStateChanged(expanded);
 			}

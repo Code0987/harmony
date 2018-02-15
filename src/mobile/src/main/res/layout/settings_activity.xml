@@ -53,12 +53,12 @@
 
         <TextView
             android:id="@+id/title"
-            style="@style/TextAppearance.AppCompat.Title.Inverse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
             android:text="Settings"
+            android:textSize="32sp"
             />
 
         <ImageButton
@@ -72,6 +72,7 @@
             android:layout_marginEnd="16dp"
             android:background="@null"
             android:clickable="true"
+            android:focusable="true"
             android:minHeight="0dp"
             android:minWidth="0dp"
             android:padding="0dp"
@@ -152,345 +153,6 @@
             android:gravity="center"
             >
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:descendantFocusability="beforeDescendants"
-                android:focusableInTouchMode="true"
-                android:orientation="vertical"
-                android:tag="UI"
-                >
-
-                <TextView
-                    android:id="@+id/playbackUIStyle_textView"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="Playback UI Style"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    />
-
-                <Spinner
-                    android:id="@+id/playbackUIStyle_spinner"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/playbackUIStyle_textView"
-                    />
-
-                <TextView
-                    android:id="@+id/avfxtype_textView"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="Audio visualization type"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/playbackUIStyle_spinner"
-                    />
-
-                <Spinner
-                    android:id="@+id/avfxtype_spinner"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/avfxtype_textView"
-                    />
-
-            </LinearLayout>
-
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipChildren="true"
-                android:clipToPadding="true"
-                android:descendantFocusability="beforeDescendants"
-                android:fadeScrollbars="false"
-                android:focusableInTouchMode="true"
-                android:orientation="vertical"
-                android:scrollbarAlwaysDrawVerticalTrack="true"
-                android:scrollbarFadeDuration="0"
-                android:scrollbars="vertical"
-                android:tag="Library"
-                >
-
-                <android.support.constraint.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    >
-
-                    <TextView
-                        android:id="@+id/library_scan_auto_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Scan automatically for updated media"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        />
-
-                    <CheckBox
-                        android:id="@+id/library_scan_auto_checkBox"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_textView"
-                        />
-
-                    <TextView
-                        android:id="@+id/library_scan_auto_interval_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:text="Automatic scan interval (in seconds)"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_checkBox"
-                        />
-
-                    <EditText
-                        android:id="@+id/library_scan_auto_interval_editText"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        android:minWidth="40dp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_textView"
-                        />
-
-                    <ImageButton
-                        android:id="@+id/library_scan_auto_interval_imageButton"
-                        style="@style/Widget.AppCompat.ImageButton"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginTop="5dp"
-                        android:background="@null"
-                        android:padding="0dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_check"
-                        android:tint="@color/icons"
-                        android:tintMode="src_atop"
-                        app:layout_constraintBottom_toBottomOf="@+id/library_scan_auto_interval_editText"
-                        app:layout_constraintLeft_toRightOf="@id/library_scan_auto_interval_editText"
-                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_textView"
-                        />
-
-                    <TextView
-                        android:id="@+id/scan_locations_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:text="Scan locations"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_editText"
-                        />
-
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/scan_locations_recyclerView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:animateLayoutChanges="false"
-                        android:animationCache="true"
-                        android:clipToPadding="false"
-                        android:maxHeight="80dp"
-                        android:nestedScrollingEnabled="false"
-                        android:scrollbars="vertical"
-                        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_locations_textView"
-                        tools:layout_height="40dp"
-                        />
-
-                    <ImageButton
-                        android:id="@+id/scan_locations_imageButton"
-                        style="@style/Widget.AppCompat.ImageButton"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="5dp"
-                        android:layout_marginTop="5dp"
-                        android:background="@null"
-                        android:padding="0dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_music_playlist"
-                        android:tint="@android:color/holo_green_light"
-                        android:tintMode="src_atop"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_locations_recyclerView"
-                        />
-
-                    <TextView
-                        android:id="@+id/scan_mediastore_enabled_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:text="Include Android media store in library"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_locations_imageButton"
-                        />
-
-                    <CheckBox
-                        android:id="@+id/scan_mediastore_enabled_checkBox"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_textView"
-                        />
-
-                    <TextView
-                        android:id="@+id/scan_constraint_min_max_duration_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:text="Min/max length of media to include (seconds)"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"
-                        />
-
-                    <com.appyvet.materialrangebar.RangeBar
-                        android:id="@+id/scan_constraint_min_max_duration_rangeBar"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        android:minWidth="80dp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_textView"
-                        app:mrb_connectingLineColor="@color/accent"
-                        app:mrb_pinColor="@color/primary_dark"
-                        app:mrb_pinMaxFont="11sp"
-                        app:mrb_pinPadding="5dp"
-                        app:mrb_pinRadius="24dp"
-                        app:mrb_pinTextColor="@color/textColorPrimary"
-                        app:mrb_rangeBar="true"
-                        app:mrb_rangeBarColor="@color/accent"
-                        app:mrb_selectorBoundaryColor="@color/accent"
-                        app:mrb_selectorBoundarySize="2dp"
-                        app:mrb_selectorColor="@color/accent"
-                        app:mrb_selectorSize="10dp"
-                        app:mrb_temporaryPins="true"
-                        app:mrb_tickColor="@color/accent"
-                        app:mrb_tickEnd="2400"
-                        app:mrb_tickInterval="30"
-                        app:mrb_tickStart="0"
-                        />
-
-                    <TextView
-                        android:id="@+id/library_update_fastMode_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:text="Library update fast mode"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_rangeBar"
-                        />
-
-                    <CheckBox
-                        android:id="@+id/library_update_fastMode_checkBox"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_textView"
-                        />
-
-                    <TextView
-                        android:id="@+id/library_update_fastMode_info_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:layout_marginTop="5dp"
-                        android:lines="3"
-                        android:text="Fast mode will ignore reading tags from file itself, and only use system provided data"
-                        android:textSize="11sp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_checkBox"
-                        />
-
-                </android.support.constraint.ConstraintLayout>
-
-            </ScrollView>
-
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipChildren="true"
-                android:clipToPadding="true"
-                android:descendantFocusability="beforeDescendants"
-                android:fadeScrollbars="true"
-                android:focusableInTouchMode="true"
-                android:orientation="vertical"
-                android:scrollbars="vertical"
-                android:tag="Headset"
-                >
-
-                <android.support.constraint.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    >
-
-                    <TextView
-                        android:id="@+id/headset_auto_play_on_plug_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:text="Headset auto play on plug"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        />
-
-                    <CheckBox
-                        android:id="@+id/headset_auto_play_on_plug_checkBox"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/headset_auto_play_on_plug_textView"
-                        />
-
-                    <TextView
-                        android:id="@+id/headset_auto_play_on_plug_info_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:layout_marginTop="5dp"
-                        android:lines="3"
-                        android:text="Last played music will start playing automatically when a headset is plugged in."
-                        android:textSize="11sp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/headset_auto_play_on_plug_checkBox"
-                        />
-
-                </android.support.constraint.ConstraintLayout>
-
-            </ScrollView>
-
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -511,7 +173,6 @@
 
                     <TextView
                         android:id="@+id/reset_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
@@ -539,7 +200,6 @@
 
                     <TextView
                         android:id="@+id/player_type_textView"
-                        style="@style/TextAppearance.AppCompat.Body1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
@@ -550,7 +210,6 @@
 
                     <RadioGroup
                         android:id="@+id/player_type_radioGroup"
-                        style="@style/TextAppearance.AppCompat.Body1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
@@ -606,7 +265,6 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/analytics_lfm_status"
-                        res:hintTextAppearance="@style/AppTheme.Text"
                         >
 
                         <EditText
@@ -631,7 +289,6 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/analytics_lfm_username"
-                        res:hintTextAppearance="@style/AppTheme.Text"
                         >
 
                         <EditText
@@ -666,25 +323,11 @@
                         android:layout_marginEnd="8dp"
                         android:layout_marginStart="8dp"
                         android:layout_marginTop="16dp"
-                        android:text="Enter your username and password to enable scrobbler. You can verify results at their website, after sometime of playing music."
+                        android:text="Enter your username and password to enable scrobbler."
                         android:textColorHint="@color/secondary_text"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/analytics_lfm_save"
-                        />
-
-                    <TextView
-                        android:id="@+id/analytics_lfm_info1"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginTop="8dp"
-                        android:text="NOTE: Currently, caching is not supported, we're working on it. It means, you'll need constant internet or at least app opened always."
-                        android:textColorHint="@color/secondary_text"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_info"
                         />
 
                     <TextView
@@ -698,7 +341,7 @@
                         android:textColorHint="@color/secondary_text"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_info1"
+                        app:layout_constraintTop_toBottomOf="@id/analytics_lfm_info"
                         />
 
                     <TextView
@@ -708,7 +351,6 @@
                         android:layout_marginEnd="8dp"
                         android:layout_marginStart="8dp"
                         android:layout_marginTop="8dp"
-                        android:fontFamily="monospace"
                         android:overScrollMode="always"
                         android:scrollHorizontally="true"
                         android:scrollbarFadeDuration="0"
@@ -716,10 +358,330 @@
                         android:text=""
                         android:textColorHint="@color/secondary_text"
                         android:textIsSelectable="true"
-                        android:textSize="8dp"
+                        android:textSize="8sp"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/analytics_lfm_logs_info"
+                        />
+
+                </android.support.constraint.ConstraintLayout>
+
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:descendantFocusability="beforeDescendants"
+                android:focusableInTouchMode="true"
+                android:orientation="vertical"
+                android:tag="UI"
+                >
+
+                <TextView
+                    android:id="@+id/playbackUIStyle_textView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Playback UI Style"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    />
+
+                <Spinner
+                    android:id="@+id/playbackUIStyle_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/playbackUIStyle_textView"
+                    />
+
+                <TextView
+                    android:id="@+id/avfxtype_textView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Audio visualization type"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/playbackUIStyle_spinner"
+                    />
+
+                <Spinner
+                    android:id="@+id/avfxtype_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/avfxtype_textView"
+                    />
+
+            </LinearLayout>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="true"
+                android:clipToPadding="true"
+                android:descendantFocusability="beforeDescendants"
+                android:fadeScrollbars="false"
+                android:focusableInTouchMode="true"
+                android:orientation="vertical"
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:scrollbarFadeDuration="0"
+                android:scrollbars="vertical"
+                android:tag="Library"
+                >
+
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    >
+
+                    <TextView
+                        android:id="@+id/library_scan_auto_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Scan automatically for updated media"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/library_scan_auto_checkBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_textView"
+                        />
+
+                    <TextView
+                        android:id="@+id/library_scan_auto_interval_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Automatic scan interval (in seconds)"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_checkBox"
+                        />
+
+                    <EditText
+                        android:id="@+id/library_scan_auto_interval_editText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        android:minWidth="40dp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_textView"
+                        />
+
+                    <ImageButton
+                        android:id="@+id/library_scan_auto_interval_imageButton"
+                        style="@style/Widget.AppCompat.ImageButton"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="5dp"
+                        android:background="@null"
+                        android:padding="0dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_check"
+                        android:tint="@color/icons"
+                        android:tintMode="src_atop"
+                        app:layout_constraintBottom_toBottomOf="@+id/library_scan_auto_interval_editText"
+                        app:layout_constraintLeft_toRightOf="@id/library_scan_auto_interval_editText"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_textView"
+                        />
+
+                    <TextView
+                        android:id="@+id/scan_locations_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Scan locations"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_editText"
+                        />
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/scan_locations_recyclerView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:animateLayoutChanges="false"
+                        android:animationCache="true"
+                        android:clipToPadding="false"
+                        android:maxHeight="80dp"
+                        android:nestedScrollingEnabled="false"
+                        android:scrollbars="vertical"
+                        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_locations_textView"
+                        tools:layout_height="40dp"
+                        />
+
+                    <ImageButton
+                        android:id="@+id/scan_locations_imageButton"
+                        style="@style/Widget.AppCompat.ImageButton"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="5dp"
+                        android:background="@null"
+                        android:padding="0dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_music_playlist"
+                        android:tint="@android:color/holo_green_light"
+                        android:tintMode="src_atop"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_locations_recyclerView"
+                        />
+
+                    <TextView
+                        android:id="@+id/scan_mediastore_enabled_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Include Android media store in library"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_locations_imageButton"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/scan_mediastore_enabled_checkBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_textView"
+                        />
+
+                    <TextView
+                        android:id="@+id/scan_constraint_min_max_duration_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Min/max length of media to include (seconds)"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_mediastore_enabled_checkBox"
+                        />
+
+                    <com.appyvet.materialrangebar.RangeBar
+                        android:id="@+id/scan_constraint_min_max_duration_rangeBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        android:minWidth="80dp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_textView"
+                        app:mrb_connectingLineColor="@color/accent"
+                        app:mrb_pinColor="@color/primary_dark"
+                        app:mrb_pinMaxFont="11sp"
+                        app:mrb_pinPadding="5dp"
+                        app:mrb_pinRadius="24dp"
+                        app:mrb_pinTextColor="@color/textColorPrimary"
+                        app:mrb_rangeBar="true"
+                        app:mrb_rangeBarColor="@color/accent"
+                        app:mrb_selectorBoundaryColor="@color/accent"
+                        app:mrb_selectorBoundarySize="2dp"
+                        app:mrb_selectorColor="@color/accent"
+                        app:mrb_selectorSize="10dp"
+                        app:mrb_temporaryPins="true"
+                        app:mrb_tickColor="@color/accent"
+                        app:mrb_tickEnd="2400"
+                        app:mrb_tickInterval="30"
+                        app:mrb_tickStart="0"
+                        />
+
+                    <TextView
+                        android:id="@+id/library_update_fastMode_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Library update fast mode"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_rangeBar"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/library_update_fastMode_checkBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_textView"
+                        />
+
+                    <TextView
+                        android:id="@+id/library_update_fastMode_info_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="5dp"
+                        android:lines="3"
+                        android:text="Fast mode will ignore reading tags from file itself, and only use system provided data"
+                        android:textSize="11sp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_checkBox"
+                        />
+
+                </android.support.constraint.ConstraintLayout>
+
+            </ScrollView>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="true"
+                android:clipToPadding="true"
+                android:descendantFocusability="beforeDescendants"
+                android:fadeScrollbars="true"
+                android:focusableInTouchMode="true"
+                android:orientation="vertical"
+                android:scrollbars="vertical"
+                android:tag="Headset"
+                >
+
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    >
+
+                    <TextView
+                        android:id="@+id/headset_auto_play_on_plug_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Headset auto play on plug"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/headset_auto_play_on_plug_checkBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/headset_auto_play_on_plug_textView"
+                        />
+
+                    <TextView
+                        android:id="@+id/headset_auto_play_on_plug_info_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="5dp"
+                        android:lines="3"
+                        android:text="Last played music will start playing automatically when a headset is plugged in."
+                        android:textSize="11sp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/headset_auto_play_on_plug_checkBox"
                         />
 
                 </android.support.constraint.ConstraintLayout>
@@ -798,20 +760,6 @@
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/analytics_dc_info1"
-                        />
-
-                    <TextView
-                        android:id="@+id/analytics_dc_info3"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginTop="16dp"
-                        android:text="[WORK IN PROGRESS]"
-                        android:textColorHint="@color/secondary_text"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/analytics_dc_info2"
                         />
 
                 </android.support.constraint.ConstraintLayout>
