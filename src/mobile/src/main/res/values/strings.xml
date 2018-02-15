@@ -76,5 +76,6 @@
     <string name="refresh">Refresh</string>
     <string name="downloads">Downloads</string>
     <string name="waiting">Waiting ...</string>
+    <string name="network_unavailable">Network un-available!</string>
 
 </resources>

@@ -800,30 +800,32 @@ public class PlaylistViewFragment extends BaseUIFragment {
 						}
 
 						if (artworkType != ArtworkEx.ArtworkType.None) {
-							ArtworkEx.getArtworkDownloaderTask(
-									getContext(),
-									q,
-									artworkType,
-									-1,
-									d,
-									Music.KEY_CACHE_DIR_COVER,
-									d,
-									new JavaEx.ActionT<Bitmap>() {
-										@Override
-										public void execute(Bitmap bitmap) {
-											cover.setImageBitmap(bitmap);
-										}
-									},
-									new JavaEx.ActionT<Exception>() {
-										@Override
-										public void execute(Exception e) {
-											Log.w(TAG, e);
+							if (AndroidEx.isNetworkAvailable(getContext())) {
+								ArtworkEx.getArtworkDownloaderTask(
+										getContext(),
+										q,
+										artworkType,
+										-1,
+										d,
+										Music.KEY_CACHE_DIR_COVER,
+										d,
+										new JavaEx.ActionT<Bitmap>() {
+											@Override
+											public void execute(Bitmap bitmap) {
+												cover.setImageBitmap(bitmap);
+											}
+										},
+										new JavaEx.ActionT<Exception>() {
+											@Override
+											public void execute(Exception e) {
+												Log.w(TAG, e);
 
-											cover.setImageDrawable(null);
-										}
-									},
-									1500,
-									false);
+												cover.setImageDrawable(null);
+											}
+										},
+										1500,
+										false);
+							}
 						}
 					}
 				}

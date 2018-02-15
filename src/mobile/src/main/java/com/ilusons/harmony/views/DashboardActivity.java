@@ -40,6 +40,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -53,6 +55,7 @@ import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -696,7 +699,7 @@ public class DashboardActivity extends BaseUIActivity {
 		play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View view) {
-				togglePlaybackExtras();
+				togglePlaybackExtrasVisibility();
 
 				return true;
 			}
@@ -714,6 +717,7 @@ public class DashboardActivity extends BaseUIActivity {
 						ActivityOptionsCompat.makeCustomAnimation(view.getContext(), R.anim.scale_up, R.anim.shake).toBundle());
 			}
 		};
+
 
 		title.setOnClickListener(onClickListener);
 		info.setOnClickListener(onClickListener);
@@ -807,6 +811,23 @@ public class DashboardActivity extends BaseUIActivity {
 				}
 			}
 		});
+
+		// Animations
+
+		final Animation animationSlideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down);
+		play_pause_stop.startAnimation(animationSlideDown);
+		progress.startAnimation(animationSlideDown);
+
+		final Animation animationSlideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+		title.startAnimation(animationSlideUp);
+		info.startAnimation(animationSlideUp);
+
+		handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				refreshPlaybackExtrasVisibility();
+			}
+		}, 783);
 	}
 
 	private Runnable progressHandlerRunnable;
@@ -856,16 +877,7 @@ public class DashboardActivity extends BaseUIActivity {
 			play_pause_stop.setImageResource(R.drawable.ic_music_pause);
 
 		try {
-			Bitmap bitmap = m.getCover(this, -1);
-
-			Blurry.with(this)
-					.radius(7)
-					.sampling(1)
-					.color(Color.argb(100, 0, 0, 0))
-					.animate(333)
-					.async()
-					.from(bitmap)
-					.into(parallax_image);
+			final Bitmap bitmap = m.getCover(this, -1);
 
 			Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
 				@SuppressWarnings("ResourceType")
@@ -883,8 +895,16 @@ public class DashboardActivity extends BaseUIActivity {
 					drawable = drawable.mutate();
 					bg.setImageDrawable(drawable);
 
-					progress.setBarColor(ColorUtils.setAlphaComponent(vibrantColor, 255));
 					progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
+
+					Blurry.with(DashboardActivity.this)
+							.radius(7)
+							.sampling(1)
+							.color(ColorUtils.setAlphaComponent(vibrantColor, 100))
+							.animate(763)
+							.async()
+							.from(bitmap)
+							.into(parallax_image);
 				}
 			});
 
@@ -896,23 +916,77 @@ public class DashboardActivity extends BaseUIActivity {
 
 	}
 
-	private void togglePlaybackExtras() {
-		if (next.getVisibility() == View.VISIBLE)
-			next.setVisibility(View.GONE);
-		else
+	private void refreshPlaybackExtrasVisibility() {
+		final Animation animationLeftIn = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
+		final Animation animationRightIn = AnimationUtils.loadAnimation(this, R.anim.slide_in_right);
+		final Animation animationLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
+		final Animation animationRightOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+
+		if (getPlaybackMiniExtrasVisible(this)) {
+			next.postOnAnimation(new Runnable() {
+				@Override
+				public void run() {
+					next.setVisibility(View.GONE);
+				}
+			});
+			next.startAnimation(animationRightOut);
+
+			prev.postOnAnimation(new Runnable() {
+				@Override
+				public void run() {
+					prev.setVisibility(View.GONE);
+				}
+			});
+			prev.startAnimation(animationLeftOut);
+
+			shuffle.postOnAnimation(new Runnable() {
+				@Override
+				public void run() {
+					shuffle.setVisibility(View.GONE);
+				}
+			});
+			shuffle.startAnimation(animationLeftOut);
+
+			repeat.postOnAnimation(new Runnable() {
+				@Override
+				public void run() {
+					repeat.setVisibility(View.GONE);
+				}
+			});
+			repeat.startAnimation(animationRightOut);
+		} else {
 			next.setVisibility(View.VISIBLE);
-		if (prev.getVisibility() == View.VISIBLE)
-			prev.setVisibility(View.GONE);
-		else
+			next.startAnimation(animationRightIn);
+
 			prev.setVisibility(View.VISIBLE);
-		if (shuffle.getVisibility() == View.VISIBLE)
-			shuffle.setVisibility(View.GONE);
-		else
+			prev.startAnimation(animationLeftIn);
+
 			shuffle.setVisibility(View.VISIBLE);
-		if (repeat.getVisibility() == View.VISIBLE)
-			repeat.setVisibility(View.GONE);
-		else
+			shuffle.startAnimation(animationLeftIn);
+
 			repeat.setVisibility(View.VISIBLE);
+			repeat.startAnimation(animationRightIn);
+		}
+
+	}
+
+	private void togglePlaybackExtrasVisibility() {
+		setPlaybackMiniExtrasVisible(this, !getPlaybackMiniExtrasVisible(this));
+
+		refreshPlaybackExtrasVisibility();
+	}
+
+	public static final String TAG_SPREF_PLAYBACK_MINI_EXTRAS_VISIBLE = "playback_mini_extras_visible";
+
+	public static boolean getPlaybackMiniExtrasVisible(Context context) {
+		return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYBACK_MINI_EXTRAS_VISIBLE, true);
+	}
+
+	public static void setPlaybackMiniExtrasVisible(Context context, boolean value) {
+		SPrefEx.get(context)
+				.edit()
+				.putBoolean(TAG_SPREF_PLAYBACK_MINI_EXTRAS_VISIBLE, value)
+				.apply();
 	}
 
 	//endregion

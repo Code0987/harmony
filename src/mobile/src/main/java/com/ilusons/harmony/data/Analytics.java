@@ -20,6 +20,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SecurePreferences;
 
 import org.apache.http.util.TextUtils;
@@ -181,6 +182,9 @@ public class Analytics {
 							@Override
 							public void subscribe(ObservableEmitter<ScrobbleResult> oe) throws Exception {
 								try {
+									if (!AndroidEx.isNetworkAvailable(musicService))
+										throw new Exception("Network not available!");
+
 									if (!canCall())
 										throw new Exception("Calls exceeded!");
 
@@ -479,6 +483,9 @@ public class Analytics {
 	}
 
 	public boolean canScrobble(MusicService musicService, Music data) {
+		if (!AndroidEx.isNetworkAvailable(musicService))
+			return false;
+
 		boolean duration30s = data.getLength() > 30 * 1000;
 		boolean playing = musicService.isPlaying();
 		boolean playedHalf = ((float) musicService.getPosition() / (float) musicService.getDuration()) >= 0.5f;
