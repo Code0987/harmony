@@ -288,6 +288,7 @@
 
                 <android.support.design.widget.TabLayout
                     android:id="@+id/tab_layout"
+                    style="@style/AppTheme.TabLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
@@ -298,9 +299,11 @@
                     app:tabBackground="@null"
                     app:tabGravity="fill"
                     app:tabIndicatorColor="@color/translucent_light"
+                    app:tabIndicatorHeight="1dp"
                     app:tabMode="fixed"
                     app:tabPaddingTop="3dp"
                     app:tabSelectedTextColor="@color/primary_text"
+                    app:tabTextAppearance="@style/AppTheme.TabTextAppearance"
                     app:tabTextColor="@color/translucent_light"/>
 
             </android.support.design.widget.CollapsingToolbarLayout>

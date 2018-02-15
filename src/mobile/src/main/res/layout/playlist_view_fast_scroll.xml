@@ -9,7 +9,7 @@
         android:id="@+id/handle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/library_view_fast_scroll_handle"
+        android:background="@drawable/fast_scroll_handle"
         android:elevation="4dp"
         android:visibility="invisible"
         tools:visibility="visible">
@@ -36,6 +36,6 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="2dp"
         android:layout_marginStart="2dp"
-        android:src="@drawable/library_view_fast_scroll_bubble"/>
+        android:src="@drawable/fast_scroll_bubble"/>
 
 </merge>

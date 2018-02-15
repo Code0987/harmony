@@ -352,6 +352,7 @@
                         android:layout_marginStart="8dp"
                         android:layout_marginTop="8dp"
                         android:overScrollMode="always"
+                        android:fontFamily="monospace"
                         android:scrollHorizontally="true"
                         android:scrollbarFadeDuration="0"
                         android:selectAllOnFocus="true"
