@@ -796,6 +796,12 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void updateCover() throws Exception {
+		if(!AndroidEx.isNetworkAvailable(this)) {
+			info(getString(R.string.network_unavailable), true);
+
+			return;
+		}
+
 		info(getString(R.string.downloading_artwork), true);
 
 		Music data = getMusicService().getMusic();
@@ -1107,7 +1113,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		lyricsScrollBy = ((float) lyrics.getLineHeight() * lines) / ((float) getMusicService().getMusic().getLength() / 1000);
 		if (lyricsScrollBy < 1 || lyricsScrollBy > 7)
-			lyricsScrollBy = lyrics.getLineHeight() / 2;
+			lyricsScrollBy = (float) lyrics.getLineHeight() / 2.1f;
 
 		lyrics.setText(lyricsContentFormatted);
 

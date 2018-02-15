@@ -54,7 +54,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/ic_add"
+                android:src="@drawable/ic_arrows_plus"
                 android:tint="@color/icons"
                 android:tintMode="src_atop"
                 app:layout_constraintBottom_toTopOf="@+id/new_playlist_text"
