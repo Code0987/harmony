@@ -14,8 +14,8 @@
     android:clickable="true"
     android:focusable="true"
     android:padding="0dp"
-    app:cardCornerRadius="4dp"
-    app:cardElevation="3dp"
+    app:cardCornerRadius="0dp"
+    app:cardElevation="0dp"
     tools:layout_height="112dp"
     tools:layout_width="match_parent"
     >
@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:background="@color/primary_dark"
+            android:background="@color/translucent_dark"
             android:padding="3dp"
             >
 
