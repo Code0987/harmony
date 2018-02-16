@@ -1352,34 +1352,34 @@ public class MusicService extends Service {
 				return;
 
 			if (getMusic().equals(newMusic) && newMusic.isLastPlaybackUrlUpdateNeeded()) {
-				Toast.makeText(MusicService.this, getMusic().getText() + " cannot be played. Please restart manually!", Toast.LENGTH_LONG).show();
+				Toast.makeText(MusicService.this, newMusic.getText() + " cannot be played. Please restart manually!", Toast.LENGTH_LONG).show();
 
 				return;
 			}
 
-			setMusic(newMusic);
-
-			if (getMusic().isLastPlaybackUrlUpdateNeeded()) {
+			if (newMusic.isLastPlaybackUrlUpdateNeeded()) {
 				if (AndroidEx.isNetworkAvailable(this)) {
 					switch (getPlayerType(this)) {
 						case OpenSL:
-							download(getMusic());
+							download(newMusic);
 
-							Toast.makeText(MusicService.this, getMusic().getText() + " will be played shortly. Downloading audio!", Toast.LENGTH_LONG).show();
+							Toast.makeText(MusicService.this, newMusic.getText() + " will be played shortly. Downloading audio!", Toast.LENGTH_LONG).show();
 							break;
 						case AndroidOS:
 						default:
-							stream(getMusic());
+							stream(newMusic);
 
-							Toast.makeText(MusicService.this, getMusic().getText() + " will be played shortly. Streaming audio!", Toast.LENGTH_LONG).show();
+							Toast.makeText(MusicService.this, newMusic.getText() + " will be played shortly. Streaming audio!", Toast.LENGTH_LONG).show();
 							break;
 					}
 				} else {
-					Toast.makeText(MusicService.this, getMusic().getText() + " requires internet! Skipping!", Toast.LENGTH_LONG).show();
+					Toast.makeText(MusicService.this, newMusic.getText() + " requires internet! Skipping!", Toast.LENGTH_LONG).show();
 
 					nextSmart(true);
 				}
 			} else {
+				setMusic(newMusic);
+
 				prepareB(onPrepare);
 			}
 		}

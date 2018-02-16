@@ -878,36 +878,36 @@ public class DashboardActivity extends BaseUIActivity {
 
 		try {
 			final Bitmap bitmap = m.getCover(this, -1);
+			if (bitmap != null) {
+				Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+					@SuppressWarnings("ResourceType")
+					@Override
+					public void onGenerated(@NonNull Palette palette) {
+						int vibrantColor = palette.getVibrantColor(R.color.accent);
+						int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
 
-			Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-				@SuppressWarnings("ResourceType")
-				@Override
-				public void onGenerated(@NonNull Palette palette) {
-					int vibrantColor = palette.getVibrantColor(R.color.accent);
-					int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
+						Drawable drawable = new GradientDrawable(
+								GradientDrawable.Orientation.TL_BR,
+								new int[]{
+										vibrantDarkColor,
+										vibrantColor
+								});
+						drawable = drawable.mutate();
+						bg.setImageDrawable(drawable);
 
-					Drawable drawable = new GradientDrawable(
-							GradientDrawable.Orientation.TL_BR,
-							new int[]{
-									vibrantDarkColor,
-									vibrantColor
-							});
-					drawable = drawable.mutate();
-					bg.setImageDrawable(drawable);
+						progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
 
-					progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
-
-					Blurry.with(DashboardActivity.this)
-							.radius(7)
-							.sampling(1)
-							.color(ColorUtils.setAlphaComponent(vibrantColor, 100))
-							.animate(763)
-							.async()
-							.from(bitmap)
-							.into(parallax_image);
-				}
-			});
-
+						Blurry.with(DashboardActivity.this)
+								.radius(7)
+								.sampling(1)
+								.color(ColorUtils.setAlphaComponent(vibrantColor, 100))
+								.animate(763)
+								.async()
+								.from(bitmap)
+								.into(parallax_image);
+					}
+				});
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 
