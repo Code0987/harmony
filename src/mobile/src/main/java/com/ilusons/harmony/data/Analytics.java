@@ -944,7 +944,9 @@ public class Analytics {
 
 						}
 					};
+					yte.setDefaultHttpProtocol(true);
 					yte.setParseDashManifest(true);
+					yte.setIncludeWebM(true);
 
 					SparseArray<YtFile> ytFiles = yte.execute(watchUrl).get(3L, TimeUnit.MINUTES);
 
