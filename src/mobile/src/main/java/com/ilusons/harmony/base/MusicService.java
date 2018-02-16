@@ -1265,6 +1265,14 @@ public class MusicService extends Service {
 		}
 	}
 
+	public void setPlaylist(Playlist playlist) {
+		try {
+			currentPlaylist = playlist;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	private Music currentMusic;
 
 	public Music getMusic() {
@@ -1651,16 +1659,28 @@ public class MusicService extends Service {
 		}
 	}
 
-	public void skip(int position, boolean autoPlay) {
+	public void skip(final int position, boolean autoPlay) {
 		synchronized (this) {
 			if (getPlaylist().getItems().size() <= 0)
 				return;
 		}
 
-		try {
-			getPlaylist().setItemIndex(position);
+		final String playlistName = getPlaylist().getName();
 
-			Playlist.savePlaylist(getPlaylist());
+		try (Realm realm = Music.getDB()) {
+			if (realm != null) {
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(@NonNull Realm realm) {
+						Playlist playlist = Playlist.loadOrCreatePlaylist(realm, playlistName);
+						playlist.setItemIndex(position);
+
+						realm.insertOrUpdate(playlist);
+
+						setPlaylist(realm.copyFromRealm(playlist));
+					}
+				});
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -2228,7 +2248,7 @@ public class MusicService extends Service {
 							}
 
 							if (autoPlay)
-								open(music);
+								open(music, true);
 
 						} else {
 							Toast.makeText(MusicService.this, "Audio stream failed for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
@@ -2361,7 +2381,7 @@ public class MusicService extends Service {
 				NotificationManagerCompat.from(context).notify(Download.getId(), nb.build());
 			}
 
-			if (Download != null && (Download.getProgress() == 100 || Download.getError() != Error.NONE)) {
+			if (Download != null && (Download.getProgress() == 100)) {
 				if (nb == null)
 					return;
 
@@ -2430,7 +2450,7 @@ public class MusicService extends Service {
 									}
 
 								if (audioDownload.PlayAfterDownload)
-									open(audioDownload.Music);
+									open(audioDownload.Music, true);
 
 								audioDownload.updateNotification();
 
