@@ -1814,7 +1814,7 @@ public class MusicService extends Service {
 
 		builder = new NotificationCompat.Builder(this)
 				.setContentIntent(contentIntent)
-				.setSmallIcon(R.mipmap.ic_launcher)
+				.setSmallIcon(R.drawable.ic_notification)
 				.setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
 				.setOngoing(false)
 				.setDeleteIntent(createActionIntent(this, ACTION_STOP))
@@ -1993,6 +1993,7 @@ public class MusicService extends Service {
 			} else {
 				itemToOpen = Music.load(this, musicId);
 				getPlaylist().add(itemToOpen);
+				Playlist.add(getPlaylist().getName(), itemToOpen);
 				skip(getPlaylist().getItems().size() - 1);
 			}
 
