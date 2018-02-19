@@ -265,6 +265,25 @@ public class Playlist extends RealmObject {
 		}
 	}
 
+	public static void add(final String playlistName, final Music music) {
+		try (Realm realm = Music.getDB()) {
+			if (realm != null) {
+				realm.executeTransaction(new Realm.Transaction() {
+					@Override
+					public void execute(@NonNull Realm realm) {
+						Playlist playlist = Playlist.loadOrCreatePlaylist(realm, playlistName);
+
+						playlist.add(music);
+
+						realm.insertOrUpdate(playlist);
+					}
+				});
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	public static final String TAG_SPREF_PLAYLISTS_ACTIVE = "playlists_active";
 
 	public static String getActivePlaylist(Context context) {

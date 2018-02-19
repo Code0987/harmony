@@ -211,6 +211,7 @@ dependencies {
 	implementation "com.tonyodev.fetch2:fetch2:2.0.0-RC8"
 	implementation "com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC8"
 	implementation "com.tonyodev.fetch2rx:fetch2rx:2.0.0-RC8"
+	implementation 'me.everything:overscroll-decor-android:1.0.4'
 	// debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
 	debugImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 	releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
