@@ -56,9 +56,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
-import me.everything.android.ui.overscroll.VerticalOverScrollBounceEffectDecorator;
-import me.everything.android.ui.overscroll.adapters.RecyclerViewOverScrollDecorAdapter;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
@@ -201,7 +198,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 		adapter = new RecyclerViewAdapter(this);
 		adapter.setHasStableIds(true);
 
-		final RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
+		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
 		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 7);
 
 		recyclerView.setLayoutManager(new LinearLayoutManager(v.getContext()));
@@ -209,17 +206,6 @@ public class OnlineViewFragment extends BaseUIFragment {
 		recyclerView.setAdapter(adapter);
 
 		recyclerView.addOnScrollListener(recyclerViewScrollListener);
-
-		// Animations
-
-		VerticalOverScrollBounceEffectDecorator overScroll = new VerticalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
-
-		recyclerView.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				recyclerViewScrollListener.onScrolled(recyclerView, 0, 0);
-			}
-		}, 343);
 	}
 
 	private void searchTracks(String query) {

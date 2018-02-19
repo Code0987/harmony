@@ -13,7 +13,7 @@
 
     <item
         android:id="@+id/now_playing"
-        android:icon="@drawable/ic_music_note_multiple"
+        android:icon="@drawable/ic_music_note_single"
         android:title="@string/now_playing"
         app:showAsAction="ifRoom"
         />
