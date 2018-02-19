@@ -95,8 +95,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.functions.Consumer;
 import jonathanfinerty.once.Once;
-import me.everything.android.ui.overscroll.VerticalOverScrollBounceEffectDecorator;
-import me.everything.android.ui.overscroll.adapters.RecyclerViewOverScrollDecorAdapter;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
@@ -455,10 +453,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 		fastScrollLayout = v.findViewById(R.id.fastScrollLayout);
 		fastScrollLayout.setRecyclerView(recyclerView);
-
-		// Animations
-
-		VerticalOverScrollBounceEffectDecorator overScroll = new VerticalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 2f, 1f, -0.5f);
 	}
 
 	public static class FastScrollLayout extends LinearLayout {
@@ -2360,9 +2354,9 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	public enum UIViewMode {
 		Default("Default"),
-		Complex1("2 columns"),
-		Complex2("2, 1 columns"),
-		Complex3("3 columns"),;
+		Complex1("Something 1"),
+		Complex2("Something 2"),
+		Complex3("Something 3"),;
 
 		private String friendlyName;
 
@@ -2546,7 +2540,9 @@ public class PlaylistViewFragment extends BaseUIFragment {
 							return SPANS;
 						} else {
 							// child item
-							return SPANS / 3;
+							if (position % 3 == 0)
+								return SPANS;
+							return SPANS / 2;
 						}
 					}
 				});

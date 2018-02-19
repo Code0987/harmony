@@ -1993,7 +1993,6 @@ public class MusicService extends Service {
 			} else {
 				itemToOpen = Music.load(this, musicId);
 				getPlaylist().add(itemToOpen);
-				Playlist.add(getPlaylist().getName(), itemToOpen);
 				skip(getPlaylist().getItems().size() - 1);
 			}
 
