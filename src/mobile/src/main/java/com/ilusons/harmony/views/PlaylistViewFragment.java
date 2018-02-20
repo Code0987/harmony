@@ -819,6 +819,9 @@ public class PlaylistViewFragment extends BaseUIFragment {
 											@Override
 											public void execute(Bitmap bitmap) {
 												cover.setImageBitmap(bitmap);
+
+												if (cover instanceof ParallaxImageView)
+													((ParallaxImageView) cover).translate();
 											}
 										},
 										new JavaEx.ActionT<Exception>() {
@@ -875,6 +878,9 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 								d.setCrossFadeEnabled(true);
 								d.startTransition(200);
+
+								if (cover instanceof ParallaxImageView)
+									((ParallaxImageView) cover).translate();
 							} catch (Exception e) {
 								e.printStackTrace();
 							}

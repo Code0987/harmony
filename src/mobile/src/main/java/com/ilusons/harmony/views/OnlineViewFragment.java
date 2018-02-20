@@ -213,13 +213,6 @@ public class OnlineViewFragment extends BaseUIFragment {
 		// Animations
 
 		VerticalOverScrollBounceEffectDecorator overScroll = new VerticalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
-
-		recyclerView.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				recyclerViewScrollListener.onScrolled(recyclerView, 0, 0);
-			}
-		}, 343);
 	}
 
 	private void searchTracks(String query) {
@@ -448,6 +441,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 						}
 					}
 				});
+
 			}
 
 			@SuppressLint("StaticFieldLeak")
@@ -545,6 +539,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 							d.setCrossFadeEnabled(true);
 							d.startTransition(200);
+
+							image.translate();
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
