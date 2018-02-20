@@ -717,16 +717,25 @@ public class Analytics {
 			@Override
 			public void subscribe(ObservableEmitter<Collection<de.umass.lastfm.Track>> oe) throws Exception {
 				try {
-					boolean f = false;
+					ArrayList<Track> tracks = new ArrayList<>();
 
 					if (canCall()) {
-						Collection<de.umass.lastfm.Track> similar = de.umass.lastfm.Track.search(null, query, limit, getKey());
-						oe.onNext(similar);
-						f = true;
+						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Track.search(null, query, limit, getKey());
+						oe.onNext(searched);
 					}
 
-					if (!f)
-						throw new Exception("Not found");
+					if (canCall() && tracks.size() == 0) {
+						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Tag.getTopTracks(query, getKey());
+						tracks.addAll(searched);
+					}
+
+					if (tracks.size() == 0)
+						throw new Exception("Nothing found!");
+
+					Collections.shuffle(tracks);
+
+					oe.onNext(tracks);
+
 					oe.onComplete();
 				} catch (Exception e) {
 					oe.onError(e);
@@ -740,18 +749,22 @@ public class Analytics {
 			@Override
 			public void subscribe(ObservableEmitter<Collection<de.umass.lastfm.Track>> oe) throws Exception {
 				try {
-					if (!canCall())
-						throw new Exception("Calls exceeded!");
-
 					ArrayList<Track> tracks = new ArrayList<>();
 
 					final String country = context.getResources().getConfiguration().locale.getDisplayCountry();
 
-					Collection<Track> regionalTracks = de.umass.lastfm.Geo.getTopTracks(country, getKey());
-					tracks.addAll(regionalTracks);
+					if (canCall()) {
+						Collection<Track> regionalTracks = de.umass.lastfm.Geo.getTopTracks(country, getKey());
+						tracks.addAll(regionalTracks);
+					}
 
-					PaginatedResult<Track> topTracks = de.umass.lastfm.Chart.getTopTracks(getKey());
-					tracks.addAll(topTracks.getPageResults());
+					if (canCall()) {
+						PaginatedResult<Track> topTracks = de.umass.lastfm.Chart.getTopTracks(getKey());
+						tracks.addAll(topTracks.getPageResults());
+					}
+
+					if (tracks.size() == 0)
+						throw new Exception("Nothing found!");
 
 					Collections.shuffle(tracks);
 
