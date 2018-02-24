@@ -82,7 +82,7 @@ public class Music extends RealmObject {
 	}
 
 	public boolean isLocal() {
-		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http"));
+		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http") || getPath().contains(MusicService.KEY_YT_AUDIO_DIR));
 	}
 
 	private String LastPlaybackUrl;

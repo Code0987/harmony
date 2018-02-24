@@ -724,7 +724,7 @@ public class Analytics {
 						oe.onNext(searched);
 					}
 
-					if (canCall() && tracks.size() == 0) {
+					if (canCall()) {
 						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Tag.getTopTracks(query, getKey());
 						tracks.addAll(searched);
 					}
@@ -861,6 +861,87 @@ public class Analytics {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+
+					oe.onNext(r);
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Collection<Music>> convertToLocal(final Context context, final Collection<de.umass.lastfm.Track> tracks, final Collection<Music> old, final int limit) {
+		return Observable.create(new ObservableOnSubscribe<Collection<Music>>() {
+			@Override
+			public void subscribe(ObservableEmitter<Collection<Music>> oe) throws Exception {
+				try {
+					final ArrayList<Music> r = new ArrayList<>();
+
+					r.addAll(old);
+
+					JaroWinklerDistance sa = new JaroWinklerDistance();
+
+					Collection<Music> local = new ArrayList<>();
+					try (Realm realm = Music.getDB()) {
+						if (realm != null) {
+							local.addAll(realm.copyFromRealm(realm.where(Music.class).findAll()));
+						}
+					}
+
+					int count = 0;
+
+					for (de.umass.lastfm.Track t : tracks) {
+						Music m = null;
+
+						for (Music l : local)
+							try {
+								if (sa.apply(t.getName(), l.getTitle()) > 0.8
+										&& sa.apply(t.getArtist(), l.getArtist()) > 0.8) {
+									m = l;
+									local.remove(l);
+									break;
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+
+						if (m == null) {
+							m = new Music();
+							m.setTitle(t.getName());
+							m.setArtist(t.getArtist());
+							m.setAlbum(t.getAlbum());
+							m.setMBID(t.getMbid());
+							m.setTags(StringUtils.join(t.getTags(), ','));
+							m.setLength(t.getDuration());
+							m.setPath(t.getUrl());
+							try {
+								final Music forUrl = m;
+								getYouTubeUrls(context, m.getText(), 1L)
+										.subscribe(new Consumer<Collection<String>>() {
+											@Override
+											public void accept(Collection<String> r) throws Exception {
+												if (r.iterator().hasNext())
+													forUrl.setPath(r.iterator().next());
+											}
+										}, new Consumer<Throwable>() {
+											@Override
+											public void accept(Throwable throwable) throws Exception {
+
+											}
+										});
+								m.setPath(forUrl.getPath());
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+
+						r.add(m);
+
+						count++;
+						if (count >= limit)
+							break;
+					}
 
 					oe.onNext(r);
 					oe.onComplete();

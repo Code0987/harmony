@@ -43,7 +43,9 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
@@ -238,6 +240,42 @@ public class Playlist extends RealmObject {
 		try (Realm realm = Music.getDB()) {
 			if (realm != null) {
 				return realm.copyFromRealm(loadOrCreatePlaylist(realm, name));
+			}
+		}
+		return null;
+	}
+
+	public static Playlist loadOrCreatePlaylist(Realm realm, String name, JavaEx.ActionT<Playlist> update) {
+		Playlist playlist = null;
+		try {
+			playlist = realm.where(Playlist.class).equalTo("Name", name).findFirst();
+			if (playlist == null)
+				throw new Exception("Not found. [" + name + "]");
+		} catch (Exception e) {
+			try {
+				realm.beginTransaction();
+
+				playlist = realm.createObject(Playlist.class, name);
+
+				if (update != null)
+					update.execute(playlist);
+
+				realm.commitTransaction();
+			} catch (Throwable e2) {
+				if (realm.isInTransaction()) {
+					realm.cancelTransaction();
+				}
+				Log.w(TAG, e);
+				Log.w(TAG, e2);
+			}
+		}
+		return playlist;
+	}
+
+	public static Playlist loadOrCreatePlaylist(String name, JavaEx.ActionT<Playlist> update) {
+		try (Realm realm = Music.getDB()) {
+			if (realm != null) {
+				return realm.copyFromRealm(loadOrCreatePlaylist(realm, name, update));
 			}
 		}
 		return null;
@@ -1058,125 +1096,75 @@ public class Playlist extends RealmObject {
 
 	//region Smart playlist
 
-	private String QueryTitle;
+	private String Query;
 
-	public String getQueryTitle() {
-		return QueryTitle;
+	public String getQuery() {
+		return Query;
 	}
 
-	public void setQueryTitle(String value) {
-		QueryTitle = value;
-	}
-
-	private String QueryArtist;
-
-	public String getQueryArtist() {
-		return QueryArtist;
-	}
-
-	public void setQueryArtist(String value) {
-		QueryArtist = value;
-	}
-
-	private String QueryTags;
-
-	public String getQueryTags() {
-		return QueryTags;
-	}
-
-	public void setQueryTags(String value) {
-		QueryTags = value;
+	public void setQuery(String value) {
+		Query = value;
 	}
 
 	public boolean isSmart() {
-		return (!TextUtils.isEmpty(QueryTitle) || !TextUtils.isEmpty(QueryArtist) || !TextUtils.isEmpty(QueryTags));
+		return !TextUtils.isEmpty(getQuery());
 	}
 
-	public static void updatePlaylist(final Realm realm, final Playlist playlist) {
-		final Collection<Music> items = new ArrayList<>();
+	public static Observable<Playlist> updateSmart(final Context context, final Playlist playlist) {
+		return Observable.create(new ObservableOnSubscribe<Playlist>() {
+			@Override
+			public void subscribe(ObservableEmitter<Playlist> oe) throws Exception {
+				try {
+					final Collection<Music> items = new ArrayList<>();
 
-		if (!TextUtils.isEmpty(playlist.getQueryTitle()) && !TextUtils.isEmpty(playlist.getQueryArtist())) {
-			Analytics.findTrackFromTitleArtist(playlist.getQueryTitle(), playlist.getQueryArtist())
-					.flatMap(new Function<RecordingInfo, ObservableSource<Recording>>() {
-						@Override
-						public ObservableSource<Recording> apply(RecordingInfo r) throws Exception {
-							return Analytics.findTrackFromMBID(r.getMbid());
-						}
-					})
-					.flatMap(new Function<Recording, ObservableSource<Collection<Track>>>() {
-						@Override
-						public ObservableSource<Collection<Track>> apply(Recording r) throws Exception {
-							return Analytics.findSimilarTracks(r.getArtists().get(0).getName(), r.getMbid(), 25);
-						}
-					})
-					.subscribeOn(Schedulers.io())
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(new Consumer<Collection<Track>>() {
-						@Override
-						public void accept(final Collection<Track> r) throws Exception {
-							for (Track t : r) {
-								Music m = new Music();
-								m.setTitle(t.getName());
-								m.setArtist(t.getArtist());
-								m.setAlbum(t.getAlbum());
-								m.setMBID(t.getMbid());
-								m.setTags(StringUtils.join(t.getTags(), ','));
-								m.setLength(t.getDuration());
-								m.setPath(t.getUrl());
+					items.addAll(playlist.getItems());
 
-								items.add(m);
-							}
-						}
-					}, new Consumer<Throwable>() {
-						@Override
-						public void accept(Throwable throwable) throws Exception {
-							Log.w(TAG, throwable);
-						}
-					});
-		} else {
-			String query = StringUtils.join(playlist.getQueryTags().split(","), " OR ");
+					if (playlist.isSmart()) {
+						final int N = 64;
 
-			Analytics.findTrackFromQuery(query)
-					.flatMap(new Function<RecordingInfo, ObservableSource<Recording>>() {
-						@Override
-						public ObservableSource<Recording> apply(RecordingInfo r) throws Exception {
-							return Analytics.findTrackFromMBID(r.getMbid());
-						}
-					})
-					.flatMap(new Function<Recording, ObservableSource<Collection<Track>>>() {
-						@Override
-						public ObservableSource<Collection<Track>> apply(Recording r) throws Exception {
-							return Analytics.findSimilarTracks(r.getArtists().get(0).getName(), r.getMbid(), 25);
-						}
-					})
-					.subscribeOn(Schedulers.io())
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(new Consumer<Collection<Track>>() {
-						@Override
-						public void accept(final Collection<Track> r) throws Exception {
-							for (Track t : r) {
-								Music m = new Music();
-								m.setTitle(t.getName());
-								m.setArtist(t.getArtist());
-								m.setAlbum(t.getAlbum());
-								m.setMBID(t.getMbid());
-								m.setTags(StringUtils.join(t.getTags(), ','));
-								m.setLength(t.getDuration());
-								m.setPath(t.getUrl());
+						Analytics.findTracks(playlist.getQuery(), N)
+								.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+									@Override
+									public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+										return Analytics.convertToLocal(context, tracks, items, N);
+									}
+								})
+								.subscribe(new Consumer<Collection<Music>>() {
+									@Override
+									public void accept(Collection<Music> r) throws Exception {
+										items.addAll(r);
+									}
+								}, new Consumer<Throwable>() {
+									@Override
+									public void accept(Throwable throwable) throws Exception {
+										Log.w(TAG, throwable);
+									}
+								});
 
-								items.add(m);
-							}
-						}
-					}, new Consumer<Throwable>() {
-						@Override
-						public void accept(Throwable throwable) throws Exception {
-							Log.w(TAG, throwable);
-						}
-					});
-		}
+					}
 
-		playlist.clear();
-		playlist.addAll(items);
+					try (Realm realm = Music.getDB()) {
+						if (realm != null) {
+							realm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(@NonNull Realm realm) {
+									realm.insertOrUpdate(items);
+									playlist.clear();
+									playlist.addAll(items);
+									realm.insertOrUpdate(playlist);
+								}
+							});
+						}
+					}
+
+					oe.onNext(playlist);
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
 	}
 
 	//endregion

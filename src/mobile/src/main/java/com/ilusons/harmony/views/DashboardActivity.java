@@ -517,6 +517,22 @@ public class DashboardActivity extends BaseUIActivity {
 		});
 		findViewById(R.id.tune).setLongClickable(true);
 
+		findViewById(R.id.refresh).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				try {
+					Intent musicServiceIntent = new Intent(getApplicationContext(), MusicService.class);
+					musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+					musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
+					getApplicationContext().startService(musicServiceIntent);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				drawer_layout.closeDrawer(GravityCompat.START);
+			}
+		});
+
 		findViewById(R.id.settings).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
