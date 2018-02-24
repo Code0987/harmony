@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="tip_1">You can play videos in background, just open any video.</string>
+    <string name="tip_1">You can also play videos in background.</string>
     <string name="tip_2">Automatic headset play/pause can be adjusted from settings.</string>
-    <string name="tip_3">In some playback ui, you can rotate screen.</string>
-    <string name="tip_4">Long press play/pause button to stop/reset.</string>
+    <string name="tip_3">In some playback ui, you can rotate screen for wide-screen.</string>
+    <string name="tip_4">Almost all buttons are long-press supported, try and discover the functions.</string>
     <string name="tip_5">Long press skip/next/previous button to skip to random item in playlist.</string>
-    <string name="tip_6">Long press jump/open button to open playback ui.</string>
-    <string name="tip_7">Long press to open lyrics menu on lyrics view.</string>
+    <string name="tip_6">Stream/Download online music, long-press on Online item.</string>
+    <string name="tip_7">Long press on playback ui to open menu.</string>
     <string name="tip_8">Long press cover art to open menu.</string>
     <string name="tip_9">Long press visualization button to change styles.</string>
     <string name="tip_10"><![CDATA[If songs are not shown, Left drawer -> Refresh Or Left drawer -> Settings -> Library -> Add scan location -> (previous step)]]></string>
     <string name="tip_11">Beta version will have some of the premium features unlocked.</string>
     <string name="tip_12"><![CDATA[Visit our YouTube Channel/Playlist (Left drawer -> Help...) for demos and videos.]]></string>
-    <string name="tip_13"><![CDATA[Visit our website (Settings -> About ...) for latest updates and more information.]]></string>
+    <string name="tip_13"><![CDATA[Visit our website (Left drawer -> About ...) for latest updates and more information.]]></string>
     <string name="tip_14">Almost every button, ui, … has long-press action. Be sure to find out.</string>
     <string name="tip_15">Headset media button is sometimes supported. 1 press - play/pause 2 fast press - next 3 fast press - previous</string>
-    <string name="tip_16">Long-press playback ui parts to open menu.</string>
+    <string name="tip_16">Change and customize playlist view form three-dot menu.</string>
     <string name="tip_17">Help us! By creating tour/informative videos. Send us YouTube links, you\'ll get surprises!</string>
-    <string name="tip_18">Be sure to check out Analytics (swipe left!), Playback UI styles (long-press menu -> change ui), Library UI styles, Audio visualization styles, these are free for limited time!</string>
-    <string name="tip_19">You can now share the whole music file  with your friends using any supported app.</string>
-    <string name="tip_20">You can now share lyrics with your friends using any supported app.</string>
-    <string name="tip_21">We now support audio fingerprinting, i.e. you can get details of audio even if it has no tags.</string>
+    <string name="tip_18">Be sure to check out Playback UI styles (Settings -> UI), Playlist UI styles, Audio visualization styles, these are free for limited time!</string>
+    <string name="tip_19">Share the whole music file  with your friends using any supported app.</string>
+    <string name="tip_20">Share lyrics with your friends using any supported app.</string>
+    <string name="tip_21">Tons of free music downloaded at no cost.</string>
     <string name="tip_22">You can download cover art again. Long-press cover art on playback ui.</string>
     <string name="tip_23">This is a smart player, it\'ll learn and improve itself over time, as you use it.</string>
 
