@@ -28,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -177,6 +178,81 @@ public class OnlineViewFragment extends BaseUIFragment {
 			}
 		});
 
+		MenuItem refresh = menu.findItem(R.id.refresh);
+		refresh.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					loadOnlinePlaylistTracks(true);
+
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+		});
+
+		MenuItem save_as_smart_playlist = menu.findItem(R.id.save_as_smart_playlist);
+		save_as_smart_playlist.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					if (TextUtils.isEmpty(String.valueOf(getSearchQuery())) || adapter.getAll(Music.class).size() == 0) {
+						info("Search something first or your search results' in nothing!");
+
+						throw new Exception();
+					}
+
+					try {
+						final EditText editText = new EditText(getContext());
+
+						new android.app.AlertDialog.Builder(getContext())
+								.setTitle("Create new smart playlist")
+								.setMessage("Enter name for new smart playlist ...")
+								.setView(editText)
+								.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog, int whichButton) {
+										try {
+											String name = editText.getText().toString().trim();
+
+											Playlist playlist = Playlist.loadOrCreatePlaylist(name, new JavaEx.ActionT<Playlist>() {
+												@Override
+												public void execute(Playlist playlist) {
+													playlist.addAll(adapter.getAll(Music.class));
+													playlist.setQuery(String.valueOf(getSearchQuery()));
+												}
+											});
+
+											if (playlist != null) {
+												Playlist.setActivePlaylist(getContext(), name, true);
+												info("Playlist created!");
+											} else
+												throw new Exception("Some error.");
+										} catch (Exception e) {
+											e.printStackTrace();
+
+											info("Playlist creation failed!");
+										}
+									}
+								})
+								.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog, int whichButton) {
+									}
+								})
+								.show();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+		});
+
 	}
 
 	//region Items
@@ -221,7 +297,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 			return;
 		}
 
-		final int N = 14;
+		final int N = 32;
 		final Context context = getContext();
 
 		Analytics.findTracks(query, N)
@@ -399,6 +475,14 @@ public class OnlineViewFragment extends BaseUIFragment {
 					data.remove(item);
 
 			notifyDataSetChanged();
+		}
+
+		public <T> Collection<T> getAll(Class<T> tClass) {
+			final Collection<T> r = new ArrayList<>();
+			for (Object item : data)
+				if (item.getClass().equals(tClass))
+					r.add((T) item);
+			return r;
 		}
 
 		protected static class ViewHolder extends RecyclerView.ViewHolder {

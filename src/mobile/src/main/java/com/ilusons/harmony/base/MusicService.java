@@ -1328,6 +1328,8 @@ public class MusicService extends Service {
 		return !(getMusic() == null || mediaPlayer == null || !isPrepared);
 	}
 
+	private boolean wasLastPlaybackInError = false;
+
 	private void prepareA(final JavaEx.Action onPrepare) {
 		// Fix playlist position
 		if (!canPlay())
@@ -1359,7 +1361,7 @@ public class MusicService extends Service {
 			if (newMusic == null)
 				return;
 
-			if (getMusic().equals(newMusic) && newMusic.isLastPlaybackUrlUpdateNeeded()) {
+			if (getMusic().equals(newMusic) && wasLastPlaybackInError) {
 				Toast.makeText(MusicService.this, newMusic.getText() + " cannot be played. Please restart manually!", Toast.LENGTH_LONG).show();
 
 				return;
@@ -1405,6 +1407,8 @@ public class MusicService extends Service {
 		}
 
 		synchronized (this) {
+			wasLastPlaybackInError = false;
+
 			// Setup player
 			if (mediaPlayerFactory == null)
 				switch (getPlayerType(this)) {
@@ -1416,6 +1420,12 @@ public class MusicService extends Service {
 						mediaPlayerFactory = new AndroidOSMediaPlayerFactory(getApplicationContext());
 						break;
 				}
+
+			if (mediaPlayer != null && wasLastPlaybackInError) {
+				mediaPlayer.release();
+				mediaPlayer = null;
+			}
+
 			if (mediaPlayer == null)
 				mediaPlayer = mediaPlayerFactory.createMediaPlayer();
 
@@ -1481,10 +1491,12 @@ public class MusicService extends Service {
 
 					isPrepared = false;
 
+					wasLastPlaybackInError = true;
+
 					mediaPlayerIsInErrorState = true;
 
 					try {
-						Toast.makeText(MusicService.this, "There was a problem while playing [" + getMusic().getPath() + "]!", Toast.LENGTH_LONG).show();
+						Toast.makeText(MusicService.this, "There was a problem while playing [" + getMusic().getText() + "]!", Toast.LENGTH_LONG).show();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -2577,6 +2589,8 @@ public class MusicService extends Service {
 		return fetch;
 	}
 
+	public static final String KEY_YT_AUDIO_DIR = "yt_audio";
+
 	public void download(final Music music, final boolean playAfterDownload, final boolean addToDatabase) {
 		final AudioDownload audioDownload = new AudioDownload(this, music, playAfterDownload, addToDatabase);
 
@@ -2598,7 +2612,7 @@ public class MusicService extends Service {
 							audioDownloads.add(audioDownload);
 
 							// Delete file from cache
-							final File cache = IOEx.getDiskCacheFile(audioDownload.context, "yt_audio", audioDownload.Music.getPath());
+							final File cache = IOEx.getDiskCacheFile(audioDownload.context, KEY_YT_AUDIO_DIR, audioDownload.Music.getPath());
 
 							try {
 								if (cache.exists())

@@ -77,5 +77,6 @@
     <string name="downloads">Downloads</string>
     <string name="waiting">Waiting ...</string>
     <string name="network_unavailable">Network un-available!</string>
+    <string name="save_as_smart_playlist">Save as smart playlist</string>
 
 </resources>

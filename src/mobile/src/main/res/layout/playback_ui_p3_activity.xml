@@ -460,7 +460,7 @@
         android:background="@drawable/lomo"
         android:visibility="visible"
         app:indicatorColor="@color/icons"
-        app:indicatorName="BallScaleMultipleIndicator"
+        app:indicatorName="BallClipRotateIndicator"
         app:layout_constraintBottom_toTopOf="@id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

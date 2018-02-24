@@ -93,7 +93,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import jonathanfinerty.once.Once;
 import me.everything.android.ui.overscroll.VerticalOverScrollBounceEffectDecorator;
 import me.everything.android.ui.overscroll.adapters.RecyclerViewOverScrollDecorAdapter;
@@ -143,7 +145,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	private SearchView searchView;
 
 	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+	public void onCreateOptionsMenu(Menu menu, final MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 
 		menu.clear();
@@ -219,10 +221,34 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
-					Intent musicServiceIntent = new Intent(getContext(), MusicService.class);
-					musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-					musicServiceIntent.putExtra(MusicService.KEY_LIBRARY_UPDATE_FORCE, true);
-					getContext().startService(musicServiceIntent);
+					if (getViewPlaylist().isSmart()) {
+						loading.smoothToShow();
+
+						info("Smart playlist update started. This can take a while!");
+
+						Playlist.updateSmart(getContext(), getViewPlaylist())
+								.subscribeOn(Schedulers.io())
+								.observeOn(AndroidSchedulers.mainThread())
+								.subscribe(new Consumer<Playlist>() {
+									@Override
+									public void accept(Playlist playlist) throws Exception {
+										setViewPlaylist(playlist);
+
+										info("Smart playlist updated!");
+
+										loading.smoothToHide();
+									}
+								}, new Consumer<Throwable>() {
+									@Override
+									public void accept(Throwable throwable) throws Exception {
+										info("Smart playlist updated failed :(");
+
+										loading.smoothToHide();
+									}
+								});
+					} else {
+						adapter.refresh(getSearchQuery());
+					}
 
 					return true;
 				} catch (Exception e) {
