@@ -1,1 +1,14 @@
-{"spref.player_reverb_env_enabled":true,"spref.player_loudness":"LoudnessEnhancer;targetGainmB\u003d266","spref.player_reverb_env":"EnvironmentalReverb;roomLevel\u003d-1000;roomHFLevel\u003d-500;decayTime\u003d3920;decayHFRatio\u003d700;reflectionsLevel\u003d0;reflectionsDelay\u003d0;reverbLevel\u003d-2;reverbDelay\u003d0;diffusion\u003d1000;density\u003d1000","spref.player_bassboost_enabled":true,"spref.player_virtualizer":"Virtualizer;strength\u003d183","spref.player_reverb_preset_enabled":false,"spref.player_bassboost":"BassBoost;strength\u003d298","spref.player_eq_enabled":true,"spref.player_virtualizer_enabled":true,"spref.player_loudness_enabled":true,"spref.player_eq":"Equalizer;curPreset\u003d-1;numBands\u003d5;band1Level\u003d600;band2Level\u003d200;band3Level\u003d0;band4Level\u003d0;band5Level\u003d700","spref.player_preamp_enabled":true}
+{
+    "spref.player_reverb_env_enabled": true,
+    "spref.player_loudness": "LoudnessEnhancer;targetGainmB=266",
+    "spref.player_reverb_env": "EnvironmentalReverb;roomLevel=-1000;roomHFLevel=-500;decayTime=3920;decayHFRatio=700;reflectionsLevel=0;reflectionsDelay=0;reverbLevel=-2;reverbDelay=0;diffusion=1000;density=1000",
+    "spref.player_bassboost_enabled": true,
+    "spref.player_virtualizer": "Virtualizer;strength=183",
+    "spref.player_reverb_preset_enabled": false,
+    "spref.player_bassboost": "BassBoost;strength=298",
+    "spref.player_eq_enabled": true,
+    "spref.player_virtualizer_enabled": true,
+    "spref.player_loudness_enabled": false,
+    "spref.player_eq": "Equalizer;curPreset=-1;numBands=5;band1Level=600;band2Level=200;band3Level=0;band4Level=0;band5Level=700",
+    "spref.player_preamp_enabled": true
+}
