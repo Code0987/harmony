@@ -2793,7 +2793,7 @@ public class MusicService extends Service {
 
 	public static PlayerType getPlayerType(Context context) {
 		try {
-			return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.OpenSL)));
+			return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.AndroidOS)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
