@@ -62,7 +62,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop">
@@ -111,6 +110,10 @@
             android:name=".SettingsActivity"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.Settings">
+        </activity>
+        <activity
+            android:name=".views.IntroActivity"
+            android:theme="@style/AppTheme.Intro">
         </activity>
         <activity
             android:name=".views.DashboardActivity"

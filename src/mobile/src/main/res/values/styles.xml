@@ -253,6 +253,9 @@
         <item name="android:windowBackground">@drawable/bg3</item>
     </style>
 
+    <style name="AppTheme.Intro" parent="Theme.Intro">
+    </style>
+
     <style name="AppTheme.FilePickerTheme" parent="NNF_BaseTheme">
         <!-- Set these to match your theme -->
         <item name="colorPrimary">@color/primary</item>

@@ -30,6 +30,10 @@
     <color name="gradient32">#7c1fa3</color>
     <color name="gradient33">#4a148c</color>
 
+    <color name="gradient41">#a70021</color>
+    <color name="gradient42">#ff0034</color>
+    <color name="gradient43">#31000a</color>
+
     <color name="primary">#ff272727</color>
     <color name="primary_inverse">#eeeeee</color>
     <color name="primary_dark">#3b546e</color>

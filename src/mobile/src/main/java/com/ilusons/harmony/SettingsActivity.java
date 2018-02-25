@@ -877,6 +877,8 @@ public class SettingsActivity extends BaseActivity {
 
 	//region Analytics: LFM section
 
+	public static final String ShowLFMSectionOnStart = TAG + ".ShowLFMSectionOnStart";
+
 	private ImageView analytics_lfm_status;
 	private EditText analytics_lfm_username_editText;
 	private EditText analytics_lfm_password_editText;
@@ -935,6 +937,21 @@ public class SettingsActivity extends BaseActivity {
 		if (session == null && Analytics.getInstance().isLastfmScrobbledEnabled()) {
 			updateLFM();
 		}
+
+		// Check for start flags
+		analytics_lfm_status.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					if (getIntent().getBooleanExtra(ShowLFMSectionOnStart, false)) {
+						viewPager.setCurrentItem(1, true);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}, 777);
+
 	}
 
 	private void updateLFM() {
