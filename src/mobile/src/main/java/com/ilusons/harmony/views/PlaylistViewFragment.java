@@ -2216,7 +2216,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	public static final String TAG_SPREF_LIBRARY_UI_GROUP_MODE = SPrefEx.TAG_SPREF + ".library_ui_group_mode";
 
 	public static UIGroupMode getUIGroupMode(Context context) {
-		return UIGroupMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_GROUP_MODE, String.valueOf(UIGroupMode.Default)));
+		return UIGroupMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_GROUP_MODE, String.valueOf(UIGroupMode.Artist)));
 	}
 
 	public static void setUIGroupMode(Context context, UIGroupMode value) {
@@ -2620,11 +2620,11 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	public static PlaylistItemUIStyle getPlaylistItemUIStyle(Context context) {
 		try {
-			return PlaylistItemUIStyle.valueOf(SPrefEx.get(context).getString(PlaylistItemUIStyle.class.getSimpleName(), String.valueOf(PlaylistItemUIStyle.Default)));
+			return PlaylistItemUIStyle.valueOf(SPrefEx.get(context).getString(PlaylistItemUIStyle.class.getSimpleName(), String.valueOf(PlaylistItemUIStyle.Simple)));
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			return PlaylistItemUIStyle.Default;
+			return PlaylistItemUIStyle.Simple;
 		}
 	}
 
