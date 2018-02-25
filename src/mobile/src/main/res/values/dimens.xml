@@ -143,5 +143,6 @@
     <dimen name="text_size_xlarge">22sp</dimen>
     <dimen name="text_size_xxlarge">32sp</dimen>
     <dimen name="text_size_xxxlarge">36sp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
 
 </resources>

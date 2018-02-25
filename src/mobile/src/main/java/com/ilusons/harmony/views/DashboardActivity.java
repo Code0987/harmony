@@ -44,6 +44,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
@@ -481,6 +482,21 @@ public class DashboardActivity extends BaseUIActivity {
 			@Override
 			public void onClick(View view) {
 				MainActivity.gotoFeedback(DashboardActivity.this);
+			}
+		});
+
+		findViewById(R.id.intro).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(getApplicationContext(), IntroActivity.class);
+
+				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+				getApplicationContext().startActivity(intent);
+
+				Toast.makeText(getApplicationContext(), "Dashboard will now close!", Toast.LENGTH_SHORT).show();
+
+				finish();
 			}
 		});
 

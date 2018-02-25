@@ -118,7 +118,7 @@ public class Music extends RealmObject {
 		if (getLastPlaybackUrl() == null)
 			return true;
 		if (getLastPlaybackUrl().toLowerCase().startsWith("http"))
-			if ((System.currentTimeMillis() - getTimeLastPlaybackUrlUpdated()) >= 24 * 60 * 60 * 1000L) // HACK: 1 day
+			if ((System.currentTimeMillis() - getTimeLastPlaybackUrlUpdated()) >= 3 * 60 * 60 * 1000L) // HACK: 1 day
 				return true;
 		return false;
 	}

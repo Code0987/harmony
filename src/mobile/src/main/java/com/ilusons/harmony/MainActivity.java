@@ -19,6 +19,7 @@ import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
+import com.ilusons.harmony.views.IntroActivity;
 import com.ilusons.harmony.views.RateMe;
 import com.ilusons.harmony.views.Tips;
 import com.ilusons.harmony.views.DashboardActivity;
@@ -26,6 +27,8 @@ import com.ilusons.harmony.views.PlaybackUIActivity;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+
+import jonathanfinerty.once.Once;
 
 public class MainActivity extends BaseActivity {
 
@@ -130,7 +133,15 @@ public class MainActivity extends BaseActivity {
 	}
 
 	public static synchronized Intent getDashboardActivityIntent(final Context context) {
-		Intent intent = new Intent(context, DashboardActivity.class);
+		Intent intent = null;
+
+		if (!Once.beenDone(Once.THIS_APP_INSTALL, IntroActivity.TAG)) {
+			intent = new Intent(context, IntroActivity.class);
+
+			Once.markDone(IntroActivity.TAG);
+		} else {
+			intent = new Intent(context, DashboardActivity.class);
+		}
 
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
