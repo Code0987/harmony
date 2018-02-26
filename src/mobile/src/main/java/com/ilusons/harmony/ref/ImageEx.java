@@ -10,8 +10,19 @@ import android.graphics.drawable.TransitionDrawable;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import org.jetbrains.annotations.Contract;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLEncoder;
 
 public class ImageEx {
 
@@ -54,6 +65,7 @@ public class ImageEx {
 		return BitmapFactory.decodeByteArray(coverImage, 0, coverImage.length, options);
 	}
 
+	@Contract(pure = true)
 	public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
 		// Raw height and width of image
 		final int height = options.outHeight;
@@ -341,6 +353,83 @@ public class ImageEx {
 		bitmap.setPixels(pix, 0, w, 0, 0, w, h);
 
 		return (bitmap);
+	}
+
+	public enum PixabayImageType {
+		All("all"),
+		Photo("photo"),
+		Illustration("illustration"),
+		Vector("vector");
+
+		private String value;
+
+		PixabayImageType(String value) {
+			this.value = value;
+		}
+	}
+
+	public static String findImageUrlFromPixabay(final String query, final PixabayImageType imageType, final int timeout, final String apiKey) throws Exception {
+		URL url = new URL(String.format(
+				"https://pixabay.com/api/?key=%sq=%s&image_type=%s",
+				apiKey,
+				URLEncoder.encode(query, "UTF-8"),
+				imageType.value));
+
+		Connection connection = Jsoup.connect(url.toExternalForm())
+				.timeout(timeout)
+				.ignoreContentType(true);
+
+		Document document = connection.get();
+
+		JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
+
+		JsonArray hits = response.getAsJsonArray("hits");
+
+		return hits
+				.get(0)
+				.getAsJsonObject()
+				.get("webformatURL")
+				.getAsString();
+	}
+
+	public enum ItunesImageType {
+		None(""),
+		Song("song"),
+		Album("album"),
+		Artist("musicArtist");
+
+		private String value;
+
+		ItunesImageType(String value) {
+			this.value = value;
+		}
+	}
+
+	public static String findImageUrlFromItunes(final String query, final ItunesImageType imageType, final int timeout, final int size) throws Exception {
+		URL url = new URL(String.format(
+				"https://itunes.apple.com/search?term=%s&entity=song&media=music",
+				URLEncoder.encode(query, "UTF-8")));
+
+		Connection connection = Jsoup.connect(url.toExternalForm())
+				.timeout(timeout)
+				.ignoreContentType(true);
+
+		Document document = connection.get();
+
+		JsonObject response = new JsonParser().parse(document.text()).getAsJsonObject();
+
+		JsonArray results = response.getAsJsonArray("results");
+
+		int s = size;
+		if (s < 0)
+			s = 600;
+
+		return results
+				.get(0)
+				.getAsJsonObject()
+				.get("artworkUrl60")
+				.getAsString()
+				.replace("60x60bb.jpg", s + "x" + s + "bb.jpg");
 	}
 
 }

@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -41,7 +40,7 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
-import com.ilusons.harmony.ref.ArtworkEx;
+import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.ViewEx;
 import com.ilusons.harmony.ref.ui.ParallaxImageView;
@@ -55,9 +54,9 @@ import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 import me.everything.android.ui.overscroll.VerticalOverScrollBounceEffectDecorator;
 import me.everything.android.ui.overscroll.adapters.RecyclerViewOverScrollDecorAdapter;
 
@@ -267,7 +266,9 @@ public class OnlineViewFragment extends BaseUIFragment {
 			for (int i = 0; i < recyclerView.getChildCount(); i++) {
 				RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(recyclerView.getChildAt(i));
 				if (viewHolder instanceof RecyclerViewAdapter.ViewHolder) {
-					((RecyclerViewAdapter.ViewHolder) viewHolder).image.translate();
+					RecyclerViewAdapter.ViewHolder vh = ((RecyclerViewAdapter.ViewHolder) viewHolder);
+					if (vh.cover != null)
+						vh.cover.translate();
 				}
 			}
 		}
@@ -418,17 +419,41 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 		private final OnlineViewFragment fragment;
 
+		private final PlaylistViewFragment.PlaylistItemUIStyle style;
+
 		private ArrayList<Object> data;
 
 		public RecyclerViewAdapter(OnlineViewFragment fragment) {
 			this.fragment = fragment;
+
+			style = PlaylistViewFragment.getPlaylistItemUIStyle(fragment.getContext());
 
 			data = new ArrayList<>();
 		}
 
 		@Override
 		public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.online_view_item, parent, false);
+			int layoutId = -1;
+			switch (style) {
+				case Card1:
+					layoutId = R.layout.playlist_view_item_card1;
+					break;
+
+				case Card2:
+					layoutId = R.layout.playlist_view_item_card2;
+					break;
+
+				case Simple:
+					layoutId = R.layout.playlist_view_item_simple;
+					break;
+
+				case Default:
+				default:
+					layoutId = R.layout.playlist_view_item_default;
+					break;
+			}
+
+			View v = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
 
 			return new ViewHolder(fragment, v);
 		}
@@ -490,9 +515,9 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 			protected View view;
 
-			protected ParallaxImageView image;
-			protected TextView text1;
-			protected TextView text2;
+			protected ParallaxImageView cover;
+			protected TextView title;
+			protected TextView info;
 
 			public ViewHolder(final OnlineViewFragment fragment, View v) {
 				super(v);
@@ -501,30 +526,33 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 				view = v;
 
-				image = v.findViewById(R.id.image);
-				text1 = v.findViewById(R.id.text1);
-				text2 = v.findViewById(R.id.text2);
+				cover = v.findViewById(R.id.cover);
+				title = v.findViewById(R.id.title);
+				info = v.findViewById(R.id.info);
 
-				image.setListener(new ParallaxImageView.ParallaxImageListener() {
-					@Override
-					public int[] getValuesForTranslate() {
-						if (itemView.getParent() == null) {
-							return null;
-						} else {
-							int[] itemPosition = new int[2];
-							itemView.getLocationOnScreen(itemPosition);
+				if (cover != null) {
+					cover.setMaxHeight(AndroidEx.dpToPx(196));
+					cover.setListener(new ParallaxImageView.ParallaxImageListener() {
+						@Override
+						public int[] getValuesForTranslate() {
+							if (itemView.getParent() == null) {
+								return null;
+							} else {
+								int[] itemPosition = new int[2];
+								itemView.getLocationOnScreen(itemPosition);
 
-							int[] recyclerPosition = new int[2];
-							((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
+								int[] recyclerPosition = new int[2];
+								((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
 
-							return new int[]{
-									itemPosition[1],
-									((RecyclerView) itemView.getParent()).getMeasuredHeight(),
-									recyclerPosition[1]
-							};
+								return new int[]{
+										itemPosition[1],
+										((RecyclerView) itemView.getParent()).getMeasuredHeight(),
+										recyclerPosition[1]
+								};
+							}
 						}
-					}
-				});
+					});
+				}
 
 			}
 
@@ -532,107 +560,70 @@ public class OnlineViewFragment extends BaseUIFragment {
 			public void bind(int p, final Music d) {
 				final Context context = view.getContext();
 
-				image.setImageBitmap(null);
-				final int coverSize = Math.max(image.getWidth(), image.getHeight());
-				(new AsyncTask<Void, Void, Bitmap>() {
-					@Override
-					protected Bitmap doInBackground(Void... voids) {
-						try {
-							Bitmap bitmap = d.getCover(view.getContext(), coverSize);
+				if (cover != null) {
+					cover.setImageBitmap(null);
+					final Consumer<Bitmap> resultConsumer = new Consumer<Bitmap>() {
+						@Override
+						public void accept(Bitmap bitmap) throws Exception {
+							try {
+								TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+										cover.getDrawable(),
+										new BitmapDrawable(view.getContext().getResources(), bitmap)
+								});
 
-							if (bitmap == null) {
-								(new ArtworkEx.ArtworkDownloaderAsyncTask(
-										context,
-										d.getText(),
-										ArtworkEx.ArtworkType.Song,
-										-1,
-										d.getPath(),
-										Music.KEY_CACHE_DIR_COVER,
-										d.getPath(),
-										new JavaEx.ActionT<Bitmap>() {
-											@Override
-											public void execute(Bitmap r) {
-												try {
-													if (r == null) {
-														(new ArtworkEx.ArtworkDownloaderAsyncTask(
-																context,
-																d.getArtist(),
-																ArtworkEx.ArtworkType.Artist,
-																-1,
-																d.getPath(),
-																Music.KEY_CACHE_DIR_COVER,
-																d.getPath(),
-																new JavaEx.ActionT<Bitmap>() {
-																	@Override
-																	public void execute(Bitmap r2) {
-																		try {
-																			if (r2 == null) {
-																				r2 = ((BitmapDrawable) ContextCompat.getDrawable(context, R.drawable.logo)).getBitmap();
-																				Music.putCover(context, d, r2);
-																			}
-																		} catch (Exception e) {
-																			e.printStackTrace();
-																		}
-																	}
-																},
-																new JavaEx.ActionT<Exception>() {
-																	@Override
-																	public void execute(Exception e) {
-																		Log.w(TAG, e);
-																	}
-																},
-																3000,
-																true))
-																.execute();
-													}
-												} catch (Exception e) {
-													e.printStackTrace();
-												}
-											}
-										},
-										new JavaEx.ActionT<Exception>() {
-											@Override
-											public void execute(Exception e) {
-												Log.w(TAG, e);
-											}
-										},
-										3000,
-										true))
-										.execute();
+								cover.setImageDrawable(d);
 
-								bitmap = d.getCover(view.getContext(), coverSize);
+								d.setCrossFadeEnabled(true);
+								d.startTransition(200);
+
+								cover.translate();
+							} catch (Exception e) {
+								e.printStackTrace();
 							}
-
-							return bitmap;
-						} catch (Exception e) {
-							e.printStackTrace();
 						}
-
-						return null;
-					}
-
-					@Override
-					protected void onPostExecute(Bitmap bitmap) {
-						try {
-							TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-									image.getDrawable(),
-									new BitmapDrawable(view.getContext().getResources(), bitmap)
-							});
-
-							image.setImageDrawable(d);
-
-							d.setCrossFadeEnabled(true);
-							d.startTransition(200);
-
-							image.translate();
-						} catch (Exception e) {
-							e.printStackTrace();
+					};
+					final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+							// Pass
 						}
-					}
-				}).execute();
+					};
+					final Consumer<Throwable> throwableConsumerWithRetry = new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+							Music
+									.loadLocalOrSearchCoverArtFromItunes(
+											context,
+											d,
+											d.getCoverPath(context),
+											d.getText(),
+											false,
+											ImageEx.ItunesImageType.Artist)
+									.observeOn(AndroidSchedulers.mainThread())
+									.subscribeOn(Schedulers.computation())
+									.subscribe(
+											resultConsumer,
+											throwableConsumer);
+						}
+					};
 
-				text1.setText(d.getTitle());
-				text2.setText(d.getArtist());
+					Music
+							.loadLocalOrSearchCoverArtFromItunes(
+									context,
+									d,
+									d.getCoverPath(context),
+									d.getText(),
+									false,
+									ImageEx.ItunesImageType.Song)
+							.observeOn(AndroidSchedulers.mainThread())
+							.subscribeOn(Schedulers.computation())
+							.subscribe(
+									resultConsumer,
+									throwableConsumerWithRetry);
+				}
+
+				title.setText(d.getTitle());
+				info.setText(d.getArtist());
 
 				view.setOnClickListener(new View.OnClickListener() {
 					@Override

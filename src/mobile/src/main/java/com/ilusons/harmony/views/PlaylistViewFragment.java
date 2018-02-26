@@ -65,8 +65,8 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
-import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.IOEx;
+import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
@@ -806,61 +806,72 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				final ImageView cover = holder.cover;
 				if (cover != null) {
 					cover.setImageBitmap(null);
-					final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
-
 					if (!TextUtils.isEmpty(d) && d.length() > 5) {
-						ArtworkEx.ArtworkType artworkType;
+						ImageEx.ItunesImageType imageType;
 						String q = d;
 
 						switch (getUIGroupMode(getContext())) {
 							case Album:
-								artworkType = ArtworkEx.ArtworkType.Album;
+								imageType = ImageEx.ItunesImageType.Album;
 								break;
 							case Artist:
-								artworkType = ArtworkEx.ArtworkType.Artist;
+								imageType = ImageEx.ItunesImageType.Artist;
 								break;
 							case Genre:
-								artworkType = ArtworkEx.ArtworkType.None;
+								imageType = ImageEx.ItunesImageType.None;
 								break;
 							case Year:
-								artworkType = ArtworkEx.ArtworkType.None;
+								imageType = ImageEx.ItunesImageType.None;
 								break;
 							case Default:
 							default:
-								artworkType = ArtworkEx.ArtworkType.Song;
+								imageType = ImageEx.ItunesImageType.Song;
 								break;
 						}
 
-						if (artworkType != ArtworkEx.ArtworkType.None) {
-							if (AndroidEx.isNetworkAvailable(getContext())) {
-								ArtworkEx.getArtworkDownloaderTask(
-										getContext(),
-										q,
-										artworkType,
-										-1,
-										d,
-										Music.KEY_CACHE_DIR_COVER,
-										d,
-										new JavaEx.ActionT<Bitmap>() {
-											@Override
-											public void execute(Bitmap bitmap) {
-												cover.setImageBitmap(bitmap);
+						final Context context = holder.view.getContext();
 
-												if (cover instanceof ParallaxImageView)
-													((ParallaxImageView) cover).translate();
-											}
-										},
-										new JavaEx.ActionT<Exception>() {
-											@Override
-											public void execute(Exception e) {
-												Log.w(TAG, e);
+						final Consumer<Bitmap> resultConsumer = new Consumer<Bitmap>() {
+							@Override
+							public void accept(Bitmap bitmap) throws Exception {
+								try {
+									TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+											cover.getDrawable(),
+											new BitmapDrawable(context.getResources(), bitmap)
+									});
 
-												cover.setImageDrawable(null);
-											}
-										},
-										1500,
-										false);
+									cover.setImageDrawable(d);
+
+									d.setCrossFadeEnabled(true);
+									d.startTransition(200);
+
+									if (cover instanceof ParallaxImageView)
+										((ParallaxImageView) cover).translate();
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							}
+						};
+						final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
+							@Override
+							public void accept(Throwable throwable) throws Exception {
+								// Pass
+							}
+						};
+						if (imageType != ImageEx.ItunesImageType.None) {
+							Music
+									.loadLocalOrSearchCoverArtFromItunes(
+											context,
+											null,
+											null,
+											q,
+											false,
+											imageType)
+									.observeOn(AndroidSchedulers.mainThread())
+									.subscribeOn(Schedulers.computation())
+									.subscribe(
+											resultConsumer,
+											throwableConsumer);
 						}
 					}
 				}
@@ -884,20 +895,16 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				final ImageView cover = holder.cover;
 				if (cover != null) {
 					cover.setImageBitmap(null);
-					// HACK: This animates as well as reduces load on image view
-					final int coverSize = Math.max(cover.getWidth(), cover.getHeight());
-					(new AsyncTask<Void, Void, Bitmap>() {
-						@Override
-						protected Bitmap doInBackground(Void... voids) {
-							return item.getCover(getContext(), coverSize);
-						}
 
+					final Context context = holder.view.getContext();
+
+					final Consumer<Bitmap> resultConsumer = new Consumer<Bitmap>() {
 						@Override
-						protected void onPostExecute(Bitmap bitmap) {
+						public void accept(Bitmap bitmap) throws Exception {
 							try {
 								TransitionDrawable d = new TransitionDrawable(new Drawable[]{
 										cover.getDrawable(),
-										new BitmapDrawable(getResources(), bitmap)
+										new BitmapDrawable(context.getResources(), bitmap)
 								});
 
 								cover.setImageDrawable(d);
@@ -911,7 +918,45 @@ public class PlaylistViewFragment extends BaseUIFragment {
 								e.printStackTrace();
 							}
 						}
-					}).execute();
+					};
+					final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+							// Pass
+						}
+					};
+					final Consumer<Throwable> throwableConsumerWithRetry = new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+							Music
+									.loadLocalOrSearchCoverArtFromItunes(
+											context,
+											item,
+											item.getCoverPath(context),
+											item.getText(),
+											false,
+											ImageEx.ItunesImageType.Artist)
+									.observeOn(AndroidSchedulers.mainThread())
+									.subscribeOn(Schedulers.computation())
+									.subscribe(
+											resultConsumer,
+											throwableConsumer);
+						}
+					};
+
+					Music
+							.loadLocalOrSearchCoverArtFromItunes(
+									context,
+									item,
+									item.getCoverPath(context),
+									item.getText(),
+									false,
+									ImageEx.ItunesImageType.Song)
+							.observeOn(AndroidSchedulers.mainThread())
+							.subscribeOn(Schedulers.computation())
+							.subscribe(
+									resultConsumer,
+									throwableConsumerWithRetry);
 				}
 
 				if (holder.title != null)

@@ -9,8 +9,10 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,6 +58,7 @@ import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -67,6 +70,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import at.grabner.circleprogress.CircleProgressView;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import jonathanfinerty.once.Once;
 import jp.wasabeef.blurry.Blurry;
 
@@ -909,43 +915,87 @@ public class DashboardActivity extends BaseUIActivity {
 			play_pause_stop.setImageResource(R.drawable.ic_music_pause);
 
 		try {
-			final Bitmap bitmap = m.getCover(this, -1);
-			if (bitmap != null) {
-				Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-					@SuppressWarnings("ResourceType")
-					@Override
-					public void onGenerated(@NonNull Palette palette) {
-						int vibrantColor = palette.getVibrantColor(R.color.accent);
-						int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
+			final Context context = this;
+			final Music music = m;
+			final Consumer<Bitmap> resultConsumer = new Consumer<Bitmap>() {
+				@Override
+				public void accept(final Bitmap bitmap) throws Exception {
+					try {
+						Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+							@SuppressWarnings("ResourceType")
+							@Override
+							public void onGenerated(@NonNull Palette palette) {
+								int vibrantColor = palette.getVibrantColor(R.color.accent);
+								int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
 
-						Drawable drawable = new GradientDrawable(
-								GradientDrawable.Orientation.TL_BR,
-								new int[]{
-										vibrantDarkColor,
-										vibrantColor
-								});
-						drawable = drawable.mutate();
-						bg.setImageDrawable(drawable);
+								Drawable drawable = new GradientDrawable(
+										GradientDrawable.Orientation.TL_BR,
+										new int[]{
+												vibrantDarkColor,
+												vibrantColor
+										});
+								drawable = drawable.mutate();
+								bg.setImageDrawable(drawable);
 
-						progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
+								progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
 
-						Blurry.with(DashboardActivity.this)
-								.radius(7)
-								.sampling(1)
-								.color(ColorUtils.setAlphaComponent(vibrantColor, 100))
-								.animate(763)
-								.async()
-								.from(bitmap)
-								.into(parallax_image);
+								Blurry.with(DashboardActivity.this)
+										.radius(7)
+										.sampling(1)
+										.color(ColorUtils.setAlphaComponent(vibrantColor, 100))
+										.animate(763)
+										.async()
+										.from(bitmap)
+										.into(parallax_image);
+							}
+						});
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-				});
-			}
+				}
+			};
+			final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
+				@Override
+				public void accept(Throwable throwable) throws Exception {
+					parallax_image.setImageDrawable(null);
+				}
+			};
+			final Consumer<Throwable> throwableConsumerWithRetry = new Consumer<Throwable>() {
+				@Override
+				public void accept(Throwable throwable) throws Exception {
+					Music
+							.loadLocalOrSearchCoverArtFromItunes(
+									context,
+									music,
+									music.getCoverPath(context),
+									music.getText(),
+									false,
+									ImageEx.ItunesImageType.Artist)
+							.observeOn(AndroidSchedulers.mainThread())
+							.subscribeOn(Schedulers.computation())
+							.subscribe(
+									resultConsumer,
+									throwableConsumer);
+				}
+			};
+			Music
+					.loadLocalOrSearchCoverArtFromItunes(
+							context,
+							music,
+							music.getCoverPath(context),
+							music.getText(),
+							false,
+							ImageEx.ItunesImageType.Song)
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribeOn(Schedulers.computation())
+					.subscribe(
+							resultConsumer,
+							throwableConsumerWithRetry);
 		} catch (Exception e) {
 			e.printStackTrace();
 
 			parallax_image.setImageDrawable(null);
 		}
-
 	}
 
 	private void refreshPlaybackExtrasVisibility() {

@@ -74,6 +74,8 @@ Summary
             http://www.apache.org/licenses/LICENSE-2.0
         material-intro-screen
             https://raw.githubusercontent.com/TangoAgency/material-intro-screen/master/LICENSE
+        Fresco
+            https://github.com/facebook/fresco/blob/master/LICENSE
 
 harmony - Terms and conditions
 

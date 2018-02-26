@@ -8,13 +8,21 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
+import com.facebook.cache.disk.DiskCacheConfig;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.cache.DefaultBitmapMemoryCacheParamsSupplier;
+import com.facebook.imagepipeline.core.ImagePipelineConfig;
+import com.facebook.imagepipeline.memory.PoolFactory;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
+import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.RealmEx;
 import com.squareup.leakcanary.LeakCanary;
+
+import java.io.File;
 
 import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
@@ -66,6 +74,18 @@ public class App extends Application {
 		// DB
 		try {
 			Realm.init(this);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Images
+		try {
+			ImagePipelineConfig config = ImagePipelineConfig.newBuilder(this)
+					.setMainDiskCacheConfig(DiskCacheConfig
+							.newBuilder(this)
+							.build())
+					.build();
+			Fresco.initialize(this, config);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
