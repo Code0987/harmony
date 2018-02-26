@@ -439,15 +439,17 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		Palette palette = Palette.from(bitmap).generate();
 		color = ContextCompat.getColor(getApplicationContext(), R.color.accent);
 		int colorBackup = color;
-		color = palette.getVibrantColor(color);
+		color = palette.getDarkVibrantColor(color);
 		if (color == colorBackup)
-			color = palette.getDarkVibrantColor(color);
+			color = palette.getVibrantColor(color);
 		if (color == colorBackup)
 			color = palette.getDarkMutedColor(color);
 
 		float[] hsl = new float[3];
 		ColorUtils.colorToHSL(color, hsl);
-		hsl[2] = Math.max(hsl[2], hsl[2] + 0.30f); // lum +30%
+		hsl[2] = Math.min(hsl[2], hsl[2] - 0.15f);
+		color = ColorUtils.HSLToColor(hsl);
+		hsl[2] = Math.max(hsl[2], hsl[2] + 0.45f);
 		colorLight = ColorUtils.HSLToColor(hsl);
 
 		updateControls(color, colorLight);
@@ -458,14 +460,13 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		if (!(root.getBackground() == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)) {
 			root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 180)));
-
 			if (bg != null)
 				try {
 					Blurry.with(this)
 							.radius(25)
 							.sampling(1)
-							.color(Color.argb(160, 0, 0, 0))
-							.animate(450)
+							.color(ColorUtils.setAlphaComponent(color, 120))
+							.animate(763)
 							.async()
 							.from(bitmap)
 							.into(bg);
@@ -482,9 +483,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				Blurry.with(this)
 						.radius(25)
 						.sampling(1)
-						.color(Color.argb(160, 0, 0, 0))
+						.color(ColorUtils.setAlphaComponent(color, 120))
 						.async()
-						.animate(450)
+						.animate(763)
 						.from(bitmap)
 						.into(cover);
 				break;
@@ -503,7 +504,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					cover.setImageDrawable(d);
 
 					d.setCrossFadeEnabled(true);
-					d.startTransition(200);
+					d.startTransition(763);
 				} else {
 					cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
 				}
@@ -1580,7 +1581,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	private Runnable progressHandlerRunnable;
 
 	private void updateControls() {
-		if (!getMusicService().getMusic().isLocal()) {
+		if (!getMusicService().getMusic().isLocal() && getMusicService().getMusic().getLength() > 0) {
 			position_start.setVisibility(View.GONE);
 			position_end.setVisibility(View.GONE);
 			seekBar.setVisibility(View.GONE);
@@ -1590,7 +1591,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			seekBar.setVisibility(View.VISIBLE);
 
 			seekBar.setMax(getMusicService().getDuration());
-			position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "mm:ss", false));
+			try {
+				position_end.setText(DurationFormatUtils.formatDuration(getMusicService().getDuration(), "mm:ss", false));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		progressHandlerRunnable = new Runnable() {
@@ -1599,8 +1604,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				if (getMusicService() != null && getMusicService().isPlaying()) {
 					if (seekBar.getVisibility() == View.VISIBLE)
 						seekBar.setProgress(getMusicService().getPosition());
-					if (position_start.getVisibility() == View.VISIBLE)
+					if (position_start.getVisibility() == View.VISIBLE) try {
 						position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "mm:ss", false));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					if (lyrics_layout != null)
 						updateLyricsScroll();
 				}
@@ -1618,8 +1626,10 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void updateControls(int color, int colorLight) {
-		seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+		seekBar.getProgressDrawable().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 		seekBar.getThumb().setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
+		position_start.setTextColor(colorLight);
+		position_end.setTextColor(colorLight);
 
 		play_pause_stop.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 		if (play_pause_stop.getBackground() != null)
@@ -1634,12 +1644,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		repeat.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 		avfx.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 		tune.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-
-		if (more != null) {
-			more.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
-			if (more.getBackground() != null)
-				more.getBackground().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-		}
+		more.setColorFilter(colorLight, PorterDuff.Mode.SRC_IN);
 	}
 
 	private void toggleControls() {

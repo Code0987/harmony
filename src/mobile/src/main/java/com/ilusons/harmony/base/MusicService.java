@@ -1383,8 +1383,6 @@ public class MusicService extends Service {
 							break;
 					}
 				} else {
-					Toast.makeText(MusicService.this, newMusic.getText() + " requires internet! Skipping!", Toast.LENGTH_LONG).show();
-
 					nextSmart(true);
 				}
 			} else {
