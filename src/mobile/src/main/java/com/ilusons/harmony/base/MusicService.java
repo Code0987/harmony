@@ -1362,7 +1362,9 @@ public class MusicService extends Service {
 				return;
 
 			if (getMusic().equals(newMusic) && wasLastPlaybackInError) {
-				Toast.makeText(MusicService.this, newMusic.getText() + " cannot be played. Please restart manually!", Toast.LENGTH_LONG).show();
+				Toast.makeText(MusicService.this, newMusic.getText() + " cannot be played. Please try again!", Toast.LENGTH_LONG).show();
+
+				wasLastPlaybackInError = false;
 
 				return;
 			}
