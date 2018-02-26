@@ -1,8 +1,8 @@
 ﻿☃ 3 days FREE 🤯 premium of harmony (Crimson Beta) ☃
 
+✔ Added my recommendations feature, up-to 15 personalized songs for you.
 ✔ Re-designed image, cover art loader.
 ✔ New Online functionality (Download/Stream for FREE).
 ✔ Re-designed interface.
-✔ Re-designed audio engine.
 
 ◾️ Work in progress, please leave feedback.
