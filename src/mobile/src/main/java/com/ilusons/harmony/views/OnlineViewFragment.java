@@ -298,7 +298,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 			return;
 		}
 
-		final int N = 32;
+		final int N = 16;
 		final Context context = getContext();
 
 		Analytics.findTracks(query, N)
@@ -343,7 +343,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 	}
 
 	private void searchTopTracks() {
-		final int N = 64;
+		final int N = 32;
 		final Context context = getContext();
 
 		if (AndroidEx.isNetworkAvailable(context)) {

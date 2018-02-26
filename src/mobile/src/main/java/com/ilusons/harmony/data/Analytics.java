@@ -882,24 +882,17 @@ public class Analytics {
 
 					JaroWinklerDistance sa = new JaroWinklerDistance();
 
-					Collection<Music> local = new ArrayList<>();
-					try (Realm realm = Music.getDB()) {
-						if (realm != null) {
-							local.addAll(realm.copyFromRealm(realm.where(Music.class).findAll()));
-						}
-					}
-
 					int count = 0;
 
 					for (de.umass.lastfm.Track t : tracks) {
 						Music m = null;
 
-						for (Music l : local)
+						for (Music l : old)
 							try {
 								if (sa.apply(t.getName(), l.getTitle()) > 0.8
 										&& sa.apply(t.getArtist(), l.getArtist()) > 0.8) {
 									m = l;
-									local.remove(l);
+									old.remove(l);
 									break;
 								}
 							} catch (Exception e) {
