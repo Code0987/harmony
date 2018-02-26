@@ -284,8 +284,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 				RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(recyclerView.getChildAt(i));
 				if (viewHolder instanceof RecyclerViewAdapter.ViewHolder) {
 					RecyclerViewAdapter.ViewHolder vh = ((RecyclerViewAdapter.ViewHolder) viewHolder);
-					if (vh.cover != null)
-						vh.cover.translate();
+					if (vh.parallaxCover != null)
+						vh.parallaxCover.translate();
 				}
 			}
 		}
@@ -592,7 +592,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 			protected View view;
 
-			protected ParallaxImageView cover;
+            public ImageView cover;
+            public ParallaxImageView parallaxCover;
 			protected TextView title;
 			protected TextView info;
 
@@ -609,26 +610,29 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 				if (cover != null) {
 					cover.setMaxHeight(AndroidEx.dpToPx(196));
-					cover.setListener(new ParallaxImageView.ParallaxImageListener() {
-						@Override
-						public int[] getValuesForTranslate() {
-							if (itemView.getParent() == null) {
-								return null;
-							} else {
-								int[] itemPosition = new int[2];
-								itemView.getLocationOnScreen(itemPosition);
+                    if (cover instanceof ParallaxImageView) {
+                        parallaxCover = (ParallaxImageView) cover;
+                        parallaxCover.setListener(new ParallaxImageView.ParallaxImageListener() {
+                            @Override
+                            public int[] getValuesForTranslate() {
+                                if (itemView.getParent() == null) {
+                                    return null;
+                                } else {
+                                    int[] itemPosition = new int[2];
+                                    itemView.getLocationOnScreen(itemPosition);
 
-								int[] recyclerPosition = new int[2];
-								((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
+                                    int[] recyclerPosition = new int[2];
+                                    ((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
 
-								return new int[]{
-										itemPosition[1],
-										((RecyclerView) itemView.getParent()).getMeasuredHeight(),
-										recyclerPosition[1]
-								};
-							}
-						}
-					});
+                                    return new int[]{
+                                            itemPosition[1],
+                                            ((RecyclerView) itemView.getParent()).getMeasuredHeight(),
+                                            recyclerPosition[1]
+                                    };
+                                }
+                            }
+                        });
+                    }
 				}
 
 			}
@@ -653,7 +657,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 								d.setCrossFadeEnabled(true);
 								d.startTransition(200);
 
-								cover.translate();
+                                if (parallaxCover != null)
+                                    parallaxCover.translate();
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
