@@ -48,6 +48,8 @@ import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Observable;
 
 import de.umass.lastfm.Track;
 import io.reactivex.ObservableSource;
@@ -183,6 +185,21 @@ public class OnlineViewFragment extends BaseUIFragment {
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
 					loadOnlinePlaylistTracks(true);
+
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+		});
+
+		MenuItem my_recommendations = menu.findItem(R.id.my_recommendations);
+		my_recommendations.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					searchRecommendations();
 
 					return true;
 				} catch (Exception e) {
@@ -391,6 +408,66 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 			info("Turn on your internet for new music.");
 		}
+	}
+
+	private void searchRecommendations() {
+		final int N = 5;
+		final Context context = getContext();
+
+		loading.smoothToShow();
+
+		info("Finding what you may like :) Stand by ...");
+
+		adapter.clear();
+
+		Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
+			@Override
+			public void onSubscribe(Disposable d) {
+			}
+
+			@Override
+			public void onNext(Collection<Music> r) {
+				try {
+					for (Music m : r) {
+						adapter.add(m);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void onError(Throwable e) {
+				loading.smoothToHide();
+
+				info(":( Please try later. Nothing for you right now!");
+			}
+
+			@Override
+			public void onComplete() {
+				loading.smoothToHide();
+
+				info(":) Your recommendations are ready! Save it, it may change later!");
+			}
+		};
+
+		ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
+
+		for (Music music : Music.getAllSortedByScore(3)) {
+			observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
+		}
+
+		io.reactivex.Observable
+				.concat(observables)
+				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+					@Override
+					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+						return Analytics.convertToLocal(context, tracks, N, false);
+					}
+				})
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribeOn(Schedulers.io())
+				.subscribe(observer);
 	}
 
 	private void loadOnlinePlaylistTracks(boolean reset) {
