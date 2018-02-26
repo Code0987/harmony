@@ -16,6 +16,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -48,9 +49,8 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.AndroidTouchEx;
-import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
-import com.ilusons.harmony.ref.JavaEx;
+import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.ui.CircleIndicator;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -137,8 +137,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		// Hacks
 		applyHacksToUI();
-
-		Music.setCurrentCoverView(this);
 
 		// Set views
 
@@ -316,8 +314,55 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 				updateMetadata(music);
 
+				// Load cover
 				try {
-					Music.getCoverOrDownload(cover.getWidth(), music);
+					final Context context = this;
+					final Consumer<Bitmap> resultConsumer = new Consumer<Bitmap>() {
+						@Override
+						public void accept(Bitmap bitmap) throws Exception {
+							try {
+								onCoverReloaded(bitmap);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					};
+					final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+						}
+					};
+					final Consumer<Throwable> throwableConsumerWithRetry = new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+							Music
+									.loadLocalOrSearchCoverArtFromItunes(
+											context,
+											music,
+											music.getCoverPath(context),
+											music.getText(),
+											false,
+											ImageEx.ItunesImageType.Artist)
+									.observeOn(AndroidSchedulers.mainThread())
+									.subscribeOn(Schedulers.computation())
+									.subscribe(
+											resultConsumer,
+											throwableConsumer);
+						}
+					};
+					Music
+							.loadLocalOrSearchCoverArtFromItunes(
+									context,
+									music,
+									music.getCoverPath(context),
+									music.getText(),
+									false,
+									ImageEx.ItunesImageType.Song)
+							.observeOn(AndroidSchedulers.mainThread())
+							.subscribeOn(Schedulers.computation())
+							.subscribe(
+									resultConsumer,
+									throwableConsumerWithRetry);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -796,7 +841,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void updateCover() throws Exception {
-		if(!AndroidEx.isNetworkAvailable(this)) {
+		if (!AndroidEx.isNetworkAvailable(this)) {
 			info(getString(R.string.network_unavailable), true);
 
 			return;
@@ -804,33 +849,61 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		info(getString(R.string.downloading_artwork), true);
 
-		Music data = getMusicService().getMusic();
-		ArtworkEx.getArtworkDownloaderTask(
-				PlaybackUIActivity.this,
-				data.getText(),
-				ArtworkEx.ArtworkType.Song,
-				-1,
-				data.getPath(),
-				Music.KEY_CACHE_DIR_COVER,
-				data.getPath(),
-				new JavaEx.ActionT<Bitmap>() {
-					@Override
-					public void execute(Bitmap bitmap) {
-						info(getString(R.string.artwork_downloaded));
+		final Music data = getMusicService().getMusic();
 
-						onCoverReloaded(bitmap);
-					}
-				},
-				new JavaEx.ActionT<Exception>() {
-					@Override
-					public void execute(Exception e) {
-						info(getString(R.string.artwork_download_failed));
+		final Context context = this;
 
-						Log.w(TAG, e);
-					}
-				},
-				1500,
-				true);
+		final Consumer<Bitmap> resultConsumer = new Consumer<Bitmap>() {
+			@Override
+			public void accept(Bitmap bitmap) throws Exception {
+				try {
+					info(getString(R.string.artwork_downloaded));
+
+					onCoverReloaded(bitmap);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
+			@Override
+			public void accept(Throwable throwable) throws Exception {
+				info(getString(R.string.artwork_download_failed));
+			}
+		};
+		final Consumer<Throwable> throwableConsumerWithRetry = new Consumer<Throwable>() {
+			@Override
+			public void accept(Throwable throwable) throws Exception {
+				Music
+						.loadLocalOrSearchCoverArtFromItunes(
+								context,
+								data,
+								data.getCoverPath(context),
+								data.getText(),
+								false,
+								ImageEx.ItunesImageType.Artist)
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribeOn(Schedulers.computation())
+						.subscribe(
+								resultConsumer,
+								throwableConsumer);
+			}
+		};
+
+		Music
+				.loadLocalOrSearchCoverArtFromItunes(
+						context,
+						data,
+						data.getCoverPath(context),
+						data.getText(),
+						false,
+						ImageEx.ItunesImageType.Song)
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribeOn(Schedulers.computation())
+				.subscribe(
+						resultConsumer,
+						throwableConsumerWithRetry);
+
 	}
 
 	private void editLyrics() {

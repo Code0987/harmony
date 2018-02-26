@@ -10,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -18,14 +17,20 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.ilusons.harmony.R;
+import com.facebook.common.references.CloseableReference;
+import com.facebook.datasource.DataSource;
+import com.facebook.datasource.DataSources;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.common.ImageDecodeOptions;
+import com.facebook.imagepipeline.core.ImagePipeline;
+import com.facebook.imagepipeline.image.CloseableBitmap;
+import com.facebook.imagepipeline.image.CloseableImage;
+import com.facebook.imagepipeline.request.ImageRequest;
+import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.ref.AndroidEx;
-import com.ilusons.harmony.ref.ArtworkEx;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
-import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
 import com.ilusons.harmony.ref.SongsEx;
 import com.ilusons.harmony.views.PlaybackUIActivity;
@@ -51,6 +56,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -59,6 +67,8 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
+
+import static com.ilusons.harmony.ref.ImageEx.findImageUrlFromItunes;
 
 public class Music extends RealmObject {
 
@@ -83,6 +93,15 @@ public class Music extends RealmObject {
 
 	public boolean isLocal() {
 		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http") || getPath().contains(MusicService.KEY_YT_AUDIO_DIR));
+	}
+
+	public String getCoverPath(final Context context) {
+		try {
+			return IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, Path).getAbsolutePath();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	private String LastPlaybackUrl;
@@ -549,56 +568,72 @@ public class Music extends RealmObject {
 		return result;
 	}
 
-	private static WeakReference<PlaybackUIActivity> currentCoverView = null;
-
-	public static PlaybackUIActivity getCurrentCoverView() {
-		return currentCoverView.get();
-	}
-
-	public static void setCurrentCoverView(PlaybackUIActivity v) {
-		currentCoverView = new WeakReference<PlaybackUIActivity>(v);
-	}
-
-	private static AsyncTask<Object, Object, Bitmap> getCoverOrDownloadTask = null;
-
-	public static void getCoverOrDownload(final int size, final Music data) throws Exception {
-		if (getCoverOrDownloadTask != null) {
-			getCoverOrDownloadTask.cancel(true);
-			try {
-				getCoverOrDownloadTask.get(1, TimeUnit.MILLISECONDS);
-			} catch (Exception e) {
-				Log.w(TAG, e);
-			}
-			getCoverOrDownloadTask = null;
-		}
-		getCoverOrDownloadTask = (new ArtworkEx.ArtworkDownloaderAsyncTask(
-				currentCoverView.get(),
-				data.getText(),
-				ArtworkEx.ArtworkType.Song,
-				size,
-				data.getPath(),
-				KEY_CACHE_DIR_COVER,
-				data.Path,
-				new JavaEx.ActionT<Bitmap>() {
-					@Override
-					public void execute(Bitmap bitmap) {
-						if (getCurrentCoverView() != null)
-							getCurrentCoverView().onCoverReloaded(bitmap);
-					}
-				},
-				new JavaEx.ActionT<Exception>() {
-					@Override
-					public void execute(Exception e) {
-						Log.w(TAG, e);
-					}
-				},
-				3000,
-				false));
-		getCoverOrDownloadTask.execute();
-	}
-
 	public static void putCover(Context context, Music data, Bitmap bmp) {
 		IOEx.putBitmapInDiskCache(context, KEY_CACHE_DIR_COVER, data.Path, bmp);
+	}
+
+	public static Observable<Bitmap> loadLocalOrSearchCoverArtFromItunes(final Context context, final Music music, final String uri, final String query, final boolean forceDownload, final ImageEx.ItunesImageType imageType) {
+		return Observable.create(new ObservableOnSubscribe<Bitmap>() {
+			@Override
+			public void subscribe(ObservableEmitter<Bitmap> oe) throws Exception {
+				try {
+					Uri downloadUri = null;
+					File file = null;
+					boolean isDownloaded = false;
+					try {
+						// Direct url
+						downloadUri = Uri.parse(uri);
+						// If it's a local file
+						file = new File(uri);
+						if (file.isAbsolute() && file.exists()) {
+							downloadUri = Uri.fromFile(file);
+						}
+					} catch (Exception e) {
+						// pass
+					}
+					// If not local or forced or if local but non-existent
+					if (forceDownload || TextUtils.isEmpty(uri) || ((file != null && file.isAbsolute() && !file.exists()))) {
+						downloadUri = Uri.parse(findImageUrlFromItunes(query, imageType, 1000, -1));
+						isDownloaded = true;
+					}
+
+					ImageDecodeOptions decodeOptions = ImageDecodeOptions.newBuilder()
+							.setBitmapConfig(Bitmap.Config.RGB_565)
+							.build();
+
+					ImageRequest imageRequest = ImageRequestBuilder
+							.newBuilderWithSource(downloadUri)
+							.setImageDecodeOptions(decodeOptions)
+							.build();
+
+					Bitmap bitmap = null;
+
+					ImagePipeline imagePipeline = Fresco.getImagePipeline();
+					DataSource<CloseableReference<CloseableImage>> dataSource = imagePipeline.fetchDecodedImage(imageRequest, context);
+					try (CloseableReference<CloseableImage> closeableImageRef = DataSources.waitForFinalResult(dataSource)) {
+						if (closeableImageRef != null && closeableImageRef.get() instanceof CloseableBitmap) {
+							bitmap = ((CloseableBitmap) closeableImageRef.get()).getUnderlyingBitmap();
+
+							if (isDownloaded && bitmap != null && music != null) try {
+								Music.putCover(context, music, bitmap);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					} catch (Throwable e) {
+						e.printStackTrace();
+					} finally {
+						dataSource.close();
+					}
+
+					oe.onNext(bitmap);
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
 	}
 
 	//endregion
