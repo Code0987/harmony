@@ -384,6 +384,8 @@ public class SettingsActivity extends BaseActivity {
 		// DC
 		createDC();
 
+		loading(false);
+
 	}
 
 	@Override

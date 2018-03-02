@@ -266,12 +266,17 @@ public class AndroidEx {
 	//region Network
 
 	public static boolean isNetworkAvailable(final Context context) {
-		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo activeNetworkInfo = null;
-		if (connectivityManager != null) {
-			activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		try {
+			ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo activeNetworkInfo = null;
+			if (connectivityManager != null) {
+				activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+			}
+			return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+		return false;
 	}
 
 	//endnetwork

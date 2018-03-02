@@ -6,8 +6,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="96dp"
-    android:layout_marginBottom="1dp"
+    android:layout_height="92dp"
+    android:layout_marginBottom="0dp"
     android:layout_marginEnd="1dp"
     android:layout_marginStart="1dp"
     android:layout_marginTop="1dp"
@@ -27,8 +27,8 @@
 
         <ImageView
             android:id="@+id/cover"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+                    android:layout_width="92dp"
+            android:layout_height="92dp"
             android:background="@drawable/lomo"
             android:scaleType="centerInside"
             android:src="@drawable/logo"
@@ -39,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_margin="8dp"
+            android:layout_margin="12dp"
             android:layout_marginStart="12dp"
             android:layout_toEndOf="@id/cover"
             android:orientation="vertical"
@@ -52,31 +52,19 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/primary_text"
-                android:textSize="14sp"
+                android:textSize="15sp"
                 tools:text="Title"
                 />
 
             <TextView
-                android:id="@+id/artist"
+                android:id="@+id/info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:ellipsize="end"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:textColor="@color/secondary_text"
-                android:textSize="12sp"
-                tools:text="Artist"
-                />
-
-            <TextView
-                android:id="@+id/album"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@color/secondary_text"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 tools:text="Album"
                 />
 
