@@ -456,7 +456,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 		List<Music> topLocalTracks = Music.getAllSortedByScore(7);
 		Collections.shuffle(topLocalTracks);
-		topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 2));
+		topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 3));
 		for (Music music : topLocalTracks) {
 			observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
 		}
