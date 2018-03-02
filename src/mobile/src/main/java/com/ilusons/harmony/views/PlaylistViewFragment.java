@@ -2054,14 +2054,15 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	public enum UISortMode {
 		Default("Default/Custom"),
+		Score("Smart score ▼"),
+		LastPlayed("Recently played ▼"),
+		Added("Recently added ▼"),
+		Track("# Track ▲"),
 		Title("Title ▲"),
 		Album("Album ▲"),
 		Artist("Artist ▲"),
 		Played("Times Played ▼"),
 		Skipped("Times Skipped ▼"),
-		Added("Added On ▼"),
-		Score("Smart score"),
-		Track("# Track"),
 		Timestamp("Timestamp ▼"),;
 
 		private String friendlyName;
@@ -2227,6 +2228,14 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					@Override
 					public int compare(Music x, Music y) {
 						return Long.compare(x.getTimestamp(), y.getTimestamp());
+					}
+				});
+				break;
+			case LastPlayed:
+				Collections.sort(data, new Comparator<Music>() {
+					@Override
+					public int compare(Music x, Music y) {
+						return Long.compare(x.getTimeLastPlayed(), y.getTimeLastPlayed());
 					}
 				});
 				break;

@@ -1,5 +1,6 @@
 ﻿☃ Now FREE 🤯 for LIMITED Time ☃
 
+✔ Updated and added new sorting modes.
 ✔ Improved recommendation engine.
 ✔ Fixed bugs.
 ✔ Re-designed image, cover art loader.
