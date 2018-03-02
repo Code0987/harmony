@@ -48,6 +48,7 @@ import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Observable;
 
@@ -411,7 +412,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 	}
 
 	private void searchRecommendations() {
-		final int N = 5;
+		final int N = 10;
 		final Context context = getContext();
 
 		loading.smoothToShow();
@@ -453,7 +454,10 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 		ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
 
-		for (Music music : Music.getAllSortedByScore(3)) {
+		List<Music> topLocalTracks = Music.getAllSortedByScore(7);
+		Collections.shuffle(topLocalTracks);
+		topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 2));
+		for (Music music : topLocalTracks) {
 			observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
 		}
 
@@ -592,8 +596,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 			protected View view;
 
-            public ImageView cover;
-            public ParallaxImageView parallaxCover;
+			public ImageView cover;
+			public ParallaxImageView parallaxCover;
 			protected TextView title;
 			protected TextView info;
 
@@ -610,29 +614,29 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 				if (cover != null) {
 					cover.setMaxHeight(AndroidEx.dpToPx(196));
-                    if (cover instanceof ParallaxImageView) {
-                        parallaxCover = (ParallaxImageView) cover;
-                        parallaxCover.setListener(new ParallaxImageView.ParallaxImageListener() {
-                            @Override
-                            public int[] getValuesForTranslate() {
-                                if (itemView.getParent() == null) {
-                                    return null;
-                                } else {
-                                    int[] itemPosition = new int[2];
-                                    itemView.getLocationOnScreen(itemPosition);
+					if (cover instanceof ParallaxImageView) {
+						parallaxCover = (ParallaxImageView) cover;
+						parallaxCover.setListener(new ParallaxImageView.ParallaxImageListener() {
+							@Override
+							public int[] getValuesForTranslate() {
+								if (itemView.getParent() == null) {
+									return null;
+								} else {
+									int[] itemPosition = new int[2];
+									itemView.getLocationOnScreen(itemPosition);
 
-                                    int[] recyclerPosition = new int[2];
-                                    ((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
+									int[] recyclerPosition = new int[2];
+									((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
 
-                                    return new int[]{
-                                            itemPosition[1],
-                                            ((RecyclerView) itemView.getParent()).getMeasuredHeight(),
-                                            recyclerPosition[1]
-                                    };
-                                }
-                            }
-                        });
-                    }
+									return new int[]{
+											itemPosition[1],
+											((RecyclerView) itemView.getParent()).getMeasuredHeight(),
+											recyclerPosition[1]
+									};
+								}
+							}
+						});
+					}
 				}
 
 			}
@@ -657,8 +661,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 								d.setCrossFadeEnabled(true);
 								d.startTransition(200);
 
-                                if (parallaxCover != null)
-                                    parallaxCover.translate();
+								if (parallaxCover != null)
+									parallaxCover.translate();
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
