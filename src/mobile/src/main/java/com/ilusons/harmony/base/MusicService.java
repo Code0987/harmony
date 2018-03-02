@@ -182,7 +182,7 @@ public class MusicService extends Service {
 	private LicenseChecker licenseChecker;
 
 	// IAB
-	public static boolean IsPremium = BuildConfig.DEBUG;
+	public static boolean IsPremium = true; // BuildConfig.DEBUG; TODO: Free for limited time
 
 	public static final String SKU_PREMIUM = "premium";
 
@@ -342,7 +342,7 @@ public class MusicService extends Service {
 
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
-		initializeLicensing();
+		// initializeLicensing(); TODO: Free for limited time
 
 		cancelAllNotification();
 

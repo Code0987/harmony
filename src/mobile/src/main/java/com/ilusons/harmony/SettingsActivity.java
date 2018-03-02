@@ -183,6 +183,7 @@ public class SettingsActivity extends BaseActivity {
 		loading = findViewById(R.id.loading);
 
 		// IAB
+		/* TODO: Free for limited time
 		iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);
 
 		iabHelper = new IabHelper(this, MusicService.LICENSE_BASE64_PUBLIC_KEY);
@@ -217,6 +218,7 @@ public class SettingsActivity extends BaseActivity {
 				}
 			}
 		});
+		*/
 
 		// Set close
 		findViewById(R.id.close).setOnClickListener(new View.OnClickListener() {
@@ -227,6 +229,7 @@ public class SettingsActivity extends BaseActivity {
 		});
 
 		// Set premium
+		/* TODO: Free for limited time
 		findViewById(R.id.premium).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -277,6 +280,14 @@ public class SettingsActivity extends BaseActivity {
 				dialog.show();
 			}
 		});
+		*/
+		findViewById(R.id.premium).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				info(getString(R.string.app_name) + " is Now FREE \uD83E\uDD2F for LIMITED Time!");
+			}
+		});
+		premiumChanged(true);
 
 		// Set views and tabs
 		viewPager = (ViewEx.StaticViewPager) findViewById(R.id.viewPager);

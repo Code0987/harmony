@@ -721,11 +721,16 @@ public class Analytics {
 
 					if (canCall()) {
 						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Track.search(null, query, limit, getKey());
-						oe.onNext(searched);
+						tracks.addAll(searched);
 					}
 
 					if (canCall()) {
 						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Tag.getTopTracks(query, getKey());
+						tracks.addAll(searched);
+					}
+
+					if (canCall()) {
+						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Artist.getTopTracks(query, getKey());
 						tracks.addAll(searched);
 					}
 
