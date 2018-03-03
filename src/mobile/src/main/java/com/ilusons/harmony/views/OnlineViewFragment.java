@@ -316,52 +316,58 @@ public class OnlineViewFragment extends BaseUIFragment {
 			return;
 		}
 
-		final int N = 16;
+		final int N = 50;
 		final Context context = getContext();
 
-		Analytics.findTracks(query, N)
-				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
-					@Override
-					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-						return Analytics.convertToLocal(context, tracks, N, false);
-					}
-				})
-				.subscribeOn(Schedulers.io())
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Observer<Collection<Music>>() {
-					@Override
-					public void onSubscribe(Disposable d) {
-						loading.smoothToShow();
-					}
-
-					@Override
-					public void onNext(Collection<Music> r) {
-						try {
-							adapter.clear();
-							for (Music m : r) {
-								adapter.add(m);
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
+		if (AndroidEx.isNetworkAvailable(context)) {
+			Analytics.findTracks(query, N)
+					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+						@Override
+						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+							return Analytics.convertToLocal(context, tracks, N, false);
 						}
-					}
+					})
+					.subscribeOn(Schedulers.io())
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribe(new Observer<Collection<Music>>() {
+						@Override
+						public void onSubscribe(Disposable d) {
+							loading.smoothToShow();
+						}
 
-					@Override
-					public void onError(Throwable e) {
-						loadOnlinePlaylistTracks(true);
+						@Override
+						public void onNext(Collection<Music> r) {
+							try {
+								adapter.clear();
+								for (Music m : r) {
+									adapter.add(m);
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
 
-						loading.smoothToHide();
-					}
+						@Override
+						public void onError(Throwable e) {
+							loadOnlinePlaylistTracks(true);
 
-					@Override
-					public void onComplete() {
-						loading.smoothToHide();
-					}
-				});
+							loading.smoothToHide();
+						}
+
+						@Override
+						public void onComplete() {
+							loading.smoothToHide();
+						}
+					});
+		} else {
+			loadOnlinePlaylistTracks(true);
+
+			info("Turn on your internet for new music.");
+		}
 	}
 
 	private void searchTopTracks() {
-		final int N = 32;
+		final int N = 50;
 		final Context context = getContext();
 
 		if (AndroidEx.isNetworkAvailable(context)) {
@@ -412,66 +418,72 @@ public class OnlineViewFragment extends BaseUIFragment {
 	}
 
 	private void searchRecommendations() {
-		final int N = 10;
+		final int N = 16;
 		final Context context = getContext();
 
-		loading.smoothToShow();
+		if (AndroidEx.isNetworkAvailable(context)) {
+			loading.smoothToShow();
 
-		info("Finding what you may like :) Stand by ...");
+			info("Finding what you may like :) Stand by ...");
 
-		adapter.clear();
+			adapter.clear();
 
-		Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
-			@Override
-			public void onSubscribe(Disposable d) {
-			}
-
-			@Override
-			public void onNext(Collection<Music> r) {
-				try {
-					for (Music m : r) {
-						adapter.add(m);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
+			Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
+				@Override
+				public void onSubscribe(Disposable d) {
 				}
-			}
 
-			@Override
-			public void onError(Throwable e) {
-				loading.smoothToHide();
-
-				info(":( Please try later. Nothing for you right now!");
-			}
-
-			@Override
-			public void onComplete() {
-				loading.smoothToHide();
-
-				info(":) Your recommendations are ready! Save it, it may change later!");
-			}
-		};
-
-		ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
-
-		List<Music> topLocalTracks = Music.getAllSortedByScore(7);
-		Collections.shuffle(topLocalTracks);
-		topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 3));
-		for (Music music : topLocalTracks) {
-			observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
-		}
-
-		io.reactivex.Observable
-				.concat(observables)
-				.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
-					@Override
-					public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-						return Analytics.convertToLocal(context, tracks, N, false);
+				@Override
+				public void onNext(Collection<Music> r) {
+					try {
+						for (Music m : r) {
+							adapter.add(m);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-				})
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribeOn(Schedulers.io())
-				.subscribe(observer);
+				}
+
+				@Override
+				public void onError(Throwable e) {
+					loading.smoothToHide();
+
+					info(":( Please try later. Nothing for you right now!");
+				}
+
+				@Override
+				public void onComplete() {
+					loading.smoothToHide();
+
+					info(":) Your recommendations are ready! Save it, it may change later!");
+				}
+			};
+
+			ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
+
+			List<Music> topLocalTracks = Music.getAllSortedByScore(10);
+			Collections.shuffle(topLocalTracks);
+			topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 3));
+			for (Music music : topLocalTracks) {
+				observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
+			}
+
+			io.reactivex.Observable
+					.concat(observables)
+					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+						@Override
+						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+							return Analytics.convertToLocal(context, tracks, N, false);
+						}
+					})
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribeOn(Schedulers.io())
+					.subscribe(observer);
+		} else {
+			loadOnlinePlaylistTracks(true);
+
+			info("Turn on your internet please!");
+		}
 	}
 
 	private void loadOnlinePlaylistTracks(boolean reset) {

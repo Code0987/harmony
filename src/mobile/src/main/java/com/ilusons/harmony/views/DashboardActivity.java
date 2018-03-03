@@ -1004,7 +1004,7 @@ public class DashboardActivity extends BaseUIActivity {
 		final Animation animationLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
 		final Animation animationRightOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
 
-		if (getPlaybackMiniExtrasVisible(this)) {
+		if (!getPlaybackMiniExtrasVisible(this)) {
 			next.postOnAnimation(new Runnable() {
 				@Override
 				public void run() {

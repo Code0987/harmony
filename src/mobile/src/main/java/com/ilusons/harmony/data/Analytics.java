@@ -720,17 +720,17 @@ public class Analytics {
 					ArrayList<Track> tracks = new ArrayList<>();
 
 					if (canCall()) {
-						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Track.search(null, query, limit, getKey());
+						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Track.search(null, query, limit / 3, getKey());
 						tracks.addAll(searched);
 					}
 
 					if (canCall()) {
-						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Tag.getTopTracks(query, getKey());
+						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Tag.getTopTracks(query, limit / 3, getKey());
 						tracks.addAll(searched);
 					}
 
 					if (canCall()) {
-						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Artist.getTopTracks(query, getKey());
+						Collection<de.umass.lastfm.Track> searched = de.umass.lastfm.Artist.getTopTracks(query, limit / 3, getKey());
 						tracks.addAll(searched);
 					}
 
