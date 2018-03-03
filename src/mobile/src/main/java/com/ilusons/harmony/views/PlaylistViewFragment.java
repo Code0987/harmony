@@ -2230,6 +2230,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 						return Long.compare(x.getTimestamp(), y.getTimestamp());
 					}
 				});
+				Collections.reverse(data);
 				break;
 			case LastPlayed:
 				Collections.sort(data, new Comparator<Music>() {
@@ -2238,6 +2239,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 						return Long.compare(x.getTimeLastPlayed(), y.getTimeLastPlayed());
 					}
 				});
+				Collections.reverse(data);
 				break;
 
 			case Default:

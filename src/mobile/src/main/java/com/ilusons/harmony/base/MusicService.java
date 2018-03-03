@@ -1723,6 +1723,14 @@ public class MusicService extends Service {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		} else if (getMusic() != null && getMusic().isLastPlaybackUrlUpdateNeeded()) {
+			try {
+				Thread.sleep(333L);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			nextSmart(true);
+			return;
 		}
 
 		if (autoPlay)
@@ -2381,7 +2389,7 @@ public class MusicService extends Service {
 			if (nb == null) {
 				Intent cancelIntent = new Intent(MusicService.ACTION_DOWNLOADER_CANCEL);
 				cancelIntent.putExtra(DOWNLOADER_CANCEL_ID, Download.getId());
-				PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+				PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 				nb = new NotificationCompat.Builder(context)
 						.setContentTitle("Downloading ...")
@@ -2549,7 +2557,7 @@ public class MusicService extends Service {
 			fetch = new RxFetch.Builder(this, TAG)
 					.setDownloadConcurrentLimit(2)
 					.setGlobalNetworkType(NetworkType.ALL)
-					.setProgressReportingInterval(1000)
+					.setProgressReportingInterval(333)
 					.setLogger(new Logger() {
 						@Override
 						public boolean getEnabled() {
