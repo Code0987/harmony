@@ -1,8 +1,4 @@
-﻿☃ Now FREE 🤯 for LIMITED Time ☃
-
+﻿✔ Fixed bugs (with audio downloader, with gui, with no internet playback).
 ✔ Updated and added new sorting modes.
 ✔ Improved recommendation engine.
-✔ Fixed bugs.
-✔ Re-designed image, cover art loader.
 ✔ New Online functionality (Download/Stream for FREE).
-✔ Re-designed interface.

@@ -62,11 +62,13 @@ import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.views.AudioVFXViewFragment;
 import com.ilusons.harmony.views.PlaybackUIActivity;
+import com.ilusons.harmony.views.TunePresetsFragment;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.InputStream;
@@ -344,14 +346,24 @@ public class SettingsActivity extends BaseActivity {
 
 				MusicService.setPlayerType(SettingsActivity.this, (MusicService.PlayerType) compoundButton.getTag());
 
-				info("Player type will be changed after restart!");
+				switch (MusicService.getPlayerType(SettingsActivity.this)) {
+					case OpenSL:
+						TunePresetsFragment.applyPreset(SettingsActivity.this, TunePresetsFragment.PRESET_HQ_GENERAL);
+						break;
+					case AndroidOS:
+					default:
+						TunePresetsFragment.applyPreset(SettingsActivity.this, TunePresetsFragment.PRESET_SQ_GENERAL);
+						break;
+				}
+
+				info("Player type will be changed after restart! Tune preset changed to default!");
 			}
 		};
 
 		MusicService.PlayerType player_type = MusicService.getPlayerType(getApplicationContext());
 
 		for (MusicService.PlayerType value : MusicService.PlayerType.values()) {
-			RadioButton rb = new RadioButton(this);
+			RadioButton rb = new RadioButton(new ContextThemeWrapper(this, R.style.AppTheme));
 			rb.setText(value.getFriendlyName());
 			rb.setTag(value);
 			rb.setId(value.ordinal());
@@ -365,6 +377,9 @@ public class SettingsActivity extends BaseActivity {
 
 			rb.setOnCheckedChangeListener(player_type_onCheckedChangeListener);
 		}
+
+		TextView player_type_info_textView = findViewById(R.id.player_type_info_textView);
+		player_type_info_textView.setText(Html.fromHtml(player_type_info_textView.getText().toString()));
 
 		// Headset
 		CheckBox headset_auto_play_on_plug_checkBox = (CheckBox) findViewById(R.id.headset_auto_play_on_plug_checkBox);

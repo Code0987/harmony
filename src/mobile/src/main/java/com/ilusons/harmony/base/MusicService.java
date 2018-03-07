@@ -46,6 +46,8 @@ import com.h6ah4i.android.media.audiofx.IPreAmp;
 import com.h6ah4i.android.media.audiofx.IPresetReverb;
 import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
+import com.h6ah4i.android.media.opensl.OpenSLMediaPlayer;
+import com.h6ah4i.android.media.standard.StandardMediaPlayer;
 import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
@@ -67,6 +69,7 @@ import com.ilusons.harmony.sfx.MediaPlayerFactory;
 import com.tonyodev.fetch2.Download;
 import com.tonyodev.fetch2.Error;
 import com.tonyodev.fetch2.FetchListener;
+import com.tonyodev.fetch2.HttpUrlConnectionDownloader;
 import com.tonyodev.fetch2.Logger;
 import com.tonyodev.fetch2.NetworkType;
 import com.tonyodev.fetch2.Request;
@@ -1328,7 +1331,7 @@ public class MusicService extends Service {
 		return !(getMusic() == null || mediaPlayer == null || !isPrepared);
 	}
 
-	private boolean wasLastPlaybackInError = false;
+	private int lastPlaybackErrorCount = 0;
 
 	private void prepareA(final JavaEx.Action onPrepare) {
 		// Fix playlist position
@@ -1361,10 +1364,8 @@ public class MusicService extends Service {
 			if (newMusic == null)
 				return;
 
-			if (getMusic().equals(newMusic) && wasLastPlaybackInError) {
+			if (getMusic().equals(newMusic) && lastPlaybackErrorCount > 2) {
 				Toast.makeText(MusicService.this, newMusic.getText() + " cannot be played. Please try again!", Toast.LENGTH_LONG).show();
-
-				wasLastPlaybackInError = false;
 
 				return;
 			}
@@ -1395,8 +1396,6 @@ public class MusicService extends Service {
 		}
 	}
 
-	private boolean mediaPlayerIsInErrorState = false;
-
 	private void prepareB(final JavaEx.Action onPrepare) {
 		if (TextUtils.isEmpty(getMusic().getLastPlaybackUrl())) {
 			Toast.makeText(MusicService.this, getMusic().getText() + " is not playable!", Toast.LENGTH_LONG).show();
@@ -1407,8 +1406,6 @@ public class MusicService extends Service {
 		}
 
 		synchronized (this) {
-			wasLastPlaybackInError = false;
-
 			// Setup player
 			if (mediaPlayerFactory == null)
 				switch (getPlayerType(this)) {
@@ -1421,7 +1418,7 @@ public class MusicService extends Service {
 						break;
 				}
 
-			if (mediaPlayer != null && wasLastPlaybackInError) {
+			if (mediaPlayer != null && lastPlaybackErrorCount > 2) {
 				mediaPlayer.release();
 				mediaPlayer = null;
 			}
@@ -1435,6 +1432,8 @@ public class MusicService extends Service {
 					@Override
 					public void onPrepared(IBasicMediaPlayer mediaPlayer) {
 						isPrepared = true;
+
+						lastPlaybackErrorCount = 0;
 
 						if (onPrepare != null)
 							onPrepare.execute();
@@ -1477,10 +1476,12 @@ public class MusicService extends Service {
 						}
 					}
 
-					if (mediaPlayerIsInErrorState) {
-						mediaPlayerIsInErrorState = false;
-					} else {
+					if (lastPlaybackErrorCount > 2) {
+						lastPlaybackErrorCount = 0;
+
 						nextSmart(false);
+					} else {
+						prepare(onPrepare);
 					}
 				}
 			});
@@ -1491,14 +1492,16 @@ public class MusicService extends Service {
 
 					isPrepared = false;
 
-					wasLastPlaybackInError = true;
+					lastPlaybackErrorCount++;
 
-					mediaPlayerIsInErrorState = true;
-
-					try {
-						Toast.makeText(MusicService.this, "There was a problem while playing [" + getMusic().getText() + "]!", Toast.LENGTH_LONG).show();
-					} catch (Exception e) {
-						e.printStackTrace();
+					if (lastPlaybackErrorCount > 2) {
+						try {
+							Toast.makeText(MusicService.this, "There was a problem while playing [" + getMusic().getText() + "]!", Toast.LENGTH_LONG).show();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					} else {
+						prepare(onPrepare);
 					}
 
 					return false;
@@ -1537,13 +1540,13 @@ public class MusicService extends Service {
 	}
 
 	public int getPosition() {
-		if (!isPrepared() || getMusic() == null || !getMusic().isLocal())
+		if (!isPrepared() || getMusic() == null || (!(mediaPlayer instanceof StandardMediaPlayer) && !getMusic().isLocal()))
 			return -1;
 		return mediaPlayer.getCurrentPosition();
 	}
 
 	public int getDuration() {
-		if (!isPrepared() || getMusic() == null || !getMusic().isLocal())
+		if (!isPrepared() || getMusic() == null || (!(mediaPlayer instanceof StandardMediaPlayer) && !getMusic().isLocal()))
 			return -1;
 		return mediaPlayer.getDuration();
 	}
@@ -1723,14 +1726,6 @@ public class MusicService extends Service {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (getMusic() != null && getMusic().isLastPlaybackUrlUpdateNeeded()) {
-			try {
-				Thread.sleep(333L);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			nextSmart(true);
-			return;
 		}
 
 		if (autoPlay)
@@ -2168,18 +2163,18 @@ public class MusicService extends Service {
 				if (!isPlaying())
 					if (getPlaylist().getItemIndex() > -1) {
 						try {
-							if (getPlaylist().getItem().isLocal()) {
+							if (!getPlaylist().getItem().isLastPlaybackUrlUpdateNeeded()) {
 								if (getPlayerType(this) != PlayerType.OpenSL) {
 									prepare(null);
 									// update();
+
+									updateNotification();
 								}
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
-
-				updateNotification();
 			}
 
 		} else if (action.equals(ACTION_LIBRARY_UPDATE_CANCEL)) {
@@ -2371,6 +2366,8 @@ public class MusicService extends Service {
 
 		public Download Download;
 
+		private static int NOTIFICATION_ID = 773;
+
 		public AudioDownload(final Context context, Music music, boolean playAfterDownload, boolean addToDatabase) {
 			this.context = context;
 
@@ -2378,6 +2375,8 @@ public class MusicService extends Service {
 
 			PlayAfterDownload = playAfterDownload;
 			AddToDatabase = addToDatabase;
+
+			NOTIFICATION_ID++;
 		}
 
 		private NotificationCompat.Builder nb;
@@ -2388,7 +2387,7 @@ public class MusicService extends Service {
 
 			if (nb == null) {
 				Intent cancelIntent = new Intent(MusicService.ACTION_DOWNLOADER_CANCEL);
-				cancelIntent.putExtra(DOWNLOADER_CANCEL_ID, Download.getId());
+				cancelIntent.putExtra(DOWNLOADER_CANCEL_ID, NOTIFICATION_ID);
 				PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 				nb = new NotificationCompat.Builder(context)
@@ -2399,20 +2398,20 @@ public class MusicService extends Service {
 						.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
 						.setProgress(100, 0, true);
 
-				NotificationManagerCompat.from(context).notify(Download.getId(), nb.build());
+				NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, nb.build());
 			}
 
 			if (Download != null && (Download.getProgress() == 100)) {
 				if (nb == null)
 					return;
 
-				NotificationManagerCompat.from(context).cancel(Download.getId());
+				NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID);
 
 				nb = null;
 			} else {
 				nb.setContentText(Download.getProgress() + "% " + Music.getText() + " ...");
 
-				NotificationManagerCompat.from(context).notify(Download.getId(), nb.build());
+				NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, nb.build());
 			}
 
 		}
@@ -2505,17 +2504,29 @@ public class MusicService extends Service {
 
 		@Override
 		public void onProgress(Download download, long l, long l1) {
+			AudioDownload audioDownload = getAudioDownloadFor(download);
+			if (audioDownload == null)
+				return;
 
+			audioDownload.updateNotification();
 		}
 
 		@Override
 		public void onPaused(Download download) {
+			AudioDownload audioDownload = getAudioDownloadFor(download);
+			if (audioDownload == null)
+				return;
 
+			audioDownload.updateNotification();
 		}
 
 		@Override
 		public void onResumed(Download download) {
+			AudioDownload audioDownload = getAudioDownloadFor(download);
+			if (audioDownload == null)
+				return;
 
+			audioDownload.updateNotification();
 		}
 
 		@Override
@@ -2554,10 +2565,14 @@ public class MusicService extends Service {
 
 	public RxFetch getDownloader() {
 		if (fetch == null || fetch.isClosed()) {
+			HttpUrlConnectionDownloader.HttpUrlConnectionPreferences httpUrlConnectionPreferences = new HttpUrlConnectionDownloader.HttpUrlConnectionPreferences();
+			httpUrlConnectionPreferences.setConnectTimeout(7 * 1000);
+			httpUrlConnectionPreferences.setReadTimeout(3 * 1000);
 			fetch = new RxFetch.Builder(this, TAG)
+					.setDownloader(new HttpUrlConnectionDownloader(httpUrlConnectionPreferences))
 					.setDownloadConcurrentLimit(2)
 					.setGlobalNetworkType(NetworkType.ALL)
-					.setProgressReportingInterval(333)
+					.setProgressReportingInterval(1111)
 					.setLogger(new Logger() {
 						@Override
 						public boolean getEnabled() {

@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ilusons.harmony.R;
+import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -37,6 +38,12 @@ public class TunePresetsFragment extends Fragment {
 
 	// Logger TAG
 	private static final String TAG = TunePresetsFragment.class.getSimpleName();
+
+	private final static String ASSETS_PRESETS = "presets/tune";
+	private final static String EXT_PRESET_SQ = ".sqp";
+	private final static String EXT_PRESET_HQ = ".hqp";
+	public final static String PRESET_SQ_GENERAL = "general.sqp";
+	public final static String PRESET_HQ_GENERAL = "general.hqp";
 
 	private static final int REQUEST_PRESETS_IMPORT_LOCATION_PICK_SAF = 58;
 	private static final int REQUEST_PRESETS_EXPORT_LOCATION_PICK_SAF = 59;
@@ -158,10 +165,6 @@ public class TunePresetsFragment extends Fragment {
 	}
 
 	public static class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
-
-		private final static String ASSETS_PRESETS = "presets/tune";
-		private final static String EXT_PRESET_SQ = ".sqp";
-		private final static String EXT_PRESET_HQ = ".hqp";
 
 		private final ArrayList<String> data;
 
@@ -293,6 +296,15 @@ public class TunePresetsFragment extends Fragment {
 	public static TunePresetsFragment create() {
 		TunePresetsFragment f = new TunePresetsFragment();
 		return f;
+	}
+
+	public static void applyPreset(final Context context, final String preset) {
+		try {
+			SPrefEx.importSPrefs(context, context.getAssets().open(ASSETS_PRESETS + "/" + preset), getKeys());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

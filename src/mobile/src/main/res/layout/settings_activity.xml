@@ -217,6 +217,18 @@
                         app:layout_constraintTop_toBottomOf="@id/player_type_textView"
                         />
 
+                    <TextView
+                        android:id="@+id/player_type_info_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/player_type_info"
+                        android:textSize="12sp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/player_type_radioGroup"
+                        />
+
                 </android.support.constraint.ConstraintLayout>
 
             </ScrollView>
