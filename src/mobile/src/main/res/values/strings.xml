@@ -81,4 +81,23 @@
     <string name="save_as_smart_playlist">Save as smart playlist</string>
     <string name="my_recommendations">My recommendations</string>
 
+    <string name="player_type_info"><![CDATA[OpenSL player, <br/>
+        - HQ audio <br/>
+        - Fade in/out effect (aka little crossfade) <br/>
+        - 10 bands EQ <br/>
+        - HQ reverb, bassboost, virtualizer <br/>
+        - Buggy, unstable, may work <br/>
+        - No online streaming <br/>
+        - Online downloads <br/>
+        <br/>
+        AndroidOS player <br/>
+        - Normal audio <br/>
+        - No fade effects <br/>
+        - 5 bands EQ <br/>
+        - Normal effects <br/>
+        - Stable <br/>
+        - Online streaming <br/>
+        - Online downloads <br/>
+    ]]></string>
+
 </resources>

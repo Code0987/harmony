@@ -31,11 +31,11 @@
         <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimationStyle</item>
         <item name="android:statusBarColor">@color/transparent</item>
         <item name="android:alertDialogTheme">@style/AppTheme.AlertDialogStyle</item>
-
         <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:textViewStyle">@style/AppTheme.TextViewStyle</item>
         <item name="android:buttonStyle">@style/AppTheme.ButtonStyle</item>
         <item name="buttonStyle">@style/AppTheme.ButtonStyle</item>
+        <item name="android:radioButtonStyle">@style/AppTheme.RadioButtonStyle</item>
     </style>
 
     <style name="AppTheme.TextViewStyle" parent="android:Widget.TextView">
@@ -54,6 +54,12 @@
         <item name="android:textSize">12sp</item>
         <item name="textAllCaps">false</item>
         <item name="fontFamily">sans-serif-thin</item>
+        <item name="fontStyle">normal</item>
+    </style>
+
+    <style name="AppTheme.RadioButtonStyle" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textSize">12sp</item>
         <item name="fontStyle">normal</item>
     </style>
 
@@ -249,7 +255,7 @@
         <item name="buttonStyle">@style/AppTheme.ButtonStyle</item>
     </style>
 
-    <style name="AppTheme.Settings">
+    <style name="AppTheme.Settings" parent="AppTheme">
         <item name="android:windowBackground">@drawable/bg3</item>
     </style>
 
