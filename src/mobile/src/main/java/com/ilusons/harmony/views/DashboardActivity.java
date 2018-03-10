@@ -329,6 +329,9 @@ public class DashboardActivity extends BaseUIActivity {
 
 	@Override
 	public void OnMusicServicePrepared() {
+		if(playlistViewFragment!=null)
+			playlistViewFragment.OnMusicServicePrepared();
+
 		resetPlayback();
 	}
 

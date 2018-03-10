@@ -1333,6 +1333,8 @@ public class MusicService extends Service {
 
 	private int lastPlaybackErrorCount = 0;
 
+	private int lastPlaybackOnlineSkipCount = 0;
+
 	private void prepareA(final JavaEx.Action onPrepare) {
 		// Fix playlist position
 		if (!canPlay())
@@ -1370,7 +1372,14 @@ public class MusicService extends Service {
 				return;
 			}
 
-			if (newMusic.isLastPlaybackUrlUpdateNeeded()) {
+			boolean isLastPlaybackUrlUpdateNeeded = newMusic.isLastPlaybackUrlUpdateNeeded();
+
+			if (!isLastPlaybackUrlUpdateNeeded
+					&& (getPlayerType(this) == PlayerType.OpenSL)
+					&& (!(new File(newMusic.getLastPlaybackUrl())).exists()))
+				isLastPlaybackUrlUpdateNeeded = true;
+
+			if (isLastPlaybackUrlUpdateNeeded) {
 				if (AndroidEx.isNetworkAvailable(this)) {
 					switch (getPlayerType(this)) {
 						case OpenSL:
@@ -1386,7 +1395,14 @@ public class MusicService extends Service {
 							break;
 					}
 				} else {
-					nextSmart(true);
+					lastPlaybackOnlineSkipCount++;
+
+					if (lastPlaybackOnlineSkipCount > 5) {
+						Toast.makeText(MusicService.this, "Too much online music skipped! Please fix internet or select offline manually!", Toast.LENGTH_LONG).show();
+
+						lastPlaybackOnlineSkipCount = 0;
+					} else
+						nextSmart(true);
 				}
 			} else {
 				setMusic(newMusic);
@@ -2023,7 +2039,7 @@ public class MusicService extends Service {
 	}
 
 	public void open(final Music music, final boolean insertOrUpdate) {
-		if (insertOrUpdate)
+		if (insertOrUpdate) {
 			try (Realm realm = Music.getDB()) {
 				if (realm != null) {
 					realm.executeTransaction(new Realm.Transaction() {
@@ -2036,6 +2052,7 @@ public class MusicService extends Service {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
 
 		open(music.getPath());
 	}
@@ -2359,24 +2376,28 @@ public class MusicService extends Service {
 
 		private final Context context;
 
+		public int Id;
+
 		public final Music Music;
 
 		public final boolean PlayAfterDownload;
-		public final boolean AddToDatabase;
 
 		public Download Download;
 
 		private static int NOTIFICATION_ID = 773;
 
-		public AudioDownload(final Context context, Music music, boolean playAfterDownload, boolean addToDatabase) {
+		public AudioDownload(final Context context, Music music, boolean playAfterDownload) {
 			this.context = context;
+
+			NOTIFICATION_ID++;
+
+			Id = NOTIFICATION_ID;
 
 			Music = music;
 
 			PlayAfterDownload = playAfterDownload;
-			AddToDatabase = addToDatabase;
 
-			NOTIFICATION_ID++;
+			updateNotification();
 		}
 
 		private NotificationCompat.Builder nb;
@@ -2387,7 +2408,7 @@ public class MusicService extends Service {
 
 			if (nb == null) {
 				Intent cancelIntent = new Intent(MusicService.ACTION_DOWNLOADER_CANCEL);
-				cancelIntent.putExtra(DOWNLOADER_CANCEL_ID, NOTIFICATION_ID);
+				cancelIntent.putExtra(DOWNLOADER_CANCEL_ID, Id);
 				PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 				nb = new NotificationCompat.Builder(context)
@@ -2398,20 +2419,20 @@ public class MusicService extends Service {
 						.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
 						.setProgress(100, 0, true);
 
-				NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, nb.build());
+				NotificationManagerCompat.from(context).notify(Id, nb.build());
 			}
 
-			if (Download != null && (Download.getProgress() == 100)) {
+			if (Download != null && ((Download.getProgress() == 100) || (Download.getError() != null))) {
 				if (nb == null)
 					return;
 
-				NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID);
+				NotificationManagerCompat.from(context).cancel(Id);
 
 				nb = null;
 			} else {
 				nb.setContentText(Download.getProgress() + "% " + Music.getText() + " ...");
 
-				NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, nb.build());
+				NotificationManagerCompat.from(context).notify(Id, nb.build());
 			}
 
 		}
@@ -2453,21 +2474,20 @@ public class MusicService extends Service {
 						@Override
 						public void subscribe(ObservableEmitter<AudioDownload> oe) throws Exception {
 							try {
-								if (audioDownload.AddToDatabase || audioDownload.PlayAfterDownload)
-									try (Realm realm = Music.getDB()) {
-										if (realm != null) {
-											final String lastPlaybackUrl = audioDownload.Download.getFile();
+								try (Realm realm = Music.getDB()) {
+									if (realm != null) {
+										final String lastPlaybackUrl = audioDownload.Download.getFile();
 
-											realm.executeTransaction(new Realm.Transaction() {
-												@Override
-												public void execute(@NonNull Realm realm) {
-													audioDownload.Music.setLastPlaybackUrl(lastPlaybackUrl);
+										realm.executeTransaction(new Realm.Transaction() {
+											@Override
+											public void execute(@NonNull Realm realm) {
+												audioDownload.Music.setLastPlaybackUrl(lastPlaybackUrl);
 
-													realm.insertOrUpdate(audioDownload.Music);
-												}
-											});
-										}
+												realm.insertOrUpdate(audioDownload.Music);
+											}
+										});
 									}
+								}
 
 								if (audioDownload.PlayAfterDownload)
 									open(audioDownload.Music, true);
@@ -2566,8 +2586,8 @@ public class MusicService extends Service {
 	public RxFetch getDownloader() {
 		if (fetch == null || fetch.isClosed()) {
 			HttpUrlConnectionDownloader.HttpUrlConnectionPreferences httpUrlConnectionPreferences = new HttpUrlConnectionDownloader.HttpUrlConnectionPreferences();
-			httpUrlConnectionPreferences.setConnectTimeout(7 * 1000);
-			httpUrlConnectionPreferences.setReadTimeout(3 * 1000);
+			httpUrlConnectionPreferences.setConnectTimeout(12 * 1000);
+			httpUrlConnectionPreferences.setReadTimeout(6 * 1000);
 			fetch = new RxFetch.Builder(this, TAG)
 					.setDownloader(new HttpUrlConnectionDownloader(httpUrlConnectionPreferences))
 					.setDownloadConcurrentLimit(2)
@@ -2614,8 +2634,8 @@ public class MusicService extends Service {
 
 	public static final String KEY_YT_AUDIO_DIR = "yt_audio";
 
-	public void download(final Music music, final boolean playAfterDownload, final boolean addToDatabase) {
-		final AudioDownload audioDownload = new AudioDownload(this, music, playAfterDownload, addToDatabase);
+	public void download(final Music music, final boolean playAfterDownload) {
+		final AudioDownload audioDownload = new AudioDownload(this, music, playAfterDownload);
 
 		Observable
 				.create(new ObservableOnSubscribe<AudioDownload>() {
@@ -2715,7 +2735,7 @@ public class MusicService extends Service {
 	}
 
 	public void download(final Music music) {
-		download(music, true, true);
+		download(music, true);
 	}
 
 	private void createDownload(final AudioDownload audioDownload, final String toPath) {
@@ -2740,7 +2760,7 @@ public class MusicService extends Service {
 	public void cancelDownload(int id) {
 		AudioDownload audioDownload = null;
 		for (AudioDownload item : audioDownloads)
-			if (item.Download != null && item.Download.getId() == id) {
+			if (item.Id == id) {
 				audioDownload = item;
 				break;
 			}

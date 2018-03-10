@@ -407,11 +407,11 @@ public class Music extends RealmObject {
 			sb.append("⌖");
 			sb.append(position + 1);
 		}
-		if (Track > -1) {
-			if (sb.length() > 0)
-				sb.append(del);
-			sb.append("#");
-			sb.append(Track);
+		if (!isLocal()) {
+			sb.append(" \uD83D\uDD17");
+			if (isLastPlaybackUrlUpdateNeeded()) {
+				sb.append(" \uD83D\uDCF2");
+			}
 		}
 		if (!TextUtils.isEmpty(Album)) {
 			if (sb.length() > 0)
@@ -441,6 +441,12 @@ public class Music extends RealmObject {
 		if (position > -1) {
 			sb.append("⌖");
 			sb.append(position + 1);
+		}
+		if (!isLocal()) {
+			sb.append(" \uD83D\uDD17");
+			if (isLastPlaybackUrlUpdateNeeded()) {
+				sb.append(" \uD83D\uDCE5️");
+			}
 		}
 		if (Track > -1) {
 			if (sb.length() > 0)

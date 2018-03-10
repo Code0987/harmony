@@ -1,4 +1,5 @@
-﻿✔ Fixed bugs (with audio downloader, with gui, with no internet playback).
+﻿✔ Added new options to playlist item.
+✔ Added new indicators.
+✔ Fixed bugs (with audio downloader, with gui, with no internet playback).
 ✔ Updated and added new sorting modes.
 ✔ Improved recommendation engine.
-✔ New Online functionality (Download/Stream for FREE).

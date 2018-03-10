@@ -1606,11 +1606,12 @@ public class PlaybackUIActivity extends BaseUIActivity {
 						seekBar.setProgress(getMusicService().getPosition());
 					if (position_start.getVisibility() == View.VISIBLE) try {
 						position_start.setText(DurationFormatUtils.formatDuration(getMusicService().getPosition(), "mm:ss", false));
+
+						if (lyrics_layout != null)
+							updateLyricsScroll();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					if (lyrics_layout != null)
-						updateLyricsScroll();
 				}
 
 				if (isFinishing())
