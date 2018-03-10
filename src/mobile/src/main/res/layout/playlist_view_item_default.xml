@@ -17,76 +17,84 @@
     tools:layout_width="196dp"
     >
 
-    <RelativeLayout
-        android:id="@+id/root"
+    <FrameLayout
+        android:id="@+id/active_indicator_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/playlist_view_item_bg_gradient_right_left"
         >
 
-        <com.ilusons.harmony.ref.ui.ParallaxImageView
-            android:id="@+id/cover"
+        <RelativeLayout
+            android:id="@+id/root"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:alpha="0.9"
-            android:elevation="9dp"
-            android:scaleType="centerCrop"
-            android:transitionName="action_image"
-            android:translationZ="0dp"
-            />
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_alignParentBottom="true"
-            android:background="@drawable/playlist_view_item_metadata_bg"
-            android:padding="5dp"
-            android:translationZ="30dp"
+            android:background="@drawable/playlist_view_item_bg_gradient_right_left"
             >
 
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="3dp"
-                android:layout_marginEnd="3dp"
-                android:layout_marginStart="3dp"
-                android:layout_marginTop="16dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:shadowColor="@android:color/black"
-                android:shadowDx="0.7"
-                android:shadowDy="1.5"
-                android:shadowRadius="1.7"
-                android:textColor="@color/primary_text"
-                android:textSize="10sp"
-                tools:text="Text ..."
+            <com.ilusons.harmony.ref.ui.ParallaxImageView
+                android:id="@+id/cover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0.9"
+                android:elevation="9dp"
+                android:scaleType="centerCrop"
+                android:transitionName="action_image"
+                android:translationZ="0dp"
                 />
 
-            <TextView
-                android:id="@+id/info"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/title"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="3dp"
-                android:layout_marginEnd="3dp"
-                android:layout_marginStart="3dp"
-                android:layout_marginTop="0dp"
-                android:ellipsize="marquee"
-                android:gravity="center"
-                android:shadowColor="@android:color/black"
-                android:shadowDx="0.7"
-                android:shadowDy="1.5"
-                android:shadowRadius="1.7"
-                android:textColor="@color/primary_text"
-                android:textSize="9sp"
-                tools:text="Text ..."
-                />
+                android:layout_height="64dp"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/playlist_view_item_metadata_bg"
+                android:padding="5dp"
+                android:translationZ="30dp"
+                >
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginTop="16dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:shadowColor="@android:color/black"
+                    android:shadowDx="0.7"
+                    android:shadowDy="1.5"
+                    android:shadowRadius="1.7"
+                    android:textColor="@color/primary_text"
+                    android:textSize="10sp"
+                    tools:text="Text ..."
+                    />
+
+                <TextView
+                    android:id="@+id/info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/title"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginTop="0dp"
+                    android:ellipsize="marquee"
+                    android:gravity="center"
+                    android:shadowColor="@android:color/black"
+                    android:shadowDx="0.7"
+                    android:shadowDy="1.5"
+                    android:shadowRadius="1.7"
+                    android:textColor="@color/primary_text"
+                    android:textSize="9sp"
+                    tools:text="Text ..."
+                    />
+
+            </RelativeLayout>
 
         </RelativeLayout>
 
-    </RelativeLayout>
+    </FrameLayout>
 
 </FrameLayout>

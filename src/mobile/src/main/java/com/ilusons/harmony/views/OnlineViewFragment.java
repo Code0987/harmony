@@ -215,8 +215,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
-					if (TextUtils.isEmpty(String.valueOf(getSearchQuery())) || adapter.getAll(Music.class).size() == 0) {
-						info("Search something first or your search results' in nothing!");
+					if (adapter.getAll(Music.class).size() == 0) {
+						info("Search something first or maybe try out my recommendations!");
 
 						throw new Exception();
 					}
@@ -226,7 +226,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 						new android.app.AlertDialog.Builder(getContext())
 								.setTitle("Create new smart playlist")
-								.setMessage("Enter name for new smart playlist ...")
+								.setMessage("Enter name for new smart playlist or old to overwrite ...")
 								.setView(editText)
 								.setPositiveButton("Create", new DialogInterface.OnClickListener() {
 									public void onClick(DialogInterface dialog, int whichButton) {
@@ -721,23 +721,17 @@ public class OnlineViewFragment extends BaseUIFragment {
 				}
 
 				title.setText(d.getTitle());
-				info.setText(d.getArtist());
+				info.setText(d.getTextExtraOnlySingleLine());
 
 				view.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
-						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
-
-						fragment.getMusicService().open(d);
-					}
-				});
-				view.setOnLongClickListener(new View.OnLongClickListener() {
-					@Override
-					public boolean onLongClick(final View view) {
-
 						android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(new ContextThemeWrapper(view.getContext(), R.style.AppTheme_AlertDialogStyle));
 						builder.setTitle("Select?");
 						builder.setItems(new CharSequence[]{
+								"Play now",
+								"Play next",
+								"Download, then play",
 								"Download",
 								"Stream",
 						}, new DialogInterface.OnClickListener() {
@@ -746,14 +740,19 @@ public class OnlineViewFragment extends BaseUIFragment {
 								try {
 									switch (itemIndex) {
 										case 0:
-											fragment.getMusicService().download(d);
+											playNow(d);
 											break;
 										case 1:
-											if (MusicService.getPlayerType(view.getContext()) == MusicService.PlayerType.AndroidOS)
-												fragment.getMusicService().stream(d);
-											else
-												fragment.info("Streaming is only supported in [" + MusicService.PlayerType.AndroidOS.getFriendlyName() + "] player. You can change it from Settings.");
-
+											playNext(d);
+											break;
+										case 2:
+											playAfterDownload(d);
+											break;
+										case 3:
+											download(d);
+											break;
+										case 4:
+											playAfterStream(d);
 											break;
 									}
 								} catch (Exception e) {
@@ -763,12 +762,97 @@ public class OnlineViewFragment extends BaseUIFragment {
 						});
 						android.app.AlertDialog dialog = builder.create();
 						dialog.show();
+					}
+				});
+				view.setOnLongClickListener(new View.OnLongClickListener() {
+					@Override
+					public boolean onLongClick(final View view) {
+						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
+
+						playNow(d);
 
 						return true;
 					}
 				});
 				view.setLongClickable(true);
 			}
+
+			private void playNow(final Music music) {
+				final MusicService musicService = fragment.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					musicService.open(music);
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					fragment.info("Ah! Try again!");
+				}
+			}
+
+			private void playNext(final Music music) {
+				final MusicService musicService = fragment.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					musicService.getPlaylist().add(music, musicService.getPlaylist().getItemIndex() + 1);
+
+					fragment.info("Added!");
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					fragment.info("Ah! Try again!");
+				}
+			}
+
+			private void playAfterStream(final Music music) {
+				final MusicService musicService = fragment.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					if (MusicService.getPlayerType(view.getContext()) == MusicService.PlayerType.AndroidOS) {
+						musicService.stream(music);
+					} else {
+						fragment.info("Streaming is only supported in [" + MusicService.PlayerType.AndroidOS.getFriendlyName() + "] player. You can change it from Settings.");
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					fragment.info("Ah! Try again!");
+				}
+			}
+
+			private void playAfterDownload(final Music music) {
+				final MusicService musicService = fragment.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					musicService.download(music);
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					fragment.info("Ah! Try again!");
+				}
+			}
+
+			private void download(final Music music) {
+				final MusicService musicService = fragment.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					musicService.download(music, false);
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					fragment.info("Ah! Try again!");
+				}
+			}
+
 		}
 
 	}
@@ -825,7 +909,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 	private void createDownloads(final View v) {
 		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
 		recyclerView.setHasFixedSize(true);
-		recyclerView.setItemViewCacheSize(5);
+		recyclerView.setItemViewCacheSize(1);
 		recyclerView.setDrawingCacheEnabled(true);
 		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 

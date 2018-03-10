@@ -412,6 +412,14 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
+	public void OnMusicServicePrepared() {
+		if (adapter != null) try {
+			adapter.jumpToCurrentlyPlayingItem();
+		} catch (Exception e) {
+			// Eat?
+		}
+	}
+
 	//region Items
 
 	private RecyclerViewAdapter adapter;
@@ -440,6 +448,9 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					ViewHolder vh = (ViewHolder) viewHolder;
 					if (vh.parallaxCover != null)
 						vh.parallaxCover.translate();
+
+					if (vh.active_indicator_layout != null)
+						adapter.updateActiveIndicator(getMusicService(), vh.active_indicator_layout);
 				}
 			}
 		}
@@ -882,7 +893,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 		@SuppressLint("StaticFieldLeak")
 		@Override
-		public void onBindChildViewHolder(ViewHolder holder, int groupPosition, int childPosition, int viewType) {
+		public void onBindChildViewHolder(final ViewHolder holder, int groupPosition, int childPosition, int viewType) {
 			final Object d = dataFiltered.get(groupPosition).second.get(childPosition);
 
 			// Bind data to view here!
@@ -891,6 +902,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				final Music item = (Music) d;
 
 				holder.view.setTag(item.getText());
+				holder.active_indicator_layout.setTag(item.getPath());
 
 				final ImageView cover = holder.cover;
 				if (cover != null) {
@@ -959,6 +971,8 @@ public class PlaylistViewFragment extends BaseUIFragment {
 									throwableConsumerWithRetry);
 				}
 
+				updateActiveIndicator(getMusicService(), holder.active_indicator_layout);
+
 				if (holder.title != null)
 					holder.title.setText(item.getTitle());
 
@@ -1000,8 +1014,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 						i.putExtra(MusicService.KEY_URI, item.getPath());
 
 						getContext().startService(i);
-
-						highlightView(root);
 					}
 				});
 
@@ -1018,14 +1030,15 @@ public class PlaylistViewFragment extends BaseUIFragment {
 						builder.setItems(new CharSequence[]{
 								"Share",
 								"Tags",
-								"Add next",
-								"Add at start",
-								"Add at last",
+								"Play next",
+								"Play at start",
+								"Play at last",
 								"Remove",
 								"Clear (except current)",
 								"Move down",
 								"Move up",
-								"Delete (physically)"
+								"Delete (physically)",
+								"Download"
 						}, new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int itemIndex) {
@@ -1096,6 +1109,9 @@ public class PlaylistViewFragment extends BaseUIFragment {
 											break;
 										case 9:
 											viewPlaylist.delete(item, getMusicService(), true);
+											break;
+										case 10:
+											download(item);
 											break;
 									}
 
@@ -1226,20 +1242,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			}).start();
 		}
 
-		public void highlightView(View root) {
-			try {
-				if (root == null)
-					return;
-
-				root.clearAnimation();
-
-				root.startAnimation(AnimationUtils.loadAnimation(root.getContext(), R.anim.shake));
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
 		public void bringInToView(int position) {
 			try {
 				int delta = Math.abs(recyclerView.getScrollY() - recyclerView.getLayoutManager().getChildAt(0).getHeight() * position);
@@ -1251,7 +1253,9 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 				View v = recyclerView.getLayoutManager().getChildAt(position);
 
-				highlightView(v);
+				View active_indicator_layout = v.findViewById(R.id.active_indicator_layout);
+
+				updateActiveIndicator(getMusicService(), active_indicator_layout);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1319,6 +1323,34 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					(transitionDrawable != null && transitionDrawable.getDrawable(1) != null);
 		}
 
+		private void updateActiveIndicator(final MusicService musicService, final View active_indicator_layout) {
+			try {
+				if (active_indicator_layout != null && active_indicator_layout.getTag() != null) {
+					if (getMusicService().getMusic().getPath().equals(active_indicator_layout.getTag().toString())) {
+						active_indicator_layout.setBackground(active_indicator_layout.getContext().getDrawable(R.drawable.bg2));
+					} else {
+						active_indicator_layout.setBackground(null);
+					}
+				}
+			} catch (Exception e) {
+				// Eat?
+			}
+		}
+
+		private void download(final Music music) {
+			final MusicService musicService = getMusicService();
+			if (musicService == null)
+				return;
+
+			try {
+				musicService.download(music, false);
+			} catch (Exception e) {
+				e.printStackTrace();
+
+				info("Ah! Try again!");
+			}
+		}
+
 	}
 
 	public class GroupViewHolder extends AbstractExpandableItemViewHolder {
@@ -1367,6 +1399,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	public class ViewHolder extends AbstractExpandableItemViewHolder {
 		public View view;
 
+		public View active_indicator_layout;
 		public TextView title;
 		public TextView album;
 		public TextView artist;
@@ -1379,6 +1412,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 			this.view = view;
 
+			active_indicator_layout = view.findViewById(R.id.active_indicator_layout);
 			title = view.findViewById(R.id.title);
 			album = view.findViewById(R.id.album);
 			artist = view.findViewById(R.id.artist);
@@ -1678,7 +1712,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		// Set playlist(s)
 		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
 		recyclerView.setHasFixedSize(true);
-		recyclerView.setItemViewCacheSize(5);
+		recyclerView.setItemViewCacheSize(1);
 		recyclerView.setDrawingCacheEnabled(true);
 		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
 
@@ -2676,11 +2710,11 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	public static PlaylistItemUIStyle getPlaylistItemUIStyle(Context context) {
 		try {
-			return PlaylistItemUIStyle.valueOf(SPrefEx.get(context).getString(PlaylistItemUIStyle.class.getSimpleName(), String.valueOf(PlaylistItemUIStyle.Simple)));
+			return PlaylistItemUIStyle.valueOf(SPrefEx.get(context).getString(PlaylistItemUIStyle.class.getSimpleName(), String.valueOf(PlaylistItemUIStyle.Card2)));
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			return PlaylistItemUIStyle.Simple;
+			return PlaylistItemUIStyle.Card2;
 		}
 	}
 
