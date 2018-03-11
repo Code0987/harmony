@@ -1,5 +1,4 @@
-﻿✔ Added new options to playlist item.
-✔ Added new indicators.
-✔ Fixed bugs (with audio downloader, with gui, with no internet playback).
+﻿✔ New AI engine, now top, recommended, scored tracks are smartly shown as you listen.
+✔ Fixed bugs.
+✔ Added new indicators, options.
 ✔ Updated and added new sorting modes.
-✔ Improved recommendation engine.
