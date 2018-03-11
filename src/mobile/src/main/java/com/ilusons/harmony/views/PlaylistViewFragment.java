@@ -1008,12 +1008,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				holder.view.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
-						Intent i = new Intent(getContext(), MusicService.class);
-
-						i.setAction(MusicService.ACTION_OPEN);
-						i.putExtra(MusicService.KEY_URI, item.getPath());
-
-						getContext().startService(i);
+						getMusicService().open(item.getPath());
 					}
 				});
 

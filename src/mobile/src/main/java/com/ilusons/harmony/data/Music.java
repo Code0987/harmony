@@ -412,6 +412,10 @@ public class Music extends RealmObject {
 			if (isLastPlaybackUrlUpdateNeeded()) {
 				sb.append(" \uD83D\uDCF2");
 			}
+		} else {
+			if (!(new File(getPath())).exists()) {
+				sb.append(" \uD83D\uDCF5");
+			}
 		}
 		if (!TextUtils.isEmpty(Album)) {
 			if (sb.length() > 0)
@@ -446,6 +450,10 @@ public class Music extends RealmObject {
 			sb.append(" \uD83D\uDD17");
 			if (isLastPlaybackUrlUpdateNeeded()) {
 				sb.append(" \uD83D\uDCE5️");
+			}
+		} else {
+			if (!(new File(getPath())).exists()) {
+				sb.append(" \uD83D\uDCF5");
 			}
 		}
 		if (Track > -1) {

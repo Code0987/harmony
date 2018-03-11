@@ -371,85 +371,102 @@ public class OnlineViewFragment extends BaseUIFragment {
 	private static final long ONLINE_DEFAULT_SCAN_INTERVAL = 23 * 60 * 60 * 1000;
 
 	private void searchDefaultTracks() {
-		final Context context = getContext();
+		try {
+			final Context context = getContext();
 
-		boolean updateRequired = true;
+			boolean updateRequired = true;
 
-		long last = SPrefEx.get(context).getLong(TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS, 0);
-		long dt = ((last + ONLINE_DEFAULT_SCAN_INTERVAL) - System.currentTimeMillis());
+			long last = SPrefEx.get(context).getLong(TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS, 0);
+			long dt = ((last + ONLINE_DEFAULT_SCAN_INTERVAL) - System.currentTimeMillis());
 
-		if (dt > 0) {
-			updateRequired = false;
-		}
-
-		updateRequired &= AndroidEx.isNetworkAvailable(context);
-
-		if (updateRequired) {
-			loading.smoothToShow();
-
-			info("Getting new tracks. Stand by ...");
-
-			adapter.clear();
-
-			Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
-				@Override
-				public void onSubscribe(Disposable d) {
-				}
-
-				@Override
-				public void onNext(Collection<Music> r) {
-					try {
-						for (Music m : r) {
-							adapter.add(m);
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-
-				@Override
-				public void onError(Throwable e) {
-					loading.smoothToHide();
-
-					loadOnlinePlaylistTracks(true);
-				}
-
-				@Override
-				public void onComplete() {
-					loading.smoothToHide();
-
-					SPrefEx.get(context).edit().putLong(TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS, System.currentTimeMillis()).apply();
-
-					info("New tracks are available now! More tracks tomorrow :)");
-				}
-			};
-
-			ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
-
-			List<Music> topLocalTracks = Music.getAllSortedByScore(10);
-			Collections.shuffle(topLocalTracks);
-			topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 2));
-			for (Music music : topLocalTracks) {
-				observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 16));
+			if (dt > 0) {
+				updateRequired = false;
 			}
-			observables.add(Analytics.getTopTracksForLastfm(getContext()));
-			Collections.shuffle(observables);
 
-			io.reactivex.Observable
-					.concat(observables)
-					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
-						@Override
-						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-							return Analytics.convertToLocal(context, tracks, 50, false);
+			updateRequired &= AndroidEx.isNetworkAvailable(context);
+
+			if (updateRequired) {
+				loading.smoothToShow();
+
+				info("Getting new tracks. Stand by ...");
+
+				adapter.clear();
+
+				Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
+					@Override
+					public void onSubscribe(Disposable d) {
+					}
+
+					@Override
+					public void onNext(Collection<Music> r) {
+						try {
+							for (Music m : r) {
+								adapter.add(m);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-					})
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribeOn(Schedulers.io())
-					.subscribe(observer);
-		} else {
-			loadOnlinePlaylistTracks(true);
+					}
 
-			info("Turn on your internet for new music.");
+					@Override
+					public void onError(Throwable e) {
+						loading.smoothToHide();
+
+						loadOnlinePlaylistTracks(true);
+					}
+
+					@Override
+					public void onComplete() {
+						loading.smoothToHide();
+
+						try {
+							SPrefEx.get(context).edit().putLong(TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS, System.currentTimeMillis()).apply();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						info("New tracks are available now! More tracks tomorrow :)");
+					}
+				};
+
+				ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
+
+				try {
+					List<Music> topLocalTracks = Music.getAllSortedByScore(10);
+					Collections.shuffle(topLocalTracks);
+					topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 3));
+					for (Music music : topLocalTracks) {
+						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 16));
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				try {
+					observables.add(Analytics.getTopTracksForLastfm(getContext()));
+					Collections.shuffle(observables);
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				io.reactivex.Observable
+						.concat(observables)
+						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+							@Override
+							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+								return Analytics.convertToLocal(context, tracks, 50, false);
+							}
+						})
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribeOn(Schedulers.io())
+						.subscribe(observer);
+			} else {
+				loadOnlinePlaylistTracks(true);
+
+				info("Turn on your internet for new music. Loading previous tracks.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
