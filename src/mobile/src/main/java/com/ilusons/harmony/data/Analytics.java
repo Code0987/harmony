@@ -763,7 +763,7 @@ public class Analytics {
 						tracks.addAll(regionalTracks);
 					}
 
-					if (canCall()) {
+					if (tracks.size() <= 1 && canCall()) {
 						PaginatedResult<Track> topTracks = de.umass.lastfm.Chart.getTopTracks(getKey());
 						tracks.addAll(topTracks.getPageResults());
 					}

@@ -1,4 +1,4 @@
-﻿✔ New AI engine, now top, recommended, scored tracks are smartly shown as you listen.
-✔ Fixed bugs.
+﻿✔ Fixed repeat bug.
+✔ New AI engine, now top, recommended, scored tracks are smartly shown as you listen.
 ✔ Added new indicators, options.
 ✔ Updated and added new sorting modes.

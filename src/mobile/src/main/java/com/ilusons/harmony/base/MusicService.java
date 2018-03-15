@@ -1496,6 +1496,8 @@ public class MusicService extends Service {
 						lastPlaybackErrorCount = 0;
 
 						nextSmart(false);
+					} else if (lastPlaybackErrorCount == 0) {
+						nextSmart(true);
 					} else {
 						prepare(onPrepare);
 					}
