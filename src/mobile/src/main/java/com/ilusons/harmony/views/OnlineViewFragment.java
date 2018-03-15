@@ -432,9 +432,9 @@ public class OnlineViewFragment extends BaseUIFragment {
 				ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
 
 				try {
-					List<Music> topLocalTracks = Music.getAllSortedByScore(10);
+					List<Music> topLocalTracks = Music.getAllSortedByScore(11);
 					Collections.shuffle(topLocalTracks);
-					topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 3));
+					topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 4));
 					for (Music music : topLocalTracks) {
 						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 16));
 					}
@@ -514,9 +514,9 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 			ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
 
-			List<Music> topLocalTracks = Music.getAllSortedByScore(10);
+			List<Music> topLocalTracks = Music.getAllSortedByScore(25);
 			Collections.shuffle(topLocalTracks);
-			topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 3));
+			topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 5));
 			for (Music music : topLocalTracks) {
 				observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
 			}
