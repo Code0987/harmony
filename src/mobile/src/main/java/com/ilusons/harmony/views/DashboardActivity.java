@@ -76,9 +76,6 @@ import io.reactivex.schedulers.Schedulers;
 import jonathanfinerty.once.Once;
 import jp.wasabeef.blurry.Blurry;
 
-// TODO: See below
-// https://www.reddit.com/r/androidapps/comments/6lxp6q/do_you_know_any_android_music_player_or_playlist/
-
 public class DashboardActivity extends BaseUIActivity {
 
 	// Logger TAG
@@ -329,7 +326,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 	@Override
 	public void OnMusicServicePrepared() {
-		if(playlistViewFragment!=null)
+		if (playlistViewFragment != null)
 			playlistViewFragment.OnMusicServicePrepared();
 
 		resetPlayback();

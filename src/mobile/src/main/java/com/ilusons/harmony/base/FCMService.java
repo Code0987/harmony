@@ -3,12 +3,14 @@ package com.ilusons.harmony.base;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -58,6 +60,8 @@ public class FCMService extends FirebaseMessagingService {
 			if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(content)) {
 				if (!TextUtils.isEmpty(type) && type.startsWith("alert")) {
 					showDialog(getString(R.string.app_name) + ": " + title, content, link);
+				} else if (!TextUtils.isEmpty(type) && type.startsWith("music_search")) {
+					music_search(content);
 				} else {
 					sendNotification(getString(R.string.app_name) + ": " + title, content, link);
 				}
@@ -108,6 +112,21 @@ public class FCMService extends FirebaseMessagingService {
 			intent.putExtra(MainActivity.ALERT_LINK, link);
 			intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startActivity(intent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void music_search(String content) {
+		try {
+			final String query = content;
+
+			Intent queryIntent = new Intent(Intent.ACTION_SEARCH);
+			queryIntent.putExtra(SearchManager.QUERY, query);
+
+			LocalBroadcastManager
+					.getInstance(this)
+					.sendBroadcast(queryIntent);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -1,8 +1,8 @@
 <resources>
 
-    <string name="app_name" translatable="false">harmony (Crimson Beta)</string>
+    <string name="app_name" translatable="false">harmony</string>
     <string name="app_website" translatable="false">http://harmony.ilusons.com</string>
-    <string name="app_desc" translatable="false">A unique music player for Android with tons of features!</string>
+    <string name="app_desc" translatable="false">A unique, non-conventional music player for Android with personalized recommendations and free music!</string>
 
     <string name="error">Some error!</string>
     <string name="now_using_">Now using</string>
