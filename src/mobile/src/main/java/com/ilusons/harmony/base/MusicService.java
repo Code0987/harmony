@@ -2424,7 +2424,7 @@ public class MusicService extends Service {
 				NotificationManagerCompat.from(context).notify(Id, nb.build());
 			}
 
-			if (Download != null && ((Download.getProgress() == 100) || (Download.getError() != null))) {
+			if (Download != null && ((Download.getProgress() == 100 && Download.getError() == Error.NONE) || (Download.getError() != Error.NONE))) {
 				if (nb == null)
 					return;
 

@@ -413,8 +413,8 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	}
 
 	public void OnMusicServicePrepared() {
-		if (adapter != null) try {
-			adapter.jumpToCurrentlyPlayingItem();
+		if (recyclerViewScrollListener != null) try {
+			recyclerViewScrollListener.onScrolled(recyclerView, 0, 0);
 		} catch (Exception e) {
 			// Eat?
 		}

@@ -1405,12 +1405,9 @@ public class Music extends RealmObject {
 	public static double getScore(Music music) {
 		double score;
 
-		if (music.hasVideo()) // TODO: Currently ignoring videos, fix it.
-			return 0;
-
 		int length = music.Length;
-		if (length < 1)
-			return 0;
+		if (length < 1 || music.hasVideo())
+			length = 3 * 60 * 1000;
 
 		int daysSinceLastPlayed = (int) ((System.currentTimeMillis() - music.TimeLastPlayed) / (1000 * 60 * 60 * 24));
 		int daysSinceLastSkipped = (int) ((System.currentTimeMillis() - music.TimeLastSkipped) / (1000 * 60 * 60 * 24));

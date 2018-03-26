@@ -1,1 +1,2 @@
 ﻿✔ Fixed bugs.
+✔ Score generating algorithm improved.
