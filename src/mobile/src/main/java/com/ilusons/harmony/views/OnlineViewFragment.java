@@ -1039,10 +1039,16 @@ public class OnlineViewFragment extends BaseUIFragment {
 			v.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					if (d.Download.getProgress() == 100)
-						getMusicService().open(d.Music);
-					else
-						info("Not completed yet!");
+					try {
+						if (d.Download.getProgress() == 100)
+							getMusicService().open(d.Music);
+						else
+							info("Not completed yet!");
+					} catch (Exception e) {
+						e.printStackTrace();
+
+						info("Try again!");
+					}
 				}
 			});
 

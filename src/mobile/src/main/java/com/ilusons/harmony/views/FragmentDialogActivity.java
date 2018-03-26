@@ -36,7 +36,7 @@ public class FragmentDialogActivity extends AppCompatActivity {
 		if (getSupportActionBar() != null)
 			getSupportActionBar().hide();
 
-		if (savedInstanceState == null) {
+		if (savedInstanceState == null) try {
 			ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(this, R.style.AppTheme);
 
 			Fragment fragment = Fragment.instantiate(contextThemeWrapper, getIntent().getStringExtra(FRAGMENT_CLASS));
@@ -44,6 +44,8 @@ public class FragmentDialogActivity extends AppCompatActivity {
 			fragment.setArguments(getIntent().getBundleExtra(FRAGMENT_ARGUMENTS));
 
 			getSupportFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 	}

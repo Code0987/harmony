@@ -212,44 +212,48 @@ public class Tips {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
 			builder.setView(v);
 
-			TextView title = v.findViewById(R.id.tips_dialog_title);
-			title.setText(owner.getTitle());
+			try {
+				TextView title = v.findViewById(R.id.tips_dialog_title);
+				title.setText(owner.getTitle());
 
-			final TextView message = v.findViewById(R.id.tips_dialog_message);
-			message.setText(owner.getMessage());
+				final TextView message = v.findViewById(R.id.tips_dialog_message);
+				message.setText(owner.getMessage());
 
-			TextView negative = v.findViewById(R.id.tips_dialog_negative);
-			negative.setText(owner.getNegativeText());
-			negative.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					owner.onNegative();
+				TextView negative = v.findViewById(R.id.tips_dialog_negative);
+				negative.setText(owner.getNegativeText());
+				negative.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						owner.onNegative();
 
-					dismiss();
-				}
-			});
+						dismiss();
+					}
+				});
 
-			final TextView positive = v.findViewById(R.id.tips_dialog_positive);
-			positive.setText(owner.getPositiveText());
-			positive.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					owner.onPositive();
+				final TextView positive = v.findViewById(R.id.tips_dialog_positive);
+				positive.setText(owner.getPositiveText());
+				positive.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						owner.onPositive();
 
-					dismiss();
-				}
-			});
+						dismiss();
+					}
+				});
 
-			TextView more = v.findViewById(R.id.tips_dialog_more);
-			more.setText(owner.getMore());
-			more.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					message.setText(owner.getMessages());
-				}
-			});
+				TextView more = v.findViewById(R.id.tips_dialog_more);
+				more.setText(owner.getMore());
+				more.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						message.setText(owner.getMessages());
+					}
+				});
 
-			builder.setOnCancelListener(this);
+				builder.setOnCancelListener(this);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			AlertDialog alert = builder.create();
 
