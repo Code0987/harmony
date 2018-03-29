@@ -66,6 +66,7 @@ import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.sfx.AndroidOSMediaPlayerFactory;
 import com.ilusons.harmony.sfx.MediaPlayerFactory;
+import com.ilusons.harmony.views.TunePresetsFragment;
 import com.tonyodev.fetch2.Download;
 import com.tonyodev.fetch2.Error;
 import com.tonyodev.fetch2.FetchListener;
@@ -1197,6 +1198,53 @@ public class MusicService extends Service {
 
 	//endregion
 
+	//region SmartTune
+
+	private static final String TAG_SPREF_PLAYER_SMART_TUNE_ENABLED = "player_smart_tune_enabled";
+
+	public static boolean getPlayerSmartTuneEnabled(Context context) {
+		return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYER_SMART_TUNE_ENABLED, true);
+	}
+
+	public static void setPlayerSmartTuneEnabled(Context context, boolean value) {
+		SPrefEx.get(context)
+				.edit()
+				.putBoolean(TAG_SPREF_PLAYER_SMART_TUNE_ENABLED, value)
+				.apply();
+	}
+
+	public void smartTune() {
+		try {
+			if (!getPlayerSmartTuneEnabled(this))
+				return;
+
+			Music.SmartGenre smartGenre = getMusic().getSmartGenre();
+
+			String preset = smartGenre.getFriendlyName();
+
+			if (preset.length() <= 1)
+				return;
+
+			switch (getPlayerType(this)) {
+				case OpenSL:
+					preset = preset + TunePresetsFragment.EXT_PRESET_HQ;
+					break;
+				case AndroidOS:
+				default:
+					preset = preset + TunePresetsFragment.EXT_PRESET_SQ;
+					break;
+			}
+
+			preset = preset.toLowerCase();
+
+			TunePresetsFragment.applyPreset(this, preset);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	//endregion
+
 	//region SFX
 
 	public void updateSFX() {
@@ -1497,7 +1545,7 @@ public class MusicService extends Service {
 
 						nextSmart(false);
 					} else if (lastPlaybackErrorCount == 0) {
-						nextSmart(true);
+						nextSmart(false);
 					} else {
 						prepare(onPrepare);
 					}
@@ -1620,6 +1668,8 @@ public class MusicService extends Service {
 			audioManager.registerMediaButtonEventReceiver(headsetMediaButtonIntentReceiverComponent);
 
 			mediaSession.setActive(true);
+
+			smartTune();
 
 			updateSFX();
 

@@ -610,13 +610,51 @@
                         />
 
                     <TextView
+                        android:id="@+id/scan_constraint_ignores_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Scan Ignores (space separated)"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_rangeBar"
+                        />
+
+                    <EditText
+                        android:id="@+id/scan_constraint_ignores_edit_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        android:minWidth="40dp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_ignores_text_view"
+                        />
+
+                    <ImageButton
+                        android:id="@+id/scan_constraint_ignores_image_button"
+                        style="@style/Widget.AppCompat.ImageButton"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="5dp"
+                        android:background="@null"
+                        android:padding="0dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_arrows_check"
+                        android:tint="@color/icons"
+                        android:tintMode="src_atop"
+                        app:layout_constraintBottom_toBottomOf="@+id/scan_constraint_ignores_edit_text"
+                        app:layout_constraintLeft_toRightOf="@id/scan_constraint_ignores_edit_text"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_ignores_text_view"
+                        />
+
+                    <TextView
                         android:id="@+id/library_update_fastMode_textView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
                         android:text="Library update fast mode"
                         app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_min_max_duration_rangeBar"
+                        app:layout_constraintTop_toBottomOf="@id/scan_constraint_ignores_edit_text"
                         />
 
                     <CheckBox

@@ -383,6 +383,13 @@ public class OnlineViewFragment extends BaseUIFragment {
 				updateRequired = false;
 			}
 
+			try {
+				if (Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE).getItems().size() <= 10)
+					updateRequired = true;
+			} catch (Exception e) {
+				// Eat?
+			}
+
 			updateRequired &= AndroidEx.isNetworkAvailable(context);
 
 			if (updateRequired) {

@@ -305,56 +305,80 @@ public class Music extends RealmObject {
 		Genre = value;
 	}
 
-	public String getSmartGenre() {
-		if (TextUtils.isEmpty(getGenre()))
-			return null;
+	public enum SmartGenre {
+		Alternative("Alternative"),
+		Metal("Metal"),
+		Indie("Indie"),
+		Punk("Punk"),
+		Rock("Rock"),
+		Folk("Folk"),
+		Country("Country"),
+		Blues("Blues"),
+		EDM("EDM"),
+		HipHop("HipHop"),
+		Jazz("Jazz"),
+		RB("R&B"),
+		Pop("Pop"),
+		None("*");
 
-		String r = getGenre();
+		private String friendlyName;
+
+		SmartGenre(String friendlyName) {
+			this.friendlyName = friendlyName;
+		}
+
+		public String getFriendlyName() {
+			return friendlyName;
+		}
+	}
+
+	public SmartGenre getSmartGenre() {
+		if (TextUtils.isEmpty(getGenre()))
+			return SmartGenre.None;
+
+		SmartGenre r = SmartGenre.None;
 
 		try {
-			r = r.toLowerCase();
+			String tags = getGenre() + " " + getTags();
 
-			if (r.contains("alt") || r.contains("alternative"))
-				r = "Alternative";
+			if (tags.contains("alt") || tags.contains("alternative"))
+				r = SmartGenre.Alternative;
 
-			else if (r.contains("metal") || r.contains("metalcore"))
-				r = "Metal";
+			else if (tags.contains("metal") || tags.contains("metalcore"))
+				r = SmartGenre.Metal;
 
-			else if (r.contains("indie"))
-				r = "Indie";
+			else if (tags.contains("indie"))
+				r = SmartGenre.Indie;
 
-			else if (r.contains("punk"))
-				r = "Punk";
+			else if (tags.contains("punk"))
+				r = SmartGenre.Punk;
 
-			else if (r.contains("rock") || r.contains("hardcore"))
-				r = "Rock";
+			else if (tags.contains("rock") || tags.contains("hardcore"))
+				r = SmartGenre.Rock;
 
-			else if (r.contains("folk"))
-				r = "Folk";
+			else if (tags.contains("folk"))
+				r = SmartGenre.Folk;
 
-			else if (r.contains("country"))
-				r = "Country";
+			else if (tags.contains("country"))
+				r = SmartGenre.Country;
 
-			else if (r.contains("blues"))
-				r = "Blues";
+			else if (tags.contains("blues"))
+				r = SmartGenre.Blues;
 
-			else if (r.contains("electronic") || r.contains("edm"))
-				r = "EDM";
+			else if (tags.contains("electronic") || tags.contains("edm"))
+				r = SmartGenre.EDM;
 
-			else if (r.contains("rap") || r.contains("hip"))
-				r = "Hip hop, Rap";
+			else if (tags.contains("rap") || tags.contains("hip"))
+				r = SmartGenre.HipHop;
 
-			else if (r.contains("Jazz"))
-				r = "Jazz";
+			else if (tags.contains("Jazz"))
+				r = SmartGenre.Jazz;
 
-			else if (r.contains("r&b") || r.contains("soul"))
-				r = "R&B, Soul";
+			else if (tags.contains("r&b") || tags.contains("soul"))
+				r = SmartGenre.RB;
 
-			else if (r.contains("pop"))
-				r = "Pop";
-
-			else
-				r = "*";
+			else if (tags.contains("pop"))
+				r = SmartGenre.Pop;
 
 		} catch (Exception e) {
 			e.printStackTrace();

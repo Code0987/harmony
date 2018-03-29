@@ -3,6 +3,7 @@ package com.ilusons.harmony.base;
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -179,7 +180,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 								context,
 								playlist,
 								newScanItems,
-								false,
+								true,
 								fastMode,
 								new JavaEx.ActionExT<String>() {
 									@Override
@@ -228,7 +229,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 								context,
 								playlist,
 								newScanItems,
-								false,
+								true,
 								fastMode,
 								new JavaEx.ActionExT<String>() {
 									@Override
@@ -270,7 +271,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				context,
 				playlist,
 				getScanLocations(context),
-				false,
+				true,
 				fastMode,
 				new JavaEx.ActionExT<String>() {
 					@Override
@@ -591,7 +592,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				.apply();
 	}
 
-
 	public static final String TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MAX_DURATION = SPrefEx.TAG_SPREF + ".library_scan_constraint_max_duration";
 	private static final long LIBRARY_SCAN_CONSTRAINT_MAX_DURATION_DEFAULT = (long) (15 * 60 * 1000);
 
@@ -604,6 +604,39 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 				.edit()
 				.putLong(TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_MAX_DURATION, value)
 				.apply();
+	}
+
+	public static final String TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_IGNORES = SPrefEx.TAG_SPREF + ".library_scan_constraint_max_duration";
+	private static final String LIBRARY_SCAN_CONSTRAINT_IGNORES_DEFAULT = "WhatsApp";
+
+	public static String getScanConstraintIgnores(Context context) {
+		try {
+			return SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_IGNORES, LIBRARY_SCAN_CONSTRAINT_IGNORES_DEFAULT);
+		} catch (Exception e) {
+			return LIBRARY_SCAN_CONSTRAINT_IGNORES_DEFAULT;
+		}
+	}
+
+	public static void setScanConstraintIgnores(Context context, String value) {
+		SPrefEx.get(context)
+				.edit()
+				.putString(TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_IGNORES, value)
+				.apply();
+	}
+
+	public static boolean isMatchedWithScanConstraintIgnores(Context context, String s) {
+		try {
+			boolean matched = false;
+			for (String item : getScanConstraintIgnores(context).split("\\s+")) {
+				if (s.contains(item)) {
+					matched = true;
+					break;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 }
