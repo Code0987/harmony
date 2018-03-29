@@ -2448,7 +2448,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				break;
 			case SmartGenre:
 				for (Music d : data) {
-					String key = d.getSmartGenre();
+					String key = d.getSmartGenre().getFriendlyName();
 					if (TextUtils.isEmpty(key))
 						key = "*";
 					if (result.containsKey(key)) {

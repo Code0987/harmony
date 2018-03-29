@@ -1,2 +1,5 @@
-﻿✔ Fixed bugs.
+﻿✔ Added one-of-a kind, auto-tune aka auto-preset feature.
+✔ Added new tunes.
+✔ Added scan ignore filter, default WhatsApp.
+✔ Fixed bugs.
 ✔ Score generating algorithm improved.

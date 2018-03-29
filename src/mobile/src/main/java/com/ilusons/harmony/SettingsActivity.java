@@ -758,6 +758,22 @@ public class SettingsActivity extends BaseActivity {
 
 				MusicServiceLibraryUpdaterAsyncTask.setScanConstraintMinDuration(SettingsActivity.this, leftPinIndex * INTERVAL * FACTOR);
 				MusicServiceLibraryUpdaterAsyncTask.setScanConstraintMaxDuration(SettingsActivity.this, rightPinIndex * INTERVAL * FACTOR);
+
+				info("Updated! Refresh library to see changes!");
+			}
+		});
+
+		// Scan constraint ignores
+		final EditText scan_constraint_ignores_edit_text = findViewById(R.id.scan_constraint_ignores_edit_text);
+		scan_constraint_ignores_edit_text.setText("");
+		scan_constraint_ignores_edit_text.append(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintIgnores(this));
+		scan_constraint_ignores_edit_text.clearFocus();
+		findViewById(R.id.scan_constraint_ignores_image_button).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				MusicServiceLibraryUpdaterAsyncTask.setScanConstraintIgnores(SettingsActivity.this, scan_constraint_ignores_edit_text.getText().toString());
+
+				info("Updated! Refresh library to see changes!");
 			}
 		});
 

@@ -671,7 +671,13 @@ public class Playlist extends RealmObject {
 												(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) >= newItem.getLength()
 												&&
 												(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMaxDuration(context)) <= newItem.getLength())) {
-											newItems.add(newItem);
+
+											if (!MusicServiceLibraryUpdaterAsyncTask.isMatchedWithScanConstraintIgnores(context, newItem.getPath())) {
+
+												newItems.add(newItem);
+
+											}
+
 										}
 									}
 								} catch (Exception e) {
@@ -789,7 +795,13 @@ public class Playlist extends RealmObject {
 												(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMinDuration(context)) >= newItem.getLength()
 												&&
 												(MusicServiceLibraryUpdaterAsyncTask.getScanConstraintMaxDuration(context)) <= newItem.getLength())) {
-											newItems.add(newItem);
+
+											if (!MusicServiceLibraryUpdaterAsyncTask.isMatchedWithScanConstraintIgnores(context, newItem.getPath())) {
+
+												newItems.add(newItem);
+
+											}
+
 										}
 									}
 								} catch (Exception e) {

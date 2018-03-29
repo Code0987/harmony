@@ -30,7 +30,7 @@ public class IntroActivity extends MaterialIntroActivity {
 		enableLastSlideAlphaExitTransition(true);
 
 		addSlide(new SlideFragmentBuilder()
-						.backgroundColor(R.color.gradient42)
+						.backgroundColor(R.color.colorPrimaryDark)
 						.buttonsColor(R.color.gradient43)
 						.possiblePermissions(new String[]{Manifest.permission.RECORD_AUDIO})
 						.neededPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE})

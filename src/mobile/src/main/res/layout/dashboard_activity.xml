@@ -53,7 +53,7 @@
                 android:layout_height="320dp"
                 android:elevation="0dp"
                 android:fitsSystemWindows="true"
-                android:minHeight="152dp"
+                android:minHeight="150dp"
                 app:contentScrim="@color/transparent"
                 app:layout_scrollFlags="enterAlwaysCollapsed|exitUntilCollapsed|scroll|snap"
                 app:statusBarScrim="@color/transparent"

@@ -17,7 +17,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,8 +42,8 @@ public class TunePresetsFragment extends Fragment {
 	private static final String TAG = TunePresetsFragment.class.getSimpleName();
 
 	private final static String ASSETS_PRESETS = "presets/tune";
-	private final static String EXT_PRESET_SQ = ".sqp";
-	private final static String EXT_PRESET_HQ = ".hqp";
+	public final static String EXT_PRESET_SQ = ".sqp";
+	public final static String EXT_PRESET_HQ = ".hqp";
 	public final static String PRESET_SQ_GENERAL = "general.sqp";
 	public final static String PRESET_HQ_GENERAL = "general.hqp";
 
@@ -117,6 +119,15 @@ public class TunePresetsFragment extends Fragment {
 	private RecyclerViewAdapter adapter;
 
 	private void createItems(View v) {
+
+		Switch smart_tune = v.findViewById(R.id.smart_tune);
+		smart_tune.setChecked(MusicService.getPlayerSmartTuneEnabled(v.getContext()));
+		smart_tune.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+				MusicService.setPlayerSmartTuneEnabled(compoundButton.getContext(), compoundButton.isChecked());
+			}
+		});
 
 		Button import_preset = v.findViewById(R.id.import_preset);
 		import_preset.setOnClickListener(new View.OnClickListener() {
