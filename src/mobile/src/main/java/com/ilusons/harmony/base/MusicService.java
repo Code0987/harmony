@@ -1340,6 +1340,11 @@ public class MusicService extends Service {
 		currentMusic = music;
 	}
 
+	public void refreshMusic() {
+		if (getMusic() != null)
+			setMusic(Music.get(getMusic().getPath()));
+	}
+
 	//endregion
 
 	//region Player controls
@@ -1519,6 +1524,8 @@ public class MusicService extends Service {
 					Log.d(TAG, "onCompletion");
 
 					if (getMusic() != null && !getMusic().isLastPlaybackUrlUpdateNeeded()) {
+						refreshMusic();
+
 						try (Realm realm = Music.getDB()) {
 							realm.executeTransaction(new Realm.Transaction() {
 								@Override
@@ -1598,6 +1605,33 @@ public class MusicService extends Service {
 						.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlaylist().getItems().size())
 						.build());
 			}
+
+			// Update tags
+
+			// Fetch tags, if required
+			if (AndroidEx.isNetworkAvailable(this))
+				if (TextUtils.isEmpty(getMusic().getTags())) {
+					Music.getTagsOrDownload(
+							getMusic(),
+							new JavaEx.ActionT<Collection<de.umass.lastfm.Tag>>() {
+								@Override
+								public void execute(Collection<de.umass.lastfm.Tag> tags) {
+									refreshMusic();
+
+									smartTune();
+
+									if (MusicService.getPlayerSmartTuneEnabled(MusicService.this))
+										Toast.makeText(MusicService.this, "Tags have been updated! Smart tune tuned this music to [" + getMusic().getSmartGenre().getFriendlyName() + "]!", Toast.LENGTH_SHORT).show();
+								}
+							},
+							new JavaEx.ActionT<Throwable>() {
+								@Override
+								public void execute(Throwable throwable) {
+									if (MusicService.getPlayerSmartTuneEnabled(MusicService.this))
+										Toast.makeText(MusicService.this, "Tags were not found or your limit reached! Smart tune will not tune this music for now!", Toast.LENGTH_SHORT).show();
+								}
+							});
+				}
 		}
 	}
 
@@ -1683,7 +1717,9 @@ public class MusicService extends Service {
 					.sendBroadcast(new Intent(ACTION_PLAY));
 
 			// Update db
-			if (getMusic() != null && !getMusic().isLastPlaybackUrlUpdateNeeded())
+			if (getMusic() != null && !getMusic().isLastPlaybackUrlUpdateNeeded()) {
+				refreshMusic();
+
 				try (Realm realm = Music.getDB()) {
 					realm.executeTransaction(new Realm.Transaction() {
 						@Override
@@ -1699,6 +1735,7 @@ public class MusicService extends Service {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+			}
 
 			// Scrobbler
 			try {
@@ -1769,11 +1806,14 @@ public class MusicService extends Service {
 		}
 
 		if (getMusic() != null && !getMusic().isLastPlaybackUrlUpdateNeeded()) {
+			refreshMusic();
+
 			try (Realm realm = Music.getDB()) {
 				if (realm != null) {
 					realm.executeTransaction(new Realm.Transaction() {
 						@Override
 						public void execute(@NonNull Realm realm) {
+
 							if (((float) getPosition() / (float) getDuration()) < 0.65) {
 								getMusic().setSkipped(getMusic().getSkipped() + 1);
 								getMusic().setTimeLastSkipped(System.currentTimeMillis());
