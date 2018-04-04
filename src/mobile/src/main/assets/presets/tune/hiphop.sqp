@@ -1,0 +1,16 @@
+{
+    "spref.player_reverb_env_enabled": true,
+    "spref.player_loudness": "LoudnessEnhancer;targetGainmB=498",
+    "spref.player_reverb_env": "EnvironmentalReverb;roomLevel=-1000;roomHFLevel=-1200;decayTime=1490;decayHFRatio=540;reflectionsLevel=0;reflectionsDelay=0;reverbLevel=1030;reverbDelay=0;diffusion=1000;density=600",
+    "spref.player_type": "AndroidOS",
+    "spref.player_bassboost_enabled": true,
+    "spref.player_virtualizer": "Virtualizer;strength=125",
+    "spref.player_reverb_preset_enabled": false,
+    "spref.player_bassboost": "BassBoost;strength=916",
+    "spref.player_eq_enabled": true,
+    "spref.player_virtualizer_enabled": true,
+    "spref.player_loudness_enabled": false,
+    "spref.player_eq": "Equalizer;curPreset=6;numBands=5;band1Level=500;band2Level=300;band3Level=0;band4Level=100;band5Level=300",
+    "spref.player_preamp_enabled": true,
+    "spref.player_preamp": "PreAmp;level=0.9261803"
+}

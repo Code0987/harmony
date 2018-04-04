@@ -43,6 +43,7 @@ import de.umass.lastfm.Caller;
 import de.umass.lastfm.PaginatedResult;
 import de.umass.lastfm.Period;
 import de.umass.lastfm.Session;
+import de.umass.lastfm.Tag;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.cache.FileSystemCache;
 import de.umass.lastfm.scrobble.ScrobbleData;
@@ -774,6 +775,40 @@ public class Analytics {
 					Collections.shuffle(tracks);
 
 					oe.onNext(tracks);
+
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Collection<de.umass.lastfm.Tag>> getTagsFromLastfm(final Music music) {
+		return Observable.create(new ObservableOnSubscribe<Collection<de.umass.lastfm.Tag>>() {
+			@Override
+			public void subscribe(ObservableEmitter<Collection<de.umass.lastfm.Tag>> oe) throws Exception {
+				try {
+					ArrayList<Tag> tags = new ArrayList<>();
+
+					if (canCall()) {
+						String titleOrMBID = music.getTitle();
+						if (!TextUtils.isEmpty(music.getMBID()))
+							titleOrMBID = music.getMBID();
+
+						Collection<Tag> topTags = de.umass.lastfm.Track.getTopTags(music.getArtist(), titleOrMBID, getKey());
+						tags.addAll(topTags);
+					}
+
+					if (tags.size() <= 1 && canCall()) {
+						Collection<Tag> topTags = de.umass.lastfm.Artist.getTopTags(music.getArtist(), getKey());
+						tags.addAll(topTags);
+					}
+
+					if (tags.size() == 0)
+						throw new Exception("Nothing found!");
+
+					oe.onNext(tags);
 
 					oe.onComplete();
 				} catch (Exception e) {

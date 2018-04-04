@@ -51,6 +51,7 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.ImageEx;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.ui.CircleIndicator;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -64,6 +65,7 @@ import org.musicbrainz.android.api.data.ReleaseInfo;
 import org.musicbrainz.android.api.data.Tag;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.regex.Matcher;

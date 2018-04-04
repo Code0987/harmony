@@ -37,7 +37,7 @@
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="860dp"
+                android:minHeight="1800dp"
                 android:nestedScrollingEnabled="false"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"

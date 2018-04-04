@@ -111,24 +111,6 @@ public class TuneActivity extends BaseActivity {
 
 		createPresetReverb();
 
-		// Info
-		final String tag_msg_info = TAG + ".msg_info";
-		if (!Once.beenDone(Once.THIS_APP_VERSION, tag_msg_info)) {
-			(new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AppTheme_AlertDialogStyle))
-					.setTitle("A note ...")
-					.setMessage("Tune allows you to deeply customize the sound you want to hear. It's currently in experimental ☢ state. Tune functions are totally device dependent. Please disable device audio effects (using stock music player), if output is not optimal. Thank you.")
-					.setCancelable(false)
-					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialogInterface, int i) {
-							dialogInterface.dismiss();
-						}
-					}))
-					.show();
-
-			Once.markDone(tag_msg_info);
-		}
-
 	}
 
 	@Override

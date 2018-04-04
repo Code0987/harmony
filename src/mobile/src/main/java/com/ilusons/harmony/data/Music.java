@@ -31,6 +31,7 @@ import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.ImageEx;
+import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.LyricsEx;
 import com.ilusons.harmony.ref.SongsEx;
 import com.ilusons.harmony.views.PlaybackUIActivity;
@@ -48,7 +49,13 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -59,6 +66,9 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -271,8 +281,29 @@ public class Music extends RealmObject {
 		return Tags;
 	}
 
+	public String[] getTagsCollection() {
+		return getTags().split("\\s*,\\s*" /*",[ ]*"*/);
+	}
+
 	public void setTags(String value) {
 		Tags = value;
+	}
+
+	public void setTags(Collection<String> values) {
+		Tags = StringUtils.join(values, ",");
+	}
+
+	public void updateTags(Collection<String> values) {
+		try {
+			ArrayList<String> newTags = new ArrayList<>();
+			newTags.addAll(Arrays.asList(getTagsCollection()));
+			newTags.addAll(values);
+			newTags.removeAll(Arrays.asList("", null));
+			Set<String> newTagsUnique = new LinkedHashSet<>(newTags);
+			Tags = StringUtils.join(newTagsUnique, ",");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private double Score = 0.0;
@@ -333,13 +364,10 @@ public class Music extends RealmObject {
 	}
 
 	public SmartGenre getSmartGenre() {
-		if (TextUtils.isEmpty(getGenre()))
-			return SmartGenre.None;
-
 		SmartGenre r = SmartGenre.None;
 
 		try {
-			String tags = getGenre() + " " + getTags();
+			String tags = ((TextUtils.isEmpty(getGenre()) ? "" : getGenre() + ",") + getTags()).toLowerCase();
 
 			if (tags.contains("alt") || tags.contains("alternative"))
 				r = SmartGenre.Alternative;
@@ -840,6 +868,58 @@ public class Music extends RealmObject {
 		} catch (Exception e) {
 			Log.w(TAG, e);
 		}
+	}
+
+	//endregion
+
+	//region Tags
+
+	public static void getTagsOrDownload(final Music music, final JavaEx.ActionT<Collection<de.umass.lastfm.Tag>> onTags, final JavaEx.ActionT<Throwable> onError) {
+		Analytics.getTagsFromLastfm(music)
+				.subscribeOn(Schedulers.io())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new Consumer<Collection<de.umass.lastfm.Tag>>() {
+					@Override
+					public void accept(final Collection<de.umass.lastfm.Tag> r) throws Exception {
+						try (Realm realm = Music.getDB()) {
+							if (realm == null)
+								return;
+
+							final ArrayList<String> tags = new ArrayList<>();
+							List<de.umass.lastfm.Tag> apiTags = new ArrayList<>(r);
+							Collections.sort(apiTags, new Comparator<de.umass.lastfm.Tag>() {
+								@Override
+								public int compare(de.umass.lastfm.Tag l, de.umass.lastfm.Tag r) {
+									return Integer.compare(l.getCount(), r.getCount());
+								}
+							});
+							Collections.reverse(apiTags);
+							apiTags = apiTags.subList(0, Math.min(10, apiTags.size()));
+							for (de.umass.lastfm.Tag tag : apiTags)
+								tags.add(tag.getName());
+
+							realm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(Realm realm) {
+									music.updateTags(tags);
+
+									realm.insertOrUpdate(music);
+								}
+							});
+						}
+
+						if (onTags != null)
+							onTags.execute(r);
+					}
+				}, new Consumer<Throwable>() {
+					@Override
+					public void accept(Throwable throwable) throws Exception {
+						Log.w(TAG, throwable);
+
+						if (onError != null)
+							onError.execute(throwable);
+					}
+				});
 	}
 
 	//endregion
