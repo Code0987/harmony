@@ -10,6 +10,7 @@
     android:background="@drawable/bg_dialog"
     android:clipChildren="false"
     android:clipToPadding="false"
+    android:minWidth="320dp"
     android:padding="12dp">
 
     <ScrollView
