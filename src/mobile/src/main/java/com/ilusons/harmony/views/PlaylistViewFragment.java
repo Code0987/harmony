@@ -1083,24 +1083,31 @@ public class PlaylistViewFragment extends BaseUIFragment {
 										break;
 										case 2:
 											viewPlaylist.add(item, viewPlaylist.getItems().lastIndexOf(item) + 1);
+											updatePlaylist(viewPlaylist);
 											break;
 										case 3:
 											viewPlaylist.add(item, 0);
+											updatePlaylist(viewPlaylist);
 											break;
 										case 4:
 											viewPlaylist.add(item, viewPlaylist.getItems().size());
+											updatePlaylist(viewPlaylist);
 											break;
 										case 5:
 											viewPlaylist.remove(item);
+											updatePlaylist(viewPlaylist);
 											break;
 										case 6:
 											viewPlaylist.removeAllExceptCurrent();
+											updatePlaylist(viewPlaylist);
 											break;
 										case 7:
 											viewPlaylist.moveDown(item);
+											updatePlaylist(viewPlaylist);
 											break;
 										case 8:
 											viewPlaylist.moveUp(item);
+											updatePlaylist(viewPlaylist);
 											break;
 										case 9:
 											viewPlaylist.delete(item, getMusicService(), true);
@@ -1463,6 +1470,24 @@ public class PlaylistViewFragment extends BaseUIFragment {
 					adapter.jumpToCurrentlyPlayingItem();
 				}
 			}, 1000);
+	}
+
+	public void updatePlaylist(Playlist playlist) {
+		if (viewPlaylist == null)
+			return;
+
+		try {
+			Playlist.savePlaylist(playlist);
+
+			if (Playlist.getActivePlaylist(getContext()).equals(playlist.getName())) {
+				Intent intent = new Intent(getContext(), MusicService.class);
+				intent.setAction(MusicService.ACTION_PLAYLIST_CHANGED);
+				intent.putExtra(MusicService.KEY_PLAYLIST_CHANGED_PLAYLIST, playlist.getName());
+				getContext().startService(intent);
+			}
+		} catch (Exception e) {
+			// Eat ?
+		}
 	}
 
 	private void createPlaylists(View v) {
