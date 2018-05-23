@@ -711,10 +711,6 @@ public class DashboardActivity extends BaseUIActivity {
 	private TextView info;
 
 	private ImageView play_pause_stop;
-	private ImageView next;
-	private ImageView prev;
-	private ImageView shuffle;
-	private ImageView repeat;
 
 	private void createPlayback() {
 		title = findViewById(R.id.title);
@@ -737,7 +733,13 @@ public class DashboardActivity extends BaseUIActivity {
 		play_pause_stop.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View view) {
-				togglePlaybackExtrasVisibility();
+				if (getMusicService() == null) return false;
+
+				if (getMusicService().isPlaying()) {
+					getMusicService().stop();
+				} else {
+					getMusicService().play();
+				}
 
 				return true;
 			}
@@ -760,96 +762,6 @@ public class DashboardActivity extends BaseUIActivity {
 		title.setOnClickListener(onClickListener);
 		info.setOnClickListener(onClickListener);
 
-		next = findViewById(R.id.next);
-		next.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (getMusicService() == null) return;
-
-				getMusicService().next();
-			}
-		});
-
-		prev = findViewById(R.id.prev);
-		prev.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (getMusicService() == null) return;
-
-				getMusicService().prev();
-			}
-		});
-
-		shuffle = findViewById(R.id.shuffle);
-		if (MusicService.getPlayerShuffleMusicEnabled(this))
-			shuffle.setAlpha(0.9f);
-		else
-			shuffle.setAlpha(0.3f);
-		shuffle.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (getMusicService() != null) {
-					try {
-						boolean value = MusicService.getPlayerShuffleMusicEnabled(DashboardActivity.this);
-
-						value = !value;
-
-						MusicService.setPlayerShuffleMusicEnabled(DashboardActivity.this, value);
-
-						if (value)
-							info(getString(R.string.shuffle_on));
-						else
-							info(getString(R.string.shuffle_off));
-
-						if (value)
-							shuffle.setAlpha(0.9f);
-						else
-							shuffle.setAlpha(0.3f);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		});
-		shuffle.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
-				if (getMusicService() != null) {
-					getMusicService().random();
-				}
-
-				return true;
-			}
-		});
-
-		repeat = findViewById(R.id.repeat);
-		if (MusicService.getPlayerRepeatMusicEnabled(this))
-			repeat.setAlpha(0.9f);
-		else
-			repeat.setAlpha(0.3f);
-		repeat.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (getMusicService() != null) {
-					boolean value = MusicService.getPlayerRepeatMusicEnabled(DashboardActivity.this);
-
-					value = !value;
-
-					MusicService.setPlayerRepeatMusicEnabled(DashboardActivity.this, value);
-
-					if (value)
-						info(getString(R.string.repeat_on));
-					else
-						info(getString(R.string.repeat_off));
-
-					if (value)
-						repeat.setAlpha(0.9f);
-					else
-						repeat.setAlpha(0.3f);
-				}
-			}
-		});
-
 		// Animations
 
 		final Animation animationSlideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down);
@@ -859,13 +771,6 @@ public class DashboardActivity extends BaseUIActivity {
 		final Animation animationSlideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
 		title.startAnimation(animationSlideUp);
 		info.startAnimation(animationSlideUp);
-
-		handler.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				refreshPlaybackExtrasVisibility();
-			}
-		}, 783);
 	}
 
 	private Runnable progressHandlerRunnable;
@@ -996,79 +901,6 @@ public class DashboardActivity extends BaseUIActivity {
 
 			parallax_image.setImageDrawable(null);
 		}
-	}
-
-	private void refreshPlaybackExtrasVisibility() {
-		final Animation animationLeftIn = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
-		final Animation animationRightIn = AnimationUtils.loadAnimation(this, R.anim.slide_in_right);
-		final Animation animationLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
-		final Animation animationRightOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
-
-		if (!getPlaybackMiniExtrasVisible(this)) {
-			next.postOnAnimation(new Runnable() {
-				@Override
-				public void run() {
-					next.setVisibility(View.GONE);
-				}
-			});
-			next.startAnimation(animationRightOut);
-
-			prev.postOnAnimation(new Runnable() {
-				@Override
-				public void run() {
-					prev.setVisibility(View.GONE);
-				}
-			});
-			prev.startAnimation(animationLeftOut);
-
-			shuffle.postOnAnimation(new Runnable() {
-				@Override
-				public void run() {
-					shuffle.setVisibility(View.GONE);
-				}
-			});
-			shuffle.startAnimation(animationLeftOut);
-
-			repeat.postOnAnimation(new Runnable() {
-				@Override
-				public void run() {
-					repeat.setVisibility(View.GONE);
-				}
-			});
-			repeat.startAnimation(animationRightOut);
-		} else {
-			next.setVisibility(View.VISIBLE);
-			next.startAnimation(animationRightIn);
-
-			prev.setVisibility(View.VISIBLE);
-			prev.startAnimation(animationLeftIn);
-
-			shuffle.setVisibility(View.VISIBLE);
-			shuffle.startAnimation(animationLeftIn);
-
-			repeat.setVisibility(View.VISIBLE);
-			repeat.startAnimation(animationRightIn);
-		}
-
-	}
-
-	private void togglePlaybackExtrasVisibility() {
-		setPlaybackMiniExtrasVisible(this, !getPlaybackMiniExtrasVisible(this));
-
-		refreshPlaybackExtrasVisibility();
-	}
-
-	public static final String TAG_SPREF_PLAYBACK_MINI_EXTRAS_VISIBLE = "playback_mini_extras_visible";
-
-	public static boolean getPlaybackMiniExtrasVisible(Context context) {
-		return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYBACK_MINI_EXTRAS_VISIBLE, true);
-	}
-
-	public static void setPlaybackMiniExtrasVisible(Context context, boolean value) {
-		SPrefEx.get(context)
-				.edit()
-				.putBoolean(TAG_SPREF_PLAYBACK_MINI_EXTRAS_VISIBLE, value)
-				.apply();
 	}
 
 	//endregion

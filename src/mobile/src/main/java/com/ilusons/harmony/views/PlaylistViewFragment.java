@@ -1205,13 +1205,8 @@ public class PlaylistViewFragment extends BaseUIFragment {
 							}
 						});
 
-						// Filter
-						List<Music> filtered = new ArrayList<>();
-						filtered.addAll(data);
-						filtered = UIFilter(filtered, q.toString());
-
 						// Sort
-						List<Music> sorted = UISort(filtered);
+						List<Music> sorted = UISort(data);
 
 						// Group
 						Map<String, List<Music>> grouped = UIGroup(sorted);
@@ -1881,203 +1876,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	//endregion
 
 	//region Playlist view settings
-
-	//region UI filters
-
-	public enum UIFilters {
-		NoMP3("No MP3"),
-		NoM4A("No M4A"),
-		NoFLAC("No FLAC"),
-		NoOGG("No OGG"),
-		NoWAV("No WAV"),
-		NoMP4("No MP4"),
-		NoM4V("No M4V"),
-		NoMKV("No MKV"),
-		NoAVI("No AVI"),
-		NoWEBM("No WEBM"),;
-
-		private String friendlyName;
-
-		UIFilters(String friendlyName) {
-			this.friendlyName = friendlyName;
-		}
-	}
-
-	public static final String TAG_SPREF_LIBRARY_UI_FILTERS = SPrefEx.TAG_SPREF + ".library_ui_filters";
-
-	public static Set<UIFilters> getUIFilters(Context context) {
-		Set<UIFilters> value = new HashSet<>();
-
-		Set<String> values = new HashSet<>();
-		for (String item : SPrefEx.get(context).getStringSet(TAG_SPREF_LIBRARY_UI_FILTERS, values)) {
-			value.add(UIFilters.valueOf(item));
-		}
-
-		return value;
-	}
-
-	public static void setUIFilters(Context context, Set<UIFilters> value) {
-		Set<String> values = new HashSet<>();
-		for (UIFilters item : value) {
-			values.add(String.valueOf(item));
-		}
-
-		SPrefEx.get(context)
-				.edit()
-				.putStringSet(TAG_SPREF_LIBRARY_UI_FILTERS, values)
-				.apply();
-	}
-
-	private Spinner uiFilters_spinner;
-
-	private void createUIFilters(View v) {
-		uiFilters_spinner = (Spinner) v.findViewById(R.id.uiFilters_spinner);
-
-		UIFilters[] items = UIFilters.values();
-
-		uiFilters_spinner.setAdapter(new ArrayAdapter<UIFilters>(getContext(), 0, items) {
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView v = (CheckedTextView) convertView;
-
-				if (v == null) {
-					v = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					v.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					v.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					v.setLayoutParams(lp);
-					v.setPadding(px, px, px, px);
-
-					v.setText("Filters");
-				}
-
-				return v;
-			}
-
-			@Override
-			public View getDropDownView(final int position, View convertView, ViewGroup parent) {
-				RelativeLayout v = (RelativeLayout) convertView;
-
-				if (v == null) {
-					v = new RelativeLayout(getContext());
-					v.setLayoutParams(new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					));
-
-					Switch sv = new Switch(getContext());
-					sv.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					sv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					sv.setLayoutParams(lp);
-					sv.setPadding(px, px, px, px);
-					sv.setMinWidth((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 140, getResources().getDisplayMetrics()));
-
-					v.addView(sv);
-
-					sv.setText(getItem(position).friendlyName);
-					sv.setChecked(getUIFilters(getContext()).contains(getItem(position)));
-					sv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-						@Override
-						public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-							if (!compoundButton.isShown()) {
-								return;
-							}
-
-							Set<UIFilters> value = getUIFilters(getContext());
-
-							UIFilters item = getItem(position);
-							try {
-								if (b)
-									value.add(item);
-								else
-									value.remove(item);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-							setUIFilters(getContext(), value);
-
-							adapter.refresh(getSearchQuery());
-						}
-					});
-				}
-
-				((Switch) v.getChildAt(0)).setChecked(getUIFilters(getContext()).contains(getItem(position)));
-
-				return v;
-			}
-		});
-
-		uiFilters_spinner.post(new Runnable() {
-			public void run() {
-				uiFilters_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
-	}
-
-	public synchronized List<Music> UIFilter(Collection<Music> data, String q) {
-		ArrayList<Music> result = new ArrayList<>();
-
-		q = q.toLowerCase();
-
-		for (Music m : data) {
-			boolean f = true;
-
-			SharedPreferences spref = SPrefEx.get(getContext());
-
-			String ext = m.getPath().substring(m.getPath().lastIndexOf(".")).toLowerCase();
-			for (UIFilters uiFilter : getUIFilters(getContext())) {
-				boolean uif = uiFilter == UIFilters.NoMP3 && ext.equals(".mp3")
-						|| uiFilter == UIFilters.NoM4A && ext.equals(".m4a")
-						|| uiFilter == UIFilters.NoFLAC && ext.equals(".flac")
-						|| uiFilter == UIFilters.NoOGG && ext.equals(".ogg")
-						|| uiFilter == UIFilters.NoWAV && ext.equals(".wav")
-						|| uiFilter == UIFilters.NoMP4 && ext.equals(".mp4")
-						|| uiFilter == UIFilters.NoMKV && ext.equals(".mkv")
-						|| uiFilter == UIFilters.NoAVI && ext.equals(".avi")
-						|| uiFilter == UIFilters.NoWEBM && ext.equals(".webm");
-
-				if (uif) {
-					f = false;
-					break;
-				}
-			}
-
-			f &= TextUtils.isEmpty(q) || q.length() < 1 || (
-					m.getPath().toLowerCase().contains(q)
-							|| m.getTitle().toLowerCase().contains(q)
-							|| (m.getArtist() != null && m.getArtist().toLowerCase().contains(q))
-							|| (m.getAlbum() != null && m.getAlbum().toLowerCase().contains(q))
-							|| (m.getTags() != null && m.getTags().toLowerCase().contains(q))
-							|| (m.getGenre() != null && m.getGenre().toLowerCase().contains(q))
-			);
-
-			if (f)
-				result.add(m);
-		}
-
-		return result;
-	}
-
-	//endregion
 
 	//region UI sort mode
 
@@ -2796,7 +2594,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
 			builder.setView(v);
 
-			createUIFilters(v);
 			createUISortMode(v);
 			createUIGroupMode(v);
 			createUIViewMode(v);

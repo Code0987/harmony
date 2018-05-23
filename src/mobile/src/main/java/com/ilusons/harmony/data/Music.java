@@ -536,7 +536,7 @@ public class Music extends RealmObject {
 		}
 		if (!TextUtils.isEmpty(Genre)) {
 			sb.append(del);
-			sb.append("\uD83C\uDFBC ").append(Genre);
+			sb.append("\uD83C\uDFBC ").append(getSmartGenre().getFriendlyName());
 		}
 		sb.append(del);
 		sb.append("\uD83C\uDFB5 ").append(Played).append("/").append(Skipped);
@@ -1561,7 +1561,8 @@ public class Music extends RealmObject {
 				try (Realm realm = getDB()) {
 					RealmResults<Music> result = realm
 							.where(Music.class)
-							.findAllSorted("Score", Sort.DESCENDING);
+							.sort("Score", Sort.DESCENDING)
+							.findAll();
 
 					if (!(result == null || result.size() == 0))
 						atTopByScore = realm.copyFromRealm(result.first());
@@ -1580,7 +1581,8 @@ public class Music extends RealmObject {
 			try (Realm realm = getDB()) {
 				RealmResults<Music> realmResults = realm
 						.where(Music.class)
-						.findAllSorted(field, order);
+						.sort(field, order)
+						.findAll();
 
 				if (!(realmResults.size() == 0)) {
 					result.addAll(realm.copyFromRealm(realmResults.subList(0, Math.min(count, realmResults.size()))));
@@ -1595,6 +1597,10 @@ public class Music extends RealmObject {
 
 	public static List<Music> getAllSortedByScore(int count) {
 		return getAllSorted(count, "Score", Sort.DESCENDING);
+	}
+
+	public static List<Music> getAllSortedByTimeLastPlayed(int count) {
+		return getAllSorted(count, "TimeLastPlayed", Sort.DESCENDING);
 	}
 
 	//endregion

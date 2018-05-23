@@ -439,7 +439,8 @@ public class OnlineViewFragment extends BaseUIFragment {
 				ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
 
 				try {
-					List<Music> topLocalTracks = Music.getAllSortedByScore(11);
+					List<Music> topLocalTracks = new ArrayList<>();
+					topLocalTracks.addAll(Music.getAllSortedByTimeLastPlayed(11));
 					Collections.shuffle(topLocalTracks);
 					topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 4));
 					for (Music music : topLocalTracks) {
@@ -450,6 +451,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 				}
 				try {
 					observables.add(Analytics.getTopTracksForLastfm(getContext()));
+					observables.add(Analytics.getInstance().getTopTracksForLastfmForApp());
 					Collections.shuffle(observables);
 
 				} catch (Exception e) {
@@ -521,7 +523,9 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 			ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
 
-			List<Music> topLocalTracks = Music.getAllSortedByScore(25);
+			List<Music> topLocalTracks = new ArrayList<>();
+			topLocalTracks.addAll(Music.getAllSortedByScore(15));
+			topLocalTracks.addAll(Music.getAllSortedByTimeLastPlayed(15));
 			Collections.shuffle(topLocalTracks);
 			topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 5));
 			for (Music music : topLocalTracks) {
@@ -550,10 +554,9 @@ public class OnlineViewFragment extends BaseUIFragment {
 		loading.smoothToShow();
 
 		try {
-			if (reset)
-				adapter.clear(Music.class);
-
 			Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
+			if (reset && playlist.getItems().size() > 0)
+				adapter.clear(Music.class);
 			if (playlist != null) {
 				for (Music item : playlist.getItems()) {
 					adapter.add(item);

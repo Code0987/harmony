@@ -54,6 +54,7 @@ public class FragmentDialogActivity extends AppCompatActivity {
 		Intent intent = new Intent(context, FragmentDialogActivity.class);
 		intent.putExtra(FRAGMENT_CLASS, fragmentClass.getName());
 		intent.putExtra(FRAGMENT_ARGUMENTS, arguments);
+		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 		context.startActivity(intent);
 	}
 

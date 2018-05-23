@@ -607,7 +607,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 	}
 
 	public static final String TAG_SPREF_LIBRARY_SCAN_CONSTRAINT_IGNORES = SPrefEx.TAG_SPREF + ".library_scan_constraint_max_duration";
-	private static final String LIBRARY_SCAN_CONSTRAINT_IGNORES_DEFAULT = "WhatsApp";
+	private static final String LIBRARY_SCAN_CONSTRAINT_IGNORES_DEFAULT = "WhatsApp DCIM Download";
 
 	public static String getScanConstraintIgnores(Context context) {
 		try {
@@ -625,8 +625,8 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 	}
 
 	public static boolean isMatchedWithScanConstraintIgnores(Context context, String s) {
+		boolean matched = false;
 		try {
-			boolean matched = false;
 			for (String item : getScanConstraintIgnores(context).split("\\s+")) {
 				if (s.contains(item)) {
 					matched = true;
@@ -636,7 +636,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return false;
+		return matched;
 	}
 
 }
