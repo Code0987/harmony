@@ -1,5 +1,2 @@
-﻿✔ Fixed bug related to startup crash.
-✔ Added one-of-a kind, auto-tune aka auto-preset feature.
-✔ Added new tunes (alt, jazz, punk, rb, rock).
-✔ Added scan ignore filter, default WhatsApp.
-✔ Score generating algorithm improved.
+﻿✔ Fixed bugs.
+✔ Updated my recommendations, online search.

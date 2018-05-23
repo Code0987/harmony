@@ -274,7 +274,7 @@ public class AndroidEx {
 			}
 			return activeNetworkInfo != null && activeNetworkInfo.isConnected();
 		} catch (Exception e) {
-			e.printStackTrace();
+			// Eat ?
 		}
 		return false;
 	}

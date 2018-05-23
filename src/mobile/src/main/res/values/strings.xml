@@ -61,9 +61,6 @@
 
     <string name="smart_tune_info">Smart Tune automatically applies the best matched Tune preset on every music change, based on Genre &amp; Tags.</string>
 
-    <string name="tune_presets_info1">Pre-defined presets to customize tune in one go.</string>
-    <string name="tune_presets_info2">The preset file includes Tune* configurations. Not all will work, due to in-compatibility in hardware.</string>
-    <string name="tune_presets_info3">You can e-mail us your own preset, by exporting. If we like it, you\'ll see it in next update and get a surprise*.</string>
     <string name="will_apply_after_restart">Will be completely applied on restart!</string>
     <string name="avfx_tap_more">If it does not work, tap same button few times!</string>
     <string name="tune_title">Tune 🎧</string>

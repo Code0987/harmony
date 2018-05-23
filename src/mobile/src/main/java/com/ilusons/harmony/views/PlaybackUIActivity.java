@@ -1690,11 +1690,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	public static PlaybackUIStyle getPlaybackUIStyle(Context context) {
 		try {
-			return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(PlaybackUIStyle.P1)));
+			return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(PlaybackUIStyle.P3)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return PlaybackUIStyle.P1;
+		return PlaybackUIStyle.P3;
 	}
 
 	public static void setPlaybackUIStyle(Context context, PlaybackUIStyle value) {
