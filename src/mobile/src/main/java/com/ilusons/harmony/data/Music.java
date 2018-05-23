@@ -519,7 +519,7 @@ public class Music extends RealmObject {
 		sb.append(Title);
 		if (!TextUtils.isEmpty(Artist)) {
 			sb.append(del);
-			sb.append("\uD83C\uDFA4 ").append(Artist);
+			sb.append(Artist);
 		}
 		if (!TextUtils.isEmpty(Album)) {
 			sb.append(del);
@@ -527,7 +527,6 @@ public class Music extends RealmObject {
 		}
 		if (Length > -1) {
 			sb.append(del);
-			sb.append("⏳ ");
 			sb.append(DurationFormatUtils.formatDuration(Length, "mm:ss", false));
 			if (TotalDurationPlayed > -1) {
 				sb.append("/");
@@ -536,23 +535,11 @@ public class Music extends RealmObject {
 		}
 		if (!TextUtils.isEmpty(Genre)) {
 			sb.append(del);
-			sb.append("\uD83C\uDFBC ").append(getSmartGenre().getFriendlyName());
+			sb.append(getSmartGenre().getFriendlyName());
 		}
-		sb.append(del);
-		sb.append("\uD83C\uDFB5 ").append(Played).append("/").append(Skipped);
 		if (Year > -1) {
 			sb.append(del);
-			sb.append("\uD83D\uDCC5 ").append(Year);
-		}
-		/*
-		if (TimeAdded > -1) {
-			sb.append(del);
-			sb.append("\uD83D\uDCC5 ").append(DateFormat.getDateInstance(DateFormat.SHORT).format(TimeAdded));
-		}
-		*/
-		if (!TextUtils.isEmpty(Tags)) {
-			sb.append(del);
-			sb.append(Tags);
+			sb.append(Year);
 		}
 
 		return sb.toString();
