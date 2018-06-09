@@ -424,7 +424,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 			try {
 				NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 				if (notificationManager != null) {
-					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

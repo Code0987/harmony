@@ -1945,7 +1945,7 @@ public class MusicService extends Service {
 			try {
 				NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 				if (notificationManager != null) {
-					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -2427,7 +2427,7 @@ public class MusicService extends Service {
 				try {
 					NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 					if (notificationManager != null) {
-						notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_STREAM, NOTIFICATION_CHANNEL_STREAM.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+						notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_STREAM, NOTIFICATION_CHANNEL_STREAM.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -2533,7 +2533,7 @@ public class MusicService extends Service {
 					try {
 						NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 						if (notificationManager != null) {
-							notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_DOWNLOAD, NOTIFICATION_CHANNEL_DOWNLOAD.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+							notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_DOWNLOAD, NOTIFICATION_CHANNEL_DOWNLOAD.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
