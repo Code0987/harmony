@@ -1,6 +1,7 @@
 package com.ilusons.harmony.base;
 
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.SearchManager;
@@ -9,7 +10,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -82,12 +85,24 @@ public class FCMService extends FirebaseMessagingService {
 			pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 		}
 
-		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+		final String NOTIFICATION_CHANNEL = "default";
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+			try {
+				NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+				if (notificationManager != null) {
+					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL)
 				.setSmallIcon(R.drawable.ic_announcement)
 				.setContentTitle(title)
 				.setContentText(content)
 				.setAutoCancel(true)
-				.setColor(getColor(R.color.accent))
+				.setColor(ContextCompat.getColor(this, R.color.accent))
 				.setPriority(NotificationCompat.PRIORITY_HIGH)
 				.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
 				.setStyle(new NotificationCompat.BigTextStyle()

@@ -1,6 +1,8 @@
 package com.ilusons.harmony.base;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -10,9 +12,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.audiofx.AudioEffect;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -295,25 +299,25 @@ public class MusicService extends Service {
 
 		// String payload = p.getDeveloperPayload();
 
-        /*
-         * WARNING: Locally generating a random string when starting a purchase and
-         * verifying it here might seem like a good approach, but this will fail in the
-         * case where the user purchases an item on one device and then uses your app on
-         * a different device, because on the other device you will not have access to the
-         * random string you originally generated.
-         *
-         * So a good developer payload has these characteristics:
-         *
-         * 1. If two different users purchase an item, the payload is different between them,
-         *    so that one user's purchase can't be replayed to another user.
-         *
-         * 2. The payload must be such that you can verify it even when the app wasn't the
-         *    one who initiated the purchase flow (so that items purchased by the user on
-         *    one device work on other devices owned by the user).
-         *
-         * Using your own server to store and verify developer payloads across app
-         * installations is recommended.
-         */
+		/*
+		 * WARNING: Locally generating a random string when starting a purchase and
+		 * verifying it here might seem like a good approach, but this will fail in the
+		 * case where the user purchases an item on one device and then uses your app on
+		 * a different device, because on the other device you will not have access to the
+		 * random string you originally generated.
+		 *
+		 * So a good developer payload has these characteristics:
+		 *
+		 * 1. If two different users purchase an item, the payload is different between them,
+		 *    so that one user's purchase can't be replayed to another user.
+		 *
+		 * 2. The payload must be such that you can verify it even when the app wasn't the
+		 *    one who initiated the purchase flow (so that items purchased by the user on
+		 *    one device work on other devices owned by the user).
+		 *
+		 * Using your own server to store and verify developer payloads across app
+		 * installations is recommended.
+		 */
 
 		// String localPayload = getDeveloperPayload(context, SKU_PREMIUM);
 
@@ -1904,6 +1908,8 @@ public class MusicService extends Service {
 
 	//region Notification controls
 
+	private static final String NOTIFICATION_CHANNEL = "music";
+
 	private static final int NOTIFICATION_ID = 4524;
 
 	private android.support.v4.app.NotificationCompat.Builder builder;
@@ -1935,9 +1941,19 @@ public class MusicService extends Service {
 			customNotificationViewS.setOnClickPendingIntent(R.id.random, createActionIntent(this, ACTION_RANDOM));
 		}
 
-		builder = new NotificationCompat.Builder(this)
-				.setContentIntent(contentIntent)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+			try {
+				NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+				if (notificationManager != null) {
+					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL)
 				.setSmallIcon(R.drawable.ic_notification)
+				.setContentIntent(contentIntent)
 				.setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary))
 				.setOngoing(false)
 				.setDeleteIntent(createActionIntent(this, ACTION_STOP))
@@ -2400,12 +2416,24 @@ public class MusicService extends Service {
 		stream(music, true);
 	}
 
+	private final String NOTIFICATION_CHANNEL_STREAM = "stream";
 	private final int NOTIFICATION_ID_STREAM = 1256;
 	private NotificationCompat.Builder nb_stream;
 
 	protected void updateNotificationForUpdateStreamData(final boolean isActive) {
 		if (nb_stream == null) {
-			nb_stream = new NotificationCompat.Builder(this)
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+				try {
+					NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+					if (notificationManager != null) {
+						notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_STREAM, NOTIFICATION_CHANNEL_STREAM.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			nb_stream = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_STREAM)
 					.setContentTitle("Streaming ...")
 					.setContentText("Streaming ...")
 					.setSmallIcon(R.drawable.ic_cloud_download)
@@ -2476,6 +2504,7 @@ public class MusicService extends Service {
 
 		public Download Download;
 
+		private static final String NOTIFICATION_CHANNEL_DOWNLOAD = "download";
 		private static int NOTIFICATION_ID = 773;
 
 		public AudioDownload(final Context context, Music music, boolean playAfterDownload) {
@@ -2499,11 +2528,22 @@ public class MusicService extends Service {
 				return;
 
 			if (nb == null) {
+
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+					try {
+						NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+						if (notificationManager != null) {
+							notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_DOWNLOAD, NOTIFICATION_CHANNEL_DOWNLOAD.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
 				Intent cancelIntent = new Intent(MusicService.ACTION_DOWNLOADER_CANCEL);
 				cancelIntent.putExtra(DOWNLOADER_CANCEL_ID, Id);
 				PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-				nb = new NotificationCompat.Builder(context)
+				nb = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_DOWNLOAD)
 						.setContentTitle("Downloading ...")
 						.setContentText("Downloading ...")
 						.setSmallIcon(R.drawable.ic_cloud_download)

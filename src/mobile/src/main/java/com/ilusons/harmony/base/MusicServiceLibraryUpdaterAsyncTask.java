@@ -1,6 +1,7 @@
 package com.ilusons.harmony.base;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
@@ -8,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
@@ -416,11 +418,23 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		if (context == null)
 			return;
 
+		final String NOTIFICATION_CHANNEL = "default";
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+			try {
+				NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+				if (notificationManager != null) {
+					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_HIGH));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
 		notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		Intent cancelIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATE_CANCEL);
 		PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-		notificationBuilder = new NotificationCompat.Builder(context)
+		notificationBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL)
 				.setOngoing(true)
 				.setContentTitle(context.getString(R.string.app_name))
 				.setContentText("Updating ...")
