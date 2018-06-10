@@ -105,7 +105,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 			public void run() {
 				searchDefaultTracks();
 			}
-		}, 1500);
+		}, 100);
 
 		return v;
 	}

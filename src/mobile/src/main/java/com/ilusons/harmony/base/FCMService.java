@@ -25,6 +25,7 @@ import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Text;
 
 public class FCMService extends FirebaseMessagingService {
@@ -91,7 +92,7 @@ public class FCMService extends FirebaseMessagingService {
 			try {
 				NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 				if (notificationManager != null) {
-					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
+					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, StringUtils.capitalize(NOTIFICATION_CHANNEL), NotificationManager.IMPORTANCE_DEFAULT));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

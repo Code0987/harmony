@@ -127,6 +127,17 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".views.PlaylistViewActivity"
+            android:launchMode="singleTop">
+            <meta-data
+                android:name="android.app.default_searchable"
+                android:value=".MainActivity"/>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH"/>
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".views.PlaybackUIActivity"
             android:launchMode="singleTop">
         </activity>

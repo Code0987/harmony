@@ -218,6 +218,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 		MenuItem refresh = menu.findItem(R.id.refresh);
 		refresh.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@SuppressLint("CheckResult")
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
@@ -290,6 +291,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	}
 
+	@SuppressLint("CheckResult")
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == REQUEST_EXPORT_LOCATION_PICK_SAF && resultCode == Activity.RESULT_OK) {
@@ -501,7 +503,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	public static class FastScrollLayout extends LinearLayout {
 		private static final int HANDLE_HIDE_DELAY = 1300;
 		private static final int HANDLE_ANIMATION_DURATION = 100;
-		private static final int TRACK_SNAP_RANGE = 15;
+		private static final int TRACK_SNAP_RANGE = 162;
 		private static final String SCALE_X = "scaleX";
 		private static final String SCALE_Y = "scaleY";
 		private static final String ALPHA = "alpha";

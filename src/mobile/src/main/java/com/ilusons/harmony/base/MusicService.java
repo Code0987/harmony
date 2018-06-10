@@ -80,6 +80,8 @@ import com.tonyodev.fetch2.NetworkType;
 import com.tonyodev.fetch2.Request;
 import com.tonyodev.fetch2rx.RxFetch;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1945,7 +1947,11 @@ public class MusicService extends Service {
 			try {
 				NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 				if (notificationManager != null) {
-					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
+					NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, StringUtils.capitalize(NOTIFICATION_CHANNEL), NotificationManager.IMPORTANCE_DEFAULT);
+					notificationChannel.setBypassDnd(true);
+					notificationChannel.setSound(null, null);
+
+					notificationManager.createNotificationChannel(notificationChannel);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -2427,7 +2433,11 @@ public class MusicService extends Service {
 				try {
 					NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 					if (notificationManager != null) {
-						notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_STREAM, NOTIFICATION_CHANNEL_STREAM.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
+						NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_STREAM, StringUtils.capitalize(NOTIFICATION_CHANNEL_STREAM), NotificationManager.IMPORTANCE_DEFAULT);
+						notificationChannel.setBypassDnd(true);
+						notificationChannel.setSound(null, null);
+
+						notificationManager.createNotificationChannel(notificationChannel);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -2533,7 +2543,11 @@ public class MusicService extends Service {
 					try {
 						NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 						if (notificationManager != null) {
-							notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL_DOWNLOAD, NOTIFICATION_CHANNEL_DOWNLOAD.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
+							NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_DOWNLOAD, StringUtils.capitalize(NOTIFICATION_CHANNEL_DOWNLOAD), NotificationManager.IMPORTANCE_DEFAULT);
+							notificationChannel.setBypassDnd(true);
+							notificationChannel.setSound(null, null);
+
+							notificationManager.createNotificationChannel(notificationChannel);
 						}
 					} catch (Exception e) {
 						e.printStackTrace();

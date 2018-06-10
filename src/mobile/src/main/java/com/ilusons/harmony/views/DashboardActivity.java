@@ -475,7 +475,7 @@ public class DashboardActivity extends BaseUIActivity {
 					Uri uri = Uri.parse("https://www.youtube.com/playlist?list=PLR6v5-VD7fUJtQepsBTq7Wf44e_z1eM8b");
 					Intent i = new Intent(Intent.ACTION_VIEW);
 					i.setData(uri);
-					i.setClassName("com.google.android.youtube", "com.google.android.youtube.app.froyo.phone.PlaylistActivity");
+					i.setClassName("com.google.android.youtube", "com.google.android.youtube.app.froyo.phone.PlaylistViewActivity");
 					startActivity(i);
 				} catch (Exception e) {
 					Log.w(TAG, e);
