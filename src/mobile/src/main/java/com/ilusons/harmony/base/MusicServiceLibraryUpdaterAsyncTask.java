@@ -24,6 +24,8 @@ import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashSet;
@@ -424,7 +426,10 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 			try {
 				NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 				if (notificationManager != null) {
-					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_CHANNEL.toUpperCase(), NotificationManager.IMPORTANCE_DEFAULT));
+					NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL, StringUtils.capitalize(NOTIFICATION_CHANNEL), NotificationManager.IMPORTANCE_DEFAULT);
+					notificationChannel.setSound(null, null);
+
+					notificationManager.createNotificationChannel(notificationChannel);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

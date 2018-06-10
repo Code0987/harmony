@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    >
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:elevation="0dp"
+        android:fitsSystemWindows="false"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:elevation="0dp">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@null"
+            android:elevation="0dp"
+            android:theme="@style/AppTheme.ActionBar"
+            app:contentInsetLeft="0dp"
+            app:contentInsetStart="0dp"
+            app:elevation="0dp"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:statusBarScrim="@color/transparent"/>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="0dp"
+        android:focusableInTouchMode="true"
+        app:elevation="0dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        >
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tab_layout"
+            style="@style/AppTheme.TabLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            app:layout_constraintBottom_toTopOf="@+id/playlist_layout"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tabBackground="@null"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="@color/translucent_light"
+            app:tabIndicatorHeight="1dp"
+            app:tabMode="fixed"
+            app:tabPaddingTop="3dp"
+            app:tabSelectedTextColor="@color/primary_text"
+            app:tabTextAppearance="@style/AppTheme.TabTextAppearance"
+            app:tabTextColor="@color/translucent_light"/>
+
+        <FrameLayout
+            android:id="@+id/playlist_layout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/nav_bar_filler"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tab_layout"
+            />
+
+        <com.wang.avi.AVLoadingIndicatorView
+            android:id="@+id/loading"
+            style="@style/AVLoadingIndicatorView.Large"
+            android:layout_width="192dp"
+            android:layout_height="192dp"
+            android:visibility="visible"
+            app:indicatorColor="@color/icons"
+            app:indicatorName="BallClipRotatePulseIndicator"
+            app:layout_constraintBottom_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="parent"
+            />
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/nav_bar_filler"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
+
+    </android.support.constraint.ConstraintLayout>
+
+</android.support.design.widget.CoordinatorLayout>
+
