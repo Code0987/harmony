@@ -503,7 +503,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	public static class FastScrollLayout extends LinearLayout {
 		private static final int HANDLE_HIDE_DELAY = 1300;
 		private static final int HANDLE_ANIMATION_DURATION = 100;
-		private static final int TRACK_SNAP_RANGE = 162;
+		private static final int TRACK_SNAP_RANGE = 48;
 		private static final String SCALE_X = "scaleX";
 		private static final String SCALE_Y = "scaleY";
 		private static final String ALPHA = "alpha";

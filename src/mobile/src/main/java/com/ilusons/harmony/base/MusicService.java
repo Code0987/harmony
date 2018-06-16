@@ -1964,7 +1964,7 @@ public class MusicService extends Service {
 				.setOngoing(false)
 				.setDeleteIntent(createActionIntent(this, ACTION_STOP))
 				.setOnlyAlertOnce(true)
-				.setPriority(NotificationCompat.PRIORITY_HIGH)
+				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
 				.setAutoCancel(true)
 				/*.addAction(android.R.drawable.ic_menu_close_clear_cancel,
 				        "Stop",
