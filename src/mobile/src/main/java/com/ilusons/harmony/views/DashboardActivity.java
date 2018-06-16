@@ -166,6 +166,9 @@ public class DashboardActivity extends BaseUIActivity {
 		// Recommended
 		createRecommended();
 
+		// Recent
+		createRecent();
+
 		// Ratings
 		root.postDelayed(new Runnable() {
 			@Override
@@ -355,6 +358,8 @@ public class DashboardActivity extends BaseUIActivity {
 		resetPlayback();
 
 		updateRecommended();
+
+		updateRecent();
 	}
 
 	@Override
@@ -382,6 +387,8 @@ public class DashboardActivity extends BaseUIActivity {
 		behaviourForAddScanLocationOnEmptyLibrary();
 
 		updateRecommended();
+
+		updateRecent();
 	}
 
 	@Override
@@ -806,25 +813,9 @@ public class DashboardActivity extends BaseUIActivity {
 
 	//endregion
 
-	//region Hot & Trending
+	//region Recommended
 
 	private RecyclerViewAdapter adapter_recommended;
-
-	private RecyclerView.OnScrollListener recyclerView_recommended_ScrollListener = new RecyclerView.OnScrollListener() {
-		@Override
-		public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-			super.onScrolled(recyclerView, dx, dy);
-
-			for (int i = 0; i < recyclerView.getChildCount(); i++) {
-				RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(recyclerView.getChildAt(i));
-				if (viewHolder instanceof RecyclerViewAdapter.ViewHolder) {
-					RecyclerViewAdapter.ViewHolder vh = ((RecyclerViewAdapter.ViewHolder) viewHolder);
-					if (vh.parallaxImage != null)
-						vh.parallaxImage.translate();
-				}
-			}
-		}
-	};
 
 	private AVLoadingIndicatorView loading_view_recommended;
 
@@ -840,8 +831,6 @@ public class DashboardActivity extends BaseUIActivity {
 		recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
 		recyclerView.setAdapter(adapter_recommended);
-
-		recyclerView.addOnScrollListener(recyclerView_recommended_ScrollListener);
 
 		// Animations
 		HorizontalOverScrollBounceEffectDecorator overScroll = new HorizontalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
@@ -965,6 +954,52 @@ public class DashboardActivity extends BaseUIActivity {
 		loading_view_recommended.smoothToHide();
 	}
 
+	//endregion
+
+	//region Recent
+
+	private RecyclerViewAdapter adapter_recent;
+
+	private AVLoadingIndicatorView loading_view_recent;
+
+	private void createRecent() {
+		adapter_recent = new RecyclerViewAdapter(this);
+
+		loading_view_recent = findViewById(R.id.loading_view_recent);
+
+		RecyclerView recyclerView = findViewById(R.id.recycler_view_recent);
+
+		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 3);
+
+		recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+		recyclerView.setAdapter(adapter_recent);
+
+		// Animations
+		HorizontalOverScrollBounceEffectDecorator overScroll = new HorizontalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
+
+	}
+
+	private void updateRecent() {
+		loading_view_recent.smoothToShow();
+
+		try {
+			for (Music item : Music.getAllSortedByTimeLastPlayed(12)) {
+				adapter_recent.add(item);
+			}
+		} catch (Exception e2) {
+			e2.printStackTrace();
+		}
+
+		adapter_recent.notifyDataSetChanged();
+
+		loading_view_recent.smoothToHide();
+	}
+
+	//endregion
+
+	//region Recycler view
+
 	public static class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 		private final DashboardActivity context;
@@ -978,15 +1013,15 @@ public class DashboardActivity extends BaseUIActivity {
 		}
 
 		@Override
-		public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.dashboard_recommended_item, parent, false);
+		public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+			View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.dashboard_recycler_view_item, parent, false);
 
 			return new ViewHolder(context, v);
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+		public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 			final int itemType = getItemViewType(position);
 
 			try {
@@ -1141,12 +1176,19 @@ public class DashboardActivity extends BaseUIActivity {
 				view.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
+						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
+
+						playNow(d);
+					}
+				});
+				view.setOnLongClickListener(new View.OnLongClickListener() {
+					@Override
+					public boolean onLongClick(final View view) {
 						android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(new ContextThemeWrapper(view.getContext(), R.style.AppTheme_AlertDialogStyle));
 						builder.setTitle("Select?");
 						builder.setItems(new CharSequence[]{
 								"Play now",
 								"Play next",
-								"Download, then play",
 								"Download",
 								"Stream",
 						}, new DialogInterface.OnClickListener() {
@@ -1161,12 +1203,9 @@ public class DashboardActivity extends BaseUIActivity {
 											playNext(d);
 											break;
 										case 2:
-											playAfterDownload(d);
-											break;
-										case 3:
 											download(d);
 											break;
-										case 4:
+										case 3:
 											playAfterStream(d);
 											break;
 									}
@@ -1177,14 +1216,6 @@ public class DashboardActivity extends BaseUIActivity {
 						});
 						android.app.AlertDialog dialog = builder.create();
 						dialog.show();
-					}
-				});
-				view.setOnLongClickListener(new View.OnLongClickListener() {
-					@Override
-					public boolean onLongClick(final View view) {
-						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
-
-						playNow(d);
 
 						return true;
 					}
@@ -1233,20 +1264,6 @@ public class DashboardActivity extends BaseUIActivity {
 					} else {
 						context.info("Streaming is only supported in [" + MusicService.PlayerType.AndroidOS.getFriendlyName() + "] player. You can change it from Settings.");
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-
-					context.info("Ah! Try again!");
-				}
-			}
-
-			private void playAfterDownload(final Music music) {
-				final MusicService musicService = context.getMusicService();
-				if (musicService == null)
-					return;
-
-				try {
-					musicService.download(music);
 				} catch (Exception e) {
 					e.printStackTrace();
 
