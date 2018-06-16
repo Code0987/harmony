@@ -31,7 +31,7 @@
         <com.scwang.wave.MultiWaveHeader
             android:id="@+id/wave"
             android:layout_width="match_parent"
-            android:layout_height="196dp"
+            android:layout_height="142dp"
             android:layout_alignParentBottom="true"
             android:scaleY="-1"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -109,10 +109,10 @@
             <com.wang.avi.AVLoadingIndicatorView
                 android:id="@+id/loading_view_recommended"
                 style="@style/AVLoadingIndicatorView.Small"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginStart="16dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
                 app:indicatorColor="@color/icons"
                 app:indicatorName="BallTrianglePathIndicator"
                 app:layout_constraintBottom_toBottomOf="@+id/title_recommended"
@@ -139,7 +139,60 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/title_recommended"
-                tools:listitem="@layout/dashboard_recommended_item"
+                tools:listitem="@layout/dashboard_recycler_view_item"
+                />
+
+            <TextView
+                android:id="@+id/title_recent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:paddingBottom="8dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:text="Recent"
+                android:textColor="@color/primary_text"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toTopOf="@+id/recycler_view_recent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/recycler_view_recommended"
+                />
+
+            <com.wang.avi.AVLoadingIndicatorView
+                android:id="@+id/loading_view_recent"
+                style="@style/AVLoadingIndicatorView.Small"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
+                app:indicatorColor="@color/icons"
+                app:indicatorName="BallTrianglePathIndicator"
+                app:layout_constraintBottom_toBottomOf="@+id/title_recent"
+                app:layout_constraintLeft_toRightOf="@+id/title_recent"
+                app:layout_constraintTop_toTopOf="@+id/title_recent"
+                />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view_recent"
+                style="@style/AppTheme.Scrollbar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:animateLayoutChanges="false"
+                android:animationCache="true"
+                android:clipToPadding="true"
+                android:nestedScrollingEnabled="true"
+                android:orientation="horizontal"
+                android:paddingBottom="8dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:scrollbars="none"
+                app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/title_recent"
+                tools:listitem="@layout/dashboard_recycler_view_item"
                 />
 
             <android.support.constraint.ConstraintLayout
