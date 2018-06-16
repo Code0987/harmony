@@ -56,6 +56,7 @@
     <color name="translucent">#94000000</color>
     <color name="translucent_dark">#c8000000</color>
     <color name="translucent_light">#c8ffffff</color>
+    <color name="translucent_accent">#c8a01142</color>
 
     <color name="colorPrimary">@color/primary</color>
     <color name="colorPrimaryInverse">@color/primary_inverse</color>

@@ -117,18 +117,13 @@
         </activity>
         <activity
             android:name=".views.DashboardActivity"
-            android:launchMode="singleTop">
-            <meta-data
-                android:name="android.app.default_searchable"
-                android:value=".MainActivity"/>
-
-            <intent-filter>
-                <action android:name="android.intent.action.SEARCH"/>
-            </intent-filter>
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.Fullscreen">
         </activity>
         <activity
             android:name=".views.PlaylistViewActivity"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.Fullscreen">
             <meta-data
                 android:name="android.app.default_searchable"
                 android:value=".MainActivity"/>
@@ -139,7 +134,8 @@
         </activity>
         <activity
             android:name=".views.PlaybackUIActivity"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.Fullscreen">
         </activity>
         <activity
             android:name=".views.TuneActivity"

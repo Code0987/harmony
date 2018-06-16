@@ -1,5 +1,6 @@
 package com.ilusons.harmony.views;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -8,7 +9,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -18,24 +18,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.graphics.Palette;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -55,26 +52,37 @@ import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
+import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.ImageEx;
-import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.StorageEx;
+import com.ilusons.harmony.ref.ViewEx;
+import com.ilusons.harmony.ref.ui.ParallaxImageView;
+import com.scwang.wave.MultiWaveHeader;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import at.grabner.circleprogress.CircleProgressView;
+import de.umass.lastfm.Track;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import jonathanfinerty.once.Once;
-import jp.wasabeef.blurry.Blurry;
+import me.everything.android.ui.overscroll.HorizontalOverScrollBounceEffectDecorator;
+import me.everything.android.ui.overscroll.adapters.RecyclerViewOverScrollDecorAdapter;
 
 public class DashboardActivity extends BaseUIActivity {
 
@@ -91,12 +99,11 @@ public class DashboardActivity extends BaseUIActivity {
 	private DrawerLayout drawer_layout;
 	private ActionBarDrawerToggle drawer_toggle;
 	private AppBarLayout appbar;
-	private CollapsingToolbarLayout collapse_toolbar;
-	private View parallax_layout;
-	private ImageView parallax_image;
+	private View metadata_layout;
 	private ImageView bg;
 	private View root;
 	private AVLoadingIndicatorView loading;
+	private MultiWaveHeader wave;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -131,35 +138,20 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		};
 
-		final DrawerArrow.DrawerArrowDrawableToggle homeDrawable = new DrawerArrow.DrawerArrowDrawableToggle((this), (this).getSupportActionBar().getThemedContext());
-		drawer_toggle.setDrawerArrowDrawable(homeDrawable);
 		drawer_toggle.setDrawerIndicatorEnabled(true);
-		drawer_toggle.setHomeAsUpIndicator(homeDrawable);
 		drawer_layout.setDrawerListener(drawer_toggle);
 		drawer_toggle.syncState();
 
 		appbar = findViewById(R.id.appbar);
-		appbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-			@Override
-			public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-				boolean expanded = !(Math.abs(verticalOffset) - appBarLayout.getTotalScrollRange() == 0);
-
-				homeDrawable.setPosition(1.0f - ((float) Math.abs(verticalOffset) / appBarLayout.getTotalScrollRange()));
-
-				onAppBarStateChanged(expanded);
-			}
-		});
-
-		collapse_toolbar = findViewById(R.id.collapse_toolbar);
 
 		// Set views
 		root = findViewById(R.id.root);
 
 		loading = findViewById(R.id.loading);
 
-		parallax_layout = findViewById(R.id.parallax_layout);
+		wave = findViewById(R.id.wave);
 
-		parallax_image = findViewById(R.id.parallax_image);
+		metadata_layout = findViewById(R.id.metadata_layout);
 
 		bg = findViewById(R.id.bg);
 
@@ -168,11 +160,11 @@ public class DashboardActivity extends BaseUIActivity {
 		// Drawers
 		createDrawers();
 
-		// Tabs
-		createTabs();
-
 		// Playback
 		createPlayback();
+
+		// Recommended
+		createRecommended();
 
 		// Ratings
 		root.postDelayed(new Runnable() {
@@ -241,6 +233,34 @@ public class DashboardActivity extends BaseUIActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.clear();
 
+		getMenuInflater().inflate(R.menu.dashboard_menu, menu);
+
+		ViewEx.tintMenuIcons(menu, ContextCompat.getColor(this, R.color.textColorPrimary));
+
+		MenuItem now_playing = menu.findItem(R.id.now_playing);
+		now_playing.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				Intent intent = new Intent(DashboardActivity.this, PlaybackUIActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+
+				return true;
+			}
+		});
+
+		MenuItem playlist = menu.findItem(R.id.playlist);
+		playlist.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				Intent intent = new Intent(DashboardActivity.this, PlaylistViewActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+
+				return true;
+			}
+		});
+
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -301,6 +321,8 @@ public class DashboardActivity extends BaseUIActivity {
 
 		if (play_pause_stop != null)
 			play_pause_stop.setImageResource(R.drawable.ic_music_pause);
+
+		wave.start();
 	}
 
 	@Override
@@ -309,6 +331,8 @@ public class DashboardActivity extends BaseUIActivity {
 
 		if (play_pause_stop != null)
 			play_pause_stop.setImageResource(R.drawable.ic_music_play);
+
+		wave.stop();
 	}
 
 	@Override
@@ -317,6 +341,8 @@ public class DashboardActivity extends BaseUIActivity {
 
 		if (play_pause_stop != null)
 			play_pause_stop.setImageResource(R.drawable.ic_music_stop);
+
+		wave.stop();
 	}
 
 	@Override
@@ -326,10 +352,9 @@ public class DashboardActivity extends BaseUIActivity {
 
 	@Override
 	public void OnMusicServicePrepared() {
-		if (playlistViewFragment != null)
-			playlistViewFragment.OnMusicServicePrepared();
-
 		resetPlayback();
+
+		updateRecommended();
 	}
 
 	@Override
@@ -342,16 +367,8 @@ public class DashboardActivity extends BaseUIActivity {
 	@Override
 	public void OnMusicServiceLibraryUpdated() {
 		loading.smoothToHide();
-		try {
-			// Refresh view playlist
-			if (playlistViewFragment.getViewPlaylist() != null) {
-				playlistViewFragment.setViewPlaylist(Playlist.loadOrCreatePlaylist(playlistViewFragment.getViewPlaylist().getName()));
-			} else {
-				String name = Playlist.getActivePlaylist(this);
-				if (!TextUtils.isEmpty(name))
-					playlistViewFragment.setFromPlaylist(-1L, name);
-			}
 
+		try {
 			// Update mini now playing ui
 			resetPlayback();
 		} catch (Exception e) {
@@ -363,19 +380,13 @@ public class DashboardActivity extends BaseUIActivity {
 		resetPlayback();
 
 		behaviourForAddScanLocationOnEmptyLibrary();
+
+		updateRecommended();
 	}
 
 	@Override
 	public void OnMusicServicePlaylistChanged(String name) {
 		try {
-			// Refresh view playlist
-			if (playlistViewFragment.getViewPlaylist().getName().equals(name)) {
-				playlistViewFragment.setViewPlaylist(playlistViewFragment.getViewPlaylist());
-			} else {
-				if (!TextUtils.isEmpty(name))
-					playlistViewFragment.setFromPlaylist(-1L, name);
-			}
-
 			// Update mini now playing ui
 			resetPlayback();
 		} catch (Exception e) {
@@ -383,44 +394,16 @@ public class DashboardActivity extends BaseUIActivity {
 		}
 	}
 
-	@Override
-	public void OnSearchQueryReceived(String query) {
-		try {
-			if (onlineViewFragment != null && onlineViewFragment.isVisible()) {
-				onlineViewFragment.setSearchQuery(query);
-			}
-			if (playlistViewFragment != null && playlistViewFragment.isVisible()) {
-				playlistViewFragment.setSearchQuery(query);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	//
-
 	//region Other
 
 	private void applyHacksToUI() {
+		/*
 		View nav_bar_filler = findViewById(R.id.nav_bar_filler);
 		if (nav_bar_filler != null) {
 			ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) nav_bar_filler.getLayoutParams();
 			params.bottomMargin = AndroidEx.getNavigationBarSize(this).y;
 		}
-	}
-
-	private void onAppBarStateChanged(boolean expanded) {
-		if (!expanded) {
-			if (title != null)
-				title.setVisibility(View.INVISIBLE);
-			if (info != null)
-				info.setVisibility(View.INVISIBLE);
-		} else {
-			if (title != null)
-				title.setVisibility(View.VISIBLE);
-			if (info != null)
-				info.setVisibility(View.VISIBLE);
-		}
+		*/
 	}
 
 	//endregion
@@ -613,106 +596,17 @@ public class DashboardActivity extends BaseUIActivity {
 
 	//endregion
 
-	//region Tabs
-
-	private TabLayout tab_layout;
-	private ViewPager viewPager;
-	private ViewPagerAdapter viewPagerAdapter;
-
-	private OnlineViewFragment onlineViewFragment;
-	private PlaylistViewFragment playlistViewFragment;
-
-	private void createTabs() {
-		tab_layout = findViewById(R.id.tab_layout);
-
-		viewPager = findViewById(R.id.viewPager);
-		viewPager.setOffscreenPageLimit(3);
-
-		viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
-
-		viewPager.setAdapter(viewPagerAdapter);
-
-		if (!AndroidEx.isNetworkAvailable(this)) {
-			playlistViewFragment = PlaylistViewFragment.create();
-			viewPagerAdapter.add(playlistViewFragment, "Playlist");
-
-			onlineViewFragment = OnlineViewFragment.create();
-			viewPagerAdapter.add(onlineViewFragment, "Online");
-		} else {
-			onlineViewFragment = OnlineViewFragment.create();
-			viewPagerAdapter.add(onlineViewFragment, "Online");
-
-			playlistViewFragment = PlaylistViewFragment.create();
-			viewPagerAdapter.add(playlistViewFragment, "Playlist");
-		}
-
-		tab_layout.setupWithViewPager(viewPager, true);
-
-	}
-
-	public static class ViewPagerAdapter extends FragmentStatePagerAdapter {
-
-		public static final String KEY_TITLE = "_title";
-
-		private final List<Fragment> fragments = new ArrayList<>();
-
-		public ViewPagerAdapter(FragmentManager manager) {
-			super(manager);
-		}
-
-		@Override
-		public Fragment getItem(int position) {
-			return fragments.get(position);
-		}
-
-		@Override
-		public int getCount() {
-			return fragments.size();
-		}
-
-		@Override
-		public CharSequence getPageTitle(int position) {
-			return fragments.get(position).getArguments().getString(KEY_TITLE);
-		}
-
-		public void add(Fragment fragment, String title) {
-			Bundle bundle = fragment.getArguments();
-			if (bundle == null)
-				bundle = new Bundle();
-			if (!bundle.containsKey(KEY_TITLE))
-				bundle.putString(KEY_TITLE, title);
-			fragment.setArguments(bundle);
-
-			fragments.add(fragment);
-
-			notifyDataSetChanged();
-		}
-
-		public void remove(Fragment fragment) {
-			fragments.remove(fragment);
-
-			notifyDataSetChanged();
-		}
-
-		public void clear() {
-			fragments.clear();
-
-			notifyDataSetChanged();
-		}
-
-	}
-
-	//endregion
-
 	//region Playback
 
 	private CircleProgressView progress;
+	private ImageView cover;
 	private TextView title;
 	private TextView info;
 
 	private ImageView play_pause_stop;
 
 	private void createPlayback() {
+		cover = findViewById(R.id.cover);
 		title = findViewById(R.id.title);
 		info = findViewById(R.id.info);
 
@@ -844,14 +738,21 @@ public class DashboardActivity extends BaseUIActivity {
 
 								progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
 
-								Blurry.with(DashboardActivity.this)
-										.radius(7)
-										.sampling(1)
-										.color(ColorUtils.setAlphaComponent(vibrantColor, 100))
-										.animate(763)
-										.async()
-										.from(bitmap)
-										.into(parallax_image);
+								if (cover.getDrawable() != null) {
+									TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+											cover.getDrawable(),
+											new BitmapDrawable(getResources(), bitmap)
+									});
+
+									cover.setImageDrawable(d);
+
+									d.setCrossFadeEnabled(true);
+									d.startTransition(763);
+								} else {
+									cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+								}
+
+								wave.setStartColor(vibrantColor);
 							}
 						});
 					} catch (Exception e) {
@@ -862,7 +763,7 @@ public class DashboardActivity extends BaseUIActivity {
 			final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
 				@Override
 				public void accept(Throwable throwable) throws Exception {
-					parallax_image.setImageDrawable(null);
+					cover.setImageDrawable(null);
 				}
 			};
 			final Consumer<Throwable> throwableConsumerWithRetry = new Consumer<Throwable>() {
@@ -899,8 +800,476 @@ public class DashboardActivity extends BaseUIActivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 
-			parallax_image.setImageDrawable(null);
+			cover.setImageDrawable(null);
 		}
+	}
+
+	//endregion
+
+	//region Hot & Trending
+
+	private RecyclerViewAdapter adapter_recommended;
+
+	private RecyclerView.OnScrollListener recyclerView_recommended_ScrollListener = new RecyclerView.OnScrollListener() {
+		@Override
+		public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+			super.onScrolled(recyclerView, dx, dy);
+
+			for (int i = 0; i < recyclerView.getChildCount(); i++) {
+				RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(recyclerView.getChildAt(i));
+				if (viewHolder instanceof RecyclerViewAdapter.ViewHolder) {
+					RecyclerViewAdapter.ViewHolder vh = ((RecyclerViewAdapter.ViewHolder) viewHolder);
+					if (vh.parallaxImage != null)
+						vh.parallaxImage.translate();
+				}
+			}
+		}
+	};
+
+	private AVLoadingIndicatorView loading_view_recommended;
+
+	private void createRecommended() {
+		adapter_recommended = new RecyclerViewAdapter(this);
+
+		loading_view_recommended = findViewById(R.id.loading_view_recommended);
+
+		RecyclerView recyclerView = findViewById(R.id.recycler_view_recommended);
+
+		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 3);
+
+		recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+		recyclerView.setAdapter(adapter_recommended);
+
+		recyclerView.addOnScrollListener(recyclerView_recommended_ScrollListener);
+
+		// Animations
+		HorizontalOverScrollBounceEffectDecorator overScroll = new HorizontalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
+
+	}
+
+	private static long lastCallUpdateRecommendedTimestamp = 0;
+
+	public static boolean canCallUpdateRecommended() {
+		boolean r = true;
+
+		long now = System.currentTimeMillis();
+
+		if ((now - lastCallUpdateRecommendedTimestamp) > 10 * 1000) {
+			lastCallUpdateRecommendedTimestamp = now;
+		} else {
+			r = false;
+		}
+
+		return r;
+	}
+
+	private void updateRecommended() {
+		if (!canCallUpdateRecommended())
+			return;
+
+		try {
+			final Context context = this;
+
+			if (AndroidEx.isNetworkAvailable(context)) {
+				loading_view_recommended.smoothToShow();
+
+				adapter_recommended.clear();
+
+				Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
+					@Override
+					public void onSubscribe(Disposable d) {
+					}
+
+					@Override
+					public void onNext(Collection<Music> r) {
+						try {
+							for (Music m : r) {
+								adapter_recommended.add(m);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					@Override
+					public void onError(Throwable e) {
+						loading_view_recommended.smoothToHide();
+
+						updateRecommendedOffline(true);
+					}
+
+					@Override
+					public void onComplete() {
+						loading_view_recommended.smoothToHide();
+					}
+				};
+
+				ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
+
+				try {
+					List<Music> topLocalTracks = new ArrayList<>();
+					topLocalTracks.addAll(Music.getAllSortedByTimeLastPlayed(2));
+					Collections.shuffle(topLocalTracks);
+					for (Music music : topLocalTracks) {
+						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 1));
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				try {
+					observables.add(Analytics.getInstance().getTopTracksForLastfmForApp());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				io.reactivex.Observable
+						.concat(observables)
+						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+							@Override
+							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+								return Analytics.convertToLocal(context, tracks, 12, false);
+							}
+						})
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribeOn(Schedulers.io())
+						.subscribe(observer);
+			} else {
+				updateRecommendedOffline(true);
+
+				info("Turn on your internet for new music. Loading previous tracks.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void updateRecommendedOffline(boolean reset) {
+		loading_view_recommended.smoothToShow();
+
+		try {
+			Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
+			if (reset && playlist.getItems().size() > 0)
+				adapter_recommended.clear(Music.class);
+			if (playlist != null) {
+				for (Music item : playlist.getItems()) {
+					adapter_recommended.add(item);
+				}
+			}
+		} catch (Exception e2) {
+			e2.printStackTrace();
+		}
+
+		adapter_recommended.notifyDataSetChanged();
+
+		loading_view_recommended.smoothToHide();
+	}
+
+	public static class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+		private final DashboardActivity context;
+
+		private ArrayList<Object> data;
+
+		public RecyclerViewAdapter(DashboardActivity context) {
+			this.context = context;
+
+			data = new ArrayList<>();
+		}
+
+		@Override
+		public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+			View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.dashboard_recommended_item, parent, false);
+
+			return new ViewHolder(context, v);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+			final int itemType = getItemViewType(position);
+
+			try {
+				((ViewHolder) holder)
+						.bind(position, (Music) data.get(position));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public int getItemCount() {
+			return data.size();
+		}
+
+		public void add(Object item) {
+			data.add(item);
+
+			notifyDataSetChanged();
+		}
+
+		public void clear() {
+			data.clear();
+
+			notifyDataSetChanged();
+		}
+
+		public <T> void clear(Class<T> tClass) {
+			final Collection<Object> copy = new ArrayList<>(data);
+			for (Object item : copy)
+				if (item.getClass().equals(tClass))
+					data.remove(item);
+
+			notifyDataSetChanged();
+		}
+
+		public <T> Collection<T> getAll(Class<T> tClass) {
+			final Collection<T> r = new ArrayList<>();
+			for (Object item : data)
+				if (item.getClass().equals(tClass))
+					r.add((T) item);
+			return r;
+		}
+
+		protected static class ViewHolder extends RecyclerView.ViewHolder {
+			private final DashboardActivity context;
+
+			protected View view;
+
+			public ImageView image;
+			public ParallaxImageView parallaxImage;
+			protected TextView text1;
+			protected TextView text2;
+
+			public ViewHolder(final DashboardActivity context, View v) {
+				super(v);
+
+				this.context = context;
+
+				view = v;
+
+				image = v.findViewById(R.id.image);
+				text1 = v.findViewById(R.id.text1);
+				text2 = v.findViewById(R.id.text2);
+
+				if (image != null) {
+					image.setMaxHeight(AndroidEx.dpToPx(196));
+					if (image instanceof ParallaxImageView) {
+						parallaxImage = (ParallaxImageView) image;
+						parallaxImage.setListener(new ParallaxImageView.ParallaxImageListener() {
+							@Override
+							public int[] getValuesForTranslate() {
+								if (itemView.getParent() == null) {
+									return null;
+								} else {
+									int[] itemPosition = new int[2];
+									itemView.getLocationOnScreen(itemPosition);
+
+									int[] recyclerPosition = new int[2];
+									((RecyclerView) itemView.getParent()).getLocationOnScreen(recyclerPosition);
+
+									return new int[]{
+											itemPosition[1],
+											((RecyclerView) itemView.getParent()).getMeasuredHeight(),
+											recyclerPosition[1]
+									};
+								}
+							}
+						});
+					}
+				}
+
+			}
+
+			@SuppressLint({"StaticFieldLeak", "CheckResult"})
+			public void bind(int p, final Music d) {
+				final Context context = view.getContext();
+
+				if (image != null) {
+					image.setImageBitmap(null);
+					final Consumer<Bitmap> resultConsumer = new Consumer<Bitmap>() {
+						@Override
+						public void accept(Bitmap bitmap) throws Exception {
+							try {
+								TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+										image.getDrawable(),
+										new BitmapDrawable(view.getContext().getResources(), bitmap)
+								});
+
+								image.setImageDrawable(d);
+
+								d.setCrossFadeEnabled(true);
+								d.startTransition(200);
+
+								if (parallaxImage != null)
+									parallaxImage.translate();
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					};
+					final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
+						@Override
+						public void accept(Throwable throwable) throws Exception {
+							// Pass
+						}
+					};
+
+					Music
+							.loadLocalOrSearchCoverArtFromItunes(
+									context,
+									d,
+									d.getCoverPath(context),
+									d.getText(),
+									false,
+									ImageEx.ItunesImageType.Song)
+							.observeOn(AndroidSchedulers.mainThread())
+							.subscribeOn(Schedulers.computation())
+							.subscribe(
+									resultConsumer,
+									throwableConsumer);
+				}
+
+				text1.setText(d.getTitle());
+				text2.setText(d.getArtist());
+
+				view.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(new ContextThemeWrapper(view.getContext(), R.style.AppTheme_AlertDialogStyle));
+						builder.setTitle("Select?");
+						builder.setItems(new CharSequence[]{
+								"Play now",
+								"Play next",
+								"Download, then play",
+								"Download",
+								"Stream",
+						}, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int itemIndex) {
+								try {
+									switch (itemIndex) {
+										case 0:
+											playNow(d);
+											break;
+										case 1:
+											playNext(d);
+											break;
+										case 2:
+											playAfterDownload(d);
+											break;
+										case 3:
+											download(d);
+											break;
+										case 4:
+											playAfterStream(d);
+											break;
+									}
+								} catch (Exception e) {
+									Log.w(TAG, e);
+								}
+							}
+						});
+						android.app.AlertDialog dialog = builder.create();
+						dialog.show();
+					}
+				});
+				view.setOnLongClickListener(new View.OnLongClickListener() {
+					@Override
+					public boolean onLongClick(final View view) {
+						view.startAnimation(AnimationUtils.loadAnimation(view.getContext(), R.anim.shake));
+
+						playNow(d);
+
+						return true;
+					}
+				});
+				view.setLongClickable(true);
+			}
+
+			private void playNow(final Music music) {
+				final MusicService musicService = context.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					musicService.open(music);
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					context.info("Ah! Try again!");
+				}
+			}
+
+			private void playNext(final Music music) {
+				final MusicService musicService = context.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					musicService.getPlaylist().add(music, musicService.getPlaylist().getItemIndex() + 1);
+
+					context.info("Added!");
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					context.info("Ah! Try again!");
+				}
+			}
+
+			private void playAfterStream(final Music music) {
+				final MusicService musicService = context.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					if (MusicService.getPlayerType(view.getContext()) == MusicService.PlayerType.AndroidOS) {
+						musicService.stream(music);
+					} else {
+						context.info("Streaming is only supported in [" + MusicService.PlayerType.AndroidOS.getFriendlyName() + "] player. You can change it from Settings.");
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					context.info("Ah! Try again!");
+				}
+			}
+
+			private void playAfterDownload(final Music music) {
+				final MusicService musicService = context.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					musicService.download(music);
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					context.info("Ah! Try again!");
+				}
+			}
+
+			private void download(final Music music) {
+				final MusicService musicService = context.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					musicService.download(music, false);
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					context.info("Ah! Try again!");
+				}
+			}
+
+		}
+
 	}
 
 	//endregion

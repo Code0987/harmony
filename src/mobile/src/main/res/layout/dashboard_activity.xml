@@ -28,6 +28,22 @@
             android:scaleType="centerCrop"
             />
 
+        <com.scwang.wave.MultiWaveHeader
+            android:id="@+id/wave"
+            android:layout_width="match_parent"
+            android:layout_height="196dp"
+            android:layout_alignParentBottom="true"
+            android:scaleY="-1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:mwhCloseColor="@color/transparent"
+            app:mwhIsRunning="false"
+            app:mwhProgress="1"
+            app:mwhStartColor="@color/translucent_accent"
+            app:mwhVelocity="1"
+            app:mwhWaves="PairWave"/>
+
     </RelativeLayout>
 
     <android.support.design.widget.CoordinatorLayout
@@ -42,195 +58,21 @@
             android:layout_height="wrap_content"
             android:background="@null"
             android:elevation="0dp"
-            android:fitsSystemWindows="true"
             android:theme="@style/AppTheme.AppBarOverlay"
-            app:elevation="0dp"
-            app:expanded="false">
+            app:elevation="0dp">
 
-            <android.support.design.widget.CollapsingToolbarLayout
-                android:id="@+id/collapse_toolbar"
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="320dp"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@null"
                 android:elevation="0dp"
-                android:fitsSystemWindows="true"
-                android:minHeight="150dp"
-                app:contentScrim="@color/transparent"
-                app:layout_scrollFlags="enterAlwaysCollapsed|exitUntilCollapsed|scroll|snap"
-                app:statusBarScrim="@color/transparent"
-                app:titleEnabled="false">
-
-                <android.support.constraint.ConstraintLayout
-                    android:id="@+id/parallax_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:fitsSystemWindows="true"
-                    android:scaleType="centerCrop"
-                    app:layout_collapseMode="parallax"
-                    >
-
-                    <ImageView
-                        android:id="@+id/parallax_image"
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:scaleType="centerCrop"
-                        android:src="@null"
-                        app:layout_collapseMode="parallax"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"/>
-
-                    <TextView
-                        android:id="@+id/title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:alpha="0.68"
-                        android:clickable="false"
-                        android:ellipsize="end"
-                        android:focusable="false"
-                        android:maxLines="1"
-                        android:paddingBottom="0dp"
-                        android:paddingEnd="36dp"
-                        android:paddingStart="36dp"
-                        android:paddingTop="8dp"
-                        android:text="..."
-                        android:textColor="@color/primary_text"
-                        android:textSize="13sp"
-                        app:layout_collapseMode="pin"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/play_pause_stop_layout"
-                        tools:text="Title"
-                        />
-
-                    <TextView
-                        android:id="@+id/info "
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:alpha="0.68"
-                        android:clickable="false"
-                        android:ellipsize="end"
-                        android:focusable="false"
-                        android:maxLines="1"
-                        android:paddingBottom="16dp"
-                        android:paddingEnd="24dp"
-                        android:paddingStart="24dp"
-                        android:paddingTop="3dp"
-                        android:text="..."
-                        android:textColor="@color/primary_text"
-                        android:textSize="9sp"
-                        app:layout_collapseMode="pin"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/title"
-                        tools:text="Artist"
-                        />
-
-                    <android.support.constraint.ConstraintLayout
-                        android:id="@+id/play_pause_stop_layout"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:layout_marginTop="42dp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                        <at.grabner.circleprogress.CircleProgressView
-                            android:id="@+id/progress"
-                            xmlns:CircleProgressView="http://schemas.android.com/apk/res-auto"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:alpha="0.75"
-                            CircleProgressView:cpv_autoTextSize="true"
-                            CircleProgressView:cpv_barColor="@color/icons"
-                            CircleProgressView:cpv_barWidth="1.1dp"
-                            CircleProgressView:cpv_fillColor="@color/transparent"
-                            CircleProgressView:cpv_innerContourColor="@color/transparent"
-                            CircleProgressView:cpv_innerContourSize="0dp"
-                            CircleProgressView:cpv_maxValue="100"
-                            CircleProgressView:cpv_outerContourColor="@color/transparent"
-                            CircleProgressView:cpv_outerContourSize="0dp"
-                            CircleProgressView:cpv_rimColor="@color/gradient12"
-                            CircleProgressView:cpv_rimWidth="0dp"
-                            CircleProgressView:cpv_seekMode="false"
-                            CircleProgressView:cpv_showUnit="false"
-                            CircleProgressView:cpv_spinColor="@color/icons"
-                            CircleProgressView:cpv_text=""
-                            CircleProgressView:cpv_textColor="@color/transparent"
-                            CircleProgressView:cpv_textMode="Text"
-                            CircleProgressView:cpv_textScale="1"
-                            CircleProgressView:cpv_unit="%"
-                            CircleProgressView:cpv_unitColor="@color/transparent"
-                            CircleProgressView:cpv_unitPosition="right_top"
-                            CircleProgressView:cpv_unitScale="1"
-                            CircleProgressView:cpv_value="15"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintLeft_toLeftOf="parent"
-                            app:layout_constraintRight_toRightOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"/>
-
-                        <ImageView
-                            android:id="@+id/play_pause_stop"
-                            style="@android:style/Widget.Material.Light.Button.Borderless.Small"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_margin="8dp"
-                            android:alpha="0.75"
-                            android:background="@null"
-                            android:ellipsize="end"
-                            android:gravity="center"
-                            android:padding="3dp"
-                            android:scaleType="fitXY"
-                            android:src="@drawable/ic_music_play"
-                            android:tint="@color/icons"
-                            android:tintMode="src_in"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintLeft_toLeftOf="parent"
-                            app:layout_constraintRight_toRightOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            />
-
-                    </android.support.constraint.ConstraintLayout>
-
-                </android.support.constraint.ConstraintLayout>
-
-                <android.support.v7.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:layout_gravity="top"
-                    android:layout_marginBottom="96dp"
-                    android:background="@null"
-                    android:clipChildren="false"
-                    android:theme="@style/AppTheme.ActionBar"
-                    app:contentInsetLeft="0dp"
-                    app:contentInsetStart="0dp"
-                    app:elevation="0dp"
-                    app:layout_collapseMode="pin"
-                    app:popupTheme="@style/AppTheme.PopupOverlay"/>
-
-                <android.support.design.widget.TabLayout
-                    android:id="@+id/tab_layout"
-                    style="@style/AppTheme.TabLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:background="@null"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    app:tabBackground="@null"
-                    app:tabGravity="fill"
-                    app:tabIndicatorColor="@color/translucent_light"
-                    app:tabIndicatorHeight="1dp"
-                    app:tabMode="fixed"
-                    app:tabPaddingTop="3dp"
-                    app:tabSelectedTextColor="@color/primary_text"
-                    app:tabTextAppearance="@style/AppTheme.TabTextAppearance"
-                    app:tabTextColor="@color/translucent_light"/>
-
-            </android.support.design.widget.CollapsingToolbarLayout>
+                android:theme="@style/AppTheme.ActionBar"
+                app:contentInsetLeft="0dp"
+                app:contentInsetStart="0dp"
+                app:elevation="0dp"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                app:statusBarScrim="@color/transparent"/>
 
         </android.support.design.widget.AppBarLayout>
 
@@ -241,24 +83,200 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:elevation="0dp"
+            android:fitsSystemWindows="false"
             android:focusableInTouchMode="true"
             app:elevation="0dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             >
 
-            <android.support.v4.view.ViewPager
-                android:id="@+id/viewPager"
+            <TextView
+                android:id="@+id/title_recommended"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:paddingBottom="8dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:text="Recommended"
+                android:textColor="@color/primary_text"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toTopOf="@+id/recycler_view_recommended"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                />
+
+            <com.wang.avi.AVLoadingIndicatorView
+                android:id="@+id/loading_view_recommended"
+                style="@style/AVLoadingIndicatorView.Small"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp"
+                app:indicatorColor="@color/icons"
+                app:indicatorName="BallTrianglePathIndicator"
+                app:layout_constraintBottom_toBottomOf="@+id/title_recommended"
+                app:layout_constraintLeft_toRightOf="@+id/title_recommended"
+                app:layout_constraintTop_toTopOf="@+id/title_recommended"
+                />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycler_view_recommended"
+                style="@style/AppTheme.Scrollbar"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:clipChildren="true"
+                android:layout_height="wrap_content"
+                android:animateLayoutChanges="false"
+                android:animationCache="true"
                 android:clipToPadding="true"
-                android:nestedScrollingEnabled="false"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                android:nestedScrollingEnabled="true"
+                android:orientation="horizontal"
+                android:paddingBottom="8dp"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:scrollbars="none"
+                app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/title_recommended"
+                tools:listitem="@layout/dashboard_recommended_item"
+                />
+
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/metadata_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 app:layout_constraintBottom_toTopOf="@+id/nav_bar_filler"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                />
+                >
+
+                <android.support.constraint.ConstraintLayout
+                    android:id="@+id/play_pause_stop_layout"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_margin="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@+id/title"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <at.grabner.circleprogress.CircleProgressView
+                        android:id="@+id/progress"
+                        xmlns:CircleProgressView="http://schemas.android.com/apk/res-auto"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:alpha="0.75"
+                        CircleProgressView:cpv_autoTextSize="true"
+                        CircleProgressView:cpv_barColor="@color/icons"
+                        CircleProgressView:cpv_barWidth="1.1dp"
+                        CircleProgressView:cpv_fillColor="@color/transparent"
+                        CircleProgressView:cpv_innerContourColor="@color/transparent"
+                        CircleProgressView:cpv_innerContourSize="0dp"
+                        CircleProgressView:cpv_maxValue="100"
+                        CircleProgressView:cpv_outerContourColor="@color/transparent"
+                        CircleProgressView:cpv_outerContourSize="0dp"
+                        CircleProgressView:cpv_rimColor="@color/gradient12"
+                        CircleProgressView:cpv_rimWidth="0dp"
+                        CircleProgressView:cpv_seekMode="false"
+                        CircleProgressView:cpv_showUnit="false"
+                        CircleProgressView:cpv_spinColor="@color/icons"
+                        CircleProgressView:cpv_text=""
+                        CircleProgressView:cpv_textColor="@color/transparent"
+                        CircleProgressView:cpv_textMode="Text"
+                        CircleProgressView:cpv_textScale="1"
+                        CircleProgressView:cpv_unit="%"
+                        CircleProgressView:cpv_unitColor="@color/transparent"
+                        CircleProgressView:cpv_unitPosition="right_top"
+                        CircleProgressView:cpv_unitScale="1"
+                        CircleProgressView:cpv_value="15"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"/>
+
+                    <ImageView
+                        android:id="@+id/play_pause_stop"
+                        style="@android:style/Widget.Material.Light.Button.Borderless.Small"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="8dp"
+                        android:alpha="0.75"
+                        android:background="@null"
+                        android:ellipsize="end"
+                        android:gravity="center"
+                        android:padding="3dp"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_music_play"
+                        android:tint="@color/icons"
+                        android:tintMode="src_in"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        />
+
+                </android.support.constraint.ConstraintLayout>
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:ellipsize="end"
+                    android:focusable="false"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:paddingBottom="0dp"
+                    android:paddingEnd="8dp"
+                    android:paddingStart="8dp"
+                    android:paddingTop="8dp"
+                    android:text="..."
+                    android:textColor="@color/primary_text"
+                    android:textSize="13sp"
+                    app:layout_collapseMode="pin"
+                    app:layout_constraintBottom_toTopOf="@+id/info"
+                    app:layout_constraintLeft_toRightOf="@+id/play_pause_stop_layout"
+                    app:layout_constraintRight_toLeftOf="@+id/cover"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Title"
+                    />
+
+                <TextView
+                    android:id="@+id/info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:ellipsize="end"
+                    android:focusable="false"
+                    android:gravity="end"
+                    android:maxLines="2"
+                    android:paddingBottom="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingStart="8dp"
+                    android:paddingTop="5dp"
+                    android:text="..."
+                    android:textColor="@color/primary_text"
+                    android:textSize="9sp"
+                    app:layout_collapseMode="pin"
+                    app:layout_constraintRight_toRightOf="@+id/title"
+                    app:layout_constraintTop_toBottomOf="@+id/title"
+                    tools:text="Info"
+                    />
+
+                <ImageView
+                    android:id="@+id/cover"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_margin="8dp"
+                    android:scaleType="centerCrop"
+                    android:src="@null"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toRightOf="@+id/title"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+            </android.support.constraint.ConstraintLayout>
 
             <android.support.constraint.ConstraintLayout
                 android:id="@+id/nav_bar_filler"

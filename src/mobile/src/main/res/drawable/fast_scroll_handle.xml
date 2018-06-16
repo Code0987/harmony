@@ -9,8 +9,8 @@
         android:topRightRadius="1dp"/>
 
     <padding
-        android:bottom="5dp"
-        android:top="5dp"/>
+        android:bottom="8dp"
+        android:top="8dp"/>
 
     <solid android:color="@color/translucent_dark"/>
 

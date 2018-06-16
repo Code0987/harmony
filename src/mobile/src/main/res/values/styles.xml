@@ -1,11 +1,9 @@
 <resources>
 
-    <!-- splash -->
     <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@drawable/splash</item>
     </style>
 
-    <!-- base -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
@@ -28,7 +26,6 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowAnimationStyle">@style/AppTheme.ActivityAnimationStyle</item>
         <item name="android:statusBarColor">@color/transparent</item>
         <item name="android:alertDialogTheme">@style/AppTheme.AlertDialogStyle</item>
         <item name="android:fontFamily">sans-serif-light</item>
@@ -63,7 +60,6 @@
         <item name="fontStyle">normal</item>
     </style>
 
-    <!-- light -->
     <style name="AppTheme.Light" parent="AppTheme">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -74,7 +70,6 @@
         <item name="android:textColorSecondaryInverse">@color/textColorSecondaryInverse</item>
     </style>
 
-    <!-- dark -->
     <style name="AppTheme.Dark" parent="AppTheme">
         <item name="colorPrimary">@color/colorPrimaryInverse</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDarkInverse</item>
@@ -85,7 +80,6 @@
         <item name="android:textColorSecondaryInverse">@color/textColorSecondary</item>
     </style>
 
-    <!-- components -->
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light">
@@ -122,6 +116,12 @@
     </style>
 
     <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.Fullscreen" parent="AppTheme">
+        <item name="android:windowFullscreen">true</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
@@ -178,11 +178,6 @@
         <item name="android:textViewStyle">@style/AppTheme.TextViewStyle</item>
         <item name="android:buttonStyle">@style/AppTheme.ButtonStyle</item>
         <item name="buttonStyle">@style/AppTheme.ButtonStyle</item>
-    </style>
-
-    <style name="AppTheme.ActivityAnimationStyle" parent="@android:style/Animation.Activity">
-        <item name="android:windowEnterAnimation">@anim/activity_enter</item>
-        <item name="android:windowExitAnimation">@anim/activity_exit</item>
     </style>
 
     <style name="AppTheme.DialogTitleStyle" parent="TextAppearance.AppCompat.Title">
