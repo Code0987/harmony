@@ -53,7 +53,7 @@ public class PlaylistViewActivity extends BaseUIActivity {
 		// Set views
 		root = findViewById(R.id.root);
 
-		loading = (AVLoadingIndicatorView) findViewById(R.id.loading);
+		loading = findViewById(R.id.loading);
 
 		// Tabs
 		createTabs();
@@ -135,9 +135,6 @@ public class PlaylistViewActivity extends BaseUIActivity {
 	@Override
 	public void OnSearchQueryReceived(String query) {
 		try {
-			if (onlineViewFragment != null && onlineViewFragment.isVisible()) {
-				onlineViewFragment.setSearchQuery(query);
-			}
 			if (playlistViewFragment != null && playlistViewFragment.isVisible()) {
 				playlistViewFragment.setSearchQuery(query);
 			}
@@ -161,7 +158,6 @@ public class PlaylistViewActivity extends BaseUIActivity {
 	//region Tabs
 
 	public enum PlaylistViewTab {
-		Online("Online"),
 		Tracks("Tracks"),
 		Artists("Artists"),
 		Albums("Albums"),;
@@ -213,12 +209,9 @@ public class PlaylistViewActivity extends BaseUIActivity {
 
 	//region Playlist
 
-	private OnlineViewFragment onlineViewFragment;
 	private PlaylistViewFragment playlistViewFragment;
 
 	private void createPlaylist() {
-		onlineViewFragment = OnlineViewFragment.create();
-
 		playlistViewFragment = PlaylistViewFragment.create();
 
 		tab_layout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -231,11 +224,6 @@ public class PlaylistViewActivity extends BaseUIActivity {
 				setPlaylistViewTab(PlaylistViewActivity.this, playlistViewTab);
 
 				switch (playlistViewTab) {
-					case Online:
-						getSupportFragmentManager().beginTransaction()
-								.replace(R.id.playlist_layout, onlineViewFragment)
-								.commit();
-						break;
 					case Tracks:
 						getSupportFragmentManager().beginTransaction()
 								.replace(R.id.playlist_layout, playlistViewFragment)

@@ -30,16 +30,6 @@
             <group>
 
                 <item
-                    android:id="@+id/downloads"
-                    android:icon="@drawable/ic_download"
-                    android:title="@string/downloads"
-                    app:showAsAction="ifRoom"/>
-
-            </group>
-
-            <group>
-
-                <item
                     android:id="@+id/refresh"
                     android:icon="@drawable/ic_arrows_clockwise_dashed"
                     android:title="@string/refresh"
@@ -51,9 +41,9 @@
             <group>
 
                 <item
-                    android:id="@+id/my_recommendations"
-                    android:icon="@drawable/ic_magic_wand"
-                    android:title="@string/my_recommendations"
+                    android:id="@+id/save"
+                    android:icon="@drawable/ic_music_playlist"
+                    android:title="@string/save"
                     app:showAsAction="ifRoom"
                     />
 

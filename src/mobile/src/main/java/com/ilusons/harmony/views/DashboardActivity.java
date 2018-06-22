@@ -64,6 +64,7 @@ import com.scwang.wave.MultiWaveHeader;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.lang3.StringUtils;
+import org.reactivestreams.Subscription;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -82,6 +83,9 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import jonathanfinerty.once.Once;
 import me.everything.android.ui.overscroll.HorizontalOverScrollBounceEffectDecorator;
+import me.everything.android.ui.overscroll.IOverScrollDecor;
+import me.everything.android.ui.overscroll.IOverScrollState;
+import me.everything.android.ui.overscroll.ListenerStubs;
 import me.everything.android.ui.overscroll.adapters.RecyclerViewOverScrollDecorAdapter;
 
 public class DashboardActivity extends BaseUIActivity {
@@ -245,6 +249,18 @@ public class DashboardActivity extends BaseUIActivity {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				Intent intent = new Intent(DashboardActivity.this, PlaybackUIActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+
+				return true;
+			}
+		});
+
+		MenuItem online = menu.findItem(R.id.online);
+		online.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				Intent intent = new Intent(DashboardActivity.this, OnlineViewActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 
@@ -745,6 +761,8 @@ public class DashboardActivity extends BaseUIActivity {
 
 								progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
 
+								wave.setStartColor(vibrantColor);
+
 								if (cover.getDrawable() != null) {
 									TransitionDrawable d = new TransitionDrawable(new Drawable[]{
 											cover.getDrawable(),
@@ -758,8 +776,6 @@ public class DashboardActivity extends BaseUIActivity {
 								} else {
 									cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
 								}
-
-								wave.setStartColor(vibrantColor);
 							}
 						});
 					} catch (Exception e) {
@@ -835,6 +851,16 @@ public class DashboardActivity extends BaseUIActivity {
 		// Animations
 		HorizontalOverScrollBounceEffectDecorator overScroll = new HorizontalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
 
+		overScroll.setOverScrollUpdateListener(new ListenerStubs.OverScrollUpdateListenerStub() {
+			@Override
+			public void onOverScrollUpdate(IOverScrollDecor decor, int state, float offset) {
+				super.onOverScrollUpdate(decor, state, offset);
+
+				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 300)
+					updateRecommended();
+			}
+		});
+
 	}
 
 	private static long lastCallUpdateRecommendedTimestamp = 0;
@@ -853,6 +879,8 @@ public class DashboardActivity extends BaseUIActivity {
 		return r;
 	}
 
+	private Disposable disposable_recommended = null;
+
 	private void updateRecommended() {
 		if (!canCallUpdateRecommended())
 			return;
@@ -863,16 +891,26 @@ public class DashboardActivity extends BaseUIActivity {
 			if (AndroidEx.isNetworkAvailable(context)) {
 				loading_view_recommended.smoothToShow();
 
-				adapter_recommended.clear();
-
 				Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
 					@Override
 					public void onSubscribe(Disposable d) {
+						try {
+							if (disposable_recommended != null && !disposable_recommended.isDisposed()) {
+								disposable_recommended.dispose();
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						disposable_recommended = d;
 					}
 
 					@Override
 					public void onNext(Collection<Music> r) {
+						if (r == null || r.isEmpty())
+							return;
+
 						try {
+							adapter_recommended.clear();
 							for (Music m : r) {
 								adapter_recommended.add(m);
 							}
@@ -885,60 +923,62 @@ public class DashboardActivity extends BaseUIActivity {
 					public void onError(Throwable e) {
 						loading_view_recommended.smoothToHide();
 
-						updateRecommendedOffline(true);
+						updateRecommendedOffline();
+
+						disposable_recommended = null;
 					}
 
 					@Override
 					public void onComplete() {
 						loading_view_recommended.smoothToHide();
+
+						updateRecommendedOffline();
+
+						disposable_recommended = null;
 					}
 				};
 
 				ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
 
 				try {
-					List<Music> topLocalTracks = new ArrayList<>();
-					topLocalTracks.addAll(Music.getAllSortedByTimeLastPlayed(2));
-					Collections.shuffle(topLocalTracks);
-					for (Music music : topLocalTracks) {
-						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 1));
+					for (Music music : Music.getAllSortedByTimeLastPlayed(1)) {
+						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 3));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				try {
-					observables.add(Analytics.getInstance().getTopTracksForLastfmForApp());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				if (observables.size() == 0)
+					try {
+						observables.add(Analytics.getInstance().getTopTracksForLastfmForApp());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 
 				io.reactivex.Observable
 						.concat(observables)
 						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 							@Override
 							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-								return Analytics.convertToLocal(context, tracks, 12, false);
+								return Analytics.convertToLocal(context, tracks, 12, true);
 							}
 						})
 						.observeOn(AndroidSchedulers.mainThread())
 						.subscribeOn(Schedulers.io())
 						.subscribe(observer);
 			} else {
-				updateRecommendedOffline(true);
-
-				info("Turn on your internet for new music. Loading previous tracks.");
+				updateRecommendedOffline();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void updateRecommendedOffline(boolean reset) {
+	private void updateRecommendedOffline() {
 		loading_view_recommended.smoothToShow();
 
 		try {
 			Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
-			if (reset && playlist.getItems().size() > 0)
+			if (adapter_recommended.getItemCount() < 3 && playlist.getItems().size() > 0)
 				adapter_recommended.clear(Music.class);
 			if (playlist != null) {
 				for (Music item : playlist.getItems()) {
@@ -978,17 +1018,33 @@ public class DashboardActivity extends BaseUIActivity {
 		// Animations
 		HorizontalOverScrollBounceEffectDecorator overScroll = new HorizontalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
 
+		overScroll.setOverScrollUpdateListener(new ListenerStubs.OverScrollUpdateListenerStub() {
+			@Override
+			public void onOverScrollUpdate(IOverScrollDecor decor, int state, float offset) {
+				super.onOverScrollUpdate(decor, state, offset);
+
+				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 300)
+					updateRecent();
+			}
+		});
+
 	}
 
 	private void updateRecent() {
 		loading_view_recent.smoothToShow();
 
 		try {
-			for (Music item : Music.getAllSortedByTimeLastPlayed(12)) {
+			ArrayList<Music> items = new ArrayList<>();
+
+			items.addAll(Music.getAllSortedByTimeLastPlayed(6));
+			items.addAll(Music.getAllSortedByTimeAdded(6));
+			Collections.shuffle(items);
+
+			for (Music item : items) {
 				adapter_recent.add(item);
 			}
-		} catch (Exception e2) {
-			e2.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		adapter_recent.notifyDataSetChanged();

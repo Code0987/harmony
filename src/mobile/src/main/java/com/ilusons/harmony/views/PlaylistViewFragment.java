@@ -35,6 +35,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -56,6 +57,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdListener;
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter;
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder;
@@ -189,18 +191,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			e.printStackTrace();
 		}
 
-		MenuItem now_playing = menu.findItem(R.id.now_playing);
-		now_playing.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-			@Override
-			public boolean onMenuItemClick(MenuItem menuItem) {
-				Intent intent = new Intent(getContext(), PlaybackUIActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				startActivity(intent);
-
-				return true;
-			}
-		});
-
 		MenuItem jump = menu.findItem(R.id.jump);
 		jump.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
@@ -274,20 +264,22 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			}
 		});
 
-		MenuItem playlist_view_settings = menu.findItem(R.id.playlist_view_settings);
-		playlist_view_settings.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+		MenuItem playlist_view_sort_mode = menu.findItem(R.id.playlist_view_sort_mode);
+		playlist_view_sort_mode.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
-				try {
-					togglePlaylistViewSettings(getActivity().findViewById(android.R.id.content));
+				if (menuItem.getActionView() != null)
+					menuItem.getActionView().performClick();
 
-					return true;
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				return false;
+				return true;
 			}
 		});
+		Spinner playlist_view_sort_mode_spinner = (Spinner) playlist_view_sort_mode.getActionView();
+		playlist_view_sort_mode_spinner.setBackground(null);
+		playlist_view_sort_mode_spinner.setGravity(Gravity.CENTER);
+		playlist_view_sort_mode_spinner.setDropDownVerticalOffset(AndroidEx.dpToPx(36));
+		playlist_view_sort_mode_spinner.setDropDownHorizontalOffset(AndroidEx.dpToPx(360));
+		createUISortMode(playlist_view_sort_mode_spinner);
 
 	}
 
@@ -716,12 +708,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	//region View
 
-	public class RecyclerViewAdapter
-			extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder>
-			implements ICustomAdapter {
-
-		private static final int ITEMS_PER_AD = 8;
-//		private AdListener lastAdListener = null;
+	public class RecyclerViewAdapter extends AbstractExpandableItemAdapter<GroupViewHolder, ViewHolder> implements ICustomAdapter {
 
 		private final List<Music> data;
 		private final List<Pair<String, List<Object>>> dataFiltered;
@@ -1160,18 +1147,16 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 		@Override
 		public boolean getInitialGroupExpandedState(int groupPosition) {
-			final UIGroupMode uiGroupMode = getUIGroupMode(getContext());
+			final PlaylistViewActivity.PlaylistViewTab playlistViewTab = PlaylistViewActivity.getPlaylistViewTab(getContext());
 
 			boolean r = true;
 
-			switch (uiGroupMode) {
-				case Album:
-				case Artist:
-				case Year:
-				case Genre:
+			switch (playlistViewTab) {
+				case Albums:
+				case Artists:
 					r = false;
 					break;
-				case Default:
+				default:
 					r = true;
 					break;
 			}
@@ -1493,8 +1478,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	}
 
 	private void createPlaylists(View v) {
-
-		UIGroup();
 
 		setFromPlaylist(-1L, Playlist.getActivePlaylist(getContext()));
 
@@ -1939,14 +1922,10 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				.apply();
 	}
 
-	private Spinner uiSortMode_spinner;
-
-	private void createUISortMode(View v) {
-		uiSortMode_spinner = (Spinner) v.findViewById(R.id.uiSortMode_spinner);
-
+	private void createUISortMode(final Spinner spinner) {
 		UISortMode[] items = UISortMode.values();
 
-		uiSortMode_spinner.setAdapter(new ArrayAdapter<UISortMode>(getContext(), 0, items) {
+		spinner.setAdapter(new ArrayAdapter<UISortMode>(getContext(), 0, items) {
 			@Override
 			public View getView(int position, View convertView, ViewGroup parent) {
 				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
@@ -1985,11 +1964,11 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		for (; i < items.length; i++)
 			if (items[i] == lastMode)
 				break;
-		uiSortMode_spinner.setSelection(i, true);
+		spinner.setSelection(i, true);
 
-		uiSortMode_spinner.post(new Runnable() {
+		spinner.post(new Runnable() {
 			public void run() {
-				uiSortMode_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+				spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 					@Override
 					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
 						setUISortMode(getContext(), (UISortMode) adapterView.getItemAtPosition(position));
@@ -2139,7 +2118,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	private Spinner uiGroupMode_spinner;
 
 	private void createUIGroupMode(View v) {
-		uiGroupMode_spinner = (Spinner) v.findViewById(R.id.uiGroupMode_spinner);
+		uiGroupMode_spinner = (Spinner) v.findViewById(R.id.playlist);
 
 		UIGroupMode[] items = UIGroupMode.values();
 
@@ -2205,10 +2184,10 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	public Map<String, List<Music>> UIGroup(List<Music> data) {
 		Map<String, List<Music>> result = new HashMap<>();
 
-		final UIGroupMode uiGroupMode = getUIGroupMode(getContext());
+		final PlaylistViewActivity.PlaylistViewTab playlistViewTab = PlaylistViewActivity.getPlaylistViewTab(getContext());
 
-		switch (uiGroupMode) {
-			case Album:
+		switch (playlistViewTab) {
+			case Albums:
 				for (Music d : data) {
 					String key = d.getAlbum();
 					if (TextUtils.isEmpty(key))
@@ -2224,7 +2203,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				}
 				result = new TreeMap<>(result);
 				break;
-			case Artist:
+			case Artists:
 				for (Music d : data) {
 					String key = d.getArtist();
 					if (TextUtils.isEmpty(key))
@@ -2240,6 +2219,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				}
 				result = new TreeMap<>(result);
 				break;
+				/*
 			case Genre:
 				for (Music d : data) {
 					String key = d.getGenre();
@@ -2288,227 +2268,13 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				result = new TreeMap<>(result);
 				break;
 			case Default:
+				*/
 			default:
 				result.put("*", data);
 				break;
 		}
 
 		return result;
-	}
-
-	//endregion
-
-	//region UI view mode
-
-	public enum UIViewMode {
-		Default("Default"),
-		Complex1("2 columns"),
-		Complex2("2, 1 columns"),
-		Complex3("3 columns"),;
-
-		private String friendlyName;
-
-		UIViewMode(String friendlyName) {
-			this.friendlyName = friendlyName;
-		}
-	}
-
-	public static final String TAG_SPREF_LIBRARY_UI_VIEW_MODE = SPrefEx.TAG_SPREF + ".library_ui_view_mode";
-
-	public static UIViewMode getUIViewMode(Context context) {
-		try {
-			return UIViewMode.valueOf(SPrefEx.get(context).getString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(UIViewMode.Default)));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return UIViewMode.Default;
-	}
-
-	public static void setUIViewMode(Context context, UIViewMode value) {
-		SPrefEx.get(context)
-				.edit()
-				.putString(TAG_SPREF_LIBRARY_UI_VIEW_MODE, String.valueOf(value))
-				.apply();
-	}
-
-	private Spinner uiViewMode_spinner;
-
-	private void createUIViewMode(View v) {
-		uiViewMode_spinner = (Spinner) v.findViewById(R.id.uiViewMode_spinner);
-
-		UIViewMode[] items = UIViewMode.values();
-
-		uiViewMode_spinner.setAdapter(new ArrayAdapter<UIViewMode>(getContext(), 0, items) {
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
-
-				text.setText("View: " + text.getText());
-
-				return text;
-			}
-
-			@Override
-			public View getDropDownView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) convertView;
-
-				if (text == null) {
-					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					text.setLayoutParams(lp);
-					text.setPadding(px, px, px, px);
-				}
-
-				text.setText(getItem(position).friendlyName);
-
-				return text;
-			}
-		});
-
-		int i = 0;
-		UIViewMode lastMode = getUIViewMode(getContext());
-		for (; i < items.length; i++)
-			if (items[i] == lastMode)
-				break;
-		uiViewMode_spinner.setSelection(i, true);
-
-		uiViewMode_spinner.post(new Runnable() {
-			public void run() {
-				uiViewMode_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-						setUIViewMode(getContext(), (UIViewMode) adapterView.getItemAtPosition(position));
-
-						UIGroup();
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
-	}
-
-	private final int SPANS = 6;
-
-	private void UIGroup() {
-		final UIViewMode uiViewMode = getUIViewMode(getContext());
-
-		switch (uiViewMode) {
-			case Complex1: {
-				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), SPANS) {
-					@Override
-					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-						try {
-							super.onLayoutChildren(recycler, state);
-						} catch (IndexOutOfBoundsException e) {
-							Log.w(TAG, e);
-						}
-					}
-				};
-				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-					@Override
-					public int getSpanSize(int position) {
-						if (RecyclerViewExpandableItemManager
-								.getPackedPositionChild(recyclerViewExpandableItemManager
-										.getExpandablePosition(position))
-								==
-								RecyclerView.NO_POSITION) {
-							// group item
-							return SPANS;
-						} else {
-							// child item
-							return SPANS / 2;
-						}
-					}
-				});
-				recyclerView.setLayoutManager(layoutManager);
-			}
-			break;
-			case Complex2: {
-				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), SPANS) {
-					@Override
-					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-						try {
-							super.onLayoutChildren(recycler, state);
-						} catch (IndexOutOfBoundsException e) {
-							Log.w(TAG, e);
-						}
-					}
-				};
-				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-					@Override
-					public int getSpanSize(int position) {
-						if (RecyclerViewExpandableItemManager
-								.getPackedPositionChild(recyclerViewExpandableItemManager
-										.getExpandablePosition(position))
-								==
-								RecyclerView.NO_POSITION) {
-							// group item
-							return SPANS;
-						} else {
-							// child item
-							if (position % 5 == 0)
-								return SPANS;
-							return SPANS / 2;
-						}
-					}
-				});
-				recyclerView.setLayoutManager(layoutManager);
-			}
-			break;
-			case Complex3: {
-				GridLayoutManager layoutManager = new GridLayoutManager(getContext(), SPANS) {
-					@Override
-					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-						try {
-							super.onLayoutChildren(recycler, state);
-						} catch (IndexOutOfBoundsException e) {
-							Log.w(TAG, e);
-						}
-					}
-				};
-				layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-					@Override
-					public int getSpanSize(int position) {
-						if (RecyclerViewExpandableItemManager
-								.getPackedPositionChild(recyclerViewExpandableItemManager
-										.getExpandablePosition(position))
-								==
-								RecyclerView.NO_POSITION) {
-							// group item
-							return SPANS;
-						} else {
-							// child item
-							return SPANS / 3;
-						}
-					}
-				});
-				recyclerView.setLayoutManager(layoutManager);
-			}
-			break;
-			case Default:
-			default:
-				recyclerView.setLayoutManager(new LinearLayoutManager(getContext()) {
-					@Override
-					public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-						try {
-							super.onLayoutChildren(recycler, state);
-						} catch (IndexOutOfBoundsException e) {
-							Log.w(TAG, e);
-						}
-					}
-				});
-				break;
-		}
 	}
 
 	//endregion
@@ -2548,7 +2314,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	private Spinner playlist_item_ui_style_spinner;
 
 	private void createPlaylistItemUIStyle(View v) {
-		playlist_item_ui_style_spinner = v.findViewById(R.id.playlist_item_ui_style_spinner);
+		playlist_item_ui_style_spinner = v.findViewById(R.id.playlist);
 
 		PlaylistItemUIStyle[] items = PlaylistItemUIStyle.values();
 
@@ -2613,29 +2379,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 
 	//endregion
 
-	private void togglePlaylistViewSettings(View ref) {
-		try {
-			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
-					.inflate(R.layout.playlist_view_settings, null);
-
-			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
-			builder.setView(v);
-
-			createUISortMode(v);
-			createUIGroupMode(v);
-			createUIViewMode(v);
-			createPlaylistItemUIStyle(v);
-
-			AlertDialog alert = builder.create();
-
-			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
-
-			alert.show();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	//endregion
 
 	public static PlaylistViewFragment create() {
@@ -2646,7 +2389,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	public static String[] ExportableSPrefKeys = new String[]{
 			TAG_SPREF_LIBRARY_UI_SORT_MODE,
 			TAG_SPREF_LIBRARY_UI_GROUP_MODE,
-			TAG_SPREF_LIBRARY_UI_VIEW_MODE,
 			TAG_SPREF_LIBRARY_UI_SORT_MODE
 	};
 
