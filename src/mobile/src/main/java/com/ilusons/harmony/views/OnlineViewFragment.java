@@ -10,10 +10,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -30,12 +29,12 @@ import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIFragment;
 import com.ilusons.harmony.base.MusicService;
+import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
@@ -51,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Observable;
 
 import de.umass.lastfm.Track;
 import io.reactivex.ObservableSource;
@@ -61,10 +59,9 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import io.realm.Realm;
 import me.everything.android.ui.overscroll.VerticalOverScrollBounceEffectDecorator;
 import me.everything.android.ui.overscroll.adapters.RecyclerViewOverScrollDecorAdapter;
-
-import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 public class OnlineViewFragment extends BaseUIFragment {
 
@@ -100,14 +97,14 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 		loading.smoothToHide();
 
-		v.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				searchDefaultTracks();
-			}
-		}, 100);
-
 		return v;
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+
+		searchDefaultTracks();
 	}
 
 	private SearchView searchView;
@@ -166,21 +163,6 @@ public class OnlineViewFragment extends BaseUIFragment {
 			}
 		});
 
-		MenuItem downloads = menu.findItem(R.id.downloads);
-		downloads.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-			@Override
-			public boolean onMenuItemClick(MenuItem menuItem) {
-				try {
-					toggleDownloads();
-
-					return true;
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				return false;
-			}
-		});
-
 		MenuItem refresh = menu.findItem(R.id.refresh);
 		refresh.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
@@ -196,16 +178,43 @@ public class OnlineViewFragment extends BaseUIFragment {
 			}
 		});
 
-		MenuItem my_recommendations = menu.findItem(R.id.my_recommendations);
-		my_recommendations.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+		MenuItem save = menu.findItem(R.id.save);
+		save.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
-					searchRecommendations();
+					final Collection<Music> items = adapter.getAll(Music.class);
+
+					// Save
+					try (Realm realm = Music.getDB()) {
+						if (realm != null) {
+							realm.executeTransaction(new Realm.Transaction() {
+								@Override
+								public void execute(@NonNull Realm realm) {
+									realm.insertOrUpdate(items);
+								}
+							});
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					// Start scan
+					try {
+						Intent musicServiceIntent = new Intent(getContext(), MusicService.class);
+						musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
+						getContext().startService(musicServiceIntent);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					info("Saved and re-scan has been started!");
 
 					return true;
 				} catch (Exception e) {
 					e.printStackTrace();
+
+					info("Failed!");
 				}
 				return false;
 			}
@@ -311,7 +320,9 @@ public class OnlineViewFragment extends BaseUIFragment {
 		VerticalOverScrollBounceEffectDecorator overScroll = new VerticalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
 	}
 
-	private void searchTracks(String query) {
+	private Disposable disposable_search_online = null;
+
+	public void searchTracks(String query) {
 		if (TextUtils.isEmpty(query)) {
 			searchDefaultTracks();
 			return;
@@ -333,6 +344,15 @@ public class OnlineViewFragment extends BaseUIFragment {
 					.subscribe(new Observer<Collection<Music>>() {
 						@Override
 						public void onSubscribe(Disposable d) {
+							try {
+								if (disposable_search_online != null && !disposable_search_online.isDisposed()) {
+									disposable_search_online.dispose();
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							disposable_search_online = d;
+
 							loading.smoothToShow();
 						}
 
@@ -370,7 +390,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 	private static final String TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS = ".online_last_default_scan_ts";
 	private static final long ONLINE_DEFAULT_SCAN_INTERVAL = 23 * 60 * 60 * 1000;
 
-	private void searchDefaultTracks() {
+	public void searchDefaultTracks() {
 		try {
 			final Context context = getContext();
 
@@ -402,6 +422,14 @@ public class OnlineViewFragment extends BaseUIFragment {
 				Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
 					@Override
 					public void onSubscribe(Disposable d) {
+						try {
+							if (disposable_search_online != null && !disposable_search_online.isDisposed()) {
+								disposable_search_online.dispose();
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						disposable_search_online = d;
 					}
 
 					@Override
@@ -479,7 +507,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 		}
 	}
 
-	private void searchRecommendations() {
+	public void searchRecommendations() {
 		final int N = 16;
 		final Context context = getContext();
 
@@ -493,6 +521,14 @@ public class OnlineViewFragment extends BaseUIFragment {
 			Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
 				@Override
 				public void onSubscribe(Disposable d) {
+					try {
+						if (disposable_search_online != null && !disposable_search_online.isDisposed()) {
+							disposable_search_online.dispose();
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					disposable_search_online = d;
 				}
 
 				@Override
@@ -934,167 +970,6 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 	public CharSequence getSearchQuery() {
 		return searchView != null ? searchView.getQuery() : "";
-	}
-
-	//endregion
-
-	//region Downloads
-
-	private void toggleDownloads() {
-		try {
-			if (getMusicService() == null) {
-				info("IO service is not running!");
-				return;
-			}
-
-			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
-					.inflate(R.layout.online_view_downloads, null);
-
-			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
-			builder.setView(v);
-
-			createDownloads(v);
-
-			AlertDialog alert = builder.create();
-
-			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
-
-			alert.show();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private DownloadsRecyclerViewAdapter downloadsRecyclerViewAdapter;
-
-	private Runnable downloadsUpdater;
-
-	private void createDownloads(final View v) {
-		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
-		recyclerView.setHasFixedSize(true);
-		recyclerView.setItemViewCacheSize(1);
-		recyclerView.setDrawingCacheEnabled(true);
-		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
-
-		downloadsRecyclerViewAdapter = new DownloadsRecyclerViewAdapter();
-		recyclerView.setAdapter(downloadsRecyclerViewAdapter);
-
-		downloadsUpdater = new Runnable() {
-			@Override
-			public void run() {
-				downloadsRecyclerViewAdapter.refresh();
-
-				if (downloadsUpdater != null)
-					v.postDelayed(downloadsUpdater, 2500);
-			}
-		};
-		v.postDelayed(downloadsUpdater, 500);
-
-	}
-
-	public class DownloadsRecyclerViewAdapter extends RecyclerView.Adapter<DownloadsRecyclerViewAdapter.ViewHolder> {
-
-		private final ArrayList<MusicService.AudioDownload> data;
-
-		public DownloadsRecyclerViewAdapter() {
-			data = new ArrayList<>();
-		}
-
-		@Override
-		public int getItemCount() {
-			return data.size();
-		}
-
-		@Override
-		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
-			View view = inflater.inflate(R.layout.online_view_downloads_item, parent, false);
-
-			return new ViewHolder(view);
-		}
-
-		@Override
-		public void onBindViewHolder(final ViewHolder holder, int position) {
-			final MusicService.AudioDownload d = data.get(position);
-			final View v = holder.view;
-
-			holder.progress.setIndeterminate(true);
-			holder.text.setText(d.Music.getText());
-			if (d.Download != null) {
-				holder.progress.setIndeterminate(false);
-				holder.progress.setProgress(d.Download.getProgress());
-				holder.info.setText((new StringBuilder())
-						.append(d.Download.getStatus())
-						.append(" ")
-						.append(d.Download.getProgress())
-						.append("%")
-						.toString());
-			} else {
-				holder.info.setText(R.string.waiting);
-			}
-			holder.stop.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					if (getMusicService() == null)
-						return;
-
-					if (d.Download == null)
-						return;
-
-					getMusicService().cancelDownload(d.Download.getId());
-				}
-			});
-
-			v.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					try {
-						if (d.Download.getProgress() == 100)
-							getMusicService().open(d.Music);
-						else
-							info("Not completed yet!");
-					} catch (Exception e) {
-						e.printStackTrace();
-
-						info("Try again!");
-					}
-				}
-			});
-
-		}
-
-		public class ViewHolder extends RecyclerView.ViewHolder {
-			public View view;
-
-			public ProgressBar progress;
-			public TextView text;
-			public TextView info;
-			public ImageView stop;
-
-			public ViewHolder(View v) {
-				super(v);
-
-				view = v;
-
-				progress = v.findViewById(R.id.progress);
-				text = v.findViewById(R.id.text);
-				info = v.findViewById(R.id.info);
-				stop = v.findViewById(R.id.stop);
-			}
-		}
-
-		public void refresh() {
-			if (getMusicService() == null)
-				return;
-
-			data.clear();
-
-			data.addAll(getMusicService().getAudioDownloads());
-
-			notifyDataSetChanged();
-		}
-
 	}
 
 	//endregion

@@ -69,15 +69,17 @@
     <string name="more">More</string>
     <string name="now_playing">Now playing</string>
     <string name="playlist">Playlist</string>
+    <string name="online">Online</string>
     <string name="playlist_settings">Playlist settings</string>
-    <string name="playlist_view_settings">View settings</string>
+    <string name="playlist_view_sort_mode">Sorting mode</string>
     <string name="jump_to_current_item">Jump</string>
     <string name="tune">Tune</string>
     <string name="timer">Timer</string>
     <string name="refresh">Refresh</string>
     <string name="downloads">Downloads</string>
-    <string name="waiting">Waiting ...</string>
+    <string name="waiting">Waiting …</string>
     <string name="network_unavailable">Network un-available!</string>
+    <string name="save">Save</string>
     <string name="save_as_smart_playlist">Save as smart playlist</string>
     <string name="my_recommendations">My recommendations</string>
 

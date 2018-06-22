@@ -1590,6 +1590,10 @@ public class Music extends RealmObject {
 		return getAllSorted(count, "TimeLastPlayed", Sort.DESCENDING);
 	}
 
+	public static List<Music> getAllSortedByTimeAdded(int count) {
+		return getAllSorted(count, "TimeAdded", Sort.DESCENDING);
+	}
+
 	//endregion
 
 }

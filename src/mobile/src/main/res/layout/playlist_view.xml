@@ -19,7 +19,6 @@
         android:animationCache="true"
         android:clipToPadding="false"
         android:nestedScrollingEnabled="true"
-        android:paddingBottom="128dp"
         android:scrollbars="none"
         res:layout_constraintBottom_toBottomOf="parent"
         res:layout_constraintLeft_toLeftOf="parent"

@@ -2544,7 +2544,6 @@ public class MusicService extends Service {
 						NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 						if (notificationManager != null) {
 							NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_DOWNLOAD, StringUtils.capitalize(NOTIFICATION_CHANNEL_DOWNLOAD), NotificationManager.IMPORTANCE_DEFAULT);
-							notificationChannel.setBypassDnd(true);
 							notificationChannel.setSound(null, null);
 
 							notificationManager.createNotificationChannel(notificationChannel);
@@ -2559,23 +2558,23 @@ public class MusicService extends Service {
 
 				nb = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_DOWNLOAD)
 						.setContentTitle("Downloading ...")
-						.setContentText("Downloading ...")
+						.setContentText(Music.getText())
 						.setSmallIcon(R.drawable.ic_cloud_download)
-						.setOngoing(true)
+						.setOngoing(false)
 						.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", cancelPendingIntent)
 						.setProgress(100, 0, true);
 
 				NotificationManagerCompat.from(context).notify(Id, nb.build());
 			}
 
-			if (Download != null && ((Download.getProgress() == 100 && Download.getError() == Error.NONE) || (Download.getError() != Error.NONE))) {
+			if (Download != null && ((Download.getProgress() == 100 && Download.getError() == Error.NONE) /*|| (Download.getError() != Error.NONE)*/)) {
 				if (nb == null)
 					return;
 
 				NotificationManagerCompat.from(context).cancel(Id);
 
 				nb = null;
-			} else {
+			} else if (Download != null) {
 				nb.setContentText(Download.getProgress() + "% " + Music.getText() + " ...");
 
 				NotificationManagerCompat.from(context).notify(Id, nb.build());
@@ -2738,7 +2737,7 @@ public class MusicService extends Service {
 					.setDownloader(new HttpUrlConnectionDownloader(httpUrlConnectionPreferences))
 					.setDownloadConcurrentLimit(2)
 					.setGlobalNetworkType(NetworkType.ALL)
-					.setProgressReportingInterval(1111)
+					.setProgressReportingInterval(500)
 					.setLogger(new Logger() {
 						@Override
 						public boolean getEnabled() {

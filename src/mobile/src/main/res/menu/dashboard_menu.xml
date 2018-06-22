@@ -10,6 +10,13 @@
         />
 
     <item
+        android:id="@+id/online"
+        android:icon="@drawable/ic_cloud_search"
+        android:title="@string/playlist"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
         android:id="@+id/playlist"
         android:icon="@drawable/ic_music_playlist"
         android:title="@string/playlist"

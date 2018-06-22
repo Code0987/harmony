@@ -13,6 +13,7 @@ import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.cache.DefaultBitmapMemoryCacheParamsSupplier;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.imagepipeline.memory.PoolFactory;
+import com.google.android.gms.ads.MobileAds;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
@@ -110,8 +111,7 @@ public class App extends Application {
 		}
 
 		// Ads
-		// TODO: Ads later
-		// MobileAds.initialize(this, BuildConfig.AD_PUB_ID);
+		MobileAds.initialize(this, BuildConfig.AD_PUB_ID);
 
 	}
 

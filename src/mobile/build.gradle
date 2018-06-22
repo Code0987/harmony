@@ -153,7 +153,6 @@ dependencies {
 	androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
 		exclude group: 'com.android.support', module: 'support-annotations'
 	})
-	// TODO: Later ? wearApp project(':wear')
 	implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6'
 	//noinspection GradleCompatible
 	implementation 'com.android.support:appcompat-v7:27.1.1'
@@ -207,6 +206,7 @@ dependencies {
 	implementation('com.github.evgenyneu:js-evaluator-for-android:v1.0.7') {
 		exclude module: 'appcompat-v7'
 	}
+	implementation 'com.google.android.gms:play-services-ads:15.0.0'
 	implementation 'com.google.apis:google-api-services-youtube:v3-rev189-1.23.0'
 	implementation "com.tonyodev.fetch2:fetch2:2.0.0-RC8"
 	implementation "com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC8"
