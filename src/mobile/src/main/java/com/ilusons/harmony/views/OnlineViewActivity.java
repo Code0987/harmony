@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIActivity;
+import com.ilusons.harmony.base.DrawerArrow;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -47,6 +48,7 @@ public class OnlineViewActivity extends BaseUIActivity {
 		getSupportActionBar().setTitle(null);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setHomeButtonEnabled(true);
+		getSupportActionBar().setHomeAsUpIndicator(new DrawerArrow(this, getSupportActionBar().getThemedContext()));
 
 		// Set views
 		root = findViewById(R.id.root);

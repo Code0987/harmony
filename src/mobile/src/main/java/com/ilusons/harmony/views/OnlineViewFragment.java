@@ -611,41 +611,17 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 		private final OnlineViewFragment fragment;
 
-		private final PlaylistViewFragment.PlaylistItemUIStyle style;
-
 		private ArrayList<Object> data;
 
 		public RecyclerViewAdapter(OnlineViewFragment fragment) {
 			this.fragment = fragment;
-
-			style = PlaylistViewFragment.getPlaylistItemUIStyle(fragment.getContext());
 
 			data = new ArrayList<>();
 		}
 
 		@Override
 		public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			int layoutId = -1;
-			switch (style) {
-				case Card1:
-					layoutId = R.layout.playlist_view_item_card1;
-					break;
-
-				case Card2:
-					layoutId = R.layout.playlist_view_item_card2;
-					break;
-
-				case Simple:
-					layoutId = R.layout.playlist_view_item_simple;
-					break;
-
-				case Default:
-				default:
-					layoutId = R.layout.playlist_view_item_default;
-					break;
-			}
-
-			View v = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
+			View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.playlist_view_item_default, parent, false);
 
 			return new ViewHolder(fragment, v);
 		}
