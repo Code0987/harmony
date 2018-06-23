@@ -50,6 +50,7 @@ import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
+import com.ilusons.harmony.base.DrawerArrow;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
@@ -128,6 +129,7 @@ public class DashboardActivity extends BaseUIActivity {
 		getSupportActionBar().setTitle(null);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setHomeButtonEnabled(true);
+		getSupportActionBar().setHomeAsUpIndicator(new com.ilusons.harmony.base.DrawerArrow(this, getSupportActionBar().getThemedContext()));
 
 		drawer_layout = findViewById(R.id.drawer_layout);
 		drawer_layout.closeDrawer(GravityCompat.START);
@@ -585,38 +587,6 @@ public class DashboardActivity extends BaseUIActivity {
 
 	}
 
-	public static class DrawerArrow {
-		public static class DrawerArrowDrawableToggle extends DrawerArrowDrawable {
-			private final Activity activity;
-
-			public DrawerArrowDrawableToggle(Activity activity, Context themedContext) {
-				super(themedContext);
-
-				this.activity = activity;
-
-				setBarThickness(AndroidEx.dpToPx(1) / 2);
-				setArrowShaftLength(AndroidEx.dpToPx(18));
-				setArrowHeadLength(AndroidEx.dpToPx(6));
-				setBarLength(AndroidEx.dpToPx(18));
-				setGapSize(AndroidEx.dpToPx(4));
-			}
-
-			public void setPosition(float position) {
-				if (position == 1f) {
-					setVerticalMirror(true);
-				} else if (position == 0f) {
-					setVerticalMirror(false);
-				}
-				setProgress(position);
-			}
-
-			public float getPosition() {
-				return getProgress();
-			}
-		}
-
-	}
-
 	//endregion
 
 	//region Playback
@@ -942,7 +912,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 				try {
 					for (Music music : Music.getAllSortedByTimeLastPlayed(1)) {
-						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 3));
+						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 6));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

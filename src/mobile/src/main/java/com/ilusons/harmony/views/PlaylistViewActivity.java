@@ -1,10 +1,13 @@
 package com.ilusons.harmony.views;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -16,6 +19,7 @@ import android.view.WindowManager;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIActivity;
+import com.ilusons.harmony.base.DrawerArrow;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -49,6 +53,7 @@ public class PlaylistViewActivity extends BaseUIActivity {
 		getSupportActionBar().setTitle(null);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setHomeButtonEnabled(true);
+		getSupportActionBar().setHomeAsUpIndicator(new DrawerArrow(this, getSupportActionBar().getThemedContext()));
 
 		// Set views
 		root = findViewById(R.id.root);
@@ -57,9 +62,6 @@ public class PlaylistViewActivity extends BaseUIActivity {
 
 		// Tabs
 		createTabs();
-
-		// Playlist
-		createPlaylist();
 
 		loading.smoothToHide();
 	}
@@ -184,11 +186,14 @@ public class PlaylistViewActivity extends BaseUIActivity {
 
 	private TabLayout tab_layout;
 
+	private PlaylistViewFragment playlistViewFragment;
+
 	private void createTabs() {
 		tab_layout = findViewById(R.id.tab_layout);
 
-		for (PlaylistViewTab tab : PlaylistViewTab.values())
+		for (PlaylistViewTab tab : PlaylistViewTab.values()) {
 			tab_layout.addTab(tab_layout.newTab().setText(tab.friendlyName).setTag(tab));
+		}
 
 		/*
 		final int icon_color = ContextCompat.getColor(this, R.color.icons);
@@ -203,16 +208,13 @@ public class PlaylistViewActivity extends BaseUIActivity {
 		}
 		*/
 
-	}
-
-	//endregion
-
-	//region Playlist
-
-	private PlaylistViewFragment playlistViewFragment;
-
-	private void createPlaylist() {
 		playlistViewFragment = PlaylistViewFragment.create();
+
+		playlistViewFragment.setPlaylistViewTab(getPlaylistViewTab(this));
+
+		getSupportFragmentManager().beginTransaction()
+				.replace(R.id.playlist_layout, playlistViewFragment)
+				.commit();
 
 		tab_layout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
 			@Override
@@ -223,23 +225,12 @@ public class PlaylistViewActivity extends BaseUIActivity {
 
 				setPlaylistViewTab(PlaylistViewActivity.this, playlistViewTab);
 
-				switch (playlistViewTab) {
-					case Tracks:
-						getSupportFragmentManager().beginTransaction()
-								.replace(R.id.playlist_layout, playlistViewFragment)
-								.commit();
-						break;
-					case Artists:
-						getSupportFragmentManager().beginTransaction()
-								.replace(R.id.playlist_layout, playlistViewFragment)
-								.commit();
-						break;
-					case Albums:
-						getSupportFragmentManager().beginTransaction()
-								.replace(R.id.playlist_layout, playlistViewFragment)
-								.commit();
-						break;
-				}
+				playlistViewFragment.setPlaylistViewTab(playlistViewTab);
+
+				getSupportFragmentManager().beginTransaction()
+						.detach(playlistViewFragment)
+						.attach(playlistViewFragment)
+						.commit();
 			}
 
 			@Override
