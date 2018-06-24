@@ -381,55 +381,6 @@
 
             </ScrollView>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:descendantFocusability="beforeDescendants"
-                android:focusableInTouchMode="true"
-                android:orientation="vertical"
-                android:tag="UI"
-                >
-
-                <TextView
-                    android:id="@+id/playbackUIStyle_textView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="Playback UI Style"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    />
-
-                <Spinner
-                    android:id="@+id/playbackUIStyle_spinner"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/playbackUIStyle_textView"
-                    />
-
-                <TextView
-                    android:id="@+id/avfxtype_textView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="Audio visualization type"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/playbackUIStyle_spinner"
-                    />
-
-                <Spinner
-                    android:id="@+id/avfxtype_spinner"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/avfxtype_textView"
-                    />
-
-            </LinearLayout>
-
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

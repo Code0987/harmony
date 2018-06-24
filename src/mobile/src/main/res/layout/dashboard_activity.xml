@@ -31,7 +31,7 @@
         <com.scwang.wave.MultiWaveHeader
             android:id="@+id/wave"
             android:layout_width="match_parent"
-            android:layout_height="142dp"
+            android:layout_height="164dp"
             android:layout_alignParentBottom="true"
             android:scaleY="-1"
             app:layout_constraintBottom_toBottomOf="parent"

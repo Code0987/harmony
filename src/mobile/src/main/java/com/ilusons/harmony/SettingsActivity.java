@@ -296,9 +296,6 @@ public class SettingsActivity extends BaseActivity {
 		TabLayout tabs = (TabLayout) findViewById(R.id.tabs);
 		tabs.setupWithViewPager(viewPager);
 
-		// UI section
-		onCreateBindUISection();
-
 		// Library section
 		onCreateBindLibrarySection();
 
@@ -486,155 +483,6 @@ public class SettingsActivity extends BaseActivity {
 				.show();
 	}
 
-	//region UI section
-
-	private void onCreateBindUISection() {
-
-		createPlaybackUIStyle();
-		createAVFXType();
-
-	}
-
-	//region PlaybackUI style
-
-	private Spinner playbackUIStyle_spinner;
-
-	private void createPlaybackUIStyle() {
-		playbackUIStyle_spinner = (Spinner) findViewById(R.id.playbackUIStyle_spinner);
-
-		PlaybackUIActivity.PlaybackUIStyle[] items = PlaybackUIActivity.PlaybackUIStyle.values();
-
-		playbackUIStyle_spinner.setAdapter(new ArrayAdapter<PlaybackUIActivity.PlaybackUIStyle>(this, 0, items) {
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
-
-				text.setText(text.getText());
-
-				return text;
-			}
-
-			@Override
-			public View getDropDownView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) convertView;
-
-				if (text == null) {
-					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					text.setLayoutParams(lp);
-					text.setPadding(px, px, px, px);
-				}
-
-				text.setText(getItem(position).friendlyName);
-
-				return text;
-			}
-		});
-
-		int i = 0;
-		PlaybackUIActivity.PlaybackUIStyle lastMode = PlaybackUIActivity.getPlaybackUIStyle(this);
-		for (; i < items.length; i++)
-			if (items[i] == lastMode)
-				break;
-		playbackUIStyle_spinner.setSelection(i, true);
-
-		playbackUIStyle_spinner.post(new Runnable() {
-			public void run() {
-				playbackUIStyle_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-						PlaybackUIActivity.setPlaybackUIStyle(getApplicationContext(), (PlaybackUIActivity.PlaybackUIStyle) adapterView.getItemAtPosition(position));
-
-						info(getString(R.string.will_apply_after_restart));
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
-	}
-
-	//endregion
-
-	//region AVFXType
-
-	private Spinner avfxtype_spinner;
-
-	private void createAVFXType() {
-		avfxtype_spinner = (Spinner) findViewById(R.id.avfxtype_spinner);
-
-		AudioVFXViewFragment.AVFXType[] items = AudioVFXViewFragment.AVFXType.values();
-
-		avfxtype_spinner.setAdapter(new ArrayAdapter<AudioVFXViewFragment.AVFXType>(this, 0, items) {
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
-
-				text.setText(text.getText());
-
-				return text;
-			}
-
-			@Override
-			public View getDropDownView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) convertView;
-
-				if (text == null) {
-					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					text.setLayoutParams(lp);
-					text.setPadding(px, px, px, px);
-				}
-
-				text.setText(getItem(position).friendlyName);
-
-				return text;
-			}
-		});
-
-		int i = 0;
-		AudioVFXViewFragment.AVFXType lastMode = AudioVFXViewFragment.getAVFXType(this);
-		for (; i < items.length; i++)
-			if (items[i] == lastMode)
-				break;
-		avfxtype_spinner.setSelection(i, true);
-
-		avfxtype_spinner.post(new Runnable() {
-			public void run() {
-				avfxtype_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-						AudioVFXViewFragment.setAVFXType(getApplicationContext(), (AudioVFXViewFragment.AVFXType) adapterView.getItemAtPosition(position));
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
-	}
-
-	//endregion
-
-	//endregion
-
 	//region Library section
 
 	public static final String TAG_BehaviourForAddScanLocationOnEmptyLibrary = TAG + "_BehaviourForAddScanLocationOnEmptyLibrary";
@@ -802,7 +650,7 @@ public class SettingsActivity extends BaseActivity {
 					behaviourForAddScanLocationOnEmptyLibrary = getIntent().getBooleanExtra(TAG_BehaviourForAddScanLocationOnEmptyLibrary, false);
 
 					if (behaviourForAddScanLocationOnEmptyLibrary) {
-						viewPager.setCurrentItem(3, true);
+						viewPager.setCurrentItem(2, true);
 						findViewById(R.id.scan_locations_imageButton).performClick();
 					}
 				} catch (Exception e) {

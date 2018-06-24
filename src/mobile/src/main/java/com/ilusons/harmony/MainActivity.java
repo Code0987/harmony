@@ -153,26 +153,6 @@ public class MainActivity extends BaseActivity {
 		context.startActivity(getDashboardActivityIntent(context));
 	}
 
-	public static synchronized Intent getPlaylistViewActivityIntent(final Context context) {
-		Intent intent = null;
-
-		if (!Once.beenDone(Once.THIS_APP_INSTALL, IntroActivity.TAG)) {
-			intent = new Intent(context, IntroActivity.class);
-
-			Once.markDone(IntroActivity.TAG);
-		} else {
-			intent = new Intent(context, PlaylistViewActivity.class);
-		}
-
-		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-		return intent;
-	}
-
-	public static synchronized void openPlaylistViewActivity(final Context context) {
-		context.startActivity(getPlaylistViewActivityIntent(context));
-	}
-	
 	public static synchronized Intent getPlaybackUIActivityIntent(final Context context) {
 		Intent intent = new Intent(context, PlaybackUIActivity.class);
 

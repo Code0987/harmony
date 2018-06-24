@@ -67,6 +67,8 @@
 
 -keep class at.huber.youtubeExtractor.**
 
+-keep class jp.co.recruit_lifestyle.**
+
 # Needed by google-api-client to keep generic types and @Key annotations accessed via reflection
 -keepclassmembers class * {
   @com.google.api.client.util.Key <fields>;
@@ -141,7 +143,12 @@
 -keep class com.squareup.okhttp.** { *; }
 -keep interface com.squareup.okhttp.** { *; }
 -dontwarn com.squareup.okhttp.**
-
+-dontwarn okhttp3.internal.platform.*
+-dontwarn okhttp3.**
+-dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+# A resource is loaded with a relative path so the package of this class must be preserved.
+-keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
 
 # Okio
 -keep class sun.misc.Unsafe { *; }

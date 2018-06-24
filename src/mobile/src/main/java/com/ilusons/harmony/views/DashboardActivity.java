@@ -603,6 +603,13 @@ public class DashboardActivity extends BaseUIActivity {
 		title = findViewById(R.id.title);
 		info = findViewById(R.id.info);
 
+		cover.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				MainActivity.openPlaybackUIActivity(DashboardActivity.this);
+			}
+		});
+
 		play_pause_stop = findViewById(R.id.play_pause_stop);
 
 		play_pause_stop.setOnClickListener(new View.OnClickListener() {
@@ -1004,6 +1011,8 @@ public class DashboardActivity extends BaseUIActivity {
 		loading_view_recent.smoothToShow();
 
 		try {
+			adapter_recent.clear();
+
 			ArrayList<Music> items = new ArrayList<>();
 
 			items.addAll(Music.getAllSortedByTimeLastPlayed(6));

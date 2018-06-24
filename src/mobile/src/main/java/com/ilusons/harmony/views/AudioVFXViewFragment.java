@@ -377,7 +377,6 @@ public class AudioVFXViewFragment extends Fragment {
 			this.musicService = musicService;
 
 			root.removeAllViews();
-			root.setBackground(null);
 
 			if (waveformGLView != null) {
 				waveformGLView = null;
@@ -445,7 +444,6 @@ public class AudioVFXViewFragment extends Fragment {
 					root.addView(particles);
 
 					fftCanvasView = particles;
-					root.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.lomo));
 					break;
 
 				case Circles:
@@ -454,7 +452,6 @@ public class AudioVFXViewFragment extends Fragment {
 					root.addView(circles);
 
 					fftCanvasView = circles;
-					root.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.lomo));
 					break;
 
 				case CircleDots:
@@ -473,7 +470,6 @@ public class AudioVFXViewFragment extends Fragment {
 					root.addView(dots);
 
 					fftCanvasView = dots;
-					root.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.lomo));
 					break;
 
 				case CircleBars:
@@ -484,7 +480,6 @@ public class AudioVFXViewFragment extends Fragment {
 					root.addView(circleBarsView);
 
 					waveformCanvasView = circleBarsView;
-					root.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.lomo));
 					break;
 
 				case Waves:
@@ -595,19 +590,6 @@ public class AudioVFXViewFragment extends Fragment {
 		}
 
 		return getAVFXType(context);
-	}
-
-	public static final String TAG_SPREF_AVFXTYPE_ENABLED = SPrefEx.TAG_SPREF + ".avfx_enabled";
-
-	public static boolean getAVFXEnabled(Context context) {
-		return SPrefEx.get(context).getBoolean(TAG_SPREF_AVFXTYPE_ENABLED, true);
-	}
-
-	public static void setAVFXEnabled(Context context, boolean value) {
-		SPrefEx.get(context)
-				.edit()
-				.putBoolean(TAG_SPREF_AVFXTYPE_ENABLED, value)
-				.apply();
 	}
 
 	public class WaveDbmHandler extends DbmHandler<byte[]> {

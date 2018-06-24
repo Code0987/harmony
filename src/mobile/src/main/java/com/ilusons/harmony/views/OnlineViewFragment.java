@@ -388,7 +388,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 	}
 
 	private static final String TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS = ".online_last_default_scan_ts";
-	private static final long ONLINE_DEFAULT_SCAN_INTERVAL = 23 * 60 * 60 * 1000;
+	private static final long ONLINE_DEFAULT_SCAN_INTERVAL = 24 * 60 * 60 * 1000;
 
 	public void searchDefaultTracks() {
 		try {
@@ -411,6 +411,12 @@ public class OnlineViewFragment extends BaseUIFragment {
 			}
 
 			updateRequired &= AndroidEx.isNetworkAvailable(context);
+
+			try {
+				SPrefEx.get(context).edit().putLong(TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS, System.currentTimeMillis()).apply();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			if (updateRequired) {
 				loading.smoothToShow();
@@ -454,29 +460,12 @@ public class OnlineViewFragment extends BaseUIFragment {
 					public void onComplete() {
 						loading.smoothToHide();
 
-						try {
-							SPrefEx.get(context).edit().putLong(TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS, System.currentTimeMillis()).apply();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-
 						info("New tracks are available now! More tracks tomorrow :)");
 					}
 				};
 
 				ArrayList<io.reactivex.Observable<Collection<Track>>> observables = new ArrayList<>();
 
-				try {
-					List<Music> topLocalTracks = new ArrayList<>();
-					topLocalTracks.addAll(Music.getAllSortedByTimeLastPlayed(11));
-					Collections.shuffle(topLocalTracks);
-					topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 4));
-					for (Music music : topLocalTracks) {
-						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 16));
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
 				try {
 					observables.add(Analytics.getTopTracksForLastfm(getContext()));
 					observables.add(Analytics.getInstance().getTopTracksForLastfmForApp());

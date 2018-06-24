@@ -12,6 +12,13 @@
         />
 
     <item
+        android:id="@+id/now_playing"
+        android:icon="@drawable/ic_music_note_multiple"
+        android:title="@string/now_playing"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
         android:id="@+id/overflow"
         android:icon="@drawable/ic_more_vertical"
         android:orderInCategory="101"
@@ -57,9 +64,8 @@
 
                 <item
                     android:id="@+id/playlist_view_sort_mode"
-                    android:icon="@drawable/ic_sort_down"
+                    android:icon="@drawable/ic_music_playlist"
                     android:title="@string/playlist_view_sort_mode"
-                    app:actionViewClass="android.widget.Spinner"
                     app:showAsAction="ifRoom"
                     />
 
