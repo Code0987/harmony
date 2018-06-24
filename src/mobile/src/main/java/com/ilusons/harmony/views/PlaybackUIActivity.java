@@ -10,13 +10,11 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.media.Image;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -51,9 +49,9 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.ImageEx;
-import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.ui.CircleIndicator;
+import com.scwang.wave.MultiWaveHeader;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +63,6 @@ import org.musicbrainz.android.api.data.ReleaseInfo;
 import org.musicbrainz.android.api.data.Tag;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -117,25 +114,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		}
 
 		// Set view
-		int layoutId = -1;
-		switch (getPlaybackUIStyle(this)) {
-			case P2:
-				layoutId = R.layout.playback_ui_p2_activity;
-				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-				break;
-
-			case P3:
-				layoutId = R.layout.playback_ui_p3_activity;
-				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-				break;
-
-			case P1:
-			default:
-				layoutId = R.layout.playback_ui_p1_activity;
-				setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-				break;
-		}
-		setContentView(layoutId);
+		setContentView(R.layout.playback_ui_activity);
 
 		// Hacks
 		applyHacksToUI();
@@ -154,6 +133,22 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		createAVFX();
 
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+
+		if (viewPager != null)
+			viewPager.addOnPageChangeListener(onPageChangeListener);
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+
+		if (viewPager != null)
+			viewPager.removeOnPageChangeListener(onPageChangeListener);
 	}
 
 	@Override
@@ -233,6 +228,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		if (video != null && video.getVisibility() == View.VISIBLE)
 			video.start();
+
+		wave.start();
 	}
 
 	@Override
@@ -254,6 +251,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		if (video != null && video.getVisibility() == View.VISIBLE)
 			video.pause();
+
+		wave.stop();
 	}
 
 	@Override
@@ -266,6 +265,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			video.stopPlayback();
 			video.setVisibility(View.INVISIBLE);
 		}
+
+		wave.stop();
 	}
 
 	@Override
@@ -461,13 +462,12 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		}
 
 		if (!(root.getBackground() == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)) {
-			root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 180)));
+			root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
 			if (bg != null)
 				try {
 					Blurry.with(this)
-							.radius(25)
-							.sampling(1)
-							.color(ColorUtils.setAlphaComponent(color, 120))
+							.radius(21)
+							.sampling(3)
 							.animate(763)
 							.async()
 							.from(bitmap)
@@ -480,37 +480,20 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				bg.setImageDrawable(null);
 		}
 
-		switch (getPlaybackUIStyle(this)) {
-			case P2:
-				Blurry.with(this)
-						.radius(25)
-						.sampling(1)
-						.color(ColorUtils.setAlphaComponent(color, 120))
-						.async()
-						.animate(763)
-						.from(bitmap)
-						.into(cover);
-				break;
+		wave.setStartColor(color);
 
-			case P3:
-				cover.setImageBitmap(bitmap);
-				break;
+		if (cover.getDrawable() != null) {
+			TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+					cover.getDrawable(),
+					new BitmapDrawable(getResources(), bitmap)
+			});
 
-			default:
-				if (cover.getDrawable() != null) {
-					TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-							cover.getDrawable(),
-							new BitmapDrawable(getResources(), bitmap)
-					});
+			cover.setImageDrawable(d);
 
-					cover.setImageDrawable(d);
-
-					d.setCrossFadeEnabled(true);
-					d.startTransition(763);
-				} else {
-					cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
-				}
-				break;
+			d.setCrossFadeEnabled(true);
+			d.startTransition(763);
+		} else {
+			cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
 		}
 
 		loading.smoothToHide();
@@ -524,12 +507,27 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	private ImageView bg;
 
+	private MultiWaveHeader wave;
+
 	private View.OnTouchListener touchListener;
+
+	private ViewPager viewPager;
+
+	private ViewPager.SimpleOnPageChangeListener onPageChangeListener = new ViewPager.SimpleOnPageChangeListener() {
+		@Override
+		public void onPageSelected(int position) {
+			super.onPageSelected(position);
+
+			updateAVFX();
+		}
+	};
 
 	private void createRoot() {
 		root = findViewById(R.id.root);
 
-		bg = (ImageView) findViewById(R.id.bg);
+		bg = findViewById(R.id.bg);
+
+		wave = findViewById(R.id.wave);
 
 		touchListener = new AndroidTouchEx.OnSwipeTouchListener() {
 			@Override
@@ -595,16 +593,21 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		});
 		root.setLongClickable(true);
 
-		final ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
-		if (viewPager != null) {
-			viewPager.post(new Runnable() {
-				@Override
-				public void run() {
-					CircleIndicator viewPagerIndicator = (CircleIndicator) findViewById(R.id.viewPagerIndicator);
-					viewPagerIndicator.setViewPager(viewPager);
+		viewPager = findViewById(R.id.viewPager);
+
+		viewPager.post(new Runnable() {
+			@Override
+			public void run() {
+				CircleIndicator viewPagerIndicator = findViewById(R.id.viewPagerIndicator);
+				viewPagerIndicator.setViewPager(viewPager);
+
+				try {
+					viewPager.setCurrentItem(1);
+				} catch (Exception e) {
+					// Eat ?
 				}
-			});
-		}
+			}
+		});
 	}
 
 	//endregion
@@ -614,7 +617,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	private TextView title;
 	private TextView artist;
 	private TextView info;
-	private com.makeramen.roundedimageview.RoundedImageView cover;
+	private ImageView cover;
 	private VideoView video;
 
 	private Runnable videoSyncTask = new Runnable() {
@@ -650,7 +653,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		cover = findViewById(R.id.cover);
 		video = findViewById(R.id.video);
 
-		toggleCover(getPlaybackUICoverHidden(this));
 		toggleVideo(getPlaybackUIVideoHidden(this));
 
 		// Video, if loaded is on mute
@@ -745,22 +747,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		}
 	}
 
-	private void toggleCover(boolean hide) {
-		if (cover != null) {
-			if (hide) {
-				cover.animate().alpha(0.3f).setDuration(666).start();
-				setPlaybackUICoverHidden(PlaybackUIActivity.this, true);
-			} else {
-				cover.animate().alpha(1).setDuration(333).start();
-				setPlaybackUICoverHidden(PlaybackUIActivity.this, false);
-			}
-		}
-	}
-
-	private void toggleCover() {
-		toggleCover(!getPlaybackUICoverHidden(this));
-	}
-
 	private void toggleVideo(boolean hide) {
 		if (video != null) {
 			if (hide) {
@@ -786,9 +772,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		builder.setTitle(getString(R.string.select_title));
 		builder.setItems(new CharSequence[]{
 				getString(R.string.share_lyrics),
-				getString(R.string.toggle_cover),
 				getString(R.string.toggle_video),
-				getString(R.string.toggle_lyrics),
 				getString(R.string.re_download_cover),
 				getString(R.string.re_load_lyrics),
 				getString(R.string.edit_lyrics),
@@ -802,24 +786,18 @@ public class PlaybackUIActivity extends BaseUIActivity {
 							shareLyrics();
 							break;
 						case 1:
-							toggleCover();
-							break;
-						case 2:
 							toggleVideo();
 							break;
-						case 3:
-							toggleLyrics();
-							break;
-						case 4:
+						case 2:
 							updateCover();
 							break;
-						case 5:
+						case 3:
 							reloadLyrics();
 							break;
-						case 6:
+						case 4:
 							editLyrics();
 							break;
-						case 7:
+						case 5:
 							lookupAndUpdateDetails();
 							break;
 					}
@@ -1089,24 +1067,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			}
 		});
 		lyrics.setLongClickable(true);
-
-		toggleLyrics(getPlaybackUILyricsHidden(PlaybackUIActivity.this));
-	}
-
-	private void toggleLyrics(boolean hide) {
-		if (lyrics_layout != null) {
-			if (hide) {
-				lyrics_layout.animate().alpha(0.01f).setDuration(379).start();
-				setPlaybackUILyricsHidden(PlaybackUIActivity.this, true);
-			} else {
-				lyrics_layout.animate().alpha(1).setDuration(333).start();
-				setPlaybackUILyricsHidden(PlaybackUIActivity.this, false);
-			}
-		}
-	}
-
-	private void toggleLyrics() {
-		toggleLyrics(!getPlaybackUILyricsHidden(this));
 	}
 
 	private String lyricsContentFormatted = null;
@@ -1280,39 +1240,13 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		avfx.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				if (audioVFXViewFragment != null) {
-					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, false);
-					setPlaybackUICoverHidden(PlaybackUIActivity.this, false);
-					toggleCover(getPlaybackUICoverHidden(PlaybackUIActivity.this));
-				} else {
-					AudioVFXViewFragment.setAVFXEnabled(PlaybackUIActivity.this, true);
-					setPlaybackUICoverHidden(PlaybackUIActivity.this, true);
-					toggleCover(getPlaybackUICoverHidden(PlaybackUIActivity.this));
-
-					info(getString(R.string.avfx_tap_more));
-				}
-				updateAVFX();
-			}
-		});
-		avfx.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
-				if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-
-					AudioVFXViewFragment.setAVFXType(getApplicationContext(), AudioVFXViewFragment.getNextAVFXType(getApplicationContext()));
-
-					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-
-					info("Now using " + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + " fx!");
-				}
-
-				return true;
+				changeAVFXStyle();
 			}
 		});
 	}
 
 	private void updateAVFX() {
-		if (AudioVFXViewFragment.getAVFXEnabled(this)) {
+		if (viewPager.getCurrentItem() == 0) {
 			if (!isFinishing() && audioVFXViewFragment == null) {
 				avfx_layout.setVisibility(View.VISIBLE);
 
@@ -1336,7 +1270,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				avfx_layout.setVisibility(View.INVISIBLE);
 			}
 		}
-
 	}
 
 	private void changeAVFXStyle() {
@@ -1674,99 +1607,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	//region SPref
 
-	public enum PlaybackUIStyle {
-		P1("All in one"),
-		P2("Lyrics focused"),
-		P3("Circled");
-
-		public String friendlyName;
-
-		PlaybackUIStyle(String friendlyName) {
-			this.friendlyName = friendlyName;
-		}
-	}
-
-	public static final String TAG_SPREF_PLAYBACK_UI_STYLE = "playback_ui_style";
-
-	public static PlaybackUIStyle getPlaybackUIStyle(Context context) {
-		try {
-			return PlaybackUIStyle.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(PlaybackUIStyle.P3)));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return PlaybackUIStyle.P3;
-	}
-
-	public static void setPlaybackUIStyle(Context context, PlaybackUIStyle value) {
-		SPrefEx.get(context)
-				.edit()
-				.putString(TAG_SPREF_PLAYBACK_UI_STYLE, String.valueOf(value))
-				.apply();
-	}
-
-	private void changePlaybackUIStyle() {
-		final PlaybackUIStyle[] values = PlaybackUIStyle.values();
-		CharSequence items[] = new CharSequence[values.length];
-		for (int i = 0; i < values.length; i++) {
-			items[i] = values[i].friendlyName;
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(PlaybackUIActivity.this, R.style.AppTheme_AlertDialogStyle));
-		builder.setTitle(getString(R.string.select_title));
-		builder.setItems(items, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int itemIndex) {
-				try {
-					setPlaybackUIStyle(PlaybackUIActivity.this, values[itemIndex]);
-
-					info(getString(R.string.applied_on_restart));
-				} catch (Exception e) {
-					Log.w(TAG, e);
-
-					info(getString(R.string.error));
-				}
-			}
-		});
-		AlertDialog dialog = builder.create();
-		dialog.show();
-	}
-
-	public static final String TAG_SPREF_PLAYBACK_UI_COVER_HIDDEN = "playback_ui_cover_hidden";
-
-	public static boolean getPlaybackUICoverHidden(Context context) {
-		try {
-			return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYBACK_UI_COVER_HIDDEN, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-	public static void setPlaybackUICoverHidden(Context context, boolean value) {
-		SPrefEx.get(context)
-				.edit()
-				.putBoolean(TAG_SPREF_PLAYBACK_UI_COVER_HIDDEN, value)
-				.apply();
-	}
-
-	public static final String TAG_SPREF_PLAYBACK_UI_LYRICS_HIDDEN = "playback_ui_lyrics_hidden";
-
-	public static boolean getPlaybackUILyricsHidden(Context context) {
-		try {
-			return SPrefEx.get(context).getBoolean(TAG_SPREF_PLAYBACK_UI_LYRICS_HIDDEN, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-	public static void setPlaybackUILyricsHidden(Context context, boolean value) {
-		SPrefEx.get(context)
-				.edit()
-				.putBoolean(TAG_SPREF_PLAYBACK_UI_LYRICS_HIDDEN, value)
-				.apply();
-	}
-
 	public static final String TAG_SPREF_PLAYBACK_UI_VIDEO_HIDDEN = "playback_ui_video_hidden";
 
 	public static boolean getPlaybackUIVideoHidden(Context context) {
@@ -1786,9 +1626,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	public static String[] ExportableSPrefKeys = new String[]{
-			TAG_SPREF_PLAYBACK_UI_STYLE,
-			TAG_SPREF_PLAYBACK_UI_COVER_HIDDEN,
-			TAG_SPREF_PLAYBACK_UI_LYRICS_HIDDEN,
 			TAG_SPREF_PLAYBACK_UI_VIDEO_HIDDEN
 	};
 

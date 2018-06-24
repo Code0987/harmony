@@ -117,8 +117,8 @@ public class OnlineViewActivity extends BaseUIActivity {
 	//region Tabs
 
 	public enum Tabs {
-		Default("Default"),
 		Search("Search"),
+		Default("Default"),
 		Recommendations("Recommendations"),;
 
 		private String friendlyName;

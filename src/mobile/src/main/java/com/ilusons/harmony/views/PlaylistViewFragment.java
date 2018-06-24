@@ -213,6 +213,18 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			e.printStackTrace();
 		}
 
+		MenuItem now_playing = menu.findItem(R.id.now_playing);
+		now_playing.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				Intent intent = new Intent(getContext(), PlaybackUIActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+
+				return true;
+			}
+		});
+
 		MenuItem jump = menu.findItem(R.id.jump);
 		jump.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
@@ -290,18 +302,16 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		playlist_view_sort_mode.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
-				if (menuItem.getActionView() != null)
-					menuItem.getActionView().performClick();
+				try {
+					showUISortModeDialog();
 
-				return true;
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
 			}
 		});
-		Spinner playlist_view_sort_mode_spinner = (Spinner) playlist_view_sort_mode.getActionView();
-		playlist_view_sort_mode_spinner.setBackground(null);
-		playlist_view_sort_mode_spinner.setGravity(Gravity.CENTER);
-		playlist_view_sort_mode_spinner.setDropDownVerticalOffset(AndroidEx.dpToPx(36));
-		playlist_view_sort_mode_spinner.setDropDownHorizontalOffset(AndroidEx.dpToPx(360));
-		createUISortMode(playlist_view_sort_mode_spinner);
 
 	}
 
@@ -1493,66 +1503,29 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				.apply();
 	}
 
-	private void createUISortMode(final Spinner spinner) {
-		UISortMode[] items = UISortMode.values();
+	private void showUISortModeDialog() {
+		final UISortMode[] items = UISortMode.values();
+		final CharSequence[] itemNames = new CharSequence[items.length];
 
-		spinner.setAdapter(new ArrayAdapter<UISortMode>(getContext(), 0, items) {
+		for (int i = 0; i < items.length; i++)
+			itemNames[i] = items[i].friendlyName;
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getContext(), R.style.AppTheme_AlertDialogStyle));
+		builder.setTitle(getString(R.string.select_title));
+		builder.setItems(itemNames, new DialogInterface.OnClickListener() {
 			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) getDropDownView(position, convertView, parent);
+			public void onClick(DialogInterface dialog, int itemIndex) {
+				try {
+					setUISortMode(getContext(), items[itemIndex]);
 
-				text.setText("Sorting: " + text.getText());
-
-				return text;
-			}
-
-			@Override
-			public View getDropDownView(int position, View convertView, ViewGroup parent) {
-				CheckedTextView text = (CheckedTextView) convertView;
-
-				if (text == null) {
-					text = new CheckedTextView(getContext(), null, android.R.style.TextAppearance_Material_Widget_TextView_SpinnerItem);
-					text.setTextColor(ContextCompat.getColor(getContext(), R.color.primary_text));
-					text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-					ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-							ViewGroup.LayoutParams.MATCH_PARENT,
-							ViewGroup.LayoutParams.WRAP_CONTENT
-					);
-					int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					lp.setMargins(px, px, px, px);
-					text.setLayoutParams(lp);
-					text.setPadding(px, px, px, px);
+					adapter.refresh(getSearchQuery());
+				} catch (Exception e) {
+					Log.w(TAG, e);
 				}
-
-				text.setText(getItem(position).friendlyName);
-
-				return text;
 			}
 		});
-
-		int i = 0;
-		UISortMode lastMode = getUISortMode(getContext());
-		for (; i < items.length; i++)
-			if (items[i] == lastMode)
-				break;
-		spinner.setSelection(i, true);
-
-		spinner.post(new Runnable() {
-			public void run() {
-				spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-						setUISortMode(getContext(), (UISortMode) adapterView.getItemAtPosition(position));
-
-						adapter.refresh(getSearchQuery());
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> adapterView) {
-					}
-				});
-			}
-		});
+		AlertDialog dialog = builder.create();
+		dialog.show();
 	}
 
 	public List<Music> Sort(List<Music> data) {

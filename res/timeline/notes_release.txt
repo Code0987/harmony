@@ -1,3 +1,4 @@
-﻿✔ Fixed notification issue in Oreo update.
+﻿✔ Added new dashboard view, online view, playlist view.
+✔ Updated recommendations.
+✔ Fixed notification issue in Oreo update.
 ✔ Fixed bugs.
-✔ Updated my recommendations, online search.
