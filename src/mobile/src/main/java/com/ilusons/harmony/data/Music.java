@@ -438,7 +438,7 @@ public class Music extends RealmObject {
 		if (other == null)
 			return false;
 
-		if (Path.equals(other.Path))
+		if (Path != null && other.Path != null && Path.equals(other.Path))
 			return true;
 
 		return false;
