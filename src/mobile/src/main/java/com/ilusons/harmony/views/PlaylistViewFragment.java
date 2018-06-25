@@ -1003,7 +1003,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				holder.view.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
-						getMusicService().open(item.getPath());
+						getMusicService().open(item);
 					}
 				});
 
