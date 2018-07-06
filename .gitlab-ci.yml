@@ -18,9 +18,12 @@ stages:
     - ~/.android/
     - ~/ci-log.log
 
-  before_script:
+  before_script:  
     - export LOG=~/ci-log.log
     - touch $LOG
+
+    # Get submodules
+    - git submodule update --recursive --remote
   
     # Extract the SDK version that we're building against
     - export ANDROID_SDK_TOOLS=3859397
