@@ -158,7 +158,7 @@ dependencies {
 	implementation 'com.android.support:appcompat-v7:27.1.1'
 	implementation 'com.android.support:mediarouter-v7:27.1.1'
 	implementation 'com.android.support:support-core-utils:27.1.1'
-	implementation 'com.android.support.constraint:constraint-layout:1.1.1'
+	implementation 'com.android.support.constraint:constraint-layout:1.1.2'
 	implementation 'com.android.support:design:27.1.1'
 	implementation 'com.android.support:palette-v7:27.1.1'
 	implementation 'com.android.support:percent:27.1.1'
@@ -176,8 +176,8 @@ dependencies {
 	implementation 'com.h6ah4i.android:openslmediaplayer:0.7.5'
 	implementation 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:0.7.2'
 	implementation 'commons-io:commons-io:2.5'
-	implementation 'com.google.firebase:firebase-core:16.0.0'
-	implementation 'com.google.firebase:firebase-messaging:17.0.0'
+	implementation 'com.google.firebase:firebase-core:16.0.1'
+	implementation 'com.google.firebase:firebase-messaging:17.1.0'
 	implementation 'com.google.firebase:firebase-database:16.0.1'
 	implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
 		transitive = true
@@ -205,7 +205,7 @@ dependencies {
 	implementation('com.github.evgenyneu:js-evaluator-for-android:v1.0.7') {
 		exclude module: 'appcompat-v7'
 	}
-	implementation 'com.google.android.gms:play-services-ads:15.0.0'
+	implementation 'com.google.android.gms:play-services-ads:15.0.1'
 	implementation 'com.google.apis:google-api-services-youtube:v3-rev189-1.23.0'
 	implementation "com.tonyodev.fetch2:fetch2:2.0.0-RC8"
 	implementation "com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC8"
@@ -236,6 +236,31 @@ android {
 		exclude module: 'json'
 	}
 }
+
+task copyRaw << {
+	copy {
+		from("${projectDir}/../../res/license/LICENSE.txt")
+		into("${projectDir}/src/main/res/raw")
+		rename("LICENSE.txt", "license")
+	}
+	copy {
+		from("${projectDir}/../../res/timeline/gps_listing.html")
+		into("${projectDir}/src/main/res/raw")
+		rename("gps_listing.html", "gps_listing")
+	}
+	copy {
+		from("${projectDir}/../../res/timeline/notes_premium.html")
+		into("${projectDir}/src/main/res/raw")
+		rename("notes_premium.html", "notes_premium")
+	}
+	copy {
+		from("${projectDir}/../../res/timeline/notes_release.txt")
+		into("${projectDir}/src/main/res/raw")
+		rename("notes_release.txt", "notes_release")
+	}
+}
+
+preBuild.dependsOn(copyRaw)
 
 afterEvaluate {
 	def flavors = []
