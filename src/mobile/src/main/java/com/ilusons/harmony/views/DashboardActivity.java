@@ -838,6 +838,7 @@ public class DashboardActivity extends BaseUIActivity {
 			}
 		});
 
+		updateRecommended();
 	}
 
 	private static long lastCallUpdateRecommendedTimestamp = 0;
@@ -1004,6 +1005,8 @@ public class DashboardActivity extends BaseUIActivity {
 					updateRecent();
 			}
 		});
+
+		updateRecent();
 
 	}
 
