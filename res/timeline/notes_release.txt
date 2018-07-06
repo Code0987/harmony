@@ -1,4 +1,4 @@
-﻿✔ Added new dashboard view, online view, playlist view.
+﻿✔ Fixed expiration of downloaded music.
+✔ Added new dashboard view, online view, playlist view.
 ✔ Updated recommendations.
 ✔ Fixed notification issue in Oreo update.
-✔ Fixed bugs.
