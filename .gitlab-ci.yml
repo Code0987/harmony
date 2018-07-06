@@ -23,6 +23,7 @@ stages:
     - touch $LOG
 
     # Get submodules
+    - git submodule update --init --recursive
     - git submodule update --recursive --remote
   
     # Extract the SDK version that we're building against
