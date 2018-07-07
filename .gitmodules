@@ -1,9 +1,6 @@
 [submodule "res/web"]
 	path = res/web
 	url = https://gitlab.com/ilusons/harmony.git
-[submodule "res/libs/chromaprint-android"]
-	path = res/libs/chromaprint-android
-	url = https://bitbucket.org/lalinsky/chromaprint-android.git
 [submodule "res/server/api/libs/AcoustID.NET"]
 	path = res/server/api/libs/AcoustID.NET
 	url = https://github.com/wo80/AcoustID.NET.git
