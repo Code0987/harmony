@@ -18,7 +18,7 @@
 	url = https://github.com/Code0987/lastfm-java.git
 [submodule "res/libs/musicbrainz-android"]
 	path = res/libs/musicbrainz-android
-	url = https://github.com/jdamcd/musicbrainz-android.git
+	url = https://github.com/Code0987/musicbrainz-android.git
 [submodule "res/libs/android-youtubeExtractor"]
 	path = res/libs/android-youtubeExtractor
 	url = https://github.com/Code0987/android-youtubeExtractor.git
