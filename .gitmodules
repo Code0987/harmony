@@ -1,6 +1,6 @@
 [submodule "res/web"]
 	path = res/web
-	url = git@gitlab.com:ilusons/harmony.git
+	url = https://gitlab.com/ilusons/harmony.git
 [submodule "res/libs/chromaprint-android"]
 	path = res/libs/chromaprint-android
 	url = https://bitbucket.org/lalinsky/chromaprint-android.git
@@ -15,13 +15,13 @@
 	url = https://github.com/Zastai/MusicBrainz.git
 [submodule "res/libs/android-openslmediaplayer"]
 	path = res/libs/android-openslmediaplayer
-	url = git@github.com:Code0987/android-openslmediaplayer.git
+	url = https://github.com/Code0987/android-openslmediaplayer.git
 [submodule "res/libs/lastfm-java"]
 	path = res/libs/lastfm-java
-	url = git@github.com:Code0987/lastfm-java.git
+	url = https://github.com/Code0987/lastfm-java.git
 [submodule "res/libs/musicbrainz-android"]
 	path = res/libs/musicbrainz-android
 	url = https://github.com/jdamcd/musicbrainz-android.git
 [submodule "res/libs/android-youtubeExtractor"]
 	path = res/libs/android-youtubeExtractor
-	url = https://github.com/HaarigerHarald/android-youtubeExtractor.git
+	url = https://github.com/Code0987/android-youtubeExtractor.git
