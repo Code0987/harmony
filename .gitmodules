@@ -6,7 +6,7 @@
 	url = https://github.com/wo80/AcoustID.NET.git
 [submodule "res/server/api/libs/Aurio"]
 	path = res/server/api/libs/Aurio
-	url = https://github.com/protyposis/Aurio.git
+	url = https://github.com/Code0987/Aurio.git
 [submodule "res/server/api/libs/MusicBrainz"]
 	path = res/server/api/libs/MusicBrainz
 	url = https://github.com/Zastai/MusicBrainz.git
