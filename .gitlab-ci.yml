@@ -14,7 +14,7 @@ stages:
   artifacts:
     expire_in: 4 hours
     paths:
-    - ./src/mobile/build/outputs/**.apk
+    - ./src/mobile/build/outputs/
     - ~/.android/
     - ~/ci-log.log
 
