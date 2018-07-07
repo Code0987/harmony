@@ -12,7 +12,7 @@ stages:
 .build_template: &build_template_def
   stage: build
   artifacts:
-    expire_in: 4 hours
+    expire_in: 16 hours
     paths:
     - ./src/mobile/build/outputs/apk/main/*/**.apk
     - ~/.android/
@@ -93,7 +93,7 @@ unit_test:
     - git update-index --chmod=+x ./src/gradlew
 
   script:
-    - ./src/gradlew test
+    - ./src/gradlew -p ./src test --stacktrace
 
 
 ####################################################################################################
