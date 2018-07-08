@@ -88,8 +88,8 @@ unit_test:
     - develop
 
   before_script:
-    - export ANDROID_HOME=$PWD/.android
-    - export PATH=$PATH:$PWD/.android/platform-tools/
+    - export ANDROID_HOME=~/.android
+    - export PATH=$PATH:~/.android/platform-tools/
     - git update-index --chmod=+x ./src/gradlew
 
   script:
