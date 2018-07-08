@@ -86,11 +86,53 @@ unit_test:
   only:
     - master
     - develop
+  artifacts:
+    expire_in: 16 hours
+    paths:
+    - ~/ci-log.log
+  before_script:  
+    - export LOG=~/ci-log.log
+    - touch $LOG
 
-  before_script:
+    # Get submodules
+    - git submodule update --init --recursive
+    - git submodule update --recursive --remote
+  
+    # Extract the SDK version that we're building against
+    - export ANDROID_SDK_TOOLS=3859397
+    - export ANDROID_BUILD_TOOLS=26.0.2
+    - export ANDROID_COMPILE_SDK=25
+    #`egrep '^[[:blank:]]+compileSdkVersion' ./src/mobile/build.gradle | awk '{print $2}'`
+    
+    # Explict output for logging purpose only
+    - echo $ANDROID_SDK_TOOLS
+    - echo $ANDROID_BUILD_TOOLS
+    - echo $ANDROID_COMPILE_SDK
+
+    # Set up environment variables
     - export ANDROID_HOME=~/.android
-    - export PATH=$PATH:~/.android/platform-tools/
-    - git update-index --chmod=+x ./src/gradlew
+    - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle # Remove if you don't need NDK
+    - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
+    - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
+
+    # Fetch the specified SDK tools version to build with
+    - wget --quiet --output-document=/tmp/sdk-tools-linux.zip https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip >> $LOG
+    - unzip /tmp/sdk-tools-linux.zip -d $ANDROID_HOME/ >> $LOG
+
+    # Install platform tools and Android SDK for the compile target
+    - echo 'count=0' > $ANDROID_HOME/repositories.cfg
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platform-tools' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'build-tools;'$ANDROID_BUILD_TOOLS >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platforms;android-'$ANDROID_COMPILE_SDK >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;android;m2repository' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;google_play_services' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;m2repository' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'cmake;3.6.4111459' >> $LOG
+    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'ndk-bundle' >> $LOG
+
+    - chmod +x ./src/gradlew
 
   script:
     - ./src/gradlew -p ./src test --stacktrace
