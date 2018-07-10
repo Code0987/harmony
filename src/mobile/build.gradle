@@ -258,6 +258,16 @@ task copyRaw << {
 		into("${projectDir}/src/main/res/raw")
 		rename("notes_release.txt", "notes_release")
 	}
+	copy {
+		from("${projectDir}/../../res/timeline/notes_release.txt")
+		into("${projectDir}/src/main/play/en-IN")
+		rename("notes_release.txt", "whatsnew")
+	}
+	copy {
+		from("${projectDir}/../../res/timeline/gps_listing.html")
+		into("${projectDir}/src/main/play/en-IN/listing")
+		rename("gps_listing.html", "fulldescription")
+	}
 }
 
 preBuild.dependsOn(copyRaw)
