@@ -18,10 +18,6 @@ stages:
   before_script:  
     - export LOG=~/ci-log.log
     - touch $LOG
-
-    # Get submodules
-    - git submodule update --init --recursive
-    - git submodule update --recursive --remote
   
     # Extract the SDK version that we're building against
     - export ANDROID_SDK_TOOLS=3859397
@@ -39,6 +35,10 @@ stages:
     - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle # Remove if you don't need NDK
     - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
     - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
+
+    # Get submodules
+    - git submodule update --init --recursive
+    - git submodule update --recursive --remote
 
     # Fetch the specified SDK tools version to build with
     - wget --quiet --output-document=/tmp/sdk-tools-linux.zip https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip >> $LOG
@@ -82,6 +82,26 @@ unit_test:
     paths:
     - ~/ci-log.log
   before_script:
+    - export LOG=~/ci-log.log
+    - touch $LOG
+  
+    # Extract the SDK version that we're building against
+    - export ANDROID_SDK_TOOLS=3859397
+    - export ANDROID_BUILD_TOOLS=26.0.2
+    - export ANDROID_COMPILE_SDK=25
+    #`egrep '^[[:blank:]]+compileSdkVersion' ./src/mobile/build.gradle | awk '{print $2}'`
+    
+    # Explict output for logging purpose only
+    - echo $ANDROID_SDK_TOOLS
+    - echo $ANDROID_BUILD_TOOLS
+    - echo $ANDROID_COMPILE_SDK
+
+    # Set up environment variables
+    - export ANDROID_HOME=~/.android
+    - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle # Remove if you don't need NDK
+    - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
+    - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
+
     - chmod +x ./src/gradlew
 
   script:
@@ -124,9 +144,30 @@ package_release:
 
 publish:
   before_script:
-    - git clean -df
     - export LOG=~/ci-log.log
     - touch $LOG
+  
+    # Extract the SDK version that we're building against
+    - export ANDROID_SDK_TOOLS=3859397
+    - export ANDROID_BUILD_TOOLS=26.0.2
+    - export ANDROID_COMPILE_SDK=25
+    #`egrep '^[[:blank:]]+compileSdkVersion' ./src/mobile/build.gradle | awk '{print $2}'`
+    
+    # Explict output for logging purpose only
+    - echo $ANDROID_SDK_TOOLS
+    - echo $ANDROID_BUILD_TOOLS
+    - echo $ANDROID_COMPILE_SDK
+
+    # Set up environment variables
+    - export ANDROID_HOME=~/.android
+    - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle # Remove if you don't need NDK
+    - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
+    - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
+    
+    - git clean -df
+
+    - chmod +x ./src/gradlew
+    
   environment: Release
   only:
     - master
