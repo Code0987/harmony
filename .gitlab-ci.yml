@@ -4,11 +4,8 @@ stages:
   - build
   - test
   - package
+  - publish
 
-
-####################################################################################################
-# BUILD
-#
 .build_template: &build_template_def
   stage: build
   artifacts:
@@ -59,14 +56,12 @@ stages:
     - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;m2repository' >> $LOG
     - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'cmake;3.6.4111459' >> $LOG
     - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'ndk-bundle' >> $LOG
-
     - chmod +x ./src/gradlew
 
 build_debug:
   <<: *build_template_def
   only:
     - develop
-
   script:
     - ./src/gradlew -p ./src assembleMainDebug --stacktrace
 
@@ -77,10 +72,6 @@ build_release:
   script:
     - ./src/gradlew -p ./src assembleMainReleaseBeta --stacktrace
 
-####################################################################################################
-# UNIT TESTING
-#
-
 unit_test:
   stage: test
   only:
@@ -90,75 +81,20 @@ unit_test:
     expire_in: 16 hours
     paths:
     - ~/ci-log.log
-  before_script:  
-    - export LOG=~/ci-log.log
-    - touch $LOG
-
-    # Get submodules
-    - git submodule update --init --recursive
-    - git submodule update --recursive --remote
-  
-    # Extract the SDK version that we're building against
-    - export ANDROID_SDK_TOOLS=3859397
-    - export ANDROID_BUILD_TOOLS=26.0.2
-    - export ANDROID_COMPILE_SDK=25
-    #`egrep '^[[:blank:]]+compileSdkVersion' ./src/mobile/build.gradle | awk '{print $2}'`
-    
-    # Explict output for logging purpose only
-    - echo $ANDROID_SDK_TOOLS
-    - echo $ANDROID_BUILD_TOOLS
-    - echo $ANDROID_COMPILE_SDK
-
-    # Set up environment variables
-    - export ANDROID_HOME=~/.android
-    - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle # Remove if you don't need NDK
-    - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
-    - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
-
-    # Fetch the specified SDK tools version to build with
-    - wget --quiet --output-document=/tmp/sdk-tools-linux.zip https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip >> $LOG
-    - unzip /tmp/sdk-tools-linux.zip -d $ANDROID_HOME/ >> $LOG
-
-    # Install platform tools and Android SDK for the compile target
-    - echo 'count=0' > $ANDROID_HOME/repositories.cfg
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platform-tools' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'build-tools;'$ANDROID_BUILD_TOOLS >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platforms;android-'$ANDROID_COMPILE_SDK >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;android;m2repository' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;google_play_services' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;m2repository' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'cmake;3.6.4111459' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'ndk-bundle' >> $LOG
-
+  before_script:
     - chmod +x ./src/gradlew
 
   script:
     - ./src/gradlew -p ./src test --stacktrace
 
-
-####################################################################################################
-# PACKAGE APK FOR DOWNLOADING
-#
-
 .package_template: &package_template_def
   before_script:
-    - export LOG=~/ci-log.log
-    - touch $LOG
-    - export VERSION_NAME=`egrep '^[[:blank:]]+versionName[[:blank:]]'  ./src/mobile/build.gradle | awk '{print $2}' | sed s/\"//g`
-    - export VERSION_CODE=`egrep '^[[:blank:]]+versionCode[[:blank:]]'  ./src/mobile/build.gradle | awk '{print $2}'`
     - mkdir -p deliverables
-
-    # Store some information about the build
     - touch ./deliverables/info.txt
     - echo "Build date          $(date)"                >> ./deliverables/info.txt
-    - echo "App version name    ${VERSION_NAME}"        >> ./deliverables/info.txt
-    - echo "App version code    ${VERSION_CODE}"        >> ./deliverables/info.txt
     - echo "Git branch          ${CI_COMMIT_REF_NAME}"  >> ./deliverables/info.txt
     - echo "Git commit          ${CI_COMMIT_SHA}"       >> ./deliverables/info.txt
     - echo "Gitlab pipeline     ${CI_PIPELINE_ID}"      >> ./deliverables/info.txt
-
 
 package_develop:
   <<: *package_template_def
@@ -167,9 +103,7 @@ package_develop:
   only:
     - develop
   script:
-    # - mv app/build/outputs/apk/app-debug.apk ./deliverables/NameOfTheApp-v$VERSION_NAME-$VERSION_CODE-debug.apk
     - mv ./src/mobile/build/outputs/apk/main/debug/**.apk ./deliverables/
-    - mv  $LOG ./deliverables/
   artifacts:
     expire_in: 3 days
     paths:
@@ -182,10 +116,23 @@ package_release:
   only:
     - master
   script:
-    # - mv app/build/outputs/apk/app-release.apk ./deliverables/NameOfTheApp-v$VERSION_NAME-$VERSION_CODE-release.apk
     - mv ./src/mobile/build/outputs/apk/main/releaseBeta/**.apk ./deliverables/
   artifacts:
     expire_in: 4 weeks
-    # name: "${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_TAG}_${CI_COMMIT_SHA}"
     paths:
     - deliverables
+
+publish:
+  before_script:
+    - git clean -df
+    - export LOG=~/ci-log.log
+    - touch $LOG
+  environment: Release
+  only:
+    - master
+  script:  
+    - ./src/gradlew -p ./src publishApkMainReleaseBeta --stacktrace >> $LOG
+  artifacts:
+    expire_in: 16 hours
+    paths:
+    - ~/ci-log.log
