@@ -144,6 +144,8 @@ unit_test:
 
 .package_template: &package_template_def
   before_script:
+    - export LOG=~/ci-log.log
+    - touch $LOG
     - export VERSION_NAME=`egrep '^[[:blank:]]+versionName[[:blank:]]'  ./src/mobile/build.gradle | awk '{print $2}' | sed s/\"//g`
     - export VERSION_CODE=`egrep '^[[:blank:]]+versionCode[[:blank:]]'  ./src/mobile/build.gradle | awk '{print $2}'`
     - mkdir -p deliverables
