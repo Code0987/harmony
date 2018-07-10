@@ -26,7 +26,7 @@ ext.getGitVersionData = {
     def count = git.log().call().size()
     def sha = walk.parseCommit(repo.resolve(Constants.HEAD)).getId().abbreviate(7).name()
     def describe = git.describe().setLong(true).call()
-    def clean = git.status().call().isClean()
+    def clean = true// git.status().call().isClean()
     def matcher = (describe =~ "(?:v([0-9]+?))\\.([0-9]+?)\\.([0-9]+?)(?:-([0-9A-Za-z]+))?-([0-9]+?)-g([a-zA-Z0-9]+)")
     if (matcher.matches()) {
         return [
