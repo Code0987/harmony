@@ -84,7 +84,7 @@ ext.getAndTagCurrentRelease = { gitVersionData ->
         System.out.println("Untracked: " + status.getUntracked());
         System.out.println("UntrackedFolders: " + status.getUntrackedFolders());
 
-        throw new GradleException("State not clean, can't tag!");
+        // throw new GradleException("State not clean, can't tag!");
     }
 
     def versionName = "${gitVersionData.major}.${gitVersionData.minor}.${gitVersionData.patch}"
