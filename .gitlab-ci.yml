@@ -63,7 +63,7 @@ build_debug:
   only:
     - develop
   script:
-    - ./src/gradlew -p ./src assembleMainDebug --stacktrace >> $LOG
+    - ./src/gradlew -p ./src assembleMainDebug --stacktrace
 
 build_release:
   <<: *build_template_def
@@ -125,7 +125,7 @@ unit_test:
     - chmod +x ./src/gradlew
 
   script:
-    - ./src/gradlew -p ./src test --stacktrace >> $LOG
+    - ./src/gradlew -p ./src test --stacktrace
 
 .package_template: &package_template_def
   before_script:
@@ -210,7 +210,7 @@ publish:
   only:
     - master
   script:  
-    - ./src/gradlew -p ./src publishApkMainReleaseBeta --stacktrace >> $LOG
+    - ./src/gradlew -p ./src publishApkMainReleaseBeta --stacktrace
   artifacts:
     expire_in: 16 hours
     paths:
