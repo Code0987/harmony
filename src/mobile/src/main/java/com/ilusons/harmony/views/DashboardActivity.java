@@ -190,6 +190,10 @@ public class DashboardActivity extends BaseUIActivity {
 				root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
 				showInfo();
+
+				updateRecommended();
+
+				updateRecent();
 			}
 		});
 
@@ -866,7 +870,7 @@ public class DashboardActivity extends BaseUIActivity {
 		try {
 			final Context context = this;
 
-			if (AndroidEx.isNetworkAvailable(context)) {
+			if (AndroidEx.hasInternetConnection(context)) {
 				loading_view_recommended.smoothToShow();
 
 				Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
@@ -961,6 +965,12 @@ public class DashboardActivity extends BaseUIActivity {
 			if (playlist != null) {
 				for (Music item : playlist.getItems()) {
 					adapter_recommended.add(item);
+				}
+
+				if (playlist.getItems().size() == 0) {
+					for (Music item : Music.getAllSortedByTimeAdded(16)) {
+						adapter_recommended.add(item);
+					}
 				}
 			}
 		} catch (Exception e2) {

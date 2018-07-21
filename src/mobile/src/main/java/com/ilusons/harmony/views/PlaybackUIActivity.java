@@ -822,7 +822,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void updateCover() throws Exception {
-		if (!AndroidEx.isNetworkAvailable(this)) {
+		if (!AndroidEx.hasInternetConnection(this)) {
 			info(getString(R.string.network_unavailable), true);
 
 			return;

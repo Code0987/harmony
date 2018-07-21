@@ -12,6 +12,8 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.VibrationEffect;
@@ -32,8 +34,11 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -277,6 +282,23 @@ public class AndroidEx {
 			// Eat ?
 		}
 		return false;
+	}
+
+	public static boolean hasInternetConnection(final Context context) {
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+			final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			final Network network = connectivityManager.getActiveNetwork();
+			final NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+
+			return capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+		} else {
+			try (Socket socket = new Socket()) {
+				socket.connect(new InetSocketAddress("http://www.google.com", 80), 1200);
+				return true;
+			} catch (IOException e) {
+				return false;
+			}
+		}
 	}
 
 	//endnetwork

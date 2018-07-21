@@ -1439,7 +1439,7 @@ public class MusicService extends Service {
 				isLastPlaybackUrlUpdateNeeded = true;
 
 			if (isLastPlaybackUrlUpdateNeeded) {
-				if (AndroidEx.isNetworkAvailable(this)) {
+				if (AndroidEx.hasInternetConnection(this)) {
 					switch (getPlayerType(this)) {
 						case OpenSL:
 							download(newMusic);
@@ -1615,7 +1615,7 @@ public class MusicService extends Service {
 			// Update tags
 
 			// Fetch tags, if required
-			if (AndroidEx.isNetworkAvailable(this))
+			if (AndroidEx.hasInternetConnection(this))
 				if (TextUtils.isEmpty(getMusic().getTags())) {
 					Music.getTagsOrDownload(
 							getMusic(),
