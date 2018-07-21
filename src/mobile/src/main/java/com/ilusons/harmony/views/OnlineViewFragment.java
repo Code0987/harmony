@@ -324,14 +324,13 @@ public class OnlineViewFragment extends BaseUIFragment {
 
 	public void searchTracks(String query) {
 		if (TextUtils.isEmpty(query)) {
-			searchDefaultTracks();
 			return;
 		}
 
 		final int N = 50;
 		final Context context = getContext();
 
-		if (AndroidEx.isNetworkAvailable(context)) {
+		if (AndroidEx.hasInternetConnection(context)) {
 			Analytics.findTracks(query, N)
 					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 						@Override
@@ -410,7 +409,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 				// Eat?
 			}
 
-			updateRequired &= AndroidEx.isNetworkAvailable(context);
+			updateRequired &= AndroidEx.hasInternetConnection(context);
 
 			try {
 				SPrefEx.get(context).edit().putLong(TAG_SPREF_ONLINE_LAST_DEFAULT_SCAN_TS, System.currentTimeMillis()).apply();
@@ -500,7 +499,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 		final int N = 16;
 		final Context context = getContext();
 
-		if (AndroidEx.isNetworkAvailable(context)) {
+		if (AndroidEx.hasInternetConnection(context)) {
 			loading.smoothToShow();
 
 			info("Finding what you may like :) Stand by ...");

@@ -183,7 +183,7 @@ public class Analytics {
 							@Override
 							public void subscribe(ObservableEmitter<ScrobbleResult> oe) throws Exception {
 								try {
-									if (!AndroidEx.isNetworkAvailable(musicService))
+									if (!AndroidEx.hasInternetConnection(musicService))
 										throw new Exception("Network not available!");
 
 									if (!canCall())
@@ -484,7 +484,7 @@ public class Analytics {
 	}
 
 	public boolean canScrobble(MusicService musicService, Music data) {
-		if (!AndroidEx.isNetworkAvailable(musicService))
+		if (!AndroidEx.hasInternetConnection(musicService))
 			return false;
 
 		boolean duration30s = data.getLength() > 30 * 1000;
@@ -1073,7 +1073,7 @@ public class Analytics {
 					};
 					yte.setDefaultHttpProtocol(true);
 					yte.setParseDashManifest(true);
-					yte.setIncludeWebM(true);
+					yte.setIncludeWebM(false);
 
 					SparseArray<YtFile> ytFiles = yte.execute(watchUrl).get(3L, TimeUnit.MINUTES);
 
