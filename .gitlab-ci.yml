@@ -211,6 +211,7 @@ publish:
     - master
   script:  
     - ./src/gradlew -p ./src publishApkMainReleaseBeta --stacktrace
+    - git push --tags
   artifacts:
     expire_in: 16 hours
     paths:
