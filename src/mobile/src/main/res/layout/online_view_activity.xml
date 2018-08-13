@@ -6,6 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:layout_marginBottom="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="24dp"
+    android:background="@drawable/bg_dialog"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:minWidth="340dp"
     >
 
     <android.support.design.widget.AppBarLayout

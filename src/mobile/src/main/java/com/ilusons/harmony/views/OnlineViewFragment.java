@@ -100,13 +100,6 @@ public class OnlineViewFragment extends BaseUIFragment {
 		return v;
 	}
 
-	@Override
-	public void onStart() {
-		super.onStart();
-
-		searchDefaultTracks();
-	}
-
 	private SearchView searchView;
 
 	@Override
@@ -487,8 +480,6 @@ public class OnlineViewFragment extends BaseUIFragment {
 						.subscribe(observer);
 			} else {
 				loadOnlinePlaylistTracks(true);
-
-				info("Turn on your internet for new music. Loading previous tracks.");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

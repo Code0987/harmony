@@ -941,7 +941,7 @@ public class DashboardActivity extends BaseUIActivity {
 						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 							@Override
 							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-								return Analytics.convertToLocal(context, tracks, 12, true);
+								return Analytics.convertToLocal(context, tracks, 12, false);
 							}
 						})
 						.observeOn(AndroidSchedulers.mainThread())
