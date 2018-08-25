@@ -36,6 +36,16 @@ stages:
     - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
     - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
 
+    # Git setup
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh -o UserKnownHostsFile=/dev/null
+    - git config --global user.email "harmony@ilusons.com"
+    - git config --global user.name "bot"
+
     # Get submodules
     - git submodule update --init --recursive
     - git submodule update --recursive --remote
