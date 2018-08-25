@@ -13,7 +13,7 @@
     android:background="@drawable/bg_dialog"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:minWidth="340dp"
+    android:minWidth="380dp"
     >
 
     <android.support.design.widget.AppBarLayout
