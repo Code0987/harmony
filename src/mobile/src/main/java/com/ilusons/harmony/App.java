@@ -57,9 +57,6 @@ public class App extends Application {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread thread, Throwable e) {
-				if (getMainLooper() != null)
-					Toast.makeText(App.this, "Aw, snap!", Toast.LENGTH_LONG).show();
-
 				Log.wtf(TAG, e);
 
 				Crashlytics.logException(e);

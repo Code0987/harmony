@@ -26,18 +26,13 @@ public class ParticlesView extends BaseAVFXCanvasView {
 		super(context, attrs);
 	}
 
-	private float[] dbs;
-	private float[] amps;
-	private float dbMax = 0f;
-
-	float[] buffer;
-	public FloatBuffer nativeBuffer;
+	private byte[] waveform;
 
 	private Paint fadePaint;
 	private Paint paint;
 	private Paint pathPaint;
 	private Path path;
-	private static final int N = 99;
+	private static final int N = 300;
 	private ArrayList<Particle> particles;
 	private final int[] colors = new int[N];
 
@@ -46,7 +41,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 		super.setup();
 
 		fadePaint = new Paint();
-		fadePaint.setColor(Color.argb(190, 255, 255, 255));
+		fadePaint.setColor(Color.argb(200, 255, 255, 255));
 		fadePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
 
 		paint = new Paint();
@@ -88,7 +83,7 @@ public class ParticlesView extends BaseAVFXCanvasView {
 		ColorUtils.colorToHSL(color, hsl);
 		hsl[0] += (ThreadLocalRandom.current().nextInt(30 + 1 + 30) - 30);
 		hsl[0] = hsl[0] % 360;
-		hsl[2] = Math.max(hsl[2], hsl[2] + 0.1f);
+		hsl[2] = Math.max(hsl[2], hsl[2] + 0.15f);
 		paint.setColor(ColorUtils.HSLToColor(hsl));
 
 		for (int n = 0; n < N; n++) {
@@ -103,48 +98,19 @@ public class ParticlesView extends BaseAVFXCanvasView {
 
 	@Override
 	protected void onRenderAudioData(Canvas canvas, int width, int height, AudioDataBuffer.Buffer data) {
-		byte[] fft = null;
-
 		if (data.fData != null) {
-			fft = new byte[data.fData.length];
+			waveform = new byte[data.fData.length];
 			int n = data.fData.length / 2;
 			for (int i = 0; i < n; i++) {
-				fft[i + 0] = (byte) (data.fData[i + 0] * 128);
-				fft[i + 1] = (byte) (data.fData[i + 1] * 128);
+				waveform[i + 0] = (byte) (data.fData[i + 0] * 128);
+				waveform[i + 1] = (byte) (data.fData[i + 1] * 128);
 			}
 		} else if (data.bData != null) {
-			fft = data.bData;
+			waveform = data.bData;
 		}
 
-		if (fft != null && fft.length > 0) {
-			int dataSize = fft.length / 2 - 1;
-
-			if (dbs == null || dbs.length != dataSize) {
-				dbs = new float[dataSize];
-			}
-			if (amps == null || amps.length != dataSize) {
-				amps = new float[dataSize];
-			}
-
-			for (int i = 0; i < dataSize; i++) {
-				float re = fft[2 * i];
-				float im = fft[2 * i + 1];
-				float sq = re * re + im * im;
-
-				dbs[i] = (float) (sq > 0 ? 20 * Math.log10(sq) : 0);
-				if (dbs[i] > dbMax)
-					dbMax = dbs[i];
-
-				float k = 1;
-				if (i == 0 || i == dataSize - 1) {
-					k = 2;
-				}
-
-				amps[i] = (float) (k * Math.sqrt(sq) / dataSize);
-			}
-
+		if (waveform != null && waveform.length > 0) {
 			// Draw
-
 			canvas.drawPaint(fadePaint);
 
 			for (int i = 0; i < particles.size(); i++) {
@@ -167,8 +133,8 @@ public class ParticlesView extends BaseAVFXCanvasView {
 
 		public Particle(int n) {
 			Index = n;
-			X = (float) Math.random() * width;
-			Y = (float) Math.random() * height;
+			X = (float) Math.random() * (float) width;
+			Y = (float) Math.random() * (float) height;
 			Vx = ((float) Math.random() - 0.5f) * 17;
 			Vy = ((float) Math.random() - 0.5f) * 17;
 		}
@@ -181,28 +147,13 @@ public class ParticlesView extends BaseAVFXCanvasView {
 				Vy = -Vy;
 			}
 
-			float db = 0;
-			float amp = 0;
-			int k = 0;
-
 			float y = 0;
 
-			if (dbs != null && amps != null) {
-				k = (int) ((X / width) * dbs.length);
-				k = Math.abs(k);
-				k = Math.min(dbs.length - 1, Math.max(0, k));
+			if (waveform != null) {
+				int k = (int) ((X / (float) width) * (float) waveform.length/2);
+				k = Math.max(0, Math.min(waveform.length/2 - 1, k));
 
-				db = dbs[k];
-				amp = amps[k];
-
-				db = db % height;
-				if (db < 0) {
-					db += height;
-				}
-
-				db += 7 * Math.random() * Math.random();
-
-				y = db * (height / dbMax);
+				y = ((float) Math.abs(waveform[k] & 0xff) / (float) 128) * (height / 2.5f);
 			}
 
 			if (Math.abs(y) < 45 || Math.abs(y) > height / 2) {

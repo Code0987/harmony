@@ -1133,26 +1133,29 @@ public class Playlist extends RealmObject {
 
 					if (playlist.isSmart()) {
 						final int N = 64;
+						try {
+							Analytics.findTracks(playlist.getQuery(), N)
+									.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+										@Override
+										public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+											return Analytics.convertToLocal(context, tracks, items, N);
+										}
+									})
+									.subscribe(new Consumer<Collection<Music>>() {
+										@Override
+										public void accept(Collection<Music> r) throws Exception {
+											items.addAll(r);
+										}
+									}, new Consumer<Throwable>() {
+										@Override
+										public void accept(Throwable throwable) throws Exception {
+											Log.w(TAG, throwable);
+										}
+									});
 
-						Analytics.findTracks(playlist.getQuery(), N)
-								.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
-									@Override
-									public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-										return Analytics.convertToLocal(context, tracks, items, N);
-									}
-								})
-								.subscribe(new Consumer<Collection<Music>>() {
-									@Override
-									public void accept(Collection<Music> r) throws Exception {
-										items.addAll(r);
-									}
-								}, new Consumer<Throwable>() {
-									@Override
-									public void accept(Throwable throwable) throws Exception {
-										Log.w(TAG, throwable);
-									}
-								});
-
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 
 					try (Realm realm = Music.getDB()) {
