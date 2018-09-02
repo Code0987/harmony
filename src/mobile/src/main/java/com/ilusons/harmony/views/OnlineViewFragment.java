@@ -324,54 +324,58 @@ public class OnlineViewFragment extends BaseUIFragment {
 		final Context context = getContext();
 
 		if (AndroidEx.hasInternetConnection(context)) {
-			Analytics.findTracks(query, N)
-					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
-						@Override
-						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-							return Analytics.convertToLocal(context, tracks, N, false);
-						}
-					})
-					.subscribeOn(Schedulers.io())
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(new Observer<Collection<Music>>() {
-						@Override
-						public void onSubscribe(Disposable d) {
-							try {
-								if (disposable_search_online != null && !disposable_search_online.isDisposed()) {
-									disposable_search_online.dispose();
-								}
-							} catch (Exception e) {
-								e.printStackTrace();
+			try {
+				Analytics.findTracks(query, N)
+						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+							@Override
+							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+								return Analytics.convertToLocal(context, tracks, N, false);
 							}
-							disposable_search_online = d;
-
-							loading.smoothToShow();
-						}
-
-						@Override
-						public void onNext(Collection<Music> r) {
-							try {
-								adapter.clear();
-								for (Music m : r) {
-									adapter.add(m);
+						})
+						.subscribeOn(Schedulers.io())
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribe(new Observer<Collection<Music>>() {
+							@Override
+							public void onSubscribe(Disposable d) {
+								try {
+									if (disposable_search_online != null && !disposable_search_online.isDisposed()) {
+										disposable_search_online.dispose();
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
 								}
-							} catch (Exception e) {
-								e.printStackTrace();
+								disposable_search_online = d;
+
+								loading.smoothToShow();
 							}
-						}
 
-						@Override
-						public void onError(Throwable e) {
-							loadOnlinePlaylistTracks(true);
+							@Override
+							public void onNext(Collection<Music> r) {
+								try {
+									adapter.clear();
+									for (Music m : r) {
+										adapter.add(m);
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
 
-							loading.smoothToHide();
-						}
+							@Override
+							public void onError(Throwable e) {
+								loadOnlinePlaylistTracks(true);
 
-						@Override
-						public void onComplete() {
-							loading.smoothToHide();
-						}
-					});
+								loading.smoothToHide();
+							}
+
+							@Override
+							public void onComplete() {
+								loading.smoothToHide();
+							}
+						});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		} else {
 			loadOnlinePlaylistTracks(true);
 
@@ -543,8 +547,12 @@ public class OnlineViewFragment extends BaseUIFragment {
 			topLocalTracks.addAll(Music.getAllSortedByTimeLastPlayed(15));
 			Collections.shuffle(topLocalTracks);
 			topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 5));
-			for (Music music : topLocalTracks) {
-				observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
+			try {
+				for (Music music : topLocalTracks) {
+					observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 
 			io.reactivex.Observable

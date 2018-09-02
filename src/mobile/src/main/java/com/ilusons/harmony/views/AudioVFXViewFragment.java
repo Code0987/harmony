@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -22,11 +21,8 @@ import com.ilusons.harmony.R;
 import com.ilusons.harmony.avfx.BarsView;
 import com.ilusons.harmony.avfx.BaseAVFXCanvasView;
 import com.ilusons.harmony.avfx.BaseAVFXGLView;
-import com.ilusons.harmony.avfx.CircleBarsView;
-import com.ilusons.harmony.avfx.CircleDotsView;
 import com.ilusons.harmony.avfx.CirclesView;
 import com.ilusons.harmony.avfx.DotsView;
-import com.ilusons.harmony.avfx.FFTView;
 import com.ilusons.harmony.avfx.ParticlesView;
 import com.ilusons.harmony.avfx.WaveformView;
 import com.ilusons.harmony.base.MusicService;
@@ -48,7 +44,6 @@ public class AudioVFXViewFragment extends Fragment {
 	private IVisualizer visualizer;
 
 	private WaveformView waveformGLView;
-	private FFTView fftGLView;
 	private GLAudioVisualizationView wavesView;
 	private WaveDbmHandler waveDbmHandler;
 	private BaseAVFXCanvasView waveformCanvasView;
@@ -101,7 +96,6 @@ public class AudioVFXViewFragment extends Fragment {
 		super.onDestroyView();
 
 		waveformGLView = null;
-		fftGLView = null;
 		if (wavesView != null)
 			wavesView.release();
 		wavesView = null;
@@ -127,9 +121,6 @@ public class AudioVFXViewFragment extends Fragment {
 		if (waveformGLView != null) {
 			waveformGLView.onResume();
 		}
-		if (fftGLView != null) {
-			fftGLView.onResume();
-		}
 		if (wavesView != null) {
 			wavesView.onResume();
 		}
@@ -149,9 +140,6 @@ public class AudioVFXViewFragment extends Fragment {
 
 		if (waveformGLView != null) {
 			waveformGLView.onPause();
-		}
-		if (fftGLView != null) {
-			fftGLView.onPause();
 		}
 		if (wavesView != null) {
 			wavesView.onPause();
@@ -181,10 +169,6 @@ public class AudioVFXViewFragment extends Fragment {
 
 		@Override
 		public void onFftDataCapture(IHQVisualizer visualizerHQ, float[] fft, int numChannels, int samplingRate) {
-			if (fftGLView != null) {
-				fftGLView.updateAudioData(fft, numChannels, samplingRate);
-			}
-
 			if (waveDbmHandler != null) {
 				byte[] b = new byte[fft.length];
 				int n = fft.length / 2;
@@ -217,10 +201,6 @@ public class AudioVFXViewFragment extends Fragment {
 
 		@Override
 		public void onFftDataCapture(IVisualizer visualizerHQ, byte[] fft, int samplingRate) {
-			if (fftGLView != null) {
-				fftGLView.updateAudioData(fft, samplingRate);
-			}
-
 			if (waveDbmHandler != null) {
 				waveDbmHandler.onDataReceived(fft);
 			}
@@ -266,7 +246,7 @@ public class AudioVFXViewFragment extends Fragment {
 						onDataCaptureListenerHQ,
 						rate,
 						waveformGLView != null || waveformCanvasView != null,
-						fftGLView != null || waveDbmHandler != null || fftCanvasView != null
+						waveDbmHandler != null || fftCanvasView != null
 				);
 
 				visualizerHQ.setEnabled(true);
@@ -293,7 +273,7 @@ public class AudioVFXViewFragment extends Fragment {
 						onDataCaptureListener,
 						rate,
 						waveformGLView != null || waveformCanvasView != null,
-						fftGLView != null || waveDbmHandler != null || fftCanvasView != null
+						waveDbmHandler != null || fftCanvasView != null
 				);
 				visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
 
@@ -381,9 +361,6 @@ public class AudioVFXViewFragment extends Fragment {
 			if (waveformGLView != null) {
 				waveformGLView = null;
 			}
-			if (fftGLView != null) {
-				fftGLView = null;
-			}
 			if (wavesView != null) {
 				wavesView.release();
 				wavesView = null;
@@ -414,16 +391,6 @@ public class AudioVFXViewFragment extends Fragment {
 					root.addView(waveformGLView);
 					break;
 
-				case FFT:
-					fftGLView = new FFTView(getActivity().getApplicationContext());
-
-					fftGLView.setColor(
-							new BaseAVFXGLView.FloatColor(r, g, b, a),
-							new BaseAVFXGLView.FloatColor(r + g - b, g + b - r, b + r - g, a));
-
-					root.addView(fftGLView);
-					break;
-
 				case Bars:
 					BarsView bars = new BarsView(getActivity());
 
@@ -443,7 +410,7 @@ public class AudioVFXViewFragment extends Fragment {
 
 					root.addView(particles);
 
-					fftCanvasView = particles;
+					waveformCanvasView = particles;
 					break;
 
 				case Circles:
@@ -454,14 +421,6 @@ public class AudioVFXViewFragment extends Fragment {
 					fftCanvasView = circles;
 					break;
 
-				case CircleDots:
-					CircleDotsView circleDots = new CircleDotsView(getActivity());
-
-					root.addView(circleDots);
-
-					fftCanvasView = circleDots;
-					break;
-
 				case Dots:
 					DotsView dots = new DotsView(getActivity());
 
@@ -470,16 +429,6 @@ public class AudioVFXViewFragment extends Fragment {
 					root.addView(dots);
 
 					fftCanvasView = dots;
-					break;
-
-				case CircleBars:
-					CircleBarsView circleBarsView = new CircleBarsView(getActivity());
-
-					circleBarsView.setColor(color);
-
-					root.addView(circleBarsView);
-
-					waveformCanvasView = circleBarsView;
 					break;
 
 				case Waves:
@@ -533,14 +482,11 @@ public class AudioVFXViewFragment extends Fragment {
 
 	public enum AVFXType {
 		Waveform("Waveform"),
-		FFT("FFT"),
 		Waves("Waves"),
 		Bars("Bars"),
 		Particles("Particles"),
 		Circles("Circles"),
-		CircleDots("CircleDots"),
-		Dots("Dots"),
-		CircleBars("CircleBars");
+		Dots("Dots");
 
 		public String friendlyName;
 

@@ -1,23 +1,21 @@
 package com.ilusons.harmony.avfx;
 
-import android.content.ClipData;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.RadialGradient;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.ilusons.harmony.ref.AudioEx;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CirclesView extends BaseAVFXCanvasView {
@@ -32,9 +30,9 @@ public class CirclesView extends BaseAVFXCanvasView {
 
 	private Paint fadePaint;
 
-	private Arcs arcs;
-
-	private Dots dots;
+	private BassFX bassFX;
+	private MidFX midFX;
+	private HighFX highFX;
 
 	@Override
 	public void setup() {
@@ -44,9 +42,9 @@ public class CirclesView extends BaseAVFXCanvasView {
 		fadePaint.setColor(Color.argb(190, 255, 255, 255));
 		fadePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY));
 
-		arcs = new Arcs();
-
-		dots = new Dots();
+		bassFX = new BassFX();
+		midFX = new MidFX();
+		highFX = new HighFX();
 	}
 
 	@Override
@@ -57,13 +55,17 @@ public class CirclesView extends BaseAVFXCanvasView {
 			return;
 
 		try {
-			arcs.w = width;
-			arcs.h = height;
-			arcs.init();
+			bassFX.w = width;
+			bassFX.h = height;
+			bassFX.init();
 
-			dots.w = width;
-			dots.h = height;
-			dots.init();
+			midFX.w = width;
+			midFX.h = height;
+			midFX.init();
+
+			highFX.w = width;
+			highFX.h = height;
+			highFX.init();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -85,35 +87,30 @@ public class CirclesView extends BaseAVFXCanvasView {
 		}
 
 		if (fft != null && fft.length > 0) {
-			int dataSize = fft.length / 2 - 1;
+			bassFX.initAudioData();
+			bassFX.updateAudioData(data.sr / 1000, fft);
 
-			arcs.initAudioData();
+			midFX.initAudioData();
+			midFX.updateAudioData(data.sr / 1000, fft);
 
-			dots.initAudioData();
-
-			for (int i = 0; i < dataSize; i++) {
-				float re = fft[2 * i];
-				float im = fft[2 * i + 1];
-				float sq = re * re + im * im;
-				double m = Math.sqrt(sq);
-				double f = (double) ((data.sr / 1000 * i) / fft.length);
-
-				arcs.updateAudioData(m, f);
-
-				dots.updateAudioData(m, f);
-			}
+			highFX.initAudioData();
+			highFX.updateAudioData(data.sr / 1000, fft);
 
 			// Draw
 
 			canvas.drawPaint(fadePaint);
 
-			arcs.update();
+			bassFX.update();
 
-			dots.update();
+			midFX.update();
 
-			arcs.draw(canvas);
+			highFX.update();
 
-			dots.draw(canvas);
+			bassFX.draw(canvas);
+
+			midFX.draw(canvas);
+
+			highFX.draw(canvas);
 
 		}
 	}
@@ -154,12 +151,16 @@ public class CirclesView extends BaseAVFXCanvasView {
 
 		public ArrayList<FXObject> Items;
 
+		private AudioEx.AudioCalculator audioCalculator;
+
 		@Override
 		public void init() {
 			if (Items == null)
 				Items = new ArrayList<>();
 			else
 				Items.clear();
+
+			audioCalculator = new AudioEx.AudioCalculator();
 		}
 
 		public void initAudioData() {
@@ -217,6 +218,16 @@ public class CirclesView extends BaseAVFXCanvasView {
 			}
 		}
 
+		public void updateAudioData(int sr, byte[] data) {
+			int min = (int) Math.ceil(lf * data.length / (float) sr);
+			int max = (int) Math.ceil(uf * data.length / (float) sr);
+			audioCalculator.setBytes(Arrays.copyOfRange(data, min, max));
+			double f = audioCalculator.getFrequency();
+			double m = 1;
+
+			updateAudioData(m, f);
+		}
+
 		@Override
 		public void update() {
 			for (FXObject item : Items) {
@@ -236,220 +247,6 @@ public class CirclesView extends BaseAVFXCanvasView {
 //endregion
 
 //region FXObjects
-
-	public class Arcs extends FXObjectGroup {
-
-		private Map<Integer, Integer> fc;
-
-		@Override
-		public void init() {
-			super.init();
-
-			if (fc == null)
-				fc = new HashMap<>();
-			fc.clear();
-
-			lf = 10;
-			uf = 500;
-
-			fc.putAll(createFrequencyColors(
-					Color.argb(255, 255, 51, 0),
-					Color.argb(255, 0, 153, 255),
-					(int) lf,
-					(int) uf));
-
-			for (int i = 0; i < 1; i++) {
-				Arc arc = new Arc();
-
-				arc.w = w;
-				arc.h = h;
-				arc.c = fc.get((int) Math.min(Math.max(lf, f), uf));
-
-				arc.init();
-
-				Items.add(arc);
-			}
-
-			lf = 500;
-			uf = 2500;
-
-			fc.putAll(createFrequencyColors(
-					Color.argb(255, 102, 0, 102),
-					Color.argb(255, 255, 0, 0),
-					(int) lf,
-					(int) uf));
-
-			for (int i = 0; i < 1; i++) {
-				Arc arc = new Arc();
-
-				arc.w = w;
-				arc.h = h;
-				arc.c = fc.get((int) Math.min(Math.max(lf, f), uf));
-
-				arc.init();
-
-				Items.add(arc);
-			}
-
-			lf = 10;
-			uf = 2500;
-		}
-
-		@Override
-		public void update() {
-			if (Items == null)
-				return;
-
-			for (FXObject item : Items) {
-				if (m > 0 && f > 0) {
-					item.c = fc.get((int) Math.min(Math.max(lf, f), uf));
-				}
-			}
-
-			super.update();
-		}
-
-	}
-
-	public class Arc extends FXObject {
-		private int incrementer;
-
-		private RectF bounds = new RectF();
-		private float radius;
-		private int startRadius;
-		private int endRadius;
-
-		private Paint paint;
-		private float strokeChange;
-
-		@Override
-		public void init() {
-			super.init();
-
-			incrementer = 0;
-
-			radius = (s / 3.0f) + ThreadLocalRandom.current().nextInt(Math.max((int) f, 1));
-			startRadius = 0;
-			endRadius = startRadius + 360;
-
-			paint = new Paint();
-			paint.setColor(c);
-			paint.setStyle(Paint.Style.STROKE);
-			paint.setStrokeWidth(sz / 150.0f);
-			strokeChange = 0;
-		}
-
-		@Override
-		public void draw(Canvas c) {
-			super.draw(c);
-
-			paint.setStrokeWidth(((float) sz) / strokeChange);
-
-			bounds.set((w / 2) - radius, (h / 2) - radius, (w / 2) + radius, (h / 2) + radius);
-
-			c.drawArc(bounds, startRadius, endRadius, true, paint);
-		}
-
-		@Override
-		public void update() {
-			super.update();
-
-			incrementer = (int) (incrementer + 1.001f);
-			radius = (float) (radius + Math.pow(1.03d, incrementer));
-
-			if (paint.getAlpha() >= 100) {
-				strokeChange = 15.0f;
-			} else {
-				strokeChange += (45.0f - strokeChange) / 15.0f;
-			}
-
-			if (paint.getAlpha() >= 2.2d) {
-				paint.setAlpha((int) (paint.getAlpha() - 2.2d));
-			} else {
-				paint.setAlpha(0);
-			}
-		}
-
-		@Override
-		public boolean needsInit() {
-			if (radius >= s / 4 || paint.getAlpha() <= 10) {
-				return true;
-			}
-			return false;
-		}
-	}
-
-	public class Dots extends FXObjectGroup {
-
-		private Map<Integer, Integer> fc;
-
-		@Override
-		public void init() {
-			super.init();
-
-			if (fc == null)
-				fc = new HashMap<>();
-			fc.clear();
-
-			lf = 2500;
-			uf = 8000;
-
-			fc.putAll(createFrequencyColors(
-					Color.argb(255, 255, 0, 102),
-					Color.argb(255, 255, 255, 0),
-					(int) lf,
-					(int) uf));
-
-			for (int i = 0; i < 30; i++) {
-				Dot dot = new Dot();
-
-				dot.w = w;
-				dot.h = h;
-				dot.c = fc.get((int) Math.min(Math.max(lf, f), uf));
-
-				dot.init();
-
-				Items.add(dot);
-			}
-
-			lf = 8000;
-			uf = 16000;
-
-			fc.putAll(createFrequencyColors(
-					Color.argb(255, 102, 0, 204),
-					Color.argb(255, 0, 255, 0),
-					(int) lf,
-					(int) uf));
-
-			for (int i = 0; i < 30; i++) {
-				Dot dot = new Dot();
-
-				dot.w = w;
-				dot.h = h;
-				dot.c = fc.get((int) Math.min(Math.max(lf, f), uf));
-
-				dot.init();
-
-				Items.add(dot);
-			}
-
-			lf = 2500;
-			uf = 16000;
-
-		}
-
-		@Override
-		public void update() {
-			for (FXObject item : Items) {
-				if (m > 0 && f > 0) {
-					item.c = fc.get((int) Math.min(Math.max(lf, f), uf));
-				}
-			}
-
-			super.update();
-		}
-
-	}
 
 	public class Dot extends FXObject {
 		private float x;
@@ -556,6 +353,260 @@ public class CirclesView extends BaseAVFXCanvasView {
 			}
 			return r;
 		}
+	}
+
+	public class Arc extends FXObject {
+		private int incrementer;
+
+		private RectF bounds = new RectF();
+		private float radius;
+		private int startRadius;
+		private int endRadius;
+
+		private Paint paint;
+		private float strokeChange;
+
+		@Override
+		public void init() {
+			super.init();
+
+			incrementer = 0;
+
+			radius = (s / 3.0f) + ThreadLocalRandom.current().nextInt(Math.max((int) f, 1));
+			startRadius = 0;
+			endRadius = startRadius + 360;
+
+			paint = new Paint();
+			paint.setColor(c);
+			paint.setStyle(Paint.Style.STROKE);
+			paint.setStrokeWidth(sz / 180.0f);
+			strokeChange = 0;
+		}
+
+		@Override
+		public void draw(Canvas c) {
+			super.draw(c);
+
+			paint.setStrokeWidth(((float) sz) / strokeChange);
+
+			bounds.set((w / 2) - radius, (h / 2) - radius, (w / 2) + radius, (h / 2) + radius);
+
+			c.drawArc(bounds, startRadius, endRadius, false, paint);
+		}
+
+		@Override
+		public void update() {
+			super.update();
+
+			incrementer = (int) (incrementer + 1.001f);
+			radius = (float) (radius + Math.pow(1.03d, incrementer));
+
+			if (paint.getAlpha() >= 100) {
+				strokeChange = 15.0f;
+			} else {
+				strokeChange += (45.0f - strokeChange) / 15.0f;
+			}
+
+			if (paint.getAlpha() >= 2.2d) {
+				paint.setAlpha((int) (paint.getAlpha() - 2.2d));
+			} else {
+				paint.setAlpha(0);
+			}
+		}
+
+		@Override
+		public boolean needsInit() {
+			if (radius >= s / 4 || paint.getAlpha() <= 10) {
+				return true;
+			}
+			return false;
+		}
+	}
+
+	public class BassFX extends FXObjectGroup {
+
+		private Map<Integer, Integer> fc;
+
+		@Override
+		public void init() {
+			super.init();
+
+			if (fc == null)
+				fc = new HashMap<>();
+			fc.clear();
+
+			lf = 10;
+			uf = 2500;
+
+			fc.putAll(createFrequencyColors(
+					Color.argb(255, 255, 51, 0),
+					Color.argb(255, 255, 181, 0),
+					(int) lf,
+					(int) uf));
+
+			for (int i = 0; i < 3; i++) {
+				Arc arc = new Arc();
+
+				arc.w = w;
+				arc.h = h;
+				arc.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+
+				arc.init();
+
+				Items.add(arc);
+			}
+
+			for (int i = 0; i < 12; i++) {
+				Dot dot = new Dot();
+
+				dot.w = w;
+				dot.h = h;
+				dot.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+
+				dot.init();
+
+				Items.add(dot);
+			}
+
+		}
+
+		@Override
+		public void update() {
+			for (FXObject item : Items) {
+				if (m > 0 && f > 0) {
+					item.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+				}
+			}
+
+			super.update();
+		}
+
+	}
+
+	public class MidFX extends FXObjectGroup {
+
+		private Map<Integer, Integer> fc;
+
+		@Override
+		public void init() {
+			super.init();
+
+			if (fc == null)
+				fc = new HashMap<>();
+			fc.clear();
+
+			lf = 2500;
+			uf = 10000;
+
+			fc.putAll(createFrequencyColors(
+					Color.argb(255, 0, 255, 0),
+					Color.argb(255, 0, 140, 204),
+					(int) lf,
+					(int) uf));
+
+			for (int i = 0; i < 3; i++) {
+				Arc arc = new Arc();
+
+				arc.w = w;
+				arc.h = h;
+				arc.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+
+				arc.init();
+
+				Items.add(arc);
+			}
+
+			for (int i = 0; i < 12; i++) {
+				Dot dot = new Dot();
+
+				dot.w = w;
+				dot.h = h;
+				dot.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+
+				dot.init();
+
+				Items.add(dot);
+			}
+
+		}
+
+		@Override
+		public void update() {
+			if (Items == null)
+				return;
+
+			for (FXObject item : Items) {
+				if (m > 0 && f > 0) {
+					item.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+				}
+			}
+
+			super.update();
+		}
+
+	}
+
+	public class HighFX extends FXObjectGroup {
+
+		private Map<Integer, Integer> fc;
+
+		@Override
+		public void init() {
+			super.init();
+
+			if (fc == null)
+				fc = new HashMap<>();
+			fc.clear();
+
+			lf = 10000;
+			uf = 20000;
+
+			fc.putAll(createFrequencyColors(
+					Color.argb(255, 102, 0, 204),
+					Color.argb(255, 0, 0, 204),
+					(int) lf,
+					(int) uf));
+
+			for (int i = 0; i < 3; i++) {
+				Arc arc = new Arc();
+
+				arc.w = w;
+				arc.h = h;
+				arc.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+
+				arc.init();
+
+				Items.add(arc);
+			}
+
+			for (int i = 0; i < 12; i++) {
+				Dot dot = new Dot();
+
+				dot.w = w;
+				dot.h = h;
+				dot.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+
+				dot.init();
+
+				Items.add(dot);
+			}
+
+		}
+
+		@Override
+		public void update() {
+			if (Items == null)
+				return;
+
+			for (FXObject item : Items) {
+				if (m > 0 && f > 0) {
+					item.c = fc.get((int) Math.min(Math.max(lf, f), uf));
+				}
+			}
+
+			super.update();
+		}
+
 	}
 
 //endregion
