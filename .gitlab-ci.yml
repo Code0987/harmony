@@ -222,7 +222,7 @@ publish:
   only:
     - master
   script:  
-    - ./src/gradlew -p ./src publishApkMainReleaseBeta --stacktrace
+    - ./src/gradlew -p ./src publishApkMainReleaseBeta --stacktrace --info
     - git push gitlab --tags
   artifacts:
     expire_in: 16 hours
