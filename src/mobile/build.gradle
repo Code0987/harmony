@@ -6,9 +6,6 @@ apply plugin: 'com.github.triplet.play'
 
 def gitVersionData = getGitVersionData()
 
-gitVersionData.major = 0
-gitVersionData.minor = 0
-
 println "[git-version-data] " + gitVersionData
 
 android {

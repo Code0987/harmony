@@ -57,10 +57,10 @@ ext.getGitVersionData = {
                 shaLast  : "initial",
 
                 major    : 0,
-                minor    : 1,
+                minor    : 0,
                 patch    : count,
                 build    : (sha + (clean ? '' : '-dirty')),
-                code     : ((100000000 * 0) + (100000 * 1) + count),
+                code     : ((100000000 * 0) + (100000 * 0) + count),
 
                 sha      : sha,
                 count    : count,
