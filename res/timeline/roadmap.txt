@@ -1,9 +1,0 @@
-Roadmap
--------
-
-### App
-
-### Web
-
-- Create/log all music events
-- Show a world map of live now playing
