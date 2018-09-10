@@ -131,6 +131,20 @@ public class MainActivity extends BaseActivity {
 			finish();
 		}
 
+		// Send
+
+		else if (intent.getAction().equals(Intent.ACTION_SEND)) {
+			if (intent.getType().startsWith("text/")) {
+				String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+
+				if (text.toLowerCase().startsWith("http") && text.toLowerCase().contains("you"))
+					MusicService.startIntentForOpenYTS(this, text);
+			}
+
+			// Kill self
+			finish();
+		}
+
 	}
 
 	public static synchronized Intent getDashboardActivityIntent(final Context context) {

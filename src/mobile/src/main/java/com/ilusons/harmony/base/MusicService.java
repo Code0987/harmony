@@ -39,6 +39,8 @@ import com.google.android.vending.licensing.AESObfuscator;
 import com.google.android.vending.licensing.LicenseChecker;
 import com.google.android.vending.licensing.LicenseCheckerCallback;
 import com.google.android.vending.licensing.ServerManagedPolicy;
+import com.google.api.services.youtube.model.Video;
+import com.google.api.services.youtube.model.VideoSnippet;
 import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
 import com.h6ah4i.android.media.audiofx.IBassBoost;
@@ -63,6 +65,8 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.SongsEx;
+import com.ilusons.harmony.ref.YouTubeEx;
 import com.ilusons.harmony.ref.inappbilling.IabBroadcastReceiver;
 import com.ilusons.harmony.ref.inappbilling.IabHelper;
 import com.ilusons.harmony.ref.inappbilling.IabResult;
@@ -114,6 +118,7 @@ public class MusicService extends Service {
 	public static final String ACTION_RANDOM = TAG + ".random";
 
 	public static final String ACTION_OPEN = TAG + ".open";
+	public static final String ACTION_OPEN_YTS = TAG + ".open_yts";
 	public static final String KEY_URI = "uri";
 
 	public static final String ACTION_PREPARED = TAG + ".prepared";
@@ -1440,19 +1445,9 @@ public class MusicService extends Service {
 
 			if (isLastPlaybackUrlUpdateNeeded) {
 				if (AndroidEx.hasInternetConnection(this)) {
-					switch (getPlayerType(this)) {
-						case OpenSL:
-							download(newMusic);
+					download(newMusic);
 
-							Toast.makeText(MusicService.this, newMusic.getText() + " will be played shortly. Downloading audio!", Toast.LENGTH_LONG).show();
-							break;
-						case AndroidOS:
-						default:
-							stream(newMusic);
-
-							Toast.makeText(MusicService.this, newMusic.getText() + " will be played shortly. Streaming audio!", Toast.LENGTH_LONG).show();
-							break;
-					}
+					Toast.makeText(MusicService.this, newMusic.getText() + " will be played shortly. Downloading audio!", Toast.LENGTH_LONG).show();
 				} else {
 					lastPlaybackOnlineSkipCount++;
 
@@ -2188,6 +2183,19 @@ public class MusicService extends Service {
 		}
 	}
 
+	public static void startIntentForOpenYTS(final Context context, final String url) {
+		try {
+			Intent intent = new Intent(context.getApplicationContext(), MusicService.class);
+
+			intent.setAction(MusicService.ACTION_OPEN_YTS);
+			intent.putExtra(MusicService.KEY_URI, url);
+
+			context.getApplicationContext().startService(intent);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	//endregion
 
 	//region Intent
@@ -2213,6 +2221,7 @@ public class MusicService extends Service {
 		filter.addAction(ACTION_PAUSE);
 		filter.addAction(ACTION_STOP);
 		filter.addAction(ACTION_OPEN);
+		filter.addAction(ACTION_OPEN_YTS);
 		filter.addAction(ACTION_LIBRARY_UPDATE);
 		filter.addAction(ACTION_LIBRARY_UPDATE_BEGINS);
 		filter.addAction(ACTION_LIBRARY_UPDATED);
@@ -2265,6 +2274,14 @@ public class MusicService extends Service {
 				return;
 
 			open(file);
+
+		} else if (action.equals(ACTION_OPEN_YTS)) {
+			String url = intent.getStringExtra(KEY_URI);
+
+			if (TextUtils.isEmpty(url))
+				return;
+
+			yts(url);
 
 		} else if (action.equals(ACTION_LIBRARY_UPDATE)) {
 			Boolean force = intent.getBooleanExtra(KEY_LIBRARY_UPDATE_FORCE, false);
@@ -2930,6 +2947,129 @@ public class MusicService extends Service {
 
 			audioDownload.updateNotification();
 		}
+	}
+
+	//endregion
+
+	//region YouTube Share
+
+	public void yts(final String url) {
+		Analytics.getYouTubeVideoFromUrl(this, url)
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribeOn(Schedulers.io())
+				.subscribe(new Observer<Video>() {
+					@Override
+					public void onSubscribe(Disposable d) {
+						if (d.isDisposed())
+							return;
+
+						Toast.makeText(MusicService.this, "YouTube Share [" + url + "] ...", Toast.LENGTH_LONG).show();
+
+						updateNotificationForYTS(true);
+					}
+
+					@Override
+					public void onNext(final Video r) {
+						if (r != null) {
+							Toast.makeText(MusicService.this, "YouTube Share [" + url + "] ...", Toast.LENGTH_LONG).show();
+
+							try (Realm realm = Music.getDB()) {
+								if (realm != null) {
+									realm.executeTransaction(new Realm.Transaction() {
+										@Override
+										public void execute(@NonNull Realm realm) {
+											Music m = new Music();
+
+											VideoSnippet vs = r.getSnippet();
+											try {
+												ArrayList<String> at = SongsEx.getArtistAndTitle(vs.getTitle());
+												m.setTitle(at.get(1));
+												m.setArtist(at.get(0));
+											} catch (Exception e) {
+												m.setTitle(vs.getTitle());
+												m.setArtist("YouTube");
+											}
+											try {
+												m.setLength((int) YouTubeEx.getDuration(r.getContentDetails().getDuration()));
+											} catch (Exception e) {
+												// Eat ?
+											}
+											m.setTags(StringUtils.join(vs.getTags(), ','));
+											m.setPath(url);
+
+											realm.insertOrUpdate(m);
+										}
+									});
+								}
+							}
+
+							open(url);
+
+						} else {
+							Toast.makeText(MusicService.this, "YouTube Share failed for [" + url + "] ...", Toast.LENGTH_LONG).show();
+						}
+
+						updateNotificationForYTS(false);
+					}
+
+					@Override
+					public void onError(Throwable e) {
+						Toast.makeText(MusicService.this, "YouTube Share failed for [" + url + "] ...", Toast.LENGTH_LONG).show();
+
+						updateNotificationForYTS(false);
+					}
+
+					@Override
+					public void onComplete() {
+						updateNotificationForYTS(false);
+					}
+				});
+	}
+
+	private final String NOTIFICATION_CHANNEL_YTS = "yts";
+	private final int NOTIFICATION_ID_YTS = 1956;
+	private NotificationCompat.Builder nb_yts;
+
+	protected void updateNotificationForYTS(final boolean isActive) {
+		if (nb_yts == null) {
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+				try {
+					NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+					if (notificationManager != null) {
+						NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_YTS, StringUtils.capitalize(NOTIFICATION_CHANNEL_YTS), NotificationManager.IMPORTANCE_DEFAULT);
+						notificationChannel.setBypassDnd(true);
+						notificationChannel.setSound(null, null);
+
+						notificationManager.createNotificationChannel(notificationChannel);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			nb_yts = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_YTS)
+					.setContentTitle("YouTube Share...")
+					.setContentText("YouTube Share...")
+					.setSmallIcon(R.drawable.ic_cloud_download)
+					.setOngoing(true)
+					.setProgress(100, 0, true);
+
+			NotificationManagerCompat.from(this).notify(NOTIFICATION_ID_YTS, nb_yts.build());
+		}
+
+		if (!isActive) {
+			if (nb_yts == null)
+				return;
+
+			NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID_YTS);
+
+			nb_yts = null;
+		} else {
+			nb_yts.setContentText("Getting data ...");
+
+			NotificationManagerCompat.from(this).notify(NOTIFICATION_ID_YTS, nb_yts.build());
+		}
+
 	}
 
 	//endregion
