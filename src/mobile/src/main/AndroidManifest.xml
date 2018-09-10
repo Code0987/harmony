@@ -107,29 +107,29 @@
             </intent-filter>
 
             <intent-filter>
-                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/plain"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
                 <data
                     android:host="www.youtube.com"
-                    android:mimeType="text/*" />
+                    android:mimeType="text/*"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
                 <data
                     android:host="m.youtube.com"
-                    android:mimeType="text/plain" />
+                    android:mimeType="text/plain"/>
             </intent-filter>
         </activity>
         <activity
@@ -174,7 +174,8 @@
         <activity
             android:name=".views.FragmentDialogActivity"
             android:excludeFromRecents="true"
-            android:theme="@style/AppTheme.Dialog">
+            android:theme="@style/AppTheme.Dialog"
+            android:windowSoftInputMode="stateVisible|adjustPan">
         </activity>
         <activity android:name=".ref.Permissions$PermissionRequestActivity"/>
         <activity
