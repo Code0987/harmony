@@ -16,12 +16,15 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
+import com.google.api.services.youtube.model.Video;
+import com.google.api.services.youtube.model.VideoListResponse;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SecurePreferences;
+import com.ilusons.harmony.ref.YouTubeEx;
 
 import org.apache.http.util.TextUtils;
 
@@ -1039,6 +1042,42 @@ public class Analytics {
 
 					} catch (GoogleJsonResponseException e) {
 						System.err.println("There was a service error: " + e.getDetails().getCode() + " : " + e.getDetails().getMessage());
+					} catch (IOException e) {
+						System.err.println("There was an IO error: " + e.getCause() + " : " + e.getMessage());
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+
+					oe.onNext(r);
+					oe.onComplete();
+				} catch (Exception e) {
+					oe.onError(e);
+				}
+			}
+		});
+	}
+
+	public static Observable<Video> getYouTubeVideoFromUrl(final Context context, final String url) {
+		return Observable.create(new ObservableOnSubscribe<Video>() {
+			@SuppressLint("StaticFieldLeak")
+			@Override
+			public void subscribe(ObservableEmitter<Video> oe) throws Exception {
+				try {
+					Video r = null;
+
+					try {
+						YouTube youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
+							public void initialize(HttpRequest request) throws IOException {
+							}
+						}).setApplicationName(context.getString(R.string.app_name)).build();
+
+						YouTube.Videos.List listRequest = youtube.videos().list("statistics");
+						listRequest.setKey(getYouTubeAPIKey());
+						listRequest.setId(YouTubeEx.extractVideoIdFromUrl(url));
+						listRequest.setPart("snippet");
+						VideoListResponse listResponse = listRequest.execute();
+
+						r = listResponse.getItems().get(0);
 					} catch (IOException e) {
 						System.err.println("There was an IO error: " + e.getCause() + " : " + e.getMessage());
 					} catch (Throwable t) {
