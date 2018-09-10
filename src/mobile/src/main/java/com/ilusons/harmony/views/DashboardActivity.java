@@ -169,6 +169,9 @@ public class DashboardActivity extends BaseUIActivity {
 		// Playback
 		createPlayback();
 
+		// Trending
+		createTrending();
+
 		// Recommended
 		createRecommended();
 
@@ -810,6 +813,106 @@ public class DashboardActivity extends BaseUIActivity {
 
 	//endregion
 
+	//region Trending
+
+	private RecyclerViewAdapter adapter_trending;
+
+	private AVLoadingIndicatorView loading_view_trending;
+
+	private void createTrending() {
+		adapter_trending = new RecyclerViewAdapter(this);
+
+		loading_view_trending = findViewById(R.id.loading_view_trending);
+
+		RecyclerView recyclerView = findViewById(R.id.recycler_view_trending);
+
+		recyclerView.getRecycledViewPool().setMaxRecycledViews(0, 3);
+
+		recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+		recyclerView.setAdapter(adapter_trending);
+
+		// Animations
+		HorizontalOverScrollBounceEffectDecorator overScroll = new HorizontalOverScrollBounceEffectDecorator(new RecyclerViewOverScrollDecorAdapter(recyclerView), 1.5f, 1f, -0.5f);
+
+		overScroll.setOverScrollUpdateListener(new ListenerStubs.OverScrollUpdateListenerStub() {
+			@Override
+			public void onOverScrollUpdate(IOverScrollDecor decor, int state, float offset) {
+				super.onOverScrollUpdate(decor, state, offset);
+
+				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 300)
+					updateTrending();
+			}
+		});
+
+		updateTrending();
+
+	}
+
+	private Disposable disposable_trending = null;
+
+	private void updateTrending() {
+		try {
+			Observer<Collection<Music>> observer = new Observer<Collection<Music>>() {
+				@Override
+				public void onSubscribe(Disposable d) {
+					try {
+						if (disposable_trending != null && !disposable_trending.isDisposed()) {
+							disposable_trending.dispose();
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					disposable_trending = d;
+				}
+
+				@Override
+				public void onNext(Collection<Music> r) {
+					if (r == null || r.isEmpty())
+						return;
+
+					try {
+						adapter_trending.clear();
+						for (Music m : r) {
+							adapter_trending.add(m);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				@Override
+				public void onError(Throwable e) {
+					loading_view_trending.smoothToHide();
+
+					disposable_trending = null;
+				}
+
+				@Override
+				public void onComplete() {
+					loading_view_trending.smoothToHide();
+
+					disposable_trending = null;
+				}
+			};
+
+			Analytics.getTopTracksForLastfm(this)
+					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
+						@Override
+						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
+							return Analytics.convertToLocal(DashboardActivity.this, tracks, 16, false);
+						}
+					})
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribeOn(Schedulers.io())
+					.subscribe(observer);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	//endregion
+
 	//region Recommended
 
 	private RecyclerViewAdapter adapter_recommended;
@@ -1141,7 +1244,7 @@ public class DashboardActivity extends BaseUIActivity {
 				text2 = v.findViewById(R.id.text2);
 
 				if (image != null) {
-					image.setMaxHeight(AndroidEx.dpToPx(196));
+					image.setMaxHeight(AndroidEx.dpToPx(136));
 					if (image instanceof ParallaxImageView) {
 						parallaxImage = (ParallaxImageView) image;
 						parallaxImage.setListener(new ParallaxImageView.ParallaxImageListener() {

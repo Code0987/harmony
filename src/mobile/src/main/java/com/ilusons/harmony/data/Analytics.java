@@ -762,10 +762,12 @@ public class Analytics {
 
 					final String country = context.getResources().getConfiguration().locale.getDisplayCountry();
 
+					/*
 					if (canCall()) {
 						Collection<Track> regionalTracks = de.umass.lastfm.Geo.getTopTracks(country, getKey());
 						tracks.addAll(regionalTracks);
 					}
+					*/
 
 					if (tracks.size() <= 1 && canCall()) {
 						PaginatedResult<Track> topTracks = de.umass.lastfm.Chart.getTopTracks(getKey());
