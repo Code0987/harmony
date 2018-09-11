@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -140,6 +141,14 @@ public class OnlineViewFragment extends BaseUIFragment {
 		try {
 			LinearLayout searchEditFrame = searchView.findViewById(R.id.search_edit_frame);
 			((LinearLayout.LayoutParams) searchEditFrame.getLayoutParams()).leftMargin = 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			searchView.setIconifiedByDefault(true);
+			searchView.setIconified(false);
+			MenuItemCompat.expandActionView(search);
+			searchView.requestFocus();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

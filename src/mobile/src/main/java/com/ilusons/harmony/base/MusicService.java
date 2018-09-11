@@ -231,7 +231,7 @@ public class MusicService extends Service {
 				boolean premium = ((purchase != null && verifyDeveloperPayload(MusicService.this, purchase)));
 
 				if (!IsPremium && premium) try {
-					Toast.makeText(MusicService.this, "Thank you for upgrading to premium! All premium features will work correctly after restart!", Toast.LENGTH_LONG).show();
+					Toast.makeText(MusicService.this, "Thank you for upgrading to premium!", Toast.LENGTH_LONG).show();
 				} catch (Exception e) {
 					Log.w(TAG, e);
 				}
@@ -343,9 +343,6 @@ public class MusicService extends Service {
 		return payload;
 	}
 
-	public static void showPremiumFeatureMessage(Context context) {
-		Toast.makeText(context, "It's a premium feature!", Toast.LENGTH_SHORT).show();
-	}
 //endregion
 
 	public MusicService() {
@@ -744,7 +741,7 @@ public class MusicService extends Service {
 	private IBassBoost bassBoost;
 
 	public IBassBoost getBassBoost() {
-		if (IsPremium && getPlayerBassBoostEnabled(this)) try {
+		if (getPlayerBassBoostEnabled(this)) try {
 			if (bassBoost == null)
 				try {
 					bassBoost = mediaPlayerFactory.createBassBoost(mediaPlayer);
@@ -932,7 +929,7 @@ public class MusicService extends Service {
 	private IVirtualizer virtualizer;
 
 	public IVirtualizer getVirtualizer() {
-		if (IsPremium && getPlayerVirtualizerEnabled(this)) try {
+		if (getPlayerVirtualizerEnabled(this)) try {
 			if (virtualizer == null)
 				try {
 					virtualizer = mediaPlayerFactory.createVirtualizer(mediaPlayer);
@@ -1026,7 +1023,7 @@ public class MusicService extends Service {
 	private IEnvironmentalReverb environmentalReverb;
 
 	public IEnvironmentalReverb getEnvironmentalReverb() {
-		if (IsPremium && getPlayerReverbEnvEnabled(this)) try {
+		if (getPlayerReverbEnvEnabled(this)) try {
 			if (environmentalReverb == null)
 				try {
 					environmentalReverb = mediaPlayerFactory.createEnvironmentalReverb();

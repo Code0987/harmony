@@ -61,32 +61,41 @@ public class TimerViewFragment extends Fragment {
 		set_timer.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
+				try {
+					final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
+						@Override
+						public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
+							if (isNegative) {
+								long time = ((((hours * 60L) + minutes) * 60) + seconds) * 1000;
+								if (time > 0L) {
+									time += System.currentTimeMillis();
+								}
 
-				final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
-					@Override
-					public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
-						long time = ((((hours * 60L) + minutes) * 60) + seconds) * 1000;
-						if (time > 0L) {
-							time += System.currentTimeMillis();
+								setTimer(getContext(), time);
+
+								updateUI();
+							} else {
+								cancelTimer(getContext());
+
+								updateUI();
+							}
 						}
-
-						setTimer(getContext(), time);
-
-						updateUI();
-					}
-				};
-				final HmsPickerBuilder hpb = new HmsPickerBuilder()
-						.setFragmentManager(getActivity().getSupportFragmentManager())
-						.setStyleResId(R.style.BetterPickersDialogFragment);
-				hpb.addHmsPickerDialogHandler(handler);
-				hpb.setOnDismissListener(new OnDialogDismissListener() {
-					@Override
-					public void onDialogDismiss(DialogInterface dialoginterface) {
-						hpb.removeHmsPickerDialogHandler(handler);
-					}
-				});
-				hpb.setTimeInMilliseconds(getSleepTimerTimeLeft(getContext()));
-				hpb.show();
+					};
+					final HmsPickerBuilder hpb = new HmsPickerBuilder()
+							.setFragmentManager(getActivity().getSupportFragmentManager())
+							.setStyleResId(R.style.BetterPickersDialogFragment);
+					hpb.addHmsPickerDialogHandler(handler);
+					hpb.setOnDismissListener(new OnDialogDismissListener() {
+						@Override
+						public void onDialogDismiss(DialogInterface dialoginterface) {
+							hpb.removeHmsPickerDialogHandler(handler);
+						}
+					});
+					hpb.setTimeInMilliseconds(getSleepTimerTimeLeft(getContext()));
+					hpb.show();
+				} catch (Exception e) {
+					// Eat ?
+				}
 
 			}
 		});
@@ -265,15 +274,7 @@ public class TimerViewFragment extends Fragment {
 	}
 
 	public static void showAsDialog(Context context) {
-		if (MusicService.IsPremium) {
-			FragmentDialogActivity.show(context, TimerViewFragment.class, Bundle.EMPTY);
-		} else {
-			Toast.makeText(context, "Play some music first!", Toast.LENGTH_LONG).show();
-		}
-	}
-
-	public static boolean shouldBeVisible() {
-		return MusicService.IsPremium && Music.getSize() >= 5;
+		FragmentDialogActivity.show(context, TimerViewFragment.class, Bundle.EMPTY);
 	}
 
 	public static TimerViewFragment create() {
