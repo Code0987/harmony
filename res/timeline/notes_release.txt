@@ -1,4 +1,4 @@
-﻿✔ Added new Trending list.
+﻿✔ Fixed bugs.
+✔ Added new Trending list.
 ✔ Added YouTube Share feature to directly play music with off-line support.
 ✔ New updated visualizations.
-✔ Fixed bugs.

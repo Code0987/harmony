@@ -888,12 +888,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void editLyrics() {
-		if (!MusicService.IsPremium) {
-			MusicService.showPremiumFeatureMessage(PlaybackUIActivity.this);
-
-			return;
-		}
-
 		try {
 			Context context = PlaybackUIActivity.this;
 
@@ -919,12 +913,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void lookupAndUpdateDetails() {
-		if (!MusicService.IsPremium) {
-			MusicService.showPremiumFeatureMessage(PlaybackUIActivity.this);
-
-			return;
-		}
-
 		info(getString(R.string.looking_up), true);
 
 		final Music m = getMusicService().getMusic();
