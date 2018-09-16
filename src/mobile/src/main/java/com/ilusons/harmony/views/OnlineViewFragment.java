@@ -153,18 +153,6 @@ public class OnlineViewFragment extends BaseUIFragment {
 			e.printStackTrace();
 		}
 
-		MenuItem now_playing = menu.findItem(R.id.now_playing);
-		now_playing.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-			@Override
-			public boolean onMenuItemClick(MenuItem menuItem) {
-				Intent intent = new Intent(getContext(), PlaybackUIActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				startActivity(intent);
-
-				return true;
-			}
-		});
-
 		MenuItem refresh = menu.findItem(R.id.refresh);
 		refresh.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
