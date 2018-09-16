@@ -747,7 +747,9 @@ public class Analytics {
 
 					oe.onComplete();
 				} catch (Exception e) {
-					oe.onError(e);
+					// oe.onError(e); // TODO: Handle error
+
+					oe.onComplete();
 				}
 			}
 		});
@@ -783,7 +785,9 @@ public class Analytics {
 
 					oe.onComplete();
 				} catch (Exception e) {
-					oe.onError(e);
+					// oe.onError(e); TODO: Fix network issue
+
+					oe.onComplete();
 				}
 			}
 		});
