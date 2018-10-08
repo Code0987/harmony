@@ -72,6 +72,8 @@ public class CacheEx {
 	public Bitmap getBitmap(String key) {
 		try {
 			Bitmap value = bitmapCache.get(key);
+			if (value == null || value.isRecycled())
+				return null;
 
 			return value;
 		} catch (Exception e) {

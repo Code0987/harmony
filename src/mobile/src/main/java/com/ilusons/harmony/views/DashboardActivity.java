@@ -1342,6 +1342,8 @@ public class DashboardActivity extends BaseUIActivity {
 								"Play next",
 								"Download",
 								"Stream",
+								"Add to active playlist",
+								"Add to playlist"
 						}, new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int itemIndex) {
@@ -1358,6 +1360,12 @@ public class DashboardActivity extends BaseUIActivity {
 											break;
 										case 3:
 											playAfterStream(d);
+											break;
+										case 4:
+											addToActivePlaylist(d);
+											break;
+										case 5:
+											addToPlaylist(d);
 											break;
 									}
 								} catch (Exception e) {
@@ -1429,6 +1437,57 @@ public class DashboardActivity extends BaseUIActivity {
 
 				try {
 					musicService.download(music, false);
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					context.info("Ah! Try again!");
+				}
+			}
+
+			private void addToActivePlaylist(final Music music) {
+				final MusicService musicService = context.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					Playlist.add(context, Playlist.getActivePlaylist(context), music, true);
+
+					context.info("Added to current playlist!");
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					context.info("Ah! Try again!");
+				}
+			}
+
+			private void addToPlaylist(final Music music) {
+				final MusicService musicService = context.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					final ArrayList<String> playlists = new ArrayList<>();
+					for (Playlist playlist : Playlist.loadAllPlaylists())
+						playlists.add(playlist.getName());
+
+					android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(new ContextThemeWrapper(view.getContext(), R.style.AppTheme_AlertDialogStyle));
+					builder.setTitle("Playlist");
+					builder.setItems(playlists.toArray(new String[playlists.size()]), new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int itemIndex) {
+							try {
+								Playlist.add(context, playlists.get(itemIndex), music, true);
+
+								context.info("Added to playlist!");
+							} catch (Exception e) {
+								Log.w(TAG, e);
+
+								context.info("Ah! Try again!");
+							}
+						}
+					});
+					android.app.AlertDialog dialog = builder.create();
+					dialog.show();
 				} catch (Exception e) {
 					e.printStackTrace();
 

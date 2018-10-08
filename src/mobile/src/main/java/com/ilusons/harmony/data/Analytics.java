@@ -710,7 +710,9 @@ public class Analytics {
 						throw new Exception("Not found");
 					oe.onComplete();
 				} catch (Exception e) {
-					oe.onError(e);
+					// oe.onError(e);
+
+					oe.onComplete();
 				}
 			}
 		});

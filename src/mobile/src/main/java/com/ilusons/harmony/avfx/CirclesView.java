@@ -221,7 +221,11 @@ public class CirclesView extends BaseAVFXCanvasView {
 		public void updateAudioData(int sr, byte[] data) {
 			int min = (int) Math.ceil(lf * data.length / (float) sr);
 			int max = (int) Math.ceil(uf * data.length / (float) sr);
-			audioCalculator.setBytes(Arrays.copyOfRange(data, min, max));
+			try {
+				audioCalculator.setBytes(Arrays.copyOfRange(data, min, max));
+			} catch (Exception e) {
+				// Eat ?
+			}
 			double f = audioCalculator.getFrequency();
 			double m = 1;
 

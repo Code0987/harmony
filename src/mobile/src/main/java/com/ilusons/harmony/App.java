@@ -73,7 +73,7 @@ public class App extends Application {
 		try {
 			Realm.init(this);
 		} catch (Exception e) {
-			e.printStackTrace();
+			// Eat ?
 		}
 
 		// Images
