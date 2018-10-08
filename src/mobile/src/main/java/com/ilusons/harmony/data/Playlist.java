@@ -1,5 +1,6 @@
 package com.ilusons.harmony.data;
 
+import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -22,6 +23,7 @@ import com.ilusons.harmony.ref.ArrayEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.ref.TimeIt;
 
 import org.apache.commons.io.FileUtils;
@@ -93,7 +95,7 @@ public class Playlist extends RealmObject {
 	public void setItemIndex(final int i) {
 		ItemIndex = i;
 		if (ItemIndex < 0 || ItemIndex >= Items.size())
-			ItemIndex = -1;
+			ItemIndex = 0;
 	}
 
 	private Long LinkedAndroidOSPlaylistId = -1L;
@@ -303,7 +305,7 @@ public class Playlist extends RealmObject {
 		}
 	}
 
-	public static void add(final String playlistName, final Music music) {
+	public static void add(final Context context, final String playlistName, final Music music, boolean sync) {
 		try (Realm realm = Music.getDB()) {
 			if (realm != null) {
 				realm.executeTransaction(new Realm.Transaction() {
@@ -320,6 +322,18 @@ public class Playlist extends RealmObject {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		if (sync)
+			try {
+				if (getActivePlaylist(context).equals(playlistName)) {
+					Intent musicServiceIntent = new Intent(context, MusicService.class);
+					musicServiceIntent.setAction(MusicService.ACTION_PLAYLIST_CHANGED);
+					musicServiceIntent.putExtra(MusicService.KEY_PLAYLIST_CHANGED_PLAYLIST, playlistName);
+					context.startService(musicServiceIntent);
+				}
+			} catch (Exception e) {
+				// Eat ?
+			}
 	}
 
 	public static final String TAG_SPREF_PLAYLISTS_ACTIVE = "playlists_active";
@@ -449,6 +463,7 @@ public class Playlist extends RealmObject {
 			e.printStackTrace();
 		}
 	}
+
 
 	//region Scanner
 

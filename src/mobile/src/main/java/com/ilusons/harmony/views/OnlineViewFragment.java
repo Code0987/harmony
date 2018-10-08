@@ -31,6 +31,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIFragment;
@@ -543,7 +544,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 			topLocalTracks.addAll(Music.getAllSortedByScore(15));
 			topLocalTracks.addAll(Music.getAllSortedByTimeLastPlayed(15));
 			Collections.shuffle(topLocalTracks);
-			topLocalTracks = topLocalTracks.subList(0, Math.min(topLocalTracks.size() - 1, 5));
+			topLocalTracks = topLocalTracks.subList(0, Math.max(0, Math.min(topLocalTracks.size() - 1, 5)));
 			try {
 				for (Music music : topLocalTracks) {
 					observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), N));
@@ -793,6 +794,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 								"Download, then play",
 								"Download",
 								"Stream",
+								"Add to playlist"
 						}, new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int itemIndex) {
@@ -812,6 +814,9 @@ public class OnlineViewFragment extends BaseUIFragment {
 											break;
 										case 4:
 											playAfterStream(d);
+											break;
+										case 5:
+											addToPlaylist(d);
 											break;
 									}
 								} catch (Exception e) {
@@ -909,6 +914,41 @@ public class OnlineViewFragment extends BaseUIFragment {
 					e.printStackTrace();
 
 					fragment.info("Ah! Try again!");
+				}
+			}
+
+			private void addToPlaylist(final Music music) {
+				final MusicService musicService = fragment.getMusicService();
+				if (musicService == null)
+					return;
+
+				try {
+					final ArrayList<String> playlists = new ArrayList<>();
+					for (Playlist playlist : Playlist.loadAllPlaylists())
+						playlists.add(playlist.getName());
+
+					android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(new ContextThemeWrapper(fragment.getContext(), R.style.AppTheme_AlertDialogStyle));
+					builder.setTitle("Playlist");
+					builder.setItems(playlists.toArray(new String[playlists.size()]), new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int itemIndex) {
+							try {
+								Playlist.add(fragment.getContext(), playlists.get(itemIndex), music, true);
+
+								Toast.makeText(fragment.getContext(), "Added to playlist!", Toast.LENGTH_LONG).show();
+							} catch (Exception e) {
+								Log.w(TAG, e);
+
+								Toast.makeText(fragment.getContext(), "Ah! Try again!", Toast.LENGTH_LONG).show();
+							}
+						}
+					});
+					android.app.AlertDialog dialog = builder.create();
+					dialog.show();
+				} catch (Exception e) {
+					e.printStackTrace();
+
+					Toast.makeText(fragment.getContext(), "Ah! Try again!", Toast.LENGTH_LONG).show();
 				}
 			}
 

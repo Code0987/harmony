@@ -57,6 +57,7 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdListener;
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
@@ -1007,6 +1008,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 						builder.setTitle("Select the action");
 						builder.setItems(new CharSequence[]{
 								"Share",
+								"Add to playlist",
 								"Tags",
 								"Play next",
 								"Play at start",
@@ -1022,7 +1024,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 							public void onClick(DialogInterface dialog, int itemIndex) {
 								try {
 									switch (itemIndex) {
-										case 0:
+										case 0:{
 											Intent shareIntent = new Intent();
 											shareIntent.setAction(Intent.ACTION_SEND);
 											shareIntent.putExtra(Intent.EXTRA_TEXT, item.getTextDetailedMultiLine());
@@ -1035,8 +1037,12 @@ public class PlaylistViewFragment extends BaseUIFragment {
 												shareIntent.setType("audio/*");
 											shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 											startActivity(Intent.createChooser(shareIntent, "Share " + item.getText() + " ..."));
+										}
 											break;
-										case 1: {
+										case 1 : {
+											addToPlaylist(item);
+										}
+										case 2: {
 											final EditText editText = new EditText(getActivity());
 											editText.setText(item.getTags());
 											(new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.AppTheme_AlertDialogStyle))
@@ -1064,38 +1070,38 @@ public class PlaylistViewFragment extends BaseUIFragment {
 													.show();
 										}
 										break;
-										case 2:
+										case 3:
 											viewPlaylist.add(item, viewPlaylist.getItems().lastIndexOf(item) + 1);
 											updatePlaylist(viewPlaylist);
 											break;
-										case 3:
+										case 4:
 											viewPlaylist.add(item, 0);
 											updatePlaylist(viewPlaylist);
 											break;
-										case 4:
+										case 5:
 											viewPlaylist.add(item, viewPlaylist.getItems().size());
 											updatePlaylist(viewPlaylist);
 											break;
-										case 5:
+										case 6:
 											viewPlaylist.remove(item);
 											updatePlaylist(viewPlaylist);
 											break;
-										case 6:
+										case 7:
 											viewPlaylist.removeAllExceptCurrent();
 											updatePlaylist(viewPlaylist);
 											break;
-										case 7:
+										case 8:
 											viewPlaylist.moveDown(item);
 											updatePlaylist(viewPlaylist);
 											break;
-										case 8:
+										case 9:
 											viewPlaylist.moveUp(item);
 											updatePlaylist(viewPlaylist);
 											break;
-										case 9:
+										case 10:
 											viewPlaylist.delete(item, getMusicService(), true);
 											break;
-										case 10:
+										case 11:
 											download(item);
 											break;
 									}
@@ -1316,6 +1322,41 @@ public class PlaylistViewFragment extends BaseUIFragment {
 				}
 			} catch (Exception e) {
 				// Eat?
+			}
+		}
+
+		private void addToPlaylist(final Music music) {
+			final MusicService musicService = getMusicService();
+			if (musicService == null)
+				return;
+
+			try {
+				final ArrayList<String> playlists = new ArrayList<>();
+				for (Playlist playlist : Playlist.loadAllPlaylists())
+					playlists.add(playlist.getName());
+
+				android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(new ContextThemeWrapper(getContext(), R.style.AppTheme_AlertDialogStyle));
+				builder.setTitle("Playlist");
+				builder.setItems(playlists.toArray(new String[playlists.size()]), new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int itemIndex) {
+						try {
+							Playlist.add(getContext(), playlists.get(itemIndex), music, true);
+
+							Toast.makeText(getContext(), "Added to playlist!", Toast.LENGTH_LONG).show();
+						} catch (Exception e) {
+							Log.w(TAG, e);
+
+							Toast.makeText(getContext(), "Ah! Try again!", Toast.LENGTH_LONG).show();
+						}
+					}
+				});
+				android.app.AlertDialog dialog = builder.create();
+				dialog.show();
+			} catch (Exception e) {
+				e.printStackTrace();
+
+				Toast.makeText(getContext(), "Ah! Try again!", Toast.LENGTH_LONG).show();
 			}
 		}
 
