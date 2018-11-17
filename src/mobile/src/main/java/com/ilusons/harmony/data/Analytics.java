@@ -377,7 +377,7 @@ public class Analytics {
 					return null;
 
 				if (context.lfm_session == null) try {
-					(new CreateLastfmSession(context)).execute().wait();
+					(new CreateLastfmSession(context)).execute().get(1, TimeUnit.SECONDS);
 				} catch (Exception e) {
 					e.printStackTrace();
 					if (context.lfm_session == null)
@@ -434,7 +434,7 @@ public class Analytics {
 					return null;
 
 				if (context.lfm_session == null) try {
-					(new CreateLastfmSession(context)).execute().wait();
+					(new CreateLastfmSession(context)).execute().get(1, TimeUnit.SECONDS);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

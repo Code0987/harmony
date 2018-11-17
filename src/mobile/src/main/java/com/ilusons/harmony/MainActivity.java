@@ -23,6 +23,7 @@ import com.ilusons.harmony.views.DashboardActivity;
 import com.ilusons.harmony.views.IntroActivity;
 import com.ilusons.harmony.views.PlaylistViewActivity;
 import com.ilusons.harmony.views.RateMe;
+import com.ilusons.harmony.views.TimerViewFragment;
 import com.ilusons.harmony.views.Tips;
 import com.ilusons.harmony.views.PlaybackUIActivity;
 
@@ -142,6 +143,14 @@ public class MainActivity extends BaseActivity {
 			}
 
 			// Kill self
+			finish();
+		}
+
+		// Timer
+
+		else if (intent.getAction().equals(TimerViewFragment.ACTION_VIEW_TIMER)) {
+			TimerViewFragment.showAsDialog(this);
+
 			finish();
 		}
 

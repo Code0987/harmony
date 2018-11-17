@@ -90,6 +90,7 @@
                 android:layout_marginTop="32dp"
                 android:autoLink="web"
                 android:text="@string/app_website"
+                android:textColor="@color/textColorPrimary"
                 android:textSize="13sp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

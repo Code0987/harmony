@@ -7,6 +7,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/translucent_dark"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:elevation="0dp"
@@ -127,12 +128,34 @@
             class="com.ilusons.harmony.ref.ViewEx$StaticViewPager"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clipChildren="false"
-            android:clipToPadding="false"
+            android:clipChildren="true"
+            android:clipToPadding="true"
             android:descendantFocusability="beforeDescendants"
             android:focusableInTouchMode="true"
             android:gravity="center"
             >
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:background="@drawable/gradient_top_down_transparent"
+                android:gravity="center_horizontal|bottom"
+                android:orientation="vertical"
+                android:tag="Smart"
+                >
+
+                <LinearLayout
+                    android:id="@+id/content_smart"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center_horizontal|bottom"
+                    android:orientation="horizontal">
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -510,6 +533,7 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="32dp"
                     android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
@@ -571,15 +595,15 @@
                         android:id="@+id/preamp_seekBar"
                         android:layout_width="110dp"
                         android:layout_height="110dp"
-                        app:cs_circle_color="@color/accent"
-                        app:cs_circle_progress_color="@color/accent"
+                        app:cs_circle_color="@color/gradient41"
+                        app:cs_circle_progress_color="@color/gradient41"
                         app:cs_circle_stroke_width="1dp"
                         app:cs_circle_style="round"
                         app:cs_end_angle="90"
                         app:cs_maintain_equal_circle="false"
                         app:cs_max="100"
                         app:cs_negative_enabled="false"
-                        app:cs_pointer_color="@color/accent"
+                        app:cs_pointer_color="@color/gradient41"
                         app:cs_pointer_stroke_width="12dp"
                         app:cs_progress="50"
                         app:cs_start_angle="-180"
@@ -626,15 +650,15 @@
                         android:id="@+id/loudness_seekBar"
                         android:layout_width="110dp"
                         android:layout_height="110dp"
-                        app:cs_circle_color="@color/accent"
-                        app:cs_circle_progress_color="@color/accent"
+                        app:cs_circle_color="@color/gradient41"
+                        app:cs_circle_progress_color="@color/gradient41"
                         app:cs_circle_stroke_width="1dp"
                         app:cs_circle_style="round"
                         app:cs_end_angle="90"
                         app:cs_maintain_equal_circle="false"
                         app:cs_max="100"
                         app:cs_negative_enabled="false"
-                        app:cs_pointer_color="@color/accent"
+                        app:cs_pointer_color="@color/gradient41"
                         app:cs_pointer_stroke_width="12dp"
                         app:cs_progress="50"
                         app:cs_start_angle="-180"
@@ -681,15 +705,15 @@
                         android:id="@+id/bassboost_seekBar"
                         android:layout_width="110dp"
                         android:layout_height="110dp"
-                        app:cs_circle_color="@color/accent"
-                        app:cs_circle_progress_color="@color/accent"
+                        app:cs_circle_color="@color/gradient41"
+                        app:cs_circle_progress_color="@color/gradient41"
                         app:cs_circle_stroke_width="1dp"
                         app:cs_circle_style="round"
                         app:cs_end_angle="90"
                         app:cs_maintain_equal_circle="false"
                         app:cs_max="100"
                         app:cs_negative_enabled="false"
-                        app:cs_pointer_color="@color/accent"
+                        app:cs_pointer_color="@color/gradient41"
                         app:cs_pointer_stroke_width="12dp"
                         app:cs_progress="50"
                         app:cs_start_angle="-180"
@@ -736,15 +760,15 @@
                         android:id="@+id/virtualizer_seekBar"
                         android:layout_width="110dp"
                         android:layout_height="110dp"
-                        app:cs_circle_color="@color/accent"
-                        app:cs_circle_progress_color="@color/accent"
+                        app:cs_circle_color="@color/gradient41"
+                        app:cs_circle_progress_color="@color/gradient41"
                         app:cs_circle_stroke_width="1dp"
                         app:cs_circle_style="round"
                         app:cs_end_angle="90"
                         app:cs_maintain_equal_circle="false"
                         app:cs_max="100"
                         app:cs_negative_enabled="false"
-                        app:cs_pointer_color="@color/accent"
+                        app:cs_pointer_color="@color/gradient41"
                         app:cs_pointer_stroke_width="12dp"
                         app:cs_progress="50"
                         app:cs_start_angle="-180"
@@ -766,8 +790,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:gravity="center_horizontal|center_vertical"
-                android:orientation="horizontal"
-                android:tag="Reverb 1"
+                android:orientation="vertical"
+                android:tag="Reverb"
                 >
 
                 <LinearLayout
@@ -820,17 +844,6 @@
                     </LinearLayout>
 
                 </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:gravity="center_horizontal|center_vertical"
-                android:orientation="horizontal"
-                android:tag="Reverb 2"
-                >
 
                 <LinearLayout
                     android:layout_width="match_parent"

@@ -10,7 +10,7 @@
         <item name="android:dialogTheme">@style/AppTheme.Dialog</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowIsTranslucent">false</item>
-        <item name="android:windowBackground">@drawable/bg</item>
+        <item name="android:windowBackground">@drawable/bg4</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
@@ -259,10 +259,17 @@
     </style>
 
     <style name="AppTheme.Settings" parent="AppTheme">
-        <item name="android:windowBackground">@drawable/bg3</item>
+        <item name="android:windowBackground">@drawable/bg2</item>
     </style>
 
     <style name="AppTheme.Intro" parent="Theme.Intro">
+    </style>
+
+    <style name="AppTheme.Tune" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/bg4</item>
+        <item name="colorPrimary">@color/gradient43</item>
+        <item name="colorPrimaryDark">@color/gradient42</item>
+        <item name="colorAccent">@color/gradient41</item>
     </style>
 
     <style name="AppTheme.FilePickerTheme" parent="NNF_BaseTheme">

@@ -169,7 +169,8 @@
         </activity>
         <activity
             android:name=".views.TuneActivity"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.Tune">
         </activity>
         <activity
             android:name=".views.FragmentDialogActivity"

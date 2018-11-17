@@ -11,6 +11,7 @@ import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -169,7 +170,7 @@ public class TunePresetsFragment extends Fragment {
 		recyclerView.setItemViewCacheSize(11);
 		recyclerView.setDrawingCacheEnabled(true);
 		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
-		recyclerView.setLayoutManager(new LinearLayoutManager(v.getContext()));
+		recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
 		recyclerView.setAdapter(adapter);
 
 		adapter.refresh(v.getContext());
@@ -298,10 +299,6 @@ public class TunePresetsFragment extends Fragment {
 		//keys.addAll(Arrays.asList(PlaybackUIActivity.ExportableSPrefKeys));
 
 		return keys;
-	}
-
-	public static void showAsDialog(Context context) {
-		FragmentDialogActivity.show(context, TunePresetsFragment.class, Bundle.EMPTY);
 	}
 
 	public static TunePresetsFragment create() {

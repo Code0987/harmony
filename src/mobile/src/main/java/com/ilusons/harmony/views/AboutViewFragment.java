@@ -29,10 +29,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.airbnb.lottie.LottieAnimationView;
-import com.codetroopers.betterpickers.OnDialogDismissListener;
-import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
-import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
 import com.ilusons.harmony.BuildConfig;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;

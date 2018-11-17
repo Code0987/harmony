@@ -1477,19 +1477,11 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		tune.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				TunePresetsFragment.showAsDialog(view.getContext());
-			}
-		});
-		tune.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
 				Intent intent = new Intent(PlaybackUIActivity.this, TuneActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
-				return true;
 			}
 		});
-		tune.setLongClickable(true);
 
 		if (more != null)
 			more.setOnClickListener(new View.OnClickListener() {
