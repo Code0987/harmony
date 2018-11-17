@@ -140,8 +140,8 @@ public class WaveformView extends BaseAVFXGLView {
         gl.glPushMatrix();
 
         // viewport
-        // gl.glViewport(0, (height / 2) * (1 - vposition), width, (height / 2));
-        gl.glViewport(0, 0, width, height);
+        gl.glViewport(0, (height / 2) * (1 - vposition), width, (height / 2));
+        // gl.glViewport(0, 0, width, height);
 
         // X: [0:1], Y: [-1:+1] (scaled)
         gl.glOrthof(0.0f, 1.0f, -yrange, yrange, -1.0f, 1.0f);

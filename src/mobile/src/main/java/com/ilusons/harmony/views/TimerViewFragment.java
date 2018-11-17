@@ -1,21 +1,27 @@
 package com.ilusons.harmony.views;
 
 import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,13 +31,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
-import com.codetroopers.betterpickers.OnDialogDismissListener;
-import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
-import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
+import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.SPrefEx;
+import com.ilusons.harmony.ref.ui.timedurationpicker.TimeDurationPicker;
+import com.ilusons.harmony.ref.ui.timedurationpicker.TimeDurationPickerDialog;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class TimerViewFragment extends Fragment {
 
@@ -61,42 +68,20 @@ public class TimerViewFragment extends Fragment {
 		set_timer.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				try {
-					final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
-						@Override
-						public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
-							if (isNegative) {
-								long time = ((((hours * 60L) + minutes) * 60) + seconds) * 1000;
-								if (time > 0L) {
-									time += System.currentTimeMillis();
-								}
+				(new TimeDurationPickerDialog(getContext(), new TimeDurationPickerDialog.OnDurationSetListener() {
+					@Override
+					public void onDurationSet(TimeDurationPicker view, long duration) {
+						if (duration != 0) {
+							setTimer(getContext(), System.currentTimeMillis() + duration);
 
-								setTimer(getContext(), time);
+							updateUI();
+						} else {
+							cancelTimer(getContext());
 
-								updateUI();
-							} else {
-								cancelTimer(getContext());
-
-								updateUI();
-							}
+							updateUI();
 						}
-					};
-					final HmsPickerBuilder hpb = new HmsPickerBuilder()
-							.setFragmentManager(getActivity().getSupportFragmentManager())
-							.setStyleResId(R.style.BetterPickersDialogFragment);
-					hpb.addHmsPickerDialogHandler(handler);
-					hpb.setOnDismissListener(new OnDialogDismissListener() {
-						@Override
-						public void onDialogDismiss(DialogInterface dialoginterface) {
-							hpb.removeHmsPickerDialogHandler(handler);
-						}
-					});
-					hpb.setTimeInMilliseconds(getSleepTimerTimeLeft(getContext()));
-					hpb.show();
-				} catch (Exception e) {
-					// Eat ?
-				}
-
+					}
+				}, getSleepTimerTimeLeft(getContext()))).show();
 			}
 		});
 
@@ -106,61 +91,117 @@ public class TimerViewFragment extends Fragment {
 	}
 
 	private void updateUI() {
+		try {
+			if (countDownTimer != null) {
+				countDownTimer.cancel();
+				countDownTimer = null;
+			}
 
-		if (countDownTimer != null) {
-			countDownTimer.cancel();
-			countDownTimer = null;
+			if (getSleepTimerTimeLeft(getContext()) > 0) {
+
+				countDownTimer = new CountDownTimer(getSleepTimerTimeLeft(getContext()), 1000) {
+					@Override
+					public void onTick(long time) {
+						time += 1000; // HACK
+
+						int h = (int) (time / 3600000);
+						int m = (int) (time - h * 3600000) / 60000;
+						int s = (int) (time - h * 3600000 - m * 60000) / 1000;
+						String hh = h < 10 ? "0" + h : h + "";
+						String mm = m < 10 ? "0" + m : m + "";
+						String ss = s < 10 ? "0" + s : s + "";
+						text.setText(hh + ":" + mm + ":" + ss);
+					}
+
+					@Override
+					public void onFinish() {
+						updateUI();
+					}
+				};
+				countDownTimer.start();
+
+				text.setText("...");
+
+				set_timer.pauseAnimation();
+				set_timer.setAnimation("clock.json", LottieAnimationView.CacheStrategy.Weak);
+				set_timer.loop(true);
+				set_timer.setScale(1);
+				set_timer.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+				set_timer.clearColorFilters();
+				set_timer.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.MULTIPLY));
+				set_timer.playAnimation();
+
+			} else {
+
+				text.setText("Tap above");
+
+				set_timer.pauseAnimation();
+				set_timer.setAnimation("no_notifications!.json", LottieAnimationView.CacheStrategy.Weak);
+				set_timer.loop(true);
+				set_timer.setScale(1);
+				set_timer.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+				set_timer.clearColorFilters();
+				set_timer.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.MULTIPLY));
+				set_timer.playAnimation();
+			}
+		} catch (Exception e) {
+			// Eat ?
 		}
-
-		if (getSleepTimerTimeLeft(getContext()) > 0) {
-
-			countDownTimer = new CountDownTimer(getSleepTimerTimeLeft(getContext()), 1000) {
-				@Override
-				public void onTick(long time) {
-					time += 1000; // HACK
-
-					int h = (int) (time / 3600000);
-					int m = (int) (time - h * 3600000) / 60000;
-					int s = (int) (time - h * 3600000 - m * 60000) / 1000;
-					String hh = h < 10 ? "0" + h : h + "";
-					String mm = m < 10 ? "0" + m : m + "";
-					String ss = s < 10 ? "0" + s : s + "";
-					text.setText(hh + ":" + mm + ":" + ss);
-				}
-
-				@Override
-				public void onFinish() {
-					updateUI();
-				}
-			};
-			countDownTimer.start();
-
-			text.setText("...");
-
-			set_timer.pauseAnimation();
-			set_timer.setAnimation("clock.json", LottieAnimationView.CacheStrategy.Weak);
-			set_timer.loop(true);
-			set_timer.setScale(1);
-			set_timer.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-			set_timer.clearColorFilters();
-			set_timer.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.MULTIPLY));
-			set_timer.playAnimation();
-
-		} else {
-
-			text.setText("Tap above");
-
-			set_timer.pauseAnimation();
-			set_timer.setAnimation("no_notifications!.json", LottieAnimationView.CacheStrategy.Weak);
-			set_timer.loop(true);
-			set_timer.setScale(1);
-			set_timer.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-			set_timer.clearColorFilters();
-			set_timer.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.MULTIPLY));
-			set_timer.playAnimation();
-		}
-
 	}
+
+	//region Notification
+
+	public static final String ACTION_VIEW_TIMER = TAG + "_view_timer";
+	private static int NOTIFICATION_ID_VIEW_TIMER = 23453;
+
+	private static void sendNotification(Context context, int id, String title, String content) {
+		Intent intent = new Intent(context, MainActivity.class);
+		intent.setAction(ACTION_VIEW_TIMER);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+		final String NOTIFICATION_CHANNEL = "Timer";
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+			try {
+				NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+				if (notificationManager != null) {
+					notificationManager.createNotificationChannel(new NotificationChannel(NOTIFICATION_CHANNEL, StringUtils.capitalize(NOTIFICATION_CHANNEL), NotificationManager.IMPORTANCE_DEFAULT));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL)
+				.setSmallIcon(R.drawable.ic_music_bell)
+				.setContentTitle(title)
+				.setContentText(content)
+				.setAutoCancel(false)
+				.setColor(ContextCompat.getColor(context, R.color.accent))
+				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
+				.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+				.setStyle(new NotificationCompat.BigTextStyle()
+						.setBigContentTitle(title)
+						.setSummaryText(content)
+						.bigText(content));
+
+		if (pendingIntent != null)
+			notificationBuilder.setContentIntent(pendingIntent);
+
+		NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		if (notificationManager != null) {
+			notificationManager.notify(id, notificationBuilder.build());
+		}
+	}
+
+	private static void cancelNotification(Context context, int id) {
+		NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		if (notificationManager != null) {
+			notificationManager.cancel(id);
+		}
+	}
+
+	//endregion
 
 	public static final String TAG_SPREF_ST_TIME = SPrefEx.TAG_SPREF + ".st_t";
 
@@ -256,6 +297,8 @@ public class TimerViewFragment extends Fragment {
 		ComponentName receiver = new ComponentName(context, BootReceiver.class);
 		PackageManager pm = context.getPackageManager();
 		pm.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+
+		sendNotification(context, NOTIFICATION_ID_VIEW_TIMER, "Timer", "Tap here to open timer.");
 	}
 
 	public static void cancelTimer(Context context) {
@@ -271,6 +314,8 @@ public class TimerViewFragment extends Fragment {
 		ComponentName receiver = new ComponentName(context, BootReceiver.class);
 		PackageManager pm = context.getPackageManager();
 		pm.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+
+		cancelNotification(context, NOTIFICATION_ID_VIEW_TIMER);
 	}
 
 	public static void showAsDialog(Context context) {

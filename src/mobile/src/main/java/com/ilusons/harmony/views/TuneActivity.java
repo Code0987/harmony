@@ -8,6 +8,8 @@ import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -37,6 +39,7 @@ import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseActivity;
+import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.ViewEx;
 
@@ -49,7 +52,7 @@ import java.util.ArrayList;
 import jonathanfinerty.once.Once;
 import me.tankery.lib.circularseekbar.CircularSeekBar;
 
-public class TuneActivity extends BaseActivity {
+public class TuneActivity extends BaseUIActivity {
 
 	// Logger TAG
 	private static final String TAG = TuneActivity.class.getSimpleName();
@@ -97,6 +100,8 @@ public class TuneActivity extends BaseActivity {
 				.commit();
 
 		// SFX
+		createSmart();
+
 		createEq();
 
 		createPreAmp();
@@ -145,28 +150,48 @@ public class TuneActivity extends BaseActivity {
 	protected void OnMusicServiceChanged(ComponentName className, MusicService musicService, boolean isBound) {
 		super.OnMusicServiceChanged(className, musicService, isBound);
 
-		if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-			audioVFXViewFragment.reset(
-					musicService,
-					AudioVFXViewFragment.AVFXType.Bars,
-					ContextCompat.getColor(getApplicationContext(), R.color.accent));
-		}
-
-		updateEq(musicService.getEqualizer());
-
-		updatePreAmp(musicService.getPreAmp());
-
-		updateBassBoost(musicService.getBassBoost());
-
-		updateLoudnessEnhancer(musicService.getLoudnessEnhancer());
-
-		updateVirtualizer(musicService.getVirtualizer());
-
-		updateEnvReverb(musicService.getEnvironmentalReverb());
-
-		updatePresetReverb(musicService.getPresetReverb());
-
+		OnMusicServiceSFXUpdated();
 	}
+
+	@Override
+	public void OnMusicServiceSFXUpdated() {
+		try {
+			MusicService musicService = getMusicService();
+
+			if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
+				audioVFXViewFragment.reset(
+						musicService,
+						AudioVFXViewFragment.AVFXType.Waveform,
+						ContextCompat.getColor(getApplicationContext(), R.color.gradient42));
+			}
+
+			updateEq(musicService.getEqualizer());
+
+			updatePreAmp(musicService.getPreAmp());
+
+			updateBassBoost(musicService.getBassBoost());
+
+			updateLoudnessEnhancer(musicService.getLoudnessEnhancer());
+
+			updateVirtualizer(musicService.getVirtualizer());
+
+			updateEnvReverb(musicService.getEnvironmentalReverb());
+
+			updatePresetReverb(musicService.getPresetReverb());
+		} catch (Exception e) {
+			// Eat ?
+		}
+	}
+
+//region Smart
+
+	private void createSmart() {
+		FragmentManager fm = getSupportFragmentManager();
+		FragmentTransaction ft = fm.beginTransaction();
+		ft.replace(R.id.content_smart, TunePresetsFragment.create()).commit();
+	}
+
+	//endregion
 
 	//region EQ
 

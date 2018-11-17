@@ -5,13 +5,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:res="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="360dp"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_dialog"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:minWidth="320dp"
-    android:padding="12dp"
     >
 
     <ScrollView
@@ -34,36 +32,6 @@
             android:layout_height="wrap_content"
             >
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="1800dp"
-                android:nestedScrollingEnabled="false"
-                res:layout_constraintLeft_toLeftOf="parent"
-                res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toTopOf="parent"
-                tools:layoutManager="android.support.v7.widget.GridLayoutManager"
-                tools:layout_height="120dp"
-                tools:listitem="@layout/tune_presets_item"
-                />
-
-            <ImageView
-                android:id="@+id/status"
-                xmlns:res="http://schemas.android.com/apk/res-auto"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:layout_marginTop="16dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_music_mixer"
-                android:tint="@android:color/holo_green_light"
-                android:tintMode="src_atop"
-                res:layout_constraintLeft_toLeftOf="parent"
-                res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toBottomOf="@id/recyclerView"
-                />
-
-
             <Switch
                 android:id="@+id/smart_tune"
                 style="@style/TextAppearance.AppCompat.Widget.Switch"
@@ -71,13 +39,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="24dp"
                 android:background="@null"
                 android:text="Smart Tune"
                 android:textColor="@android:color/holo_green_light"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toBottomOf="@id/status"
+                res:layout_constraintTop_toTopOf="parent"
                 />
 
             <TextView
@@ -106,7 +74,7 @@
                 android:text="@string/import_"
                 android:textColor="@android:color/holo_orange_light"
                 res:layout_constraintLeft_toLeftOf="parent"
-                res:layout_constraintRight_toRightOf="parent"
+                res:layout_constraintRight_toLeftOf="@+id/export_preset"
                 res:layout_constraintTop_toBottomOf="@id/smart_tune_info"
                 />
 
@@ -121,9 +89,24 @@
                 android:background="@null"
                 android:text="@string/export_"
                 android:textColor="@android:color/holo_green_light"
+                res:layout_constraintLeft_toRightOf="@+id/import_preset"
+                res:layout_constraintRight_toRightOf="parent"
+                res:layout_constraintTop_toBottomOf="@id/smart_tune_info"
+                />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:minHeight="980dp"
+                android:nestedScrollingEnabled="false"
                 res:layout_constraintLeft_toLeftOf="parent"
                 res:layout_constraintRight_toRightOf="parent"
-                res:layout_constraintTop_toBottomOf="@id/import_preset"
+                res:layout_constraintTop_toBottomOf="@id/export_preset"
+                tools:layoutManager="android.support.v7.widget.GridLayoutManager"
+                tools:layout_height="120dp"
+                tools:listitem="@layout/tune_presets_item"
                 />
 
         </android.support.constraint.ConstraintLayout>

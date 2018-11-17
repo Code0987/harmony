@@ -98,6 +98,11 @@ public abstract class BaseUIActivity extends BaseActivity {
 			public void OnSearchQueryReceived(String query) {
 				BaseUIActivity.this.OnSearchQueryReceived(query);
 			}
+
+			@Override
+			public void OnMusicServiceSFXUpdated() {
+				BaseUIActivity.this.OnMusicServiceSFXUpdated();
+			}
 		};
 
 	}
@@ -192,6 +197,10 @@ public abstract class BaseUIActivity extends BaseActivity {
 	}
 
 	public void OnSearchQueryReceived(String query) {
+
+	}
+
+	public void OnMusicServiceSFXUpdated(){
 
 	}
 

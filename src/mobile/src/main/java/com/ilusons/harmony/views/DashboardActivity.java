@@ -533,26 +533,13 @@ public class DashboardActivity extends BaseUIActivity {
 		findViewById(R.id.tune).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				TunePresetsFragment.showAsDialog(view.getContext());
-
-				info("Long-press previous button for deep customization.");
-
-				drawer_layout.closeDrawer(GravityCompat.START);
-			}
-		});
-		findViewById(R.id.tune).setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View view) {
 				Intent intent = new Intent(DashboardActivity.this, TuneActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 
 				drawer_layout.closeDrawer(GravityCompat.START);
-
-				return true;
 			}
 		});
-		findViewById(R.id.tune).setLongClickable(true);
 
 		findViewById(R.id.refresh).setOnClickListener(new View.OnClickListener() {
 			@Override

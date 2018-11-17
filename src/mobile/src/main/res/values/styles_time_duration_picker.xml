@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- text appearance -->
+    <style name="TextAppearance.TimeDurationPicker" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Display">
+        <item name="android:textSize">34sp</item>
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Unit">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Button">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Display.Large">
+        <item name="android:textSize">45sp</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Unit.Large">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Button.Large">
+        <item name="android:textSize">34sp</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Display.Dark">
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Unit.Dark">
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Display.Large.Dark">
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.TimeDurationPicker.Unit.Large.Dark">
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="Widget"/>
+
+    <style name="Widget.TimeDurationPicker">
+        <item name="textAppearanceDisplay">@style/TextAppearance.TimeDurationPicker.Display</item>
+        <item name="textAppearanceUnit">@style/TextAppearance.TimeDurationPicker.Unit</item>
+        <item name="textAppearanceButton">@style/TextAppearance.TimeDurationPicker.Button</item>
+    </style>
+
+    <style name="Widget.TimeDurationPicker.Large">
+        <item name="textAppearanceDisplay">@style/TextAppearance.TimeDurationPicker.Display.Large
+        </item>
+        <item name="textAppearanceUnit">@style/TextAppearance.TimeDurationPicker.Unit.Large</item>
+        <item name="textAppearanceButton">@style/TextAppearance.TimeDurationPicker.Button.Large
+        </item>
+    </style>
+
+    <style name="Widget.TimeDurationPicker.Dialog">
+        <item name="durationDisplayBackground">@null</item>
+        <item name="textAppearanceDisplay">
+            @style/TextAppearance.TimeDurationPicker.Display.Large.Dark
+        </item>
+        <item name="textAppearanceUnit">@style/TextAppearance.TimeDurationPicker.Unit.Large.Dark
+        </item>
+    </style>
+
+    <!-- internal stuff -->
+    <style name="Widget.TimeDurationPicker.NumPadButton" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.TimeDurationPicker.Display</item>
+        <item name="android:background">?selectableItemBackgroundBorderless</item>
+    </style>
+</resources>

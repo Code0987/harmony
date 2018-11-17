@@ -134,6 +134,7 @@ public class MusicService extends Service {
 
 	public static final String ACTION_REFRESH_SYSTEM_BINDINGS = TAG + ".refresh_system_bindings";
 	public static final String ACTION_REFRESH_SFX = TAG + ".sfx";
+	public static final String ACTION_SFX_UPDATED = TAG + ".sfx_updated";
 
 	public static final String ACTION_PLAYLIST_CHANGED = TAG + ".playlist_changed";
 	public static final String KEY_PLAYLIST_CHANGED_PLAYLIST = "playlist";
@@ -650,6 +651,8 @@ public class MusicService extends Service {
 			if (preAmp == null) {
 				try {
 					preAmp = mediaPlayerFactory.createPreAmp();
+
+					preAmp.setLevel(0.9f);
 
 					loadPreAmp();
 				} catch (Exception e) {
@@ -1289,6 +1292,10 @@ public class MusicService extends Service {
 				mediaPlayer.attachAuxEffect(getPresetReverb().getId());
 				mediaPlayer.setAuxEffectSendLevel(1f);
 			}
+
+			LocalBroadcastManager
+					.getInstance(MusicService.this)
+					.sendBroadcast(new Intent(ACTION_SFX_UPDATED));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1638,14 +1645,22 @@ public class MusicService extends Service {
 	}
 
 	public int getPosition() {
-		if (!isPrepared() || getMusic() == null || (!(mediaPlayer instanceof StandardMediaPlayer) && !getMusic().isLocal()))
-			return -1;
+		if (!isPrepared() || getMusic() == null || (!(mediaPlayer instanceof StandardMediaPlayer))) {
+			if (mediaPlayer != null && mediaPlayer.isPlaying())
+				return mediaPlayer.getCurrentPosition();
+			else
+				return -1;
+		}
 		return mediaPlayer.getCurrentPosition();
 	}
 
 	public int getDuration() {
-		if (!isPrepared() || getMusic() == null || (!(mediaPlayer instanceof StandardMediaPlayer) && !getMusic().isLocal()))
-			return -1;
+		if (!isPrepared() || getMusic() == null || (!(mediaPlayer instanceof StandardMediaPlayer))) {
+			if (mediaPlayer != null && mediaPlayer.isPlaying())
+				return mediaPlayer.getDuration();
+			else
+				return -1;
+		}
 		return mediaPlayer.getDuration();
 	}
 

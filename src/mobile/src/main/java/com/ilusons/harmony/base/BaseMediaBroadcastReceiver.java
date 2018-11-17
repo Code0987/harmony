@@ -79,6 +79,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 			if (!TextUtils.isEmpty(query))
 				OnSearchQueryReceived(query);
 		}
+
+		if (action.equals(MusicService.ACTION_SFX_UPDATED)) {
+			OnMusicServiceSFXUpdated();
+		}
 	}
 
 	LocalBroadcastManager broadcastManager;
@@ -96,6 +100,7 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 		intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATE_BEGINS);
 		intentFilter.addAction(MusicService.ACTION_LIBRARY_UPDATED);
 		intentFilter.addAction(MusicService.ACTION_PLAYLIST_CHANGED);
+		intentFilter.addAction(MusicService.ACTION_SFX_UPDATED);
 
 		intentFilter.addAction(Intent.ACTION_SEARCH);
 
@@ -139,6 +144,10 @@ public abstract class BaseMediaBroadcastReceiver extends BroadcastReceiver {
 	}
 
 	public void OnSearchQueryReceived(String query) {
+
+	}
+
+	public void OnMusicServiceSFXUpdated() {
 
 	}
 

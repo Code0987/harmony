@@ -20,32 +20,24 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.ArraySet;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appyvet.materialrangebar.RangeBar;
-import com.codetroopers.betterpickers.OnDialogDismissListener;
-import com.codetroopers.betterpickers.hmspicker.HmsPickerBuilder;
-import com.codetroopers.betterpickers.hmspicker.HmsPickerDialogFragment;
 import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.HeadsetMediaButtonIntentReceiver;
 import com.ilusons.harmony.base.MusicService;
@@ -60,15 +52,14 @@ import com.ilusons.harmony.ref.inappbilling.IabHelper;
 import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
-import com.ilusons.harmony.views.AudioVFXViewFragment;
-import com.ilusons.harmony.views.PlaybackUIActivity;
+import com.ilusons.harmony.ref.ui.timedurationpicker.TimeDurationPicker;
+import com.ilusons.harmony.ref.ui.timedurationpicker.TimeDurationPickerDialog;
 import com.ilusons.harmony.views.TunePresetsFragment;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import org.apache.commons.io.IOUtils;
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.InputStream;
@@ -495,36 +486,22 @@ public class SettingsActivity extends BaseActivity {
 		findViewById(R.id.library_scan_auto_interval_imageButton).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				final HmsPickerDialogFragment.HmsPickerDialogHandlerV2 handler = new HmsPickerDialogFragment.HmsPickerDialogHandlerV2() {
+				(new TimeDurationPickerDialog(SettingsActivity.this, new TimeDurationPickerDialog.OnDurationSetListener() {
 					@Override
-					public void onDialogHmsSet(int reference, boolean isNegative, int hours, int minutes, int seconds) {
-						Long value = ((((hours * 60L) + minutes) * 60) + seconds) * 1000;
-
-						if (!(value <= (48 * 60 * 60 * 1000) && value >= (7 * 60 * 60 * 1000))) {
+					public void onDurationSet(TimeDurationPicker view, long duration) {
+						if (!(duration <= (48 * 60 * 60 * 1000) && duration >= (7 * 60 * 60 * 1000))) {
 							info("Enter value between [7hrs, 48hrs]", true);
 
 							return;
 						}
 
-						MusicServiceLibraryUpdaterAsyncTask.setScanAutoInterval(SettingsActivity.this, value);
+						MusicServiceLibraryUpdaterAsyncTask.setScanAutoInterval(SettingsActivity.this, duration);
 
 						library_scan_auto_interval_editText.setText("");
-						library_scan_auto_interval_editText.append(String.valueOf(value));
+						library_scan_auto_interval_editText.append(String.valueOf(duration));
 						library_scan_auto_interval_editText.clearFocus();
 					}
-				};
-				final HmsPickerBuilder hpb = new HmsPickerBuilder()
-						.setFragmentManager(getSupportFragmentManager())
-						.setStyleResId(R.style.BetterPickersDialogFragment);
-				hpb.addHmsPickerDialogHandler(handler);
-				hpb.setOnDismissListener(new OnDialogDismissListener() {
-					@Override
-					public void onDialogDismiss(DialogInterface dialoginterface) {
-						hpb.removeHmsPickerDialogHandler(handler);
-					}
-				});
-				hpb.setTimeInMilliseconds(MusicServiceLibraryUpdaterAsyncTask.getScanAutoInterval(SettingsActivity.this));
-				hpb.show();
+				}, MusicServiceLibraryUpdaterAsyncTask.getScanAutoInterval(SettingsActivity.this))).show();
 			}
 		});
 
