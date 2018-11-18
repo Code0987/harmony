@@ -11,7 +11,7 @@ stages:
   artifacts:
     expire_in: 16 hours
     paths:
-    - ./src/mobile/build/outputs/apk/main/*/**.apk
+    - ./src/mobile/build/outputs/apk/*/**.apk
     - ~/.android/
     - ~/ci-log.log
 
@@ -63,14 +63,14 @@ build_debug:
   only:
     - develop
   script:
-    - ./src/gradlew -p ./src assembleMainDebug --stacktrace
+    - ./src/gradlew -p ./src assembleDebug --stacktrace
 
 build_release:
   <<: *build_template_def
   only:
     - master
   script:
-    - ./src/gradlew -p ./src assembleMainReleaseBeta --stacktrace
+    - ./src/gradlew -p ./src assembleReleaseBeta --stacktrace
 
 unit_test:
   stage: test
@@ -143,7 +143,7 @@ package_develop:
   only:
     - develop
   script:
-    - mv ./src/mobile/build/outputs/apk/main/debug/**.apk ./deliverables/
+    - mv ./src/mobile/build/outputs/apk/debug/**.apk ./deliverables/
   artifacts:
     expire_in: 3 days
     paths:
@@ -156,7 +156,7 @@ package_release:
   only:
     - master
   script:
-    - mv ./src/mobile/build/outputs/apk/main/releaseBeta/**.apk ./deliverables/
+    - mv ./src/mobile/build/outputs/apk/releaseBeta/**.apk ./deliverables/
   artifacts:
     expire_in: 4 weeks
     paths:
@@ -222,7 +222,7 @@ publish:
   only:
     - master
   script:  
-    - ./src/gradlew -p ./src publishApkMainReleaseBeta --stacktrace --info
+    - ./src/gradlew -p ./src publishApkReleaseBeta --stacktrace --info
     - git push gitlab --tags
   artifacts:
     expire_in: 16 hours
