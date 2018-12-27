@@ -111,6 +111,9 @@ public class PlaylistViewFragment extends BaseUIFragment {
 	// Logger TAG
 	private static final String TAG = PlaylistViewFragment.class.getSimpleName();
 
+	private static final int REQUEST_EXPORT_LOCATION_PICK_SAF = 59;
+	private static final int REQUEST_PLAYLIST_ADD_PICK = 564;
+
 	private View root;
 
 	private AVLoadingIndicatorView loading;
@@ -272,12 +275,12 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			}
 		});
 
-		MenuItem playlist_settings = menu.findItem(R.id.playlist_settings);
-		playlist_settings.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+		MenuItem playlist_view_sort_mode = menu.findItem(R.id.playlist_view_sort_mode);
+		playlist_view_sort_mode.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
-					togglePlaylistSettings(getActivity().findViewById(android.R.id.content));
+					showUISortModeDialog();
 
 					return true;
 				} catch (Exception e) {
@@ -287,12 +290,58 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			}
 		});
 
-		MenuItem playlist_view_sort_mode = menu.findItem(R.id.playlist_view_sort_mode);
-		playlist_view_sort_mode.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+		MenuItem playlist_view_add_to_playlist = menu.findItem(R.id.playlist_view_add_to_playlist);
+		playlist_view_add_to_playlist.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 			@Override
 			public boolean onMenuItemClick(MenuItem menuItem) {
 				try {
-					showUISortModeDialog();
+					Intent i = new Intent();
+					String[] mimes = new String[]{"audio/*", "video/*"};
+					i.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
+					i.setType(StringUtils.join(mimes, '|'));
+					i.setAction(Intent.ACTION_OPEN_DOCUMENT);
+					i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+					startActivityForResult(i, REQUEST_PLAYLIST_ADD_PICK);
+
+					return  true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+		});
+
+		MenuItem playlist_view_save_playlist = menu.findItem(R.id.playlist_view_save_playlist);
+		playlist_view_save_playlist.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					Playlist.savePlaylist(getViewPlaylist());
+
+					info("Playlist updated!");
+
+					return true;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+		});
+
+		MenuItem playlist_view_export_playlist = menu.findItem(R.id.playlist_view_export_playlist);
+		playlist_view_export_playlist.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				try {
+					Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+					intent.addCategory(Intent.CATEGORY_OPENABLE);
+					intent.putExtra(Intent.EXTRA_TITLE, "Playlist.m3u");
+					intent.setType("*/*");
+					if (intent.resolveActivity(getContext().getPackageManager()) != null) {
+						startActivityForResult(intent, REQUEST_EXPORT_LOCATION_PICK_SAF);
+					} else {
+						info("SAF not found!");
+					}
 
 					return true;
 				} catch (Exception e) {
@@ -1933,277 +1982,6 @@ public class PlaylistViewFragment extends BaseUIFragment {
 		}
 		setFromPlaylistAsyncTask = new SetFromPlaylistAsyncTask(this, playlistName, playlistId);
 		setFromPlaylistAsyncTask.execute();
-	}
-
-	//endregion
-
-	//region Playlist settings
-
-	private static final int REQUEST_EXPORT_LOCATION_PICK_SAF = 59;
-	private static final int REQUEST_PLAYLIST_ADD_PICK = 564;
-
-	private PlaylistsRecyclerViewAdapter playlistsRecyclerViewAdapter;
-
-	private void createPlaylistsSettings(View v) {
-		v.findViewById(R.id.new_playlist).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				try {
-					final EditText editText = new EditText(getContext());
-
-					new AlertDialog.Builder(getContext())
-							.setTitle("Create new playlist")
-							.setMessage("Enter name for new playlist ...")
-							.setView(editText)
-							.setPositiveButton("Create", new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int whichButton) {
-									try {
-										String name = editText.getText().toString().trim();
-
-										Playlist playlist = Playlist.loadOrCreatePlaylist(name);
-
-										if (playlist != null) {
-											Playlist.setActivePlaylist(getContext(), name, true);
-											setViewPlaylist(playlist);
-											playlistsRecyclerViewAdapter.refresh();
-											info("Playlist created!");
-										} else
-											throw new Exception("Some error.");
-									} catch (Exception e) {
-										e.printStackTrace();
-
-										info("Playlist creation failed!");
-									}
-								}
-							})
-							.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int whichButton) {
-								}
-							})
-							.show();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-		v.findViewById(R.id.add_to_playlist).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				try {
-					Intent i = new Intent();
-					String[] mimes = new String[]{"audio/*", "video/*"};
-					i.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
-					i.setType(StringUtils.join(mimes, '|'));
-					i.setAction(Intent.ACTION_OPEN_DOCUMENT);
-					i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-					startActivityForResult(i, REQUEST_PLAYLIST_ADD_PICK);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-		v.findViewById(R.id.save_playlist).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				try {
-					Playlist.savePlaylist(getViewPlaylist());
-
-					info("Playlist updated!");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-		v.findViewById(R.id.export_playlist).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-				intent.addCategory(Intent.CATEGORY_OPENABLE);
-				intent.putExtra(Intent.EXTRA_TITLE, "Playlist.m3u");
-				intent.setType("*/*");
-				if (intent.resolveActivity(getContext().getPackageManager()) != null) {
-					startActivityForResult(intent, REQUEST_EXPORT_LOCATION_PICK_SAF);
-				} else {
-					info("SAF not found!");
-				}
-			}
-		});
-
-		// Set playlist(s)
-		RecyclerView recyclerView = v.findViewById(R.id.recyclerView);
-		recyclerView.setHasFixedSize(true);
-		recyclerView.setItemViewCacheSize(1);
-		recyclerView.setDrawingCacheEnabled(true);
-		recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
-
-		playlistsRecyclerViewAdapter = new PlaylistsRecyclerViewAdapter();
-		recyclerView.setAdapter(playlistsRecyclerViewAdapter);
-		playlistsRecyclerViewAdapter.refresh();
-
-	}
-
-	public class PlaylistsRecyclerViewAdapter extends RecyclerView.Adapter<PlaylistsRecyclerViewAdapter.ViewHolder> {
-
-		private final ArrayList<android.util.Pair<Long, String>> data;
-		private String dataActive;
-
-		public PlaylistsRecyclerViewAdapter() {
-			data = new ArrayList<>();
-		}
-
-		@Override
-		public int getItemCount() {
-			return data.size();
-		}
-
-		@Override
-		public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
-			View view = inflater.inflate(R.layout.playlist_settings_playlist_item, parent, false);
-
-			return new ViewHolder(view);
-		}
-
-		@Override
-		public void onBindViewHolder(final ViewHolder holder, int position) {
-			final android.util.Pair<Long, String> d = data.get(position);
-			final View v = holder.view;
-
-			v.setTag(d.first);
-
-			TextView text = (TextView) v.findViewById(R.id.text);
-			text.setText(d.second);
-
-			ImageView menu = v.findViewById(R.id.menu);
-
-			int c;
-			if (!TextUtils.isEmpty(dataActive) && dataActive.equals(d.second)) {
-				c = ContextCompat.getColor(getContext(), android.R.color.holo_green_light);
-			} else {
-				c = ContextCompat.getColor(getContext(), R.color.icons);
-			}
-			text.setTextColor(c);
-			menu.setColorFilter(c, PorterDuff.Mode.SRC_ATOP);
-
-			View.OnClickListener onClickListener = new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getContext(), R.style.AppTheme_AlertDialogStyle));
-					builder.setTitle("Are you sure?");
-					builder.setMessage("This will replace the visible playlist with this one.");
-					builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							setFromPlaylist(d.first, d.second);
-							refresh();
-
-							dialog.dismiss();
-						}
-					});
-					builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.dismiss();
-						}
-					});
-					AlertDialog dialog = builder.create();
-					dialog.show();
-				}
-			};
-			text.setOnClickListener(onClickListener);
-
-			menu.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getContext(), R.style.AppTheme_AlertDialogStyle));
-					builder.setTitle("Select the action");
-					builder.setItems(new CharSequence[]{
-							"Set active",
-							"Edit / Open in view",
-							"Delete"
-					}, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int item) {
-							switch (item) {
-								case 0:
-									Playlist.setActivePlaylist(getContext(), d.second, true);
-									refresh();
-									break;
-								case 1:
-									setFromPlaylist(d.first, d.second);
-									refresh();
-									break;
-								case 2:
-									Playlist.delete(getContext(), d.second, d.first, true);
-									refresh();
-									break;
-							}
-
-							dialog.dismiss();
-						}
-					});
-					AlertDialog dialog = builder.create();
-					dialog.show();
-				}
-			});
-
-		}
-
-		public class ViewHolder extends RecyclerView.ViewHolder {
-			public View view;
-
-			public ViewHolder(View view) {
-				super(view);
-
-				this.view = view;
-			}
-
-		}
-
-		public void setData(Collection<android.util.Pair<Long, String>> d, String active) {
-			data.clear();
-			data.addAll(d);
-			dataActive = active;
-			notifyDataSetChanged();
-		}
-
-		public void refresh() {
-			final ArrayList<android.util.Pair<Long, String>> playlists = new ArrayList<>();
-			for (Playlist playlist : Playlist.loadAllPlaylists())
-				playlists.add(android.util.Pair.create(playlist.getLinkedAndroidOSPlaylistId(), playlist.getName()));
-			Playlist.allPlaylist(getContext().getContentResolver(), new JavaEx.ActionTU<Long, String>() {
-				@Override
-				public void execute(Long id, String name) {
-					android.util.Pair<Long, String> item = new android.util.Pair<Long, String>(id, name);
-					if (!playlists.contains(item))
-						playlists.add(item);
-				}
-			});
-			setData(playlists, Playlist.getActivePlaylist(getContext()));
-		}
-
-	}
-
-	private void togglePlaylistSettings(View ref) {
-		try {
-			View v = ((LayoutInflater) getContext().getSystemService(LAYOUT_INFLATER_SERVICE))
-					.inflate(R.layout.playlist_settings, null);
-
-			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog);
-			builder.setView(v);
-
-			createPlaylistsSettings(v);
-
-			AlertDialog alert = builder.create();
-
-			alert.requestWindowFeature(DialogFragment.STYLE_NO_TITLE);
-
-			alert.show();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	//endregion

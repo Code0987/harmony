@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
@@ -42,9 +43,6 @@ public class PlaylistViewActivity extends BaseUIActivity {
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		setContentView(R.layout.playlist_view_activity);
-
-		// Hacks
-		applyHacksToUI();
 
 		// Set bar
 		Toolbar toolbar = findViewById(R.id.toolbar);
@@ -145,18 +143,6 @@ public class PlaylistViewActivity extends BaseUIActivity {
 		}
 	}
 
-	//region Other
-
-	private void applyHacksToUI() {
-		View nav_bar_filler = findViewById(R.id.nav_bar_filler);
-		if (nav_bar_filler != null) {
-			ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) nav_bar_filler.getLayoutParams();
-			params.bottomMargin = AndroidEx.getNavigationBarSize(this).y;
-		}
-	}
-
-	//endregion
-
 	//region Tabs
 
 	public enum PlaylistViewTab {
@@ -194,6 +180,7 @@ public class PlaylistViewActivity extends BaseUIActivity {
 		for (PlaylistViewTab tab : PlaylistViewTab.values()) {
 			tab_layout.addTab(tab_layout.newTab().setText(tab.friendlyName).setTag(tab));
 		}
+		tab_layout.addTab(tab_layout.newTab().setText("Playlists"));
 
 		/*
 		final int icon_color = ContextCompat.getColor(this, R.color.icons);
@@ -212,25 +199,10 @@ public class PlaylistViewActivity extends BaseUIActivity {
 
 		playlistViewFragment.setPlaylistViewTab(getPlaylistViewTab(this));
 
-		getSupportFragmentManager().beginTransaction()
-				.replace(R.id.playlist_layout, playlistViewFragment)
-				.commit();
-
 		tab_layout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
 			@Override
 			public void onTabSelected(TabLayout.Tab tab) {
-				PlaylistViewTab playlistViewTab = (PlaylistViewTab) tab.getTag();
-				if (playlistViewTab == null)
-					return;
-
-				setPlaylistViewTab(PlaylistViewActivity.this, playlistViewTab);
-
-				playlistViewFragment.setPlaylistViewTab(playlistViewTab);
-
-				getSupportFragmentManager().beginTransaction()
-						.detach(playlistViewFragment)
-						.attach(playlistViewFragment)
-						.commit();
+				onTab(tab);
 			}
 
 			@Override
@@ -240,21 +212,53 @@ public class PlaylistViewActivity extends BaseUIActivity {
 
 			@Override
 			public void onTabReselected(TabLayout.Tab tab) {
-
+				onTab(tab);
 			}
 		});
 
-		final PlaylistViewTab toSelect = getPlaylistViewTab(this);
-		final int tabs = tab_layout.getTabCount();
-		for (int i = 0; i < tabs; i++) {
-			TabLayout.Tab tab = tab_layout.getTabAt(i);
-			if (tab != null) {
-				if (tab.getTag() != null && ((PlaylistViewTab) tab.getTag()).equals(toSelect)) {
-					tab.select();
-				}
-			}
-		}
+		new Handler().postDelayed(
+				() -> {
+					final PlaylistViewTab toSelect = getPlaylistViewTab(this);
+					final int tabs = tab_layout.getTabCount();
+					for (int i = 0; i < tabs; i++) {
+						TabLayout.Tab tab = tab_layout.getTabAt(i);
+						if (tab != null) {
+							if (tab.getTag() != null && ((PlaylistViewTab) tab.getTag()).equals(toSelect)) {
+								tab.select();
+							}
+						}
+					}
+				}, 333);
 
+	}
+
+	private void onTab(TabLayout.Tab tab) {
+		if (tab.getTag() == null) {
+			PlaylistSettingsFragment playlistSettingsFragment = PlaylistSettingsFragment.create();
+
+			playlistSettingsFragment.setPlaylistViewFragment(playlistViewFragment);
+
+			getSupportFragmentManager().beginTransaction()
+					.replace(R.id.playlist_layout, playlistSettingsFragment)
+					.commit();
+		} else {
+			PlaylistViewTab playlistViewTab = (PlaylistViewTab) tab.getTag();
+			if (playlistViewTab == null)
+				return;
+
+			setPlaylistViewTab(PlaylistViewActivity.this, playlistViewTab);
+
+			playlistViewFragment.setPlaylistViewTab(playlistViewTab);
+
+			getSupportFragmentManager().beginTransaction()
+					.replace(R.id.playlist_layout, playlistViewFragment)
+					.commit();
+
+			getSupportFragmentManager().beginTransaction()
+					.detach(playlistViewFragment)
+					.attach(playlistViewFragment)
+					.commit();
+		}
 	}
 
 	//endregion

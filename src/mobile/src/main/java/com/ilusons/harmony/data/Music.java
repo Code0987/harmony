@@ -101,8 +101,12 @@ public class Music extends RealmObject {
 		Path = path;
 	}
 
+	public String getFilename(String ext) {
+		return (TextUtils.isEmpty(Artist) ? Title : Artist + " - " + Title) + ext;
+	}
+
 	public boolean isLocal() {
-		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http") || getPath().contains(MusicService.KEY_YT_AUDIO_DIR));
+		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http"));
 	}
 
 	public String getCoverPath(final Context context) {
@@ -646,7 +650,7 @@ public class Music extends RealmObject {
 					}
 					// If not local or forced or if local but non-existent
 					if (forceDownload || TextUtils.isEmpty(uri) || ((file != null && file.isAbsolute() && !file.exists()))) {
-						downloadUri = Uri.parse(findImageUrlFromItunes(query, imageType, 1000, -1));
+						downloadUri = Uri.parse(findImageUrlFromItunes(query, imageType, 1000, 360));
 						isDownloaded = true;
 					}
 

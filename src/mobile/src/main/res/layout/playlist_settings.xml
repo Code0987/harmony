@@ -14,195 +14,32 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginTop="32dp"
+        android:layout_height="0dp"
         android:minHeight="320dp"
         app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@+id/controls_layout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
         tools:listitem="@layout/playlist_settings_playlist_item"/>
 
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/controls_layout"
+    <com.wang.avi.AVLoadingIndicatorView
+        android:id="@+id/loading"
+        style="@style/AVLoadingIndicatorView.Large"
+        xmlns:res="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/recyclerView">
-
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/new_playlist"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="vertical"
-            android:padding="5dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@+id/add_to_playlist"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/new_playlist_image"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_arrows_plus"
-                android:tint="@color/icons"
-                android:tintMode="src_atop"
-                app:layout_constraintBottom_toTopOf="@+id/new_playlist_text"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <TextView
-                android:id="@+id/new_playlist_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:lines="1"
-                android:text="New"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/new_playlist_image"/>
-
-        </android.support.constraint.ConstraintLayout>
-
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/add_to_playlist"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="vertical"
-            android:padding="5dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@+id/new_playlist"
-            app:layout_constraintRight_toLeftOf="@+id/save_playlist"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/add_to_playlist_image"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_music_playlist"
-                android:tint="@color/icons"
-                android:tintMode="src_atop"
-                app:layout_constraintBottom_toTopOf="@+id/add_to_playlist_text"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <TextView
-                android:id="@+id/add_to_playlist_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:lines="1"
-                android:text="Add"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/add_to_playlist_image"/>
-
-        </android.support.constraint.ConstraintLayout>
-
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/save_playlist"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="vertical"
-            android:padding="5dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@+id/add_to_playlist"
-            app:layout_constraintRight_toLeftOf="@+id/export_playlist"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/save_playlist_image"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_arrows_check"
-                android:tint="@color/icons"
-                android:tintMode="src_atop"
-                app:layout_constraintBottom_toTopOf="@+id/save_playlist_text"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <TextView
-                android:id="@+id/save_playlist_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:lines="1"
-                android:text="Save"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/save_playlist_image"/>
-
-        </android.support.constraint.ConstraintLayout>
-
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/export_playlist"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="vertical"
-            android:padding="5dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@+id/save_playlist"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/export_playlist_image"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_arrows_glide"
-                android:tint="@color/icons"
-                android:tintMode="src_atop"
-                app:layout_constraintBottom_toTopOf="@+id/export_playlist_text"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <TextView
-                android:id="@+id/export_playlist_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:lines="1"
-                android:text="Export"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/export_playlist_image"/>
-
-        </android.support.constraint.ConstraintLayout>
-
-    </android.support.constraint.ConstraintLayout>
+        android:layout_height="match_parent"
+        android:layout_margin="0dp"
+        android:background="@drawable/lomo"
+        android:padding="0dp"
+        android:visibility="visible"
+        res:indicatorColor="@color/icons"
+        res:indicatorName="BallScaleMultipleIndicator"
+        res:layout_constraintBottom_toBottomOf="parent"
+        res:layout_constraintLeft_toLeftOf="parent"
+        res:layout_constraintRight_toRightOf="parent"
+        res:layout_constraintTop_toTopOf="parent"
+        />
 
 </android.support.constraint.ConstraintLayout>

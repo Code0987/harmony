@@ -33,6 +33,8 @@
         <item name="android:buttonStyle">@style/AppTheme.ButtonStyle</item>
         <item name="buttonStyle">@style/AppTheme.ButtonStyle</item>
         <item name="android:radioButtonStyle">@style/AppTheme.RadioButtonStyle</item>
+        <item name="android:editTextStyle">@style/AppTheme.EditTextStyle</item>
+        <item name="editTextStyle">@style/AppTheme.EditTextStyle</item>
     </style>
 
     <style name="AppTheme.TextViewStyle" parent="android:Widget.TextView">
@@ -55,6 +57,12 @@
     </style>
 
     <style name="AppTheme.RadioButtonStyle" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textSize">12sp</item>
+        <item name="fontStyle">normal</item>
+    </style>
+
+    <style name="AppTheme.EditTextStyle" parent="@android:style/Widget.EditText">
         <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:textSize">12sp</item>
         <item name="fontStyle">normal</item>
