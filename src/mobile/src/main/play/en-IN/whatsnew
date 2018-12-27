@@ -1,4 +1,4 @@
-﻿✔ Updated theme.
-✔ New Tune UI with complete controls.
-✔ Updated audio engine.
-✔ Fixed bugs.
+﻿✔ Now any downloaded audio will be permanently saved to a file at your choice of location (default Music/harmony).
+✔ Updated download audio quality and support for new formats.
+✔ Fixed issue with slow downloads.
+✔ Fixed issue with file browsers.

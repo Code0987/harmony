@@ -34,6 +34,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -829,7 +830,7 @@ public class Analytics {
 		});
 	}
 
-	public static Observable<Collection<Music>> convertToLocal(final Context context, final Collection<de.umass.lastfm.Track> tracks, final int limit, final boolean saveInDB) {
+	public static Observable<Collection<Music>> convertToLocal(final Context context, final Collection<de.umass.lastfm.Track> tracks, final int limit) {
 		return Observable.create(new ObservableOnSubscribe<Collection<Music>>() {
 			@Override
 			public void subscribe(ObservableEmitter<Collection<Music>> oe) throws Exception {
@@ -871,25 +872,6 @@ public class Analytics {
 							m.setTags(StringUtils.join(t.getTags(), ','));
 							m.setLength(t.getDuration());
 							m.setPath(t.getUrl());
-							try {
-								final Music forUrl = m;
-								getYouTubeUrls(context, m.getText(), 1L)
-										.subscribe(new Consumer<Collection<String>>() {
-											@Override
-											public void accept(Collection<String> r) throws Exception {
-												if (r.iterator().hasNext())
-													forUrl.setPath(r.iterator().next());
-											}
-										}, new Consumer<Throwable>() {
-											@Override
-											public void accept(Throwable throwable) throws Exception {
-
-											}
-										});
-								m.setPath(forUrl.getPath());
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
 						}
 
 						r.add(m);
@@ -898,20 +880,6 @@ public class Analytics {
 						if (count >= limit)
 							break;
 					}
-
-					if (saveInDB)
-						try (Realm realm = Music.getDB()) {
-							if (realm != null) {
-								realm.executeTransaction(new Realm.Transaction() {
-									@Override
-									public void execute(@NonNull Realm realm) {
-										realm.insertOrUpdate(r);
-									}
-								});
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
 
 					oe.onNext(r);
 					oe.onComplete();
@@ -959,25 +927,6 @@ public class Analytics {
 							m.setTags(StringUtils.join(t.getTags(), ','));
 							m.setLength(t.getDuration());
 							m.setPath(t.getUrl());
-							try {
-								final Music forUrl = m;
-								getYouTubeUrls(context, m.getText(), 1L)
-										.subscribe(new Consumer<Collection<String>>() {
-											@Override
-											public void accept(Collection<String> r) throws Exception {
-												if (r.iterator().hasNext())
-													forUrl.setPath(r.iterator().next());
-											}
-										}, new Consumer<Throwable>() {
-											@Override
-											public void accept(Throwable throwable) throws Exception {
-
-											}
-										});
-								m.setPath(forUrl.getPath());
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
 						}
 
 						r.add(m);
@@ -1120,21 +1069,30 @@ public class Analytics {
 					};
 					yte.setDefaultHttpProtocol(true);
 					yte.setParseDashManifest(true);
-					yte.setIncludeWebM(false);
+					yte.setIncludeWebM(true);
+
+					ArrayList<YtFile> selected = new ArrayList<>();
 
 					SparseArray<YtFile> ytFiles = yte.execute(watchUrl).get(3L, TimeUnit.MINUTES);
-
 					for (int i = 0, itag; i < ytFiles.size(); i++) {
 						itag = ytFiles.keyAt(i);
 						YtFile ytFile = ytFiles.get(itag);
 						Format format = ytFile.getFormat();
 
-						if (format.getExt().contains("m4a")) {
-							oe.onNext(ytFile.getUrl());
-
-							break;
+						if (format.getAudioBitrate() > 0) {
+							selected.add(ytFile);
 						}
 					}
+
+					Collections.sort(selected, Collections.reverseOrder(new Comparator<YtFile>() {
+						@Override
+						public int compare(YtFile l, YtFile r) {
+							return Integer.compare(l.getFormat().getAudioBitrate(), r.getFormat().getAudioBitrate());
+						}
+					}));
+
+					if (selected.size() > 0)
+						oe.onNext(selected.get(0).getUrl());
 
 					oe.onComplete();
 				} catch (Exception e) {

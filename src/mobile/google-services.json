@@ -48,7 +48,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "1020414112906-sfn042v7gd36oc1umirvrdcnu65ukebd.apps.googleusercontent.com",
+              "client_id": "1020414112906-ap0148mbnehs07n8mo0d4sh4urahdghi.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
@@ -56,7 +56,8 @@
         "ads_service": {
           "status": 2
         }
-      }
+      },
+      "admob_app_id": "ca-app-pub-4739450309172378~5670478444"
     }
   ],
   "configuration_version": "1"

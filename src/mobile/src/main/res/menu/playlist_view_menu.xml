@@ -45,9 +45,9 @@
             <group>
 
                 <item
-                    android:id="@+id/playlist_settings"
+                    android:id="@+id/playlist_view_sort_mode"
                     android:icon="@drawable/ic_music_playlist"
-                    android:title="@string/playlist_settings"
+                    android:title="@string/playlist_view_sort_mode"
                     app:showAsAction="ifRoom"
                     />
 
@@ -56,9 +56,31 @@
             <group>
 
                 <item
-                    android:id="@+id/playlist_view_sort_mode"
+                    android:id="@+id/playlist_view_add_to_playlist"
                     android:icon="@drawable/ic_music_playlist"
-                    android:title="@string/playlist_view_sort_mode"
+                    android:title="Add to playlist"
+                    app:showAsAction="ifRoom"
+                    />
+
+            </group>
+
+            <group>
+
+                <item
+                    android:id="@+id/playlist_view_save_playlist"
+                    android:icon="@drawable/ic_music_playlist"
+                    android:title="Save changes"
+                    app:showAsAction="ifRoom"
+                    />
+
+            </group>
+
+            <group>
+
+                <item
+                    android:id="@+id/playlist_view_export_playlist"
+                    android:icon="@drawable/ic_music_playlist"
+                    android:title="Export playlist"
                     app:showAsAction="ifRoom"
                     />
 

@@ -2,6 +2,11 @@ package com.ilusons.harmony.views;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.AdSize;
+
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -41,6 +46,7 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -177,6 +183,9 @@ public class DashboardActivity extends BaseUIActivity {
 
 		// Recent
 		createRecent();
+
+		// Ads
+		createAds();
 
 		// Ratings
 		root.postDelayed(new Runnable() {
@@ -690,15 +699,7 @@ public class DashboardActivity extends BaseUIActivity {
 		Music m = getMusicService().getMusic();
 
 		title.setText(m.getTitle());
-		String s;
-		try {
-			s = m.getTextExtraOnlySingleLine(getMusicService().getPlaylist().getItemIndex());
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			s = m.getTextExtraOnlySingleLine();
-		}
-		info.setText(s);
+		info.setText(m.getArtist());
 
 		progress.setMaxValue(getMusicService().getDuration());
 
@@ -887,7 +888,7 @@ public class DashboardActivity extends BaseUIActivity {
 					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 						@Override
 						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-							return Analytics.convertToLocal(DashboardActivity.this, tracks, 24, false);
+							return Analytics.convertToLocal(DashboardActivity.this, tracks, 24);
 						}
 					})
 					.observeOn(AndroidSchedulers.mainThread())
@@ -1031,7 +1032,7 @@ public class DashboardActivity extends BaseUIActivity {
 						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 							@Override
 							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-								return Analytics.convertToLocal(context, tracks, 12, false);
+								return Analytics.convertToLocal(context, tracks, 12);
 							}
 						})
 						.observeOn(AndroidSchedulers.mainThread())
@@ -1484,6 +1485,22 @@ public class DashboardActivity extends BaseUIActivity {
 
 		}
 
+	}
+
+	//endregion
+
+	//region Ads
+
+	private void createAds() {
+		if (MusicService.IsPremium && !BuildConfig.DEBUG)
+			return;
+
+		AdView adView = findViewById(R.id.adView);
+
+		adView.loadAd(new AdRequest.Builder()
+				.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+				.addTestDevice("B05C5B9D95FB8E67F43E070ECCD3E4D5")
+				.build());
 	}
 
 	//endregion

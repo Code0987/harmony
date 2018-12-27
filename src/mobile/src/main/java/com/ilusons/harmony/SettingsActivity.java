@@ -43,6 +43,7 @@ import com.ilusons.harmony.base.HeadsetMediaButtonIntentReceiver;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
+import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -81,6 +82,8 @@ public class SettingsActivity extends BaseActivity {
 	private static final String TAG = SettingsActivity.class.getSimpleName();
 
 	private static final int REQUEST_SCAN_LOCATIONS_PICK = 11;
+
+	private static final int REQUEST_DOWNLOAD_LOCATION_PICK = 25;
 
 	// IAB
 	private static final int REQUEST_SKU_PREMIUM = 1401;
@@ -279,6 +282,8 @@ public class SettingsActivity extends BaseActivity {
 		// Library section
 		onCreateBindLibrarySection();
 
+		createDownload();
+
 		findViewById(R.id.reset_imageButton).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -412,6 +417,21 @@ public class SettingsActivity extends BaseActivity {
 				}
 
 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+		if (requestCode == REQUEST_DOWNLOAD_LOCATION_PICK && resultCode == Activity.RESULT_OK) {
+			try {
+				List<Uri> files = Utils.getSelectedFilesFromResult(data);
+				for (Uri uri : files) {
+					File file = Utils.getFileForUri(uri);
+
+					MusicService.setDownloadLocation(this, file.getAbsolutePath());
+
+					Toast.makeText(this, "Download location changed to [" + file.getAbsolutePath() + "]", Toast.LENGTH_LONG).show();
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -728,6 +748,42 @@ public class SettingsActivity extends BaseActivity {
 				e.printStackTrace();
 			}
 		}
+
+	}
+
+	//endregion
+
+	//region Download section
+
+	private void createDownload() {
+		EditText download_location_value = findViewById(R.id.download_location_value);
+
+		download_location_value.setText("");
+		download_location_value.append(MusicService.getDownloadLocation(this));
+		download_location_value.clearFocus();
+
+		findViewById(R.id.download_location_select).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				// This always works
+				Intent i = new Intent(SettingsActivity.this, FilePickerActivity.class);
+				// This works if you defined the intent filter
+				// Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+
+				// Set these depending on your use case. These are the defaults.
+				i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
+				i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
+				i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
+
+				// Configure initial directory by specifying a String.
+				// You could specify a String like "/storage/emulated/0/", but that can
+				// dangerous. Always use Android's API calls to get paths to the SD-card or
+				// internal memory.
+				i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+
+				startActivityForResult(i, REQUEST_DOWNLOAD_LOCATION_PICK);
+			}
+		});
 
 	}
 

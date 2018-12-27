@@ -1,5 +1,6 @@
 package com.ilusons.harmony.base;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -17,6 +18,7 @@ import android.media.AudioManager;
 import android.media.audiofx.AudioEffect;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -87,6 +89,7 @@ import com.tonyodev.fetch2rx.RxFetch;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -108,6 +111,8 @@ public class MusicService extends Service {
 	private static final String TAG = MusicService.class.getSimpleName();
 
 	// Keys
+	private static final String APP_NAME = "harmony";
+
 	public static final String ACTION_CLOSE = TAG + ".close";
 	public static final String ACTION_PREVIOUS = TAG + ".previous";
 	public static final String ACTION_NEXT = TAG + ".next";
@@ -2806,13 +2811,12 @@ public class MusicService extends Service {
 		return fetch;
 	}
 
-	public static final String KEY_YT_AUDIO_DIR = "yt_audio";
-
 	public void download(final Music music, final boolean playAfterDownload) {
 		final AudioDownload audioDownload = new AudioDownload(this, music, playAfterDownload);
 
 		Observable
 				.create(new ObservableOnSubscribe<AudioDownload>() {
+					@SuppressLint("CheckResult")
 					@Override
 					public void subscribe(ObservableEmitter<AudioDownload> oe) throws Exception {
 						try {
@@ -2829,12 +2833,15 @@ public class MusicService extends Service {
 							audioDownloads.add(audioDownload);
 
 							// Delete file from cache
-							final File cache = IOEx.getDiskCacheFile(audioDownload.context, KEY_YT_AUDIO_DIR, audioDownload.Music.getPath());
+							final File toFile = new File(
+									getDownloadLocation(audioDownload.context),
+									audioDownload.Music.getFilename(".m4a")
+							);
 
 							try {
-								if (cache.exists())
+								if (toFile.exists())
 									//noinspection ResultOfMethodCallIgnored
-									cache.delete();
+									toFile.delete();
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -2856,6 +2863,23 @@ public class MusicService extends Service {
 													throwable.printStackTrace();
 												}
 											});
+
+									// Delete old entry as key is updated.
+									try (Realm realm = Music.getDB()) {
+										if (realm != null) {
+											realm.executeTransaction(new Realm.Transaction() {
+												@Override
+												public void execute(@NonNull Realm realm) {
+													Music e = Music.get(realm, audioDownload.Music.getPath());
+
+													if (e != null) {
+														e.deleteFromRealm();
+													}
+												}
+											});
+										}
+									}
+
 									audioDownload.Music.setPath(forUrl.getPath());
 								} catch (Exception e) {
 									e.printStackTrace();
@@ -2875,6 +2899,8 @@ public class MusicService extends Service {
 														realm.executeTransaction(new Realm.Transaction() {
 															@Override
 															public void execute(@NonNull Realm realm) {
+																audioDownload.Music.setPath(toFile.getPath());
+
 																audioDownload.Music.setLastPlaybackUrl(r);
 
 																realm.insertOrUpdate(audioDownload.Music);
@@ -2883,7 +2909,7 @@ public class MusicService extends Service {
 													}
 												}
 
-												createDownload(audioDownload, cache.getPath());
+												createDownload(audioDownload, toFile.getPath());
 											}
 										}, new Consumer<Throwable>() {
 											@Override
@@ -2959,6 +2985,31 @@ public class MusicService extends Service {
 
 			audioDownload.updateNotification();
 		}
+	}
+
+	public static final String PREF_DOWNLOAD_LOCATION = "download_location";
+
+	public static String getDefaultDownloadLocation(Context context) {
+		return (new File(
+				Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
+				APP_NAME
+		)).getAbsolutePath();
+	}
+
+	public static String getDownloadLocation(Context context) {
+		try {
+			return SPrefEx.get(context).getString(PREF_DOWNLOAD_LOCATION, getDefaultDownloadLocation(context));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return getDefaultDownloadLocation(context);
+	}
+
+	public static void setDownloadLocation(Context context, String value) {
+		SPrefEx.get(context)
+				.edit()
+				.putString(PREF_DOWNLOAD_LOCATION, value)
+				.apply();
 	}
 
 	//endregion

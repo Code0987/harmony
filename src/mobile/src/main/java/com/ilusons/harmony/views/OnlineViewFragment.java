@@ -327,7 +327,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 							@Override
 							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-								return Analytics.convertToLocal(context, tracks, N, false);
+								return Analytics.convertToLocal(context, tracks, N);
 							}
 						})
 						.subscribeOn(Schedulers.io())
@@ -474,7 +474,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 							@Override
 							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-								return Analytics.convertToLocal(context, tracks, 50, false);
+								return Analytics.convertToLocal(context, tracks, 50);
 							}
 						})
 						.observeOn(AndroidSchedulers.mainThread())
@@ -558,7 +558,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 						@Override
 						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-							return Analytics.convertToLocal(context, tracks, N, false);
+							return Analytics.convertToLocal(context, tracks, N);
 						}
 					})
 					.observeOn(AndroidSchedulers.mainThread())
