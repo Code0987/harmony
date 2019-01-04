@@ -3184,11 +3184,11 @@ public class MusicService extends Service {
 
 	public static PlayerType getPlayerType(Context context) {
 		try {
-			return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.AndroidOS)));
+			return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.OpenSL)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return PlayerType.AndroidOS;
+		return PlayerType.OpenSL;
 	}
 
 	public static void setPlayerType(Context context, PlayerType value) {

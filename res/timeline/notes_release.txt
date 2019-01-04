@@ -1,4 +1,5 @@
-﻿✔ Now any downloaded audio will be permanently saved to a file at your choice of location (default Music/harmony).
+﻿✔ Fixed a critical bug.
+✔ Now any downloaded audio will be permanently saved to a file at your choice of location (default Music/harmony).
 ✔ Updated download audio quality and support for new formats.
 ✔ Fixed issue with slow downloads.
 ✔ Fixed issue with file browsers.
