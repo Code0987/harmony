@@ -650,7 +650,7 @@ public class Music extends RealmObject {
 					}
 					// If not local or forced or if local but non-existent
 					if (forceDownload || TextUtils.isEmpty(uri) || ((file != null && file.isAbsolute() && !file.exists()))) {
-						downloadUri = Uri.parse(findImageUrlFromItunes(query, imageType, 1000, 360));
+						downloadUri = Uri.parse(findImageUrlFromItunes(query, imageType, 3000, 360));
 						isDownloaded = true;
 					}
 
@@ -716,7 +716,7 @@ public class Music extends RealmObject {
 			Log.w(TAG, e);
 		}
 
-		if (result != null) {
+		if (result != null && result.length() > 3) {
 			// Put in cache
 			CacheEx.getInstance().put(KEY_CACHE_DIR_LYRICS + Path, result);
 		}

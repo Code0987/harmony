@@ -1069,7 +1069,7 @@ public class Analytics {
 					};
 					yte.setDefaultHttpProtocol(true);
 					yte.setParseDashManifest(true);
-					yte.setIncludeWebM(true);
+					yte.setIncludeWebM(false);
 
 					ArrayList<YtFile> selected = new ArrayList<>();
 
