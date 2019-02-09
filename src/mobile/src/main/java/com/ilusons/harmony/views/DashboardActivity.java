@@ -1121,7 +1121,6 @@ public class DashboardActivity extends BaseUIActivity {
 
 			items.addAll(Music.getAllSortedByTimeLastPlayed(6));
 			items.addAll(Music.getAllSortedByTimeAdded(6));
-			Collections.shuffle(items);
 
 			for (Music item : items) {
 				adapter_recent.add(item);
@@ -1376,7 +1375,7 @@ public class DashboardActivity extends BaseUIActivity {
 					return;
 
 				try {
-					musicService.open(music);
+					musicService.openOrDownload(music);
 				} catch (Exception e) {
 					e.printStackTrace();
 

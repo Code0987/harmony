@@ -847,7 +847,7 @@ public class OnlineViewFragment extends BaseUIFragment {
 					return;
 
 				try {
-					musicService.open(music);
+					musicService.openOrDownload(music);
 				} catch (Exception e) {
 					e.printStackTrace();
 

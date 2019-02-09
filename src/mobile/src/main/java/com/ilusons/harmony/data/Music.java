@@ -698,13 +698,7 @@ public class Music extends RealmObject {
 	//region Lyrics
 
 	public String getLyrics(final Context context) {
-		String result;
-
-		// Load from cache
-		result = (String) CacheEx.getInstance().get(KEY_CACHE_DIR_LYRICS + Path);
-
-		if (result != null)
-			return result;
+		String result = null;
 
 		// File
 		File file = IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_LYRICS, Path);
@@ -714,11 +708,6 @@ public class Music extends RealmObject {
 			result = FileUtils.readFileToString(file, Charset.defaultCharset());
 		} catch (Exception e) {
 			Log.w(TAG, e);
-		}
-
-		if (result != null && result.length() > 3) {
-			// Put in cache
-			CacheEx.getInstance().put(KEY_CACHE_DIR_LYRICS + Path, result);
 		}
 
 		return result;
