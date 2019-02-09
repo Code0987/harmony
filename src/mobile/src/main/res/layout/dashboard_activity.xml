@@ -24,8 +24,16 @@
             android:id="@+id/bg"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/bg4"
+            android:background="@drawable/bg5"
             android:scaleType="centerCrop"
+            />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_landscape1"
+            android:scaleType="centerCrop"
+            android:alpha="0.37"
             />
 
         <com.scwang.wave.MultiWaveHeader

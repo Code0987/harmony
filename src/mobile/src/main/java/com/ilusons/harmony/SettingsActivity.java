@@ -785,6 +785,14 @@ public class SettingsActivity extends BaseActivity {
 			}
 		});
 
+		CheckBox download_auto_checkBox = findViewById(R.id.download_auto_checkBox);
+		download_auto_checkBox.setChecked(MusicService.getAutoDownloadEnabled(this));
+		download_auto_checkBox.setOnCheckedChangeListener((compoundButton, b) -> {
+			MusicService.setAutoDownloadEnabled(SettingsActivity.this, compoundButton.isChecked());
+
+			info("Updated!");
+		});
+
 	}
 
 	//endregion

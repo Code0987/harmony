@@ -692,6 +692,40 @@
                         app:layout_constraintTop_toBottomOf="@id/download_location_value"
                         />
 
+
+                    <TextView
+                        android:id="@+id/download_auto_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="Download missing music automatically"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/download_location_select"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/download_auto_checkBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/download_auto_textView"
+                        />
+
+                    <TextView
+                        android:id="@+id/download_auto_info_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="5dp"
+                        android:lines="3"
+                        android:text="Missing music will be auto-downloaded."
+                        android:textSize="11sp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/download_auto_checkBox"
+                        />
+
                 </android.support.constraint.ConstraintLayout>
 
             </ScrollView>

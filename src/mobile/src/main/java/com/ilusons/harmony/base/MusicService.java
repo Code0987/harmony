@@ -1453,15 +1453,15 @@ public class MusicService extends Service {
 				isLastPlaybackUrlUpdateNeeded = true;
 
 			if (isLastPlaybackUrlUpdateNeeded) {
-				if (AndroidEx.hasInternetConnection(this)) {
+				if (AndroidEx.hasInternetConnection(this) && getAutoDownloadEnabled(this)) {
 					download(newMusic);
 
 					Toast.makeText(MusicService.this, newMusic.getText() + " will be played shortly. Downloading audio!", Toast.LENGTH_LONG).show();
 				} else {
 					lastPlaybackOnlineSkipCount++;
 
-					if (lastPlaybackOnlineSkipCount > 5) {
-						Toast.makeText(MusicService.this, "Too much online music skipped! Please fix internet or select offline manually!", Toast.LENGTH_LONG).show();
+					if (lastPlaybackOnlineSkipCount > (getPlaylist().getItems().size() - 1)) {
+						Toast.makeText(MusicService.this, "Too much online music skipped! Please fix internet or select manually!", Toast.LENGTH_LONG).show();
 
 						lastPlaybackOnlineSkipCount = 0;
 					} else
@@ -2187,6 +2187,16 @@ public class MusicService extends Service {
 		open(music, !Music.exists(music.getPath()));
 	}
 
+	public void openOrDownload(final Music music) {
+		if (Music.exists(music.getPath())) {
+			open(music, false);}
+		else {
+			Toast.makeText(MusicService.this, "Downloading queued for [" + music.getText() + "] ...", Toast.LENGTH_LONG).show();
+
+			download(music, true);
+		}
+	}
+
 	public static void startIntentForOpen(final Context context, final String musicId) {
 		try {
 			Intent intent = new Intent(context.getApplicationContext(), MusicService.class);
@@ -2562,12 +2572,12 @@ public class MusicService extends Service {
 
 			PlayAfterDownload = playAfterDownload;
 
-			updateNotification();
+			updateNotification(false);
 		}
 
 		private NotificationCompat.Builder nb;
 
-		protected void updateNotification() {
+		protected void updateNotification(boolean isCanceled) {
 			if (Download == null)
 				return;
 
@@ -2601,7 +2611,7 @@ public class MusicService extends Service {
 				NotificationManagerCompat.from(context).notify(Id, nb.build());
 			}
 
-			if (Download != null && ((Download.getProgress() == 100 && Download.getError() == Error.NONE) /*|| (Download.getError() != Error.NONE)*/)) {
+			if (isCanceled || (Download != null && ((Download.getProgress() == 100 && Download.getError() == Error.NONE) /*|| (Download.getError() != Error.NONE)*/))) {
 				if (nb == null)
 					return;
 
@@ -2637,7 +2647,7 @@ public class MusicService extends Service {
 			if (audioDownload == null)
 				return;
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(false);
 
 			Toast.makeText(audioDownload.context, "Download queued for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
@@ -2671,7 +2681,7 @@ public class MusicService extends Service {
 								if (audioDownload.PlayAfterDownload)
 									open(audioDownload.Music, true);
 
-								audioDownload.updateNotification();
+								audioDownload.updateNotification(false);
 
 								oe.onNext(audioDownload);
 
@@ -2685,7 +2695,7 @@ public class MusicService extends Service {
 					.subscribeOn(AndroidSchedulers.mainThread())
 					.subscribe();
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(false);
 
 			Toast.makeText(audioDownload.context, "Download completed for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
@@ -2696,7 +2706,7 @@ public class MusicService extends Service {
 			if (audioDownload == null)
 				return;
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(true);
 
 			Toast.makeText(audioDownload.context, "Download FAILED for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
@@ -2707,7 +2717,7 @@ public class MusicService extends Service {
 			if (audioDownload == null)
 				return;
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(false);
 		}
 
 		@Override
@@ -2716,7 +2726,7 @@ public class MusicService extends Service {
 			if (audioDownload == null)
 				return;
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(true);
 		}
 
 		@Override
@@ -2725,7 +2735,7 @@ public class MusicService extends Service {
 			if (audioDownload == null)
 				return;
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(false);
 		}
 
 		@Override
@@ -2734,7 +2744,7 @@ public class MusicService extends Service {
 			if (audioDownload == null)
 				return;
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(true);
 
 			Toast.makeText(audioDownload.context, "Download cancelled for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
@@ -2745,7 +2755,7 @@ public class MusicService extends Service {
 			if (audioDownload == null)
 				return;
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(true);
 
 			Toast.makeText(audioDownload.context, "Download removed for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
@@ -2756,7 +2766,7 @@ public class MusicService extends Service {
 			if (audioDownload == null)
 				return;
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(true);
 
 			Toast.makeText(audioDownload.context, "Download deleted for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 		}
@@ -2965,10 +2975,10 @@ public class MusicService extends Service {
 				break;
 			}
 		if (audioDownload != null) {
-			getDownloader().remove(audioDownload.Download.getId());
+			getDownloader().delete(audioDownload.Download.getId());
 			audioDownloads.remove(audioDownload);
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(true);
 		}
 	}
 
@@ -2980,10 +2990,10 @@ public class MusicService extends Service {
 				break;
 			}
 		if (audioDownload != null) {
-			getDownloader().remove(audioDownload.Download.getId());
+			getDownloader().delete(audioDownload.Download.getId());
 			audioDownloads.remove(audioDownload);
 
-			audioDownload.updateNotification();
+			audioDownload.updateNotification(true);
 		}
 	}
 
@@ -3138,6 +3148,19 @@ public class MusicService extends Service {
 	//endregion
 
 	//region Prefs
+
+	public static final String TAG_MUSIC_SERVICE_AUTO_DOWNLOAD_ENABLED = "ms_auto_download";
+
+	public static boolean getAutoDownloadEnabled(Context context) {
+		return SPrefEx.get(context).getBoolean(TAG_MUSIC_SERVICE_AUTO_DOWNLOAD_ENABLED, true);
+	}
+
+	public static void setAutoDownloadEnabled(Context context, boolean value) {
+		SPrefEx.get(context)
+				.edit()
+				.putBoolean(TAG_MUSIC_SERVICE_AUTO_DOWNLOAD_ENABLED, value)
+				.apply();
+	}
 
 	public enum PlayerType {
 		AndroidOS("Android OS / Device Default"),
