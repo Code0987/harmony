@@ -386,7 +386,7 @@ public class AudioVFXViewFragment extends Fragment {
 
 					waveformGLView.setColor(
 							new BaseAVFXGLView.FloatColor(r, g, b, a),
-							new BaseAVFXGLView.FloatColor(r + g - b, g + b - r, b + r - g, a));
+							new BaseAVFXGLView.FloatColor(g + b - r, b + r - g, r + g - b, a));
 
 					root.addView(waveformGLView);
 					break;

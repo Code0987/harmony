@@ -1288,14 +1288,14 @@ public class MusicService extends Service {
 			IEnvironmentalReverb environmentalReverb = getEnvironmentalReverb();
 			if (environmentalReverb != null) {
 				mediaPlayer.attachAuxEffect(getEnvironmentalReverb().getId());
-				mediaPlayer.setAuxEffectSendLevel(1f);
+				mediaPlayer.setAuxEffectSendLevel(0.99f);
 			}
 
 			loadPresetReverb();
 			IPresetReverb presetReverb = getPresetReverb();
 			if (presetReverb != null) {
 				mediaPlayer.attachAuxEffect(getPresetReverb().getId());
-				mediaPlayer.setAuxEffectSendLevel(1f);
+				mediaPlayer.setAuxEffectSendLevel(0.99f);
 			}
 
 			LocalBroadcastManager
