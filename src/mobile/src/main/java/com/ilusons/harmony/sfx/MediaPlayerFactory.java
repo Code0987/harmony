@@ -238,7 +238,7 @@ public class MediaPlayerFactory implements IMediaPlayerFactory {
 		final OpenSLMediaPlayerContext.Parameters params = new OpenSLMediaPlayerContext.Parameters();
 
 		// override parameters
-		params.sinkBackEndType = OpenSLMediaPlayerContext.SINK_BACKEND_TYPE_AUDIO_TRACK;
+		params.sinkBackEndType = OpenSLMediaPlayerContext.SINK_BACKEND_TYPE_OPENSL;
 
 		params.options = getDefaultContextOptions();
 
@@ -248,8 +248,8 @@ public class MediaPlayerFactory implements IMediaPlayerFactory {
 		params.useLowLatencyIfAvailable = true;
 		params.useFloatingPointIfAvailable = true;
 
-		params.shortFadeDuration = 75;
-		params.longFadeDuration = 750;
+		params.shortFadeDuration = 105;
+		params.longFadeDuration = 675;
 
 		return params;
 	}

@@ -711,74 +711,57 @@ public class DashboardActivity extends BaseUIActivity {
 		try {
 			final Context context = this;
 			final Music music = m;
-			final Consumer<Bitmap> resultConsumer = new Consumer<Bitmap>() {
-				@Override
-				public void accept(final Bitmap bitmap) throws Exception {
-					try {
-						Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-							@SuppressWarnings("ResourceType")
-							@Override
-							public void onGenerated(@NonNull Palette palette) {
-								int vibrantColor = palette.getVibrantColor(R.color.accent);
-								int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
+			final Consumer<Bitmap> resultConsumer = bitmap -> {
+				try {
+					Palette.from(bitmap).generate(palette -> {
+						int vibrantColor = palette.getVibrantColor(R.color.accent);
+						int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
 
-								Drawable drawable = new GradientDrawable(
-										GradientDrawable.Orientation.TL_BR,
-										new int[]{
-												vibrantDarkColor,
-												vibrantColor
-										});
-								drawable = drawable.mutate();
-								bg.setImageDrawable(drawable);
+						Drawable drawable = new GradientDrawable(
+								GradientDrawable.Orientation.TL_BR,
+								new int[]{
+										vibrantDarkColor,
+										vibrantColor
+								});
+						drawable = drawable.mutate();
+						bg.setImageDrawable(drawable);
 
-								progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
+						progress.setFillCircleColor(ColorUtils.setAlphaComponent(vibrantDarkColor, 80));
 
-								wave.setStartColor(vibrantColor);
+						wave.setStartColor(vibrantColor);
 
-								if (cover.getDrawable() != null) {
-									TransitionDrawable d = new TransitionDrawable(new Drawable[]{
-											cover.getDrawable(),
-											new BitmapDrawable(getResources(), bitmap)
-									});
+						if (cover.getDrawable() != null) {
+							TransitionDrawable d = new TransitionDrawable(new Drawable[]{
+									cover.getDrawable(),
+									new BitmapDrawable(getResources(), bitmap)
+							});
 
-									cover.setImageDrawable(d);
+							cover.setImageDrawable(d);
 
-									d.setCrossFadeEnabled(true);
-									d.startTransition(763);
-								} else {
-									cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
-								}
-							}
-						});
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+							d.setCrossFadeEnabled(true);
+							d.startTransition(763);
+						} else {
+							cover.setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+						}
+					});
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			};
-			final Consumer<Throwable> throwableConsumer = new Consumer<Throwable>() {
-				@Override
-				public void accept(Throwable throwable) throws Exception {
-					cover.setImageDrawable(null);
-				}
-			};
-			final Consumer<Throwable> throwableConsumerWithRetry = new Consumer<Throwable>() {
-				@Override
-				public void accept(Throwable throwable) throws Exception {
-					Music
-							.loadLocalOrSearchCoverArtFromItunes(
-									context,
-									music,
-									music.getCoverPath(context),
-									music.getText(),
-									false,
-									ImageEx.ItunesImageType.Artist)
-							.observeOn(AndroidSchedulers.mainThread())
-							.subscribeOn(Schedulers.computation())
-							.subscribe(
-									resultConsumer,
-									throwableConsumer);
-				}
-			};
+			final Consumer<Throwable> throwableConsumer = throwable -> cover.setImageDrawable(null);
+			final Consumer<Throwable> throwableConsumerWithRetry = throwable -> Music
+					.loadLocalOrSearchCoverArtFromItunes(
+							context,
+							music,
+							music.getCoverPath(context),
+							music.getText(),
+							false,
+							ImageEx.ItunesImageType.Artist)
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribeOn(Schedulers.computation())
+					.subscribe(
+							resultConsumer,
+							throwableConsumer);
 			Music
 					.loadLocalOrSearchCoverArtFromItunes(
 							context,
@@ -885,12 +868,7 @@ public class DashboardActivity extends BaseUIActivity {
 			};
 
 			Analytics.getTopTracksForLastfm(this)
-					.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
-						@Override
-						public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-							return Analytics.convertToLocal(DashboardActivity.this, tracks, 24);
-						}
-					})
+					.flatMap((Function<Collection<Track>, ObservableSource<Collection<Music>>>) tracks -> Analytics.convertToLocal(DashboardActivity.this, tracks, 16))
 					.observeOn(AndroidSchedulers.mainThread())
 					.subscribeOn(Schedulers.io())
 					.subscribe(observer);
@@ -1032,7 +1010,7 @@ public class DashboardActivity extends BaseUIActivity {
 						.flatMap(new Function<Collection<Track>, ObservableSource<Collection<Music>>>() {
 							@Override
 							public ObservableSource<Collection<Music>> apply(Collection<Track> tracks) throws Exception {
-								return Analytics.convertToLocal(context, tracks, 12);
+								return Analytics.convertToLocal(context, tracks, 9);
 							}
 						})
 						.observeOn(AndroidSchedulers.mainThread())
@@ -1050,17 +1028,19 @@ public class DashboardActivity extends BaseUIActivity {
 		loading_view_recommended.smoothToShow();
 
 		try {
-			Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
-			if (adapter_recommended.getItemCount() < 3 && playlist.getItems().size() > 0)
-				adapter_recommended.clear(Music.class);
-			if (playlist != null) {
-				for (Music item : playlist.getItems()) {
-					adapter_recommended.add(item);
-				}
-
-				if (playlist.getItems().size() == 0) {
-					for (Music item : Music.getAllSortedByTimeAdded(16)) {
+			if (adapter_recommended.getItemCount()  < 1) {
+				Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
+				if (adapter_recommended.getItemCount() < 3 && playlist.getItems().size() > 0)
+					adapter_recommended.clear(Music.class);
+				if (playlist != null) {
+					for (Music item : playlist.getItems()) {
 						adapter_recommended.add(item);
+					}
+
+					if (playlist.getItems().size() == 0) {
+						for (Music item : Music.getAllSortedByTimeAdded(9)) {
+							adapter_recommended.add(item);
+						}
 					}
 				}
 			}
@@ -1119,7 +1099,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 			ArrayList<Music> items = new ArrayList<>();
 
-			items.addAll(Music.getAllSortedByTimeLastPlayed(6));
+			items.addAll(Music.getAllSortedByTimeLastPlayed(3));
 			items.addAll(Music.getAllSortedByTimeAdded(6));
 
 			for (Music item : items) {
