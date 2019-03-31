@@ -23,7 +23,7 @@ android {
 			jsonFile = file("$rootDir/../res/keys/google-play-android-developer-df159a5c5c35.json")
 		}
 	}
-	compileSdkVersion 28
+	compileSdkVersion 27
 	buildToolsVersion '28.0.3'
 	defaultConfig {
 		applicationId "com.ilusons.harmony"
