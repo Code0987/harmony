@@ -13,7 +13,6 @@ import com.h6ah4i.android.media.audiofx.IPreAmp;
 import com.h6ah4i.android.media.audiofx.IPresetReverb;
 import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
-import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayer;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerContext;
 import com.h6ah4i.android.media.opensl.audiofx.OpenSLHQEqualizer;
@@ -27,16 +26,16 @@ import com.h6ah4i.android.media.standard.audiofx.StandardLoudnessEnhancer;
 import com.h6ah4i.android.media.standard.audiofx.StandardPresetReverb;
 import com.h6ah4i.android.media.standard.audiofx.StandardVirtualizer;
 
-public class MediaPlayerFactory implements IMediaPlayerFactory {
+public class AudioTrackMediaPlayerFactory implements IMediaPlayerFactory {
 	private Context mContext;
 	private OpenSLMediaPlayerContext mMediaPlayerContext;
 
-	public MediaPlayerFactory(Context context) {
+	public AudioTrackMediaPlayerFactory(Context context) {
 		mContext = context;
 		mMediaPlayerContext = new OpenSLMediaPlayerContext(context, getDefaultContextParams());
 	}
 
-	public MediaPlayerFactory(Context context, OpenSLMediaPlayerContext.Parameters params) {
+	public AudioTrackMediaPlayerFactory(Context context, OpenSLMediaPlayerContext.Parameters params) {
 		mContext = context;
 		mMediaPlayerContext = new OpenSLMediaPlayerContext(context, params);
 	}
@@ -238,7 +237,7 @@ public class MediaPlayerFactory implements IMediaPlayerFactory {
 		final OpenSLMediaPlayerContext.Parameters params = new OpenSLMediaPlayerContext.Parameters();
 
 		// override parameters
-		params.sinkBackEndType = OpenSLMediaPlayerContext.SINK_BACKEND_TYPE_OPENSL;
+		params.sinkBackEndType = OpenSLMediaPlayerContext.SINK_BACKEND_TYPE_AUDIO_TRACK;
 
 		params.options = getDefaultContextOptions();
 

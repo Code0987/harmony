@@ -13,13 +13,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.audiofx.AudioEffect;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.StrictMode;
@@ -33,7 +31,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.MediaController;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -54,7 +51,6 @@ import com.h6ah4i.android.media.audiofx.IPreAmp;
 import com.h6ah4i.android.media.audiofx.IPresetReverb;
 import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
-import com.h6ah4i.android.media.opensl.OpenSLMediaPlayer;
 import com.h6ah4i.android.media.standard.StandardMediaPlayer;
 import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
 import com.ilusons.harmony.BuildConfig;
@@ -64,7 +60,6 @@ import com.ilusons.harmony.data.Analytics;
 import com.ilusons.harmony.data.Music;
 import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
-import com.ilusons.harmony.ref.IOEx;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.ilusons.harmony.ref.SongsEx;
@@ -75,7 +70,8 @@ import com.ilusons.harmony.ref.inappbilling.IabResult;
 import com.ilusons.harmony.ref.inappbilling.Inventory;
 import com.ilusons.harmony.ref.inappbilling.Purchase;
 import com.ilusons.harmony.sfx.AndroidOSMediaPlayerFactory;
-import com.ilusons.harmony.sfx.MediaPlayerFactory;
+import com.ilusons.harmony.sfx.AudioTrackMediaPlayerFactory;
+import com.ilusons.harmony.sfx.OpenSLMediaPlayerFactory;
 import com.ilusons.harmony.views.TunePresetsFragment;
 import com.tonyodev.fetch2.Download;
 import com.tonyodev.fetch2.Error;
@@ -89,7 +85,6 @@ import com.tonyodev.fetch2rx.RxFetch;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -549,6 +544,7 @@ public class MusicService extends Service {
 			if (equalizer == null) {
 				try {
 					switch (getPlayerType(this)) {
+						case AudioTrack:
 						case OpenSL:
 							equalizer = mediaPlayerFactory.createHQEqualizer();
 							break;
@@ -1242,6 +1238,7 @@ public class MusicService extends Service {
 				return;
 
 			switch (getPlayerType(this)) {
+				case AudioTrack:
 				case OpenSL:
 					preset = preset + TunePresetsFragment.EXT_PRESET_HQ;
 					break;
@@ -1448,7 +1445,7 @@ public class MusicService extends Service {
 			boolean isLastPlaybackUrlUpdateNeeded = newMusic.isLastPlaybackUrlUpdateNeeded();
 
 			if (!isLastPlaybackUrlUpdateNeeded
-					&& (getPlayerType(this) == PlayerType.OpenSL)
+					&& (getPlayerType(this) == PlayerType.OpenSL || getPlayerType(this) == PlayerType.AudioTrack)
 					&& (!(new File(newMusic.getLastPlaybackUrl())).exists()))
 				isLastPlaybackUrlUpdateNeeded = true;
 
@@ -1488,8 +1485,11 @@ public class MusicService extends Service {
 			// Setup player
 			if (mediaPlayerFactory == null)
 				switch (getPlayerType(this)) {
+					case AudioTrack:
+						mediaPlayerFactory = new AudioTrackMediaPlayerFactory(getApplicationContext());
+						break;
 					case OpenSL:
-						mediaPlayerFactory = new MediaPlayerFactory(getApplicationContext());
+						mediaPlayerFactory = new OpenSLMediaPlayerFactory(getApplicationContext());
 						break;
 					case AndroidOS:
 					default:
@@ -2339,7 +2339,7 @@ public class MusicService extends Service {
 					if (getPlaylist().getItemIndex() > -1) {
 						try {
 							if (!getPlaylist().getItem().isLastPlaybackUrlUpdateNeeded()) {
-								if (getPlayerType(this) != PlayerType.OpenSL) {
+								if (getPlayerType(this) == PlayerType.AndroidOS) {
 									prepare(null);
 									// update();
 
@@ -2366,7 +2366,7 @@ public class MusicService extends Service {
 					pause();
 					break;
 				case 1:
-					if (getPlayerType(this) != PlayerType.OpenSL) {
+					if (getPlayerType(this) == PlayerType.AudioTrack) {
 						play();
 					}
 					break;
@@ -3164,7 +3164,8 @@ public class MusicService extends Service {
 
 	public enum PlayerType {
 		AndroidOS("Android OS / Device Default"),
-		OpenSL("Open SL based (experimental ☢)");
+		AudioTrack("Audio Track (☢)"),
+		OpenSL("Open SL (☢)");
 
 		private String friendlyName;
 
@@ -3207,11 +3208,11 @@ public class MusicService extends Service {
 
 	public static PlayerType getPlayerType(Context context) {
 		try {
-			return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.OpenSL)));
+			return PlayerType.valueOf(SPrefEx.get(context).getString(TAG_SPREF_PLAYER_TYPE, String.valueOf(PlayerType.AudioTrack)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return PlayerType.OpenSL;
+		return PlayerType.AudioTrack;
 	}
 
 	public static void setPlayerType(Context context, PlayerType value) {

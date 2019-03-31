@@ -2,7 +2,7 @@
     "spref.player_reverb_env_enabled": true,
     "spref.player_loudness": "LoudnessEnhancer;targetGainmB=266",
     "spref.player_reverb_env": "EnvironmentalReverb;roomLevel=-1000;roomHFLevel=-200;decayTime=1300;decayHFRatio=900;reflectionsLevel=0;reflectionsDelay=0;reverbLevel=0;reverbDelay=0;diffusion=1000;density=750",
-    "spref.player_bassboost_enabled": true,
+    "spref.player_bassboost_enabled": false,
     "spref.player_virtualizer": "Virtualizer;strength=560",
     "spref.player_reverb_preset_enabled": false,
     "spref.player_bassboost": "BassBoost;strength=538",

@@ -329,6 +329,7 @@ public class SettingsActivity extends BaseActivity {
 				MusicService.setPlayerType(SettingsActivity.this, (MusicService.PlayerType) compoundButton.getTag());
 
 				switch (MusicService.getPlayerType(SettingsActivity.this)) {
+					case AudioTrack:
 					case OpenSL:
 						TunePresetsFragment.applyPreset(SettingsActivity.this, TunePresetsFragment.PRESET_HQ_GENERAL);
 						break;
@@ -359,9 +360,6 @@ public class SettingsActivity extends BaseActivity {
 
 			rb.setOnCheckedChangeListener(player_type_onCheckedChangeListener);
 		}
-
-		TextView player_type_info_textView = findViewById(R.id.player_type_info_textView);
-		player_type_info_textView.setText(Html.fromHtml(player_type_info_textView.getText().toString()));
 
 		// Headset
 		CheckBox headset_auto_play_on_plug_checkBox = (CheckBox) findViewById(R.id.headset_auto_play_on_plug_checkBox);

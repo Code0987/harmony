@@ -1,1 +1,16 @@
-{"spref.player_reverb_env_enabled":true,"spref.player_loudness":"LoudnessEnhancer;targetGainmB\u003d498","spref.player_reverb_env":"EnvironmentalReverb;roomLevel\u003d-1000;roomHFLevel\u003d-698;decayTime\u003d7000;decayHFRatio\u003d330;reflectionsLevel\u003d0;reflectionsDelay\u003d0;reverbLevel\u003d16;reverbDelay\u003d0;diffusion\u003d1000;density\u003d1000","spref.player_type":"AndroidOS","spref.player_bassboost_enabled":true,"spref.player_virtualizer":"Virtualizer;strength\u003d297","spref.player_reverb_preset_enabled":false,"spref.player_bassboost":"BassBoost;strength\u003d727","spref.player_eq_enabled":true,"spref.player_virtualizer_enabled":true,"spref.player_loudness_enabled":false,"spref.player_eq":"Equalizer;curPreset\u003d1;numBands\u003d5;band1Level\u003d500;band2Level\u003d300;band3Level\u003d-200;band4Level\u003d400;band5Level\u003d400","spref.player_preamp_enabled":true,"spref.player_preamp":"PreAmp;level\u003d0.9865545"}
+{
+  "spref.player_reverb_env_enabled": true,
+  "spref.player_loudness": "LoudnessEnhancer;targetGainmB\u003d498",
+  "spref.player_reverb_env": "EnvironmentalReverb;roomLevel\u003d-1000;roomHFLevel\u003d-698;decayTime\u003d7000;decayHFRatio\u003d330;reflectionsLevel\u003d0;reflectionsDelay\u003d0;reverbLevel\u003d16;reverbDelay\u003d0;diffusion\u003d1000;density\u003d1000",
+  "spref.player_type": "AndroidOS",
+  "spref.player_bassboost_enabled": false,
+  "spref.player_virtualizer": "Virtualizer;strength\u003d297",
+  "spref.player_reverb_preset_enabled": false,
+  "spref.player_bassboost": "BassBoost;strength\u003d727",
+  "spref.player_eq_enabled": true,
+  "spref.player_virtualizer_enabled": true,
+  "spref.player_loudness_enabled": false,
+  "spref.player_eq": "Equalizer;curPreset\u003d1;numBands\u003d5;band1Level\u003d500;band2Level\u003d300;band3Level\u003d-200;band4Level\u003d400;band5Level\u003d400",
+  "spref.player_preamp_enabled": true,
+  "spref.player_preamp": "PreAmp;level\u003d0.9865545"
+}

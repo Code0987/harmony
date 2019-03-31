@@ -80,9 +80,15 @@ public class WaveformView extends BaseAVFXGLView {
             converToFloatBuffer(pointsBuffer, points, (2 * N));
             drawWaveForm(gl, width, height, pointsBuffer, N, 0, yrange, leftChannelColor);
 
+            // Mix channel
+            drawWaveForm(gl, width, height, pointsBuffer, N, 1, yrange, rightChannelColor);
+
             // Right channel
             makeYPointPositionData(waveform, N, SKIP, waveform.length / NUM_CHANNELS, points);
             converToFloatBuffer(pointsBuffer, points, (2 * N));
+            drawWaveForm(gl, width, height, pointsBuffer, N, 2, yrange, leftChannelColor);
+
+            // Mix channel
             drawWaveForm(gl, width, height, pointsBuffer, N, 1, yrange, rightChannelColor);
         }
 
@@ -140,7 +146,7 @@ public class WaveformView extends BaseAVFXGLView {
         gl.glPushMatrix();
 
         // viewport
-        gl.glViewport(0, (height / 2) * (1 - vposition), width, (height / 2));
+        gl.glViewport(0, (height / 3) * (2 - vposition), width, (height / 3));
         // gl.glViewport(0, 0, width, height);
 
         // X: [0:1], Y: [-1:+1] (scaled)

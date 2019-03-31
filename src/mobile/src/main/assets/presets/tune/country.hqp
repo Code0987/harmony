@@ -6,7 +6,7 @@
     "spref.player_virtualizer_enabled": true,
     "spref.player_type": "OpenSL",
     "spref.player_eq": "Equalizer;curPreset=-1;numBands=10;band1Level=-100;band2Level=-100;band3Level=0;band4Level=200;band5Level=300;band6Level=500;band7Level=200;band8Level=100;band9Level=311;band10Level=398",
-    "spref.player_bassboost_enabled": true,
+    "spref.player_bassboost_enabled": false,
     "spref.player_virtualizer": "Virtualizer;strength=261",
     "spref.player_preamp_enabled": true,
     "spref.player_preamp": "PreAmp;level=0.9261803",
