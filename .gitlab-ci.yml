@@ -22,7 +22,7 @@ stages:
     # Extract the SDK version that we're building against
     - export ANDROID_SDK_TOOLS=3859397
     - export ANDROID_BUILD_TOOLS=28.0.3
-    - export ANDROID_COMPILE_SDK=28
+    - export ANDROID_COMPILE_SDK=27
     #`egrep '^[[:blank:]]+compileSdkVersion' ./src/mobile/build.gradle | awk '{print $2}'`
     
     # Explict output for logging purpose only
