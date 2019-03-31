@@ -269,6 +269,7 @@ public class TunePresetsFragment extends Fragment {
 			try {
 				String suffix;
 				switch (MusicService.getPlayerType(context)) {
+					case AudioTrack:
 					case OpenSL:
 						suffix = EXT_PRESET_HQ;
 						break;

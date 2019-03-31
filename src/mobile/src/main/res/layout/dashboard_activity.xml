@@ -33,7 +33,7 @@
             android:layout_height="match_parent"
             android:background="@drawable/bg_landscape1"
             android:scaleType="centerCrop"
-            android:alpha="0.37"
+            android:alpha="0.23"
             />
 
         <com.scwang.wave.MultiWaveHeader

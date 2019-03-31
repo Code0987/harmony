@@ -714,8 +714,8 @@ public class DashboardActivity extends BaseUIActivity {
 			final Consumer<Bitmap> resultConsumer = bitmap -> {
 				try {
 					Palette.from(bitmap).generate(palette -> {
-						int vibrantColor = palette.getVibrantColor(R.color.accent);
-						int vibrantDarkColor = palette.getDarkVibrantColor(R.color.accent_inverse);
+						int vibrantColor = palette.getVibrantColor(ContextCompat.getColor(this, R.color.accent));
+						int vibrantDarkColor = palette.getDarkVibrantColor(ContextCompat.getColor(this, R.color.accent_inverse));
 
 						Drawable drawable = new GradientDrawable(
 								GradientDrawable.Orientation.TL_BR,
@@ -811,7 +811,7 @@ public class DashboardActivity extends BaseUIActivity {
 			public void onOverScrollUpdate(IOverScrollDecor decor, int state, float offset) {
 				super.onOverScrollUpdate(decor, state, offset);
 
-				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 300)
+				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 250)
 					updateTrending();
 			}
 		});
@@ -906,7 +906,7 @@ public class DashboardActivity extends BaseUIActivity {
 			public void onOverScrollUpdate(IOverScrollDecor decor, int state, float offset) {
 				super.onOverScrollUpdate(decor, state, offset);
 
-				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 300)
+				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 250)
 					updateRecommended();
 			}
 		});
@@ -914,28 +914,9 @@ public class DashboardActivity extends BaseUIActivity {
 		updateRecommended();
 	}
 
-	private static long lastCallUpdateRecommendedTimestamp = 0;
-
-	public static boolean canCallUpdateRecommended() {
-		boolean r = true;
-
-		long now = System.currentTimeMillis();
-
-		if ((now - lastCallUpdateRecommendedTimestamp) > 10 * 1000) {
-			lastCallUpdateRecommendedTimestamp = now;
-		} else {
-			r = false;
-		}
-
-		return r;
-	}
-
 	private Disposable disposable_recommended = null;
 
 	private void updateRecommended() {
-		if (!canCallUpdateRecommended())
-			return;
-
 		try {
 			final Context context = this;
 
@@ -993,7 +974,7 @@ public class DashboardActivity extends BaseUIActivity {
 
 				try {
 					for (Music music : Music.getAllSortedByTimeLastPlayed(1)) {
-						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 6));
+						observables.add(Analytics.findSimilarTracks(music.getArtist(), music.getTitle(), 9));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -1082,7 +1063,7 @@ public class DashboardActivity extends BaseUIActivity {
 			public void onOverScrollUpdate(IOverScrollDecor decor, int state, float offset) {
 				super.onOverScrollUpdate(decor, state, offset);
 
-				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 300)
+				if (state == IOverScrollState.STATE_DRAG_START_SIDE && offset > 250)
 					updateRecent();
 			}
 		});

@@ -452,7 +452,8 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		ColorUtils.colorToHSL(color, hsl);
 		hsl[2] = Math.min(hsl[2], hsl[2] - 0.15f);
 		color = ColorUtils.HSLToColor(hsl);
-		hsl[2] = Math.max(hsl[2], hsl[2] + 0.65f);
+		hsl[2] = Math.max(hsl[2], hsl[2] + 0.35f);
+		hsl[1] = Math.max(hsl[1], hsl[1] + 0.25f);
 		colorLight = ColorUtils.HSLToColor(hsl);
 
 		updateControls(color, colorLight);
@@ -468,6 +469,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 					Blurry.with(this)
 							.radius(21)
 							.sampling(3)
+							.color(ColorUtils.setAlphaComponent(color, 80))
 							.animate(763)
 							.async()
 							.from(bitmap)
