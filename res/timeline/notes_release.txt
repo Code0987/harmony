@@ -1,3 +1,2 @@
-﻿✔ Updated visualizations.
-✔ Added new Player mode.
+﻿✔ Updated core to x64 only, may not work in some devices.
 ✔ Fixed bugs.

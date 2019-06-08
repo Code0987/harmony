@@ -25,7 +25,6 @@ import com.squareup.leakcanary.LeakCanary;
 
 import java.io.File;
 
-import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import jonathanfinerty.once.Once;
@@ -62,12 +61,6 @@ public class App extends Application {
 				Crashlytics.logException(e);
 			}
 		});
-
-		// Fabric
-		final Crashlytics crashlyticsKit = new Crashlytics.Builder()
-				.core(new CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build())
-				.build();
-		Fabric.with(this, crashlyticsKit);
 
 		// DB
 		try {

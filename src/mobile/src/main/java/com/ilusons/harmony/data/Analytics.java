@@ -26,6 +26,13 @@ import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SecurePreferences;
 import com.ilusons.harmony.ref.YouTubeEx;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.TextUtils;
 
 import java.io.IOException;
@@ -66,6 +73,8 @@ import org.musicbrainz.android.api.data.RecordingInfo;
 import org.musicbrainz.android.api.webservice.MusicBrainzWebClient;
 
 import java.net.URLEncoder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -951,6 +960,8 @@ public class Analytics {
 		return "AIzaSyCbI-1cSfDdoMIjXhNKznhxn5L_ZOwtB3A";
 	}
 
+	private static Pattern YouTubeWatchUrlPattern = Pattern.compile("(\\/watch\\?v=[^&\\n?#]+)");
+
 	public static Observable<Collection<String>> getYouTubeUrls(final Context context, final String queryTerm, final long limit) {
 		return Observable.create(new ObservableOnSubscribe<Collection<String>>() {
 			@SuppressLint("StaticFieldLeak")
@@ -994,6 +1005,27 @@ public class Analytics {
 						if (searchResultList != null) {
 							for (SearchResult sr : searchResultList) {
 								r.add("http://" + "youtube.com/watch?v=" + sr.getId().getVideoId());
+							}
+						}
+
+						// If no results, retry with direct search
+						if (r.size() == 0) {
+							HttpClient httpclient = new DefaultHttpClient();
+							HttpResponse response = httpclient.execute(new HttpGet("https://www.youtube.com/results?search_query=" + URLEncoder.encode(queryTerm, "utf-8")));
+							StatusLine statusLine = response.getStatusLine();
+							if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+								ByteArrayOutputStream out = new ByteArrayOutputStream();
+								response.getEntity().writeTo(out);
+								String responseString = out.toString("utf-8");
+								out.close();
+								if (!TextUtils.isEmpty(responseString)) {
+									Matcher matcher = YouTubeWatchUrlPattern.matcher(responseString);
+									if (matcher.find()) {
+										r.add("http://" + "youtube.com/" + matcher.group());
+									}
+								}
+							} else {
+								response.getEntity().getContent().close();
 							}
 						}
 
