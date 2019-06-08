@@ -63,14 +63,14 @@ build_debug:
   only:
     - develop
   script:
-    - ./src/gradlew -p ./src assembleDebug --stacktrace
+    - ./src/gradlew -p ./src assembleDebug
 
 build_release:
   <<: *build_template_def
   only:
     - master
   script:
-    - ./src/gradlew -p ./src assembleReleaseBeta --stacktrace
+    - ./src/gradlew -p ./src assembleReleaseBeta
 
 unit_test:
   stage: test
@@ -125,7 +125,7 @@ unit_test:
     - chmod +x ./src/gradlew
 
   script:
-    - ./src/gradlew -p ./src test --stacktrace
+    - ./src/gradlew -p ./src test
 
 .package_template: &package_template_def
   before_script:
@@ -222,7 +222,7 @@ publish:
   only:
     - master
   script:  
-    - ./src/gradlew -p ./src publishApkReleaseBeta --stacktrace --info
+    - ./src/gradlew -p ./src publishApkReleaseBeta
     - git push gitlab --tags
   artifacts:
     expire_in: 16 hours
