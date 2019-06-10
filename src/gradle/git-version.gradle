@@ -49,8 +49,8 @@ ext.getGitVersionData = {
         ]
     } else {
         return [
-                majorLast: 0,
-                minorLast: 1,
+                majorLast: 1,
+                minorLast: 5,
                 patchLast: 0,
                 buildLast: 'initial',
                 countLast: count,
