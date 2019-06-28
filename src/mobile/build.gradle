@@ -6,7 +6,7 @@ apply plugin: 'com.github.triplet.play'
 
 def gitVersionData = getGitVersionData()
 
-println "[git-version-data] " + gitVersionData
+println gitVersionData
 
 android {
 	signingConfigs {

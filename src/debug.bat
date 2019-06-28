@@ -1,1 +1,0 @@
-gradlew assembleMainDebug && gradlew installMainDebug

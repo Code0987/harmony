@@ -7,7 +7,6 @@ buildscript {
     }
 }
 
-
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.api.Status;
@@ -26,38 +25,44 @@ ext.getGitVersionData = {
     def count = git.log().call().size()
     def sha = walk.parseCommit(repo.resolve(Constants.HEAD)).getId().abbreviate(7).name()
     def describe = git.describe().setLong(true).call()
-    def clean = true// git.status().call().isClean()
-    def matcher = (describe =~ "(?:v([0-9]+))\\.([0-9]+)\\.([0-9]+)(?:-([0-9A-Za-z-]+))?")
+    def clean = true // git.status().call().isClean()
+    def matcher = (describe =~ "(?:v([0-9]+?))\\.([0-9]+?)\\.([0-9]+?)(?:-([0-9A-Za-z]+))?-([0-9]+?)-g([a-zA-Z0-9]+)")
     if (matcher.matches()) {
         return [
                 majorLast: matcher.group(1),
                 minorLast: matcher.group(2),
                 patchLast: matcher.group(3),
                 buildLast: matcher.group(4),
+                countLast: matcher.group(5),
+                shaLast  : matcher.group(6),
 
                 major    : matcher.group(1),
                 minor    : matcher.group(2),
-                patch    : (count),
-                build    : (sha + (clean ? '' : '-dirty')),
+                patch    : count - matcher.group(5).toInteger(),
+                build    : sha + (clean ? '' : '-dirty'),
+                code     : ((100000000 * matcher.group(1).toInteger()) + (100000 * matcher.group(2).toInteger()) + (count - matcher.group(5).toInteger())),
 
-                code     : ((100000000 * matcher.group(1).toInteger()) + (100000 * matcher.group(2).toInteger()) + (count)),
-
+                sha      : sha,
+                count    : count,
                 clean    : clean
         ]
     } else {
         return [
-                majorLast: 1,
+                majorLast: 0,
                 minorLast: 0,
                 patchLast: 0,
                 buildLast: 'initial',
+                countLast: count,
+                shaLast  : "initial",
 
                 major    : 0,
                 minor    : 0,
                 patch    : count,
-                build    : (sha + (clean ? '' : '-dirty')),
+                build    : sha + (clean ? '' : '-dirty'),
+                code     : ((100000000 * 0) + (100000 * 0) + count),
 
-                code     : ((100000000 * 1) + (100000 * 0) + count),
-
+                sha      : sha,
+                count    : count,
                 clean    : clean
         ]
     }
@@ -90,6 +95,9 @@ ext.getAndTagCurrentRelease = { gitVersionData ->
             break;
         }
     }
+    
+    println "Data:" + gitVersionData
+    println "Tag: " + versionName
 
     if (tag == null)
         git.tag().setName("v" + versionName).setAnnotated(true).call();
