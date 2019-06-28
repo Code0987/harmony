@@ -270,7 +270,7 @@ play {
 	userFraction = 1.0 // only necessary for 'rollout', in this case default is 0.1 (10% of the target)
 	untrackOld = true // will untrack 'alpha' while upload to 'beta'
 	errorOnSizeLimit = true
-	uploadImages = true
+	uploadImages = false
 }
 
 apply plugin: 'com.google.gms.google-services'
