@@ -40,7 +40,7 @@ ext.getGitVersionData = {
                 minor    : matcher.group(2),
                 patch    : count - matcher.group(5).toInteger(),
                 build    : sha + (clean ? '' : '-dirty'),
-                code     : ((100000000 * matcher.group(1).toInteger()) + (100000 * matcher.group(2).toInteger()) + (count - matcher.group(5).toInteger())),
+                code     : ((100000000 * matcher.group(1).toInteger()) + (100000 * matcher.group(2).toInteger()) + count), // (count - matcher.group(5).toInteger())
 
                 sha      : sha,
                 count    : count,
