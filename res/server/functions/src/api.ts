@@ -1,5 +1,10 @@
 import * as request from 'request-promise';
+
 import * as ytdl from 'youtube-dl';
+const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
+const Ffmpeg = require("fluent-ffmpeg");
+const thorugh2 = require("through2");
+
 
 export async function extractYoutubeVideosIds(query: string, count: number) {
   const res = await request(
@@ -62,6 +67,40 @@ app.get('/ytids', async (req, res) => {
     const result = await extractYoutubeVideosIds(req.query.keywords, req.query.count || 3);
 
     res.status(200).send(result);
+  } catch (err) {
+    res.status(500).send();
+  }
+});
+
+app.get('/audio/yt/:id', async (req, res) => {
+  try {
+    const video: any = (await extractYoutubeVideos([req.params.id]))[0];
+
+    let selectedFormat: any;
+    let labr = -1;
+    for (const format of video.formats) {
+      if (format.acodec && format.acodec !== 'none' && format.vcodec && format.vcodec === 'none') {
+        if (format.abr >= labr) {
+          selectedFormat = format;
+        }
+      }
+    }
+
+    const stream = thorugh2();
+
+    const ffmpeg = new Ffmpeg(selectedFormat.url)
+      .format('mp3')
+      .audioCodec('libmp3lame')
+      .audioQuality(0)
+      ;
+    ffmpeg.setFfmpegPath(ffmpegPath);
+    ffmpeg.pipe(stream);
+
+    res.writeHead(200, {
+      "Content-Type": "audio/mp3"
+    });
+
+    stream.pipe(res);
   } catch (err) {
     res.status(500).send();
   }
