@@ -12,7 +12,7 @@
     [
       "@semantic-release/changelog",
       {
-        "changelogFile": "./src/mobile/src/main/play/release-notes/en-IN/default.txt"
+        "changelogFile": "CHANGELOG.md"
       }
     ],
     [
@@ -20,17 +20,6 @@
       {
         "pd": "./src",
         "t": "app:publishReleaseBetaApk"
-      }
-    ],
-    [
-      "@semantic-release/github",
-      {
-        "assets": [
-          {
-            "path": "src/mobile/build/outputs/apk/releaseBeta/mobile-releaseBeta.apk",
-            "label": "Release (Beta) APK"
-          }
-        ]
       }
     ],
     [
