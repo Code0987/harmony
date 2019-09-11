@@ -1,7 +1,7 @@
 {
   "dryRun": true,
   "tagFormat": "v${version}",
-  "repositoryUrl": "https://gitlab.com/Code0987/harmony.git",
+  "repositoryUrl": "git@gitlab.com:Code0987/harmony.git",
   "plugins": [
     "@semantic-release/commit-analyzer",
     [

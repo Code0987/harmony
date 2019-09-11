@@ -1,16 +1,28 @@
 image: code0987/android-ci:latest
 
 before_script:
-  - git config user.email 'devbot@ilusons.com'
-  - git config user.name 'Dev Bot'
+  # Git
+  - git config --global user.email 'devbot@ilusons.com'
+  - git config --global user.name 'Dev Bot'
 
   - git submodule update --init --recursive
   - git submodule update --recursive --remote
 
+  # Keys
+  ## GPG
   - export GPG_TTY=/dev/console
-  - echo "$DEVBOT_PRIVATE_KEY" | gpg --batch --import
+  - echo "$GPG_PRIVATE_KEY" | gpg --batch --import
   - git secret reveal
+  ## SSH
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo "StrictHostKeyChecking no" >> ~/.ssh/config 
+  - echo "UserKnownHostsFile /dev/null" >> ~/.ssh/config
 
+  # Setup
   - npm install
   - export GRADLE_USER_HOME=`pwd`./src/.gradle
   - chmod +x ./src/gradlew
@@ -24,6 +36,16 @@ cache:
 
 stages:
   - publish
+
+test:
+  stage: test
+  script:
+    - ./src/gradlew -p ./src bundleReleaseBeta
+  artifacts:
+    expire_in: 16 hours
+    paths:
+      - ./src/mobile/build/outputs/apk/*/**.apk
+      - ~/.android/
 
 publish:
   stage: publish
