@@ -23,18 +23,7 @@ cache:
     - ./src/app/build/
 
 stages:
-  #- test
   - publish
-
-test:
-  stage: test
-  script:
-    - ./src/gradlew -p ./src bundleReleaseBeta
-  artifacts:
-    expire_in: 16 hours
-    paths:
-      - ./src/mobile/build/outputs/apk/*/**.apk
-      - ~/.android/
 
 publish:
   stage: publish
