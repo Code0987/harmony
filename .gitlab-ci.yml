@@ -14,12 +14,12 @@ before_script:
   - echo "$GPG_PRIVATE_KEY" | gpg --batch --import
   - git secret reveal
   ## SSH
-  - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )"
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
   - eval $(ssh-agent -s)
   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
   - mkdir -p ~/.ssh
   - chmod 700 ~/.ssh
-  - echo "StrictHostKeyChecking no" >> ~/.ssh/config
+  - echo "StrictHostKeyChecking no" >> ~/.ssh/config 
   - echo "UserKnownHostsFile /dev/null" >> ~/.ssh/config
 
   # Setup
@@ -35,7 +35,17 @@ cache:
     - ./src/app/build/
 
 stages:
+  - test
   - publish
+
+test:
+  stage: test
+  script:
+    - ./src/gradlew -p ./src bundleReleaseBeta
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - ./src/mobile/build/outputs/apk/*/**.apk
 
 publish:
   stage: publish

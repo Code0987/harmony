@@ -1,5 +1,5 @@
 {
-  "dryRun": true,
+  "dryRun": false,
   "tagFormat": "v${version}",
   "repositoryUrl": "git@gitlab.com:Code0987/harmony.git",
   "plugins": [
