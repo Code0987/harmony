@@ -8,11 +8,10 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.support.v4.graphics.ColorUtils;
+import androidx.core.graphics.ColorUtils;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 

@@ -1,18 +1,12 @@
 package com.ilusons.harmony.views;
 
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -25,6 +19,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.tabs.TabLayout;
 import com.h6ah4i.android.media.audiofx.IBassBoost;
 import com.h6ah4i.android.media.audiofx.IEnvironmentalReverb;
 import com.h6ah4i.android.media.audiofx.IEqualizer;
@@ -38,7 +33,6 @@ import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
 import com.h6ah4i.android.media.utils.EnvironmentalReverbPresets;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.base.BaseActivity;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.ViewEx;
@@ -49,7 +43,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
-import jonathanfinerty.once.Once;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import me.tankery.lib.circularseekbar.CircularSeekBar;
 
 public class TuneActivity extends BaseUIActivity {

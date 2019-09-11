@@ -4,7 +4,6 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.v4.content.FileProvider;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;

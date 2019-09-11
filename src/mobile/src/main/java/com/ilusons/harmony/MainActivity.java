@@ -8,8 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -21,7 +19,6 @@ import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.StorageEx;
 import com.ilusons.harmony.views.DashboardActivity;
 import com.ilusons.harmony.views.IntroActivity;
-import com.ilusons.harmony.views.PlaylistViewActivity;
 import com.ilusons.harmony.views.RateMe;
 import com.ilusons.harmony.views.TimerViewFragment;
 import com.ilusons.harmony.views.Tips;
@@ -30,6 +27,8 @@ import com.ilusons.harmony.views.PlaybackUIActivity;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
+import androidx.fragment.app.FragmentActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import jonathanfinerty.once.Once;
 
 public class MainActivity extends BaseActivity {

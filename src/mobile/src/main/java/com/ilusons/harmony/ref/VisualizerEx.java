@@ -3,9 +3,10 @@ package com.ilusons.harmony.ref;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.audiofx.Visualizer;
-import android.support.annotation.NonNull;
 
 import com.ilusons.harmony.R;
+
+import androidx.annotation.NonNull;
 
 public class VisualizerEx {
     private static final String TAG = Permissions.class.getName();

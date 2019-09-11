@@ -1,9 +1,10 @@
 package com.ilusons.harmony.ref;
 
 import android.graphics.Color;
-import android.support.annotation.ColorInt;
 
 import java.util.Random;
+
+import androidx.annotation.ColorInt;
 
 public class ColorEx {
 

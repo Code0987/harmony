@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.v4.widget.DrawerLayout
+<androidx.drawerlayout.widget.DrawerLayout
     android:id="@+id/drawer_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -54,13 +54,13 @@
 
     </RelativeLayout>
 
-    <android.support.design.widget.CoordinatorLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
         >
 
-        <android.support.design.widget.AppBarLayout
+        <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,7 +69,7 @@
             android:theme="@style/AppTheme.AppBarOverlay"
             app:elevation="0dp">
 
-            <android.support.v7.widget.Toolbar
+            <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
@@ -82,9 +82,9 @@
                 app:popupTheme="@style/AppTheme.PopupOverlay"
                 app:statusBarScrim="@color/transparent"/>
 
-        </android.support.design.widget.AppBarLayout>
+        </com.google.android.material.appbar.AppBarLayout>
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/root"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -97,7 +97,7 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             >
 
-            <android.support.v4.widget.NestedScrollView
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:clipChildren="true"
@@ -108,7 +108,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clipChildren="true"
@@ -144,7 +144,7 @@
                         app:layout_constraintTop_toTopOf="@+id/title_trending"
                         />
 
-                    <android.support.v7.widget.RecyclerView
+                    <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recycler_view_trending"
                         style="@style/AppTheme.Scrollbar"
                         android:layout_width="0dp"
@@ -160,7 +160,7 @@
                         android:paddingStart="16dp"
                         android:paddingTop="8dp"
                         android:scrollbars="none"
-                        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/title_trending"
@@ -197,7 +197,7 @@
                         app:layout_constraintTop_toTopOf="@+id/title_recommended"
                         />
 
-                    <android.support.v7.widget.RecyclerView
+                    <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recycler_view_recommended"
                         style="@style/AppTheme.Scrollbar"
                         android:layout_width="0dp"
@@ -213,7 +213,7 @@
                         android:paddingStart="16dp"
                         android:paddingTop="8dp"
                         android:scrollbars="none"
-                        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/title_recommended"
@@ -250,7 +250,7 @@
                         app:layout_constraintTop_toTopOf="@+id/title_recent"
                         />
 
-                    <android.support.v7.widget.RecyclerView
+                    <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recycler_view_recent"
                         style="@style/AppTheme.Scrollbar"
                         android:layout_width="0dp"
@@ -266,7 +266,7 @@
                         android:paddingStart="16dp"
                         android:paddingTop="8dp"
                         android:scrollbars="none"
-                        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintRight_toRightOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/title_recent"
@@ -289,11 +289,11 @@
                         app:layout_constraintTop_toBottomOf="@+id/recycler_view_recent">
                     </com.google.android.gms.ads.AdView>
 
-                </android.support.constraint.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
-            </android.support.v4.widget.NestedScrollView>
+            </androidx.core.widget.NestedScrollView>
 
-            <android.support.constraint.ConstraintLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/metadata_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -303,7 +303,7 @@
                 app:layout_constraintRight_toRightOf="parent"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/play_pause_stop_layout"
                     android:layout_width="64dp"
                     android:layout_height="64dp"
@@ -368,7 +368,7 @@
                         app:layout_constraintTop_toTopOf="parent"
                         />
 
-                </android.support.constraint.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <TextView
                     android:id="@+id/title"
@@ -429,9 +429,9 @@
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
 
-            </android.support.constraint.ConstraintLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <android.support.constraint.ConstraintLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/nav_bar_filler"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -459,12 +459,12 @@
                 app:layout_constraintTop_toTopOf="parent"
                 />
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </android.support.design.widget.CoordinatorLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <include layout="@layout/dashboard_drawer_left"/>
 
-</android.support.v4.widget.DrawerLayout>
+</androidx.drawerlayout.widget.DrawerLayout>
 
 

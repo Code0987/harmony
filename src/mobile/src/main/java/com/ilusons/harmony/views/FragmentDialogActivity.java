@@ -3,17 +3,16 @@ package com.ilusons.harmony.views;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ContextThemeWrapper;
 import android.view.Window;
 import android.view.WindowManager;
 
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.base.BaseActivity;
-import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.ref.AndroidEx;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
 public class FragmentDialogActivity extends AppCompatActivity {
 

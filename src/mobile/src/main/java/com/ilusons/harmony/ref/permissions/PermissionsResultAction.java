@@ -3,13 +3,14 @@ package com.ilusons.harmony.ref.permissions;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.CallSuper;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
 
 /**
  * This abstract class should be used to create an if/else action that the PermissionsManager

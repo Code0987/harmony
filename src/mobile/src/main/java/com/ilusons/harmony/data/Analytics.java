@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -1106,13 +1105,15 @@ public class Analytics {
 					ArrayList<YtFile> selected = new ArrayList<>();
 
 					SparseArray<YtFile> ytFiles = yte.execute(watchUrl).get(3L, TimeUnit.MINUTES);
-					for (int i = 0, itag; i < ytFiles.size(); i++) {
-						itag = ytFiles.keyAt(i);
-						YtFile ytFile = ytFiles.get(itag);
-						Format format = ytFile.getFormat();
+					if (ytFiles != null) {
+						for (int i = 0, itag; i < ytFiles.size(); i++) {
+							itag = ytFiles.keyAt(i);
+							YtFile ytFile = ytFiles.get(itag);
+							Format format = ytFile.getFormat();
 
-						if (format.getAudioBitrate() > 0) {
-							selected.add(ytFile);
+							if (format.getAudioBitrate() > 0) {
+								selected.add(ytFile);
+							}
 						}
 					}
 

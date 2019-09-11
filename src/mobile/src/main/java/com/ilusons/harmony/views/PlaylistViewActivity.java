@@ -1,30 +1,24 @@
 package com.ilusons.harmony.views;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.TabLayout;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.graphics.drawable.DrawerArrowDrawable;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 
+import com.google.android.material.tabs.TabLayout;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIActivity;
 import com.ilusons.harmony.base.DrawerArrow;
 import com.ilusons.harmony.data.Playlist;
-import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.wang.avi.AVLoadingIndicatorView;
+
+import androidx.appcompat.widget.Toolbar;
 
 public class PlaylistViewActivity extends BaseUIActivity {
 

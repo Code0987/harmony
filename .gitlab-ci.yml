@@ -1,230 +1,44 @@
-image: openjdk:8-jdk
+image: code0987/android-ci:latest
+
+before_script:
+  - git config user.email 'devbot@ilusons.com'
+  - git config user.name 'Dev Bot'
+
+  - git submodule update --init --recursive
+  - git submodule update --recursive --remote
+
+  - export GPG_TTY=/dev/console
+  - echo "$DEVBOT_PRIVATE_KEY" | gpg --batch --import
+  - git secret reveal
+
+  - npm install
+  - export GRADLE_USER_HOME=`pwd`./src/.gradle
+  - chmod +x ./src/gradlew
+
+cache:
+  key: "$CI_COMMIT_REF_NAME"
+  paths:
+    - ./src/.gradle/
+    - ./src/build/
+    - ./src/app/build/
 
 stages:
-  - build
   - test
-  - package
   - publish
 
-.build_template: &build_template_def
-  stage: build
-  artifacts:
-    expire_in: 16 hours
-    paths:
-    - ./src/mobile/build/outputs/apk/*/**.apk
-    - ~/.android/
-    - ~/ci-log.log
-
-  before_script:  
-    - export LOG=~/ci-log.log
-    - touch $LOG
-  
-    # Extract the SDK version that we're building against
-    - export ANDROID_SDK_TOOLS=3859397
-    - export ANDROID_BUILD_TOOLS=28.0.3
-    - export ANDROID_COMPILE_SDK=27
-    #`egrep '^[[:blank:]]+compileSdkVersion' ./src/mobile/build.gradle | awk '{print $2}'`
-    
-    # Explict output for logging purpose only
-    - echo $ANDROID_SDK_TOOLS
-    - echo $ANDROID_BUILD_TOOLS
-    - echo $ANDROID_COMPILE_SDK
-
-    # Set up environment variables
-    - export ANDROID_HOME=~/.android
-    - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle # Remove if you don't need NDK
-    - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
-    - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
-
-    # Get submodules
-    - git submodule update --init --recursive
-    - git submodule update --recursive --remote
-
-    # Fetch the specified SDK tools version to build with
-    - wget --quiet --output-document=/tmp/sdk-tools-linux.zip https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip >> $LOG
-    - unzip /tmp/sdk-tools-linux.zip -d $ANDROID_HOME/ >> $LOG
-
-    # Install platform tools and Android SDK for the compile target
-    - echo 'count=0' > $ANDROID_HOME/repositories.cfg
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platform-tools' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'build-tools;'$ANDROID_BUILD_TOOLS >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platforms;android-'$ANDROID_COMPILE_SDK >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;android;m2repository' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;google_play_services' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;m2repository' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'cmake;3.6.4111459' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'ndk-bundle' >> $LOG
-    - chmod +x ./src/gradlew
-
-build_debug:
-  <<: *build_template_def
-  only:
-    - develop
-  script:
-    - ./src/gradlew -p ./src assembleDebug
-
-build_release:
-  <<: *build_template_def
-  only:
-    - master
-  script:
-    - ./src/gradlew -p ./src assembleReleaseBeta
-
-unit_test:
+test:
   stage: test
-  only:
-    - master
-    - develop
+  script:
+    - ./src/gradlew -p ./src bundleReleaseBeta
   artifacts:
     expire_in: 16 hours
     paths:
-    - ~/ci-log.log
-  before_script:
-    - export LOG=~/ci-log.log
-    - touch $LOG
-  
-    # Extract the SDK version that we're building against
-    - export ANDROID_SDK_TOOLS=3859397
-    - export ANDROID_BUILD_TOOLS=26.0.2
-    - export ANDROID_COMPILE_SDK=25
-    #`egrep '^[[:blank:]]+compileSdkVersion' ./src/mobile/build.gradle | awk '{print $2}'`
-    
-    # Explict output for logging purpose only
-    - echo $ANDROID_SDK_TOOLS
-    - echo $ANDROID_BUILD_TOOLS
-    - echo $ANDROID_COMPILE_SDK
-
-    # Set up environment variables
-    - export ANDROID_HOME=~/.android
-    - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle # Remove if you don't need NDK
-    - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
-    - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
-
-    # Get submodules
-    - git submodule update --init --recursive
-    - git submodule update --recursive --remote
-
-    # Fetch the specified SDK tools version to build with
-    - wget --quiet --output-document=/tmp/sdk-tools-linux.zip https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip >> $LOG
-    - unzip /tmp/sdk-tools-linux.zip -d $ANDROID_HOME/ >> $LOG
-
-    # Install platform tools and Android SDK for the compile target
-    - echo 'count=0' > $ANDROID_HOME/repositories.cfg
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platform-tools' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'build-tools;'$ANDROID_BUILD_TOOLS >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platforms;android-'$ANDROID_COMPILE_SDK >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;android;m2repository' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;google_play_services' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;m2repository' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'cmake;3.6.4111459' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'ndk-bundle' >> $LOG
-    - chmod +x ./src/gradlew
-
-  script:
-    - ./src/gradlew -p ./src test
-
-.package_template: &package_template_def
-  before_script:
-    - mkdir -p deliverables
-    - touch ./deliverables/info.txt
-    - echo "Build date          $(date)"                >> ./deliverables/info.txt
-    - echo "Git branch          ${CI_COMMIT_REF_NAME}"  >> ./deliverables/info.txt
-    - echo "Git commit          ${CI_COMMIT_SHA}"       >> ./deliverables/info.txt
-    - echo "Gitlab pipeline     ${CI_PIPELINE_ID}"      >> ./deliverables/info.txt
-
-package_develop:
-  <<: *package_template_def
-  stage: package
-  environment: Development
-  only:
-    - develop
-  script:
-    - mv ./src/mobile/build/outputs/apk/debug/**.apk ./deliverables/
-  artifacts:
-    expire_in: 3 days
-    paths:
-    - deliverables
-
-package_release:
-  <<: *package_template_def
-  stage: package
-  environment: Release
-  only:
-    - master
-  script:
-    - mv ./src/mobile/build/outputs/apk/releaseBeta/**.apk ./deliverables/
-  artifacts:
-    expire_in: 4 weeks
-    paths:
-    - deliverables
+      - ./src/mobile/build/outputs/apk/*/**.apk
+      - ~/.android/
 
 publish:
-  before_script:
-    - export LOG=~/ci-log.log
-    - touch $LOG
-  
-    # Extract the SDK version that we're building against
-    - export ANDROID_SDK_TOOLS=3859397
-    - export ANDROID_BUILD_TOOLS=26.0.2
-    - export ANDROID_COMPILE_SDK=25
-    #`egrep '^[[:blank:]]+compileSdkVersion' ./src/mobile/build.gradle | awk '{print $2}'`
-    
-    # Explict output for logging purpose only
-    - echo $ANDROID_SDK_TOOLS
-    - echo $ANDROID_BUILD_TOOLS
-    - echo $ANDROID_COMPILE_SDK
-
-    # Set up environment variables
-    - export ANDROID_HOME=~/.android
-    - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle # Remove if you don't need NDK
-    - export PATH=$PATH:$ANDROID_HOME/platform-tools/:$ANDROID_NDK_HOME
-    - mkdir -p $ANDROID_HOME/ && touch $ANDROID_HOME/repositories.cfg
-    
-    # Git setup
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "StrictHostKeyChecking no" >> ~/.ssh/config 
-    - echo "UserKnownHostsFile /dev/null" >> ~/.ssh/config
-    - git config --global user.email "harmony@ilusons.com"
-    - git config --global user.name "bot"
-    - git remote add gitlab git@gitlab.com:Code0987/harmony.git
-
-    # Get submodules
-    - git submodule update --init --recursive
-    - git submodule update --recursive --remote
-
-    # Fetch the specified SDK tools version to build with
-    - wget --quiet --output-document=/tmp/sdk-tools-linux.zip https://dl.google.com/android/repository/sdk-tools-linux-${ANDROID_SDK_TOOLS}.zip >> $LOG
-    - unzip /tmp/sdk-tools-linux.zip -d $ANDROID_HOME/ >> $LOG
-
-    # Install platform tools and Android SDK for the compile target
-    - echo 'count=0' > $ANDROID_HOME/repositories.cfg
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager --update >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'tools' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platform-tools' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'build-tools;'$ANDROID_BUILD_TOOLS >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'platforms;android-'$ANDROID_COMPILE_SDK >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;android;m2repository' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;google_play_services' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'extras;google;m2repository' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'cmake;3.6.4111459' >> $LOG
-    - echo y | $ANDROID_HOME/tools/bin/sdkmanager 'ndk-bundle' >> $LOG
-    - chmod +x ./src/gradlew
-        
-  environment: Release
+  stage: publish
   only:
     - master
-  script:  
-    - ./src/gradlew -p ./src publishApkReleaseBeta
-    - git push gitlab --tags
-  artifacts:
-    expire_in: 16 hours
-    paths:
-    - ~/ci-log.log
+  script:
+    - npx semantic-release

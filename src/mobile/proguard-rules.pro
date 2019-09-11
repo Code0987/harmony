@@ -24,6 +24,17 @@
 -optimizationpasses 5
 -keepattributes Signature
 
+-dontwarn java.lang.**
+
+-keep class com.google.android.material.** { *; }
+
+-dontwarn com.google.android.material.**
+-dontnote com.google.android.material.**
+
+-dontwarn androidx.**
+-keep class androidx.** { *; }
+-keep interface androidx.** { *; }
+
 -keep class * extends android.app.Activity
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
@@ -173,24 +184,47 @@
 
 -dontwarn com.squareup.okhttp.**
 
-
-## Android support ##
-
--dontwarn android.support.design.**
--keep class android.support.design.** { *; }
--keep interface android.support.design.** { *; }
--keep public class android.support.design.R$* { *; }
--keep public class android.support.v7.widget.** { *; }
--keep public class android.support.v7.internal.widget.** { *; }
--keep public class android.support.v7.internal.view.menu.** { *; }
--keep public class * extends android.support.v4.view.ActionProvider {
-    public <init>(android.content.Context);
-}
-# http://stackoverflow.com/questions/29679177/cardview-shadow-not-appearing-in-lollipop-after-obfuscate-with-proguard/29698051
--keep class android.support.v7.widget.RoundRectDrawable { *; }
-
 ## Crashlytics ##
 
 -keep class com.crashlytics.** { *; }
 -dontwarn com.crashlytics.**
 -keep public class * extends java.lang.Exception
+
+
+## Google Ads
+
+# For Google Play Services
+-keep public class com.google.android.gms.ads.**{
+   public *;
+}
+
+# For old ads classes
+-keep public class com.google.ads.**{
+   public *;
+}
+
+# For mediation
+-keepattributes *Annotation*
+
+# Other required classes for Google Play Services
+# Read more at http://developer.android.com/google/play-services/setup.html
+-keep class * extends java.util.ListResourceBundle {
+   protected Object[][] getContents();
+}
+
+-keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {
+   public static final *** NULL;
+}
+
+-keepnames @com.google.android.gms.common.annotation.KeepName class *
+-keepclassmembernames class * {
+   @com.google.android.gms.common.annotation.KeepName *;
+}
+
+-keepnames class * implements android.os.Parcelable {
+   public static final ** CREATOR;
+}
+
+-dontwarn com.h6ah4i.android.widget.advrecyclerview.**
+-keep class com.h6ah4i.android.widget.advrecyclerview.**
+-keep interface com.h6ah4i.android.widget.advrecyclerview.**

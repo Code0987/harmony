@@ -1,0 +1,45 @@
+{
+  "tagFormat": "v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "linkCompare": false,
+        "linkReferences": false
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "./src/mobile/src/main/play/release-notes/en-IN/default.txt"
+      }
+    ],
+    [
+      "gradle-semantic-release-plugin",
+      {
+        "pd": "./src",
+        "t": "app:publishReleaseBetaApk"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "src/mobile/build/outputs/apk/releaseBeta/mobile-releaseBeta.apk",
+            "label": "Release (Beta) APK"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "./src/gradle.properties"
+        ]
+      }
+    ]
+  ]
+}

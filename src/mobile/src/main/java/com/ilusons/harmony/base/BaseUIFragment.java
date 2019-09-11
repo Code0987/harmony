@@ -1,12 +1,8 @@
 package com.ilusons.harmony.base;
 
-import android.app.ProgressDialog;
-import android.graphics.drawable.ColorDrawable;
-import android.support.annotation.VisibleForTesting;
-import android.support.v4.app.Fragment;
 import android.widget.Toast;
 
-import com.ilusons.harmony.R;
+import androidx.fragment.app.Fragment;
 
 public class BaseUIFragment extends Fragment {
 

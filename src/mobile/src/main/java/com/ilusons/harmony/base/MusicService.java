@@ -21,11 +21,11 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.StrictMode;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -88,6 +88,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -1926,7 +1927,7 @@ public class MusicService extends Service {
 
 	private static final int NOTIFICATION_ID = 4524;
 
-	private android.support.v4.app.NotificationCompat.Builder builder;
+	private androidx.core.app.NotificationCompat.Builder builder;
 
 	private RemoteViews customNotificationView;
 	private RemoteViews customNotificationViewS;
@@ -1998,7 +1999,7 @@ public class MusicService extends Service {
                         .setMediaSession(mediaSession.getSessionToken())
                         .setShowActionsInCompactView(1, 2, 0))*/;
 
-		builder.setVisibility(Notification.VISIBILITY_PUBLIC);
+		builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
 	}
 
 	private void updateNotification() {

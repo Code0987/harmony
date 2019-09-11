@@ -2,8 +2,6 @@ package com.ilusons.harmony.ref.ui;
 
 import android.content.Context;
 import android.graphics.PointF;
-import android.support.v7.widget.LinearSmoothScroller;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
@@ -13,6 +11,9 @@ import android.view.ViewGroup;
 
 import java.util.HashSet;
 import java.util.List;
+
+import androidx.recyclerview.widget.LinearSmoothScroller;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * A {@link RecyclerView.LayoutManager} implementation
