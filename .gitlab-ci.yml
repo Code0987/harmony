@@ -23,7 +23,7 @@ cache:
     - ./src/app/build/
 
 stages:
-  - test
+  #- test
   - publish
 
 test:
