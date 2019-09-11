@@ -5,9 +5,10 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.widget.ImageView;
+
+import androidx.appcompat.widget.AppCompatImageView;
 
 public class ParallaxImageView extends AppCompatImageView {
 

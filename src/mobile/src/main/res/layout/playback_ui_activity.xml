@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.constraint.ConstraintLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -194,7 +194,7 @@
 
     </view>
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/metadata_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -255,9 +255,9 @@
             tools:text="Artist"
             />
 
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/controls_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -270,7 +270,7 @@
         app:layout_constraintRight_toRightOf="parent"
         >
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/controls1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -304,7 +304,7 @@
                 tools:text="Time"
                 />
 
-            <android.support.v7.widget.AppCompatSeekBar
+            <androidx.appcompat.widget.AppCompatSeekBar
                 android:id="@+id/seekBar"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -317,7 +317,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 />
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
             android:id="@+id/controls2"
@@ -472,7 +472,7 @@
 
         </LinearLayout>
 
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.wang.avi.AVLoadingIndicatorView
         android:id="@+id/loading"
@@ -488,7 +488,7 @@
         app:layout_constraintTop_toBottomOf="parent"
         />
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/nav_bar_filler"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -497,4 +497,4 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

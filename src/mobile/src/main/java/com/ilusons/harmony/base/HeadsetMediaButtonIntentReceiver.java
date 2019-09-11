@@ -18,12 +18,13 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 import android.view.KeyEvent;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.ref.SPrefEx;
+
+import androidx.legacy.content.WakefulBroadcastReceiver;
 
 /**
  * Used to control headset playback.

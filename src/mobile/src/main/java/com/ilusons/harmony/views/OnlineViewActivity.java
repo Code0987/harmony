@@ -2,8 +2,6 @@ package com.ilusons.harmony.views;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
+import com.google.android.material.tabs.TabLayout;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.base.BaseUIActivity;
@@ -19,6 +18,8 @@ import com.ilusons.harmony.data.Playlist;
 import com.ilusons.harmony.ref.AndroidEx;
 import com.ilusons.harmony.ref.SPrefEx;
 import com.wang.avi.AVLoadingIndicatorView;
+
+import androidx.appcompat.widget.Toolbar;
 
 public class OnlineViewActivity extends BaseUIActivity {
 

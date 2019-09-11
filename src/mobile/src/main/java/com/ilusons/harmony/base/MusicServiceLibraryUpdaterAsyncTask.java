@@ -4,16 +4,15 @@ import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 import android.util.ArraySet;
 import android.util.Log;
 import android.util.Pair;
@@ -31,6 +30,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import io.reactivex.ObservableSource;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;

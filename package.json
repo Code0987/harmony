@@ -1,0 +1,28 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "none",
+  "dependencies": {
+    "@semantic-release/changelog": "^3.0.4",
+    "@semantic-release/git": "^7.0.16",
+    "gradle-semantic-release-plugin": "github:Code0987/gradle-semantic-release-plugin",
+    "semantic-release": "^15.13.18"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Code0987/harmony.git"
+  },
+  "keywords": [
+    "android"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Code0987/harmony/issues"
+  },
+  "homepage": "https://github.com/Code0987/harmony#readme"
+}

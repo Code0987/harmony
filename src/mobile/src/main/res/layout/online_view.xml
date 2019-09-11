@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.constraint.ConstraintLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:res="http://schemas.android.com/apk/res-auto"
@@ -10,7 +10,7 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         style="@style/AppTheme.Scrollbar"
         android:layout_width="0dp"
@@ -24,7 +24,7 @@
         res:layout_constraintLeft_toLeftOf="parent"
         res:layout_constraintRight_toRightOf="parent"
         res:layout_constraintTop_toTopOf="parent"
-        tools:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/playlist_view_item_default"
         />
 
@@ -44,4 +44,4 @@
         res:layout_constraintTop_toTopOf="parent"
         />
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

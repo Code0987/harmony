@@ -2,9 +2,10 @@ package com.ilusons.harmony.base;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 
 import com.ilusons.harmony.ref.AndroidEx;
+
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable;
 
 public class DrawerArrow extends DrawerArrowDrawable {
 	private final Activity activity;

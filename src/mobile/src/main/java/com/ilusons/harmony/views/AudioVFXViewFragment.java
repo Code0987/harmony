@@ -5,9 +5,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.media.audiofx.Visualizer;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +27,8 @@ import com.ilusons.harmony.ref.permissions.PermissionsManager;
 import com.ilusons.harmony.ref.permissions.PermissionsResultAction;
 
 import java.lang.ref.WeakReference;
+
+import androidx.annotation.Nullable;
 
 public class AudioVFXViewFragment extends Fragment {
 

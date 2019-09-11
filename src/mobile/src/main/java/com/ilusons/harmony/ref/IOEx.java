@@ -8,8 +8,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
-import android.support.annotation.RequiresApi;
-import android.support.v4.os.EnvironmentCompat;
+
+import androidx.annotation.RequiresApi;
+import androidx.core.os.EnvironmentCompat;
 import android.util.Log;
 
 import java.io.File;

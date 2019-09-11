@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.constraint.ConstraintLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -131,7 +131,7 @@
         app:layout_constraintTop_toBottomOf="@+id/top_layout"
         >
 
-        <android.support.design.widget.TabLayout
+        <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabs"
             xmlns:res="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
@@ -166,7 +166,7 @@
                 android:tag="Core"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
@@ -217,7 +217,7 @@
                         app:layout_constraintTop_toBottomOf="@id/player_type_textView"
                         />
 
-                </android.support.constraint.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </ScrollView>
 
@@ -236,7 +236,7 @@
                 android:tag="Analytics: last.fm ®"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
@@ -253,7 +253,7 @@
                         app:layout_constraintTop_toTopOf="parent"
                         />
 
-                    <android.support.design.widget.TextInputLayout
+                    <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/analytics_lfm_username"
                         xmlns:res="http://schemas.android.com/apk/res-auto"
                         android:layout_width="0dp"
@@ -275,9 +275,9 @@
                             android:inputType="text"
                             android:singleLine="true"/>
 
-                    </android.support.design.widget.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                    <android.support.design.widget.TextInputLayout
+                    <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/analytics_lfm_password"
                         xmlns:res="http://schemas.android.com/apk/res-auto"
                         android:layout_width="0dp"
@@ -299,7 +299,7 @@
                             android:inputType="textPassword"
                             android:singleLine="true"/>
 
-                    </android.support.design.widget.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <Button
                         android:id="@+id/analytics_lfm_save"
@@ -365,7 +365,7 @@
                         app:layout_constraintTop_toBottomOf="@id/analytics_lfm_logs_info"
                         />
 
-                </android.support.constraint.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </ScrollView>
 
@@ -384,7 +384,7 @@
                 android:tag="Library"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
@@ -457,7 +457,7 @@
                         app:layout_constraintTop_toBottomOf="@id/library_scan_auto_interval_editText"
                         />
 
-                    <android.support.v7.widget.RecyclerView
+                    <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/scan_locations_recyclerView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -467,7 +467,7 @@
                         android:maxHeight="80dp"
                         android:nestedScrollingEnabled="false"
                         android:scrollbars="vertical"
-                        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/scan_locations_textView"
                         tools:layout_height="40dp"
@@ -619,7 +619,7 @@
                         app:layout_constraintTop_toBottomOf="@id/library_update_fastMode_checkBox"
                         />
 
-                </android.support.constraint.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </ScrollView>
 
@@ -638,7 +638,7 @@
                 android:tag="Download"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
@@ -714,7 +714,7 @@
                         app:layout_constraintTop_toBottomOf="@id/download_auto_checkBox"
                         />
 
-                </android.support.constraint.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </ScrollView>
 
@@ -731,7 +731,7 @@
                 android:tag="Headset"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
@@ -769,7 +769,7 @@
                         app:layout_constraintTop_toBottomOf="@id/headset_auto_play_on_plug_checkBox"
                         />
 
-                </android.support.constraint.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </ScrollView>
 
@@ -788,7 +788,7 @@
                 android:tag="Data collection"
                 >
 
-                <android.support.constraint.ConstraintLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     >
@@ -847,7 +847,7 @@
                         app:layout_constraintTop_toBottomOf="@id/analytics_dc_info1"
                         />
 
-                </android.support.constraint.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </ScrollView>
 
@@ -872,4 +872,4 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

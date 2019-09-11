@@ -1,7 +1,7 @@
 package com.ilusons.harmony.ref;
 
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.AppCompatDelegate;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 public class AppCompatEx {
 

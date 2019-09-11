@@ -6,15 +6,13 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.ref.permissions.PermissionsManager;
-import com.ilusons.harmony.ref.permissions.PermissionsResultAction;
 
 public class SplashActivity extends Activity {
 
