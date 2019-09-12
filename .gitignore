@@ -96,3 +96,5 @@ src/mobile/src/main/res/raw/notes_release
 .gitsecret/keys/random_seed
 !*.secret
 .DS_Store
+src/mobile/google-services.json
+safe/secrets.txt
