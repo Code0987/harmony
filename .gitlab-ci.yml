@@ -32,7 +32,7 @@ cache:
   paths:
     - ./src/.gradle/
     - ./src/build/
-    - ./src/app/build/
+    - ./src/mobile/build/
 
 stages:
   - test
