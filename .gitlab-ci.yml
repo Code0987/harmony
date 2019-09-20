@@ -12,6 +12,8 @@ before_script:
   ## GPG
   - export GPG_TTY=/dev/console
   - echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+  - git config --global user.signingkey $GPG_PRIVATE_KEY_ID
+  - git config --global commit.gpgsign true
   - git secret reveal
   ## SSH
   - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
