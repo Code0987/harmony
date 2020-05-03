@@ -108,7 +108,6 @@ android {
     main {
       java.srcDirs += '../../res/libs/lastfm-java/src/main/java'
       java.srcDirs += '../../res/libs/musicbrainz-android/api/src/main/java'
-      java.srcDirs += '../../res/libs/android-youtubeExtractor/youtubeExtractor/src/main/java'
       res.srcDirs = ['src/main/res']
     }
   }
@@ -195,6 +194,7 @@ dependencies {
   implementation 'io.github.dreierf:material-intro-screen:0.0.6'
   implementation 'com.facebook.fresco:fresco:2.0.0'
   implementation 'com.scwang.wave:MultiWaveHeader:1.0.0-alpha-1'
+  implementation 'com.github.Commit451:YouTubeExtractor:+'
   // debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
   debugImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
   releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'

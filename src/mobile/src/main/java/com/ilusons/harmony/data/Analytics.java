@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseArray;
 
+import com.commit451.youtubeextractor.Stream;
+import com.commit451.youtubeextractor.YouTubeExtraction;
+import com.commit451.youtubeextractor.YouTubeExtractor;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
@@ -44,10 +47,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import at.huber.youtubeExtractor.Format;
-import at.huber.youtubeExtractor.VideoMeta;
-import at.huber.youtubeExtractor.YouTubeExtractor;
-import at.huber.youtubeExtractor.YtFile;
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Caller;
 import de.umass.lastfm.PaginatedResult;
@@ -1081,6 +1080,17 @@ public class Analytics {
 		});
 	}
 
+	private static String getYouTubeVideoId (String youTubeUrl) {
+		String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed\\/)[^#\\&\\?]*";
+		Pattern compiledPattern = Pattern.compile(pattern);
+		Matcher matcher = compiledPattern.matcher(youTubeUrl);
+		if(matcher.find()){
+			return matcher.group();
+		} else {
+			return null;
+		}
+	}
+
 	public static Observable<String> getYouTubeAudioUrl(final Context context, final String watchUrl) {
 		return Observable.create(new ObservableOnSubscribe<String>() {
 			@SuppressLint("StaticFieldLeak")
@@ -1092,37 +1102,22 @@ public class Analytics {
 						return;
 					}
 
-					YouTubeExtractor yte = new YouTubeExtractor(context) {
-						@Override
-						public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
-
-						}
-					};
-					yte.setDefaultHttpProtocol(true);
-					yte.setParseDashManifest(true);
-					yte.setIncludeWebM(false);
-
-					ArrayList<YtFile> selected = new ArrayList<>();
-
-					SparseArray<YtFile> ytFiles = yte.execute(watchUrl).get(3L, TimeUnit.MINUTES);
-					if (ytFiles != null) {
-						for (int i = 0, itag; i < ytFiles.size(); i++) {
-							itag = ytFiles.keyAt(i);
-							YtFile ytFile = ytFiles.get(itag);
-							Format format = ytFile.getFormat();
-
-							if (format.getAudioBitrate() > 0) {
-								selected.add(ytFile);
-							}
-						}
+					String videoId = getYouTubeVideoId(watchUrl);
+					if (videoId == null) {
+						return;
 					}
 
-					Collections.sort(selected, Collections.reverseOrder(new Comparator<YtFile>() {
-						@Override
-						public int compare(YtFile l, YtFile r) {
-							return Integer.compare(l.getFormat().getAudioBitrate(), r.getFormat().getAudioBitrate());
+					YouTubeExtractor yte = (new YouTubeExtractor.Builder())
+							.debug(true)
+							.build();
+					YouTubeExtraction ytr = yte.extract(videoId).blockingGet();
+
+					ArrayList<Stream.AudioStream> selected = new ArrayList<>();
+					for (Stream stream : ytr.getStreams()) {
+						if (stream instanceof Stream.AudioStream && ((Stream.AudioStream) stream).getFormat().equals(Stream.FORMAT_M4A)) {
+							selected.add((Stream.AudioStream)stream);
 						}
-					}));
+					}
 
 					if (selected.size() > 0)
 						oe.onNext(selected.get(0).getUrl());
