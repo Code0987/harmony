@@ -1,2 +1,2 @@
-﻿✔ Upgraded to new AndroidX
-✔ Fixed bugs
+﻿✔ Fixed audio download bug
+✔ Upgraded to work with core updates form OS
