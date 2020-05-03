@@ -253,7 +253,7 @@
 # Rhino
 # START
 # stetho
-+keep class com.facebook.stetho.** { *; }
+-keep class com.facebook.stetho.** { *; }
 
 # rhino (javascript)
 -dontwarn org.mozilla.javascript.**
