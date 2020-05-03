@@ -1,2 +1,2 @@
 ﻿✔ Fixed audio download bug
-✔ Upgraded to work with core updates form OS
+✔ Upgraded to work with system changes
