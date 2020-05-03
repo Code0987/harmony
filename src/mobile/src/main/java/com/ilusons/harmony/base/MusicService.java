@@ -2872,6 +2872,8 @@ public class MusicService extends Service {
 												@Override
 												public void accept(Throwable throwable) throws Exception {
 													throwable.printStackTrace();
+
+													Toast.makeText(audioDownload.context, "Unable to get YouTube url for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 												}
 											});
 
@@ -2926,6 +2928,8 @@ public class MusicService extends Service {
 											@Override
 											public void accept(Throwable throwable) throws Exception {
 												throwable.printStackTrace();
+
+												Toast.makeText(audioDownload.context, "Unable to extract YouTube Audio url for " + audioDownload.Music.getText() + ".", Toast.LENGTH_SHORT).show();
 											}
 										});
 							} catch (Exception e) {
@@ -2949,6 +2953,7 @@ public class MusicService extends Service {
 		download(music, true);
 	}
 
+	@SuppressLint("CheckResult")
 	private void createDownload(final AudioDownload audioDownload, final String toPath) {
 		getDownloader()
 				.enqueue(new Request(audioDownload.Music.getLastPlaybackUrl(), toPath))
@@ -2963,7 +2968,9 @@ public class MusicService extends Service {
 				}, new Consumer<Throwable>() {
 					@Override
 					public void accept(Throwable throwable) throws Exception {
+						throwable.printStackTrace();
 
+						Toast.makeText(audioDownload.context, "Download failed for " + audioDownload.Music.getText() + ".", Toast.LENGTH_LONG).show();
 					}
 				});
 	}

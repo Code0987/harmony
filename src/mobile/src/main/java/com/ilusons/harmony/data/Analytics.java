@@ -1126,6 +1126,8 @@ public class Analytics {
 
 					if (selected.size() > 0)
 						oe.onNext(selected.get(0).getUrl());
+					else
+						throw new Exception("Unable to extract YouTube url.");
 
 					oe.onComplete();
 				} catch (Exception e) {

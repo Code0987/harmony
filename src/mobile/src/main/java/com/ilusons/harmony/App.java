@@ -6,8 +6,6 @@ import android.content.res.Configuration;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.core.CrashlyticsCore;
 import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.cache.DefaultBitmapMemoryCacheParamsSupplier;
@@ -57,8 +55,6 @@ public class App extends Application {
 			@Override
 			public void uncaughtException(Thread thread, Throwable e) {
 				Log.wtf(TAG, e);
-
-				Crashlytics.logException(e);
 			}
 		});
 
