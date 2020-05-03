@@ -31,7 +31,7 @@ android {
   defaultConfig {
     applicationId "com.ilusons.harmony"
     minSdkVersion 21
-    targetSdkVersion 27
+    targetSdkVersion 28
     versionCode Integer.parseInt(project.property('versionCode'))
     versionName project.property('version')
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
