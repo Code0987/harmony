@@ -175,7 +175,7 @@ dependencies {
   implementation 'jp.wasabeef:blurry:2.1.1'
   implementation 'com.squareup.okhttp3:okhttp:4.2.0'
   implementation 'com.github.tozny:java-aes-crypto:1.1.0'
-  implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
+  implementation 'com.github.PhilJay:MPAndroidChart:3.1.0'
   implementation 'com.github.turing-tech:MaterialScrollBar:12.5.0a'
   implementation 'com.github.recruit-lifestyle:WaveSwipeRefreshLayout:1.6'
   implementation 'com.github.jakob-grabner:Circle-Progress-View:v1.3'
