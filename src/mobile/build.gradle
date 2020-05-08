@@ -149,7 +149,7 @@ dependencies {
   implementation 'com.google.android.material:material:1.0.0'
   implementation 'androidx.palette:palette:1.0.0'
   implementation 'androidx.percentlayout:percentlayout:1.0.0'
-  implementation 'androidx.recyclerview:recyclerview:1.0.0'
+  implementation 'androidx.recyclerview:recyclerview:1.1.0'
   implementation 'androidx.cardview:cardview:1.0.0'
   implementation 'androidx.legacy:legacy-support-v4:1.0.0'
   implementation 'commons-codec:commons-codec:20041127.091804'
