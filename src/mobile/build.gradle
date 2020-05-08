@@ -185,7 +185,7 @@ dependencies {
   implementation('com.github.evgenyneu:js-evaluator-for-android:v1.0.7') {
     exclude module: 'appcompat-v7'
   }
-  implementation 'com.google.android.gms:play-services-ads:18.2.0'
+  implementation 'com.google.android.gms:play-services-ads:18.3.0'
   implementation 'com.google.apis:google-api-services-youtube:v3-rev99-1.17.0-rc'
   implementation "com.tonyodev.fetch2:fetch2:2.0.0-RC8"
   implementation "com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC8"
