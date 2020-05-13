@@ -167,7 +167,7 @@ dependencies {
   implementation 'me.tankery.lib:circularSeekBar:1.1.3'
   implementation 'org.apache.commons:commons-lang3:3.6'
   implementation 'com.nononsenseapps:filepicker:4.1.0'
-  implementation 'com.airbnb.android:lottie:2.0.0'
+  implementation 'com.airbnb.android:lottie:2.8.0'
   implementation 'com.jonathanfinerty.once:once:1.2.2'
   implementation('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.6@aar') {
     transitive = true
