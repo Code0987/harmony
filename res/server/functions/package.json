@@ -19,7 +19,7 @@
     "@ffmpeg-installer/ffmpeg": "^1.0.18",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "firebase-admin": "^8.0.0",
+    "firebase-admin": "^9.0.0",
     "firebase-functions": "^3.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "request": "^2.88.0",
