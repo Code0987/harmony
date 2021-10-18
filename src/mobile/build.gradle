@@ -153,7 +153,7 @@ dependencies {
   implementation 'androidx.cardview:cardview:1.0.0'
   implementation 'androidx.legacy:legacy-support-v4:1.0.0'
   implementation 'commons-codec:commons-codec:20041127.091804'
-  implementation 'com.facebook.fresco:fresco:2.0.0'
+  implementation 'com.facebook.fresco:fresco:2.6.0'
   implementation 'org.jsoup:jsoup:1.12.1'
   implementation 'org.apache.commons:commons-text:1.8'
   implementation 'com.google.code.gson:gson:2.8.5'
@@ -192,7 +192,7 @@ dependencies {
   implementation "com.tonyodev.fetch2rx:fetch2rx:2.0.0-RC8"
   implementation 'me.everything:overscroll-decor-android:1.0.4'
   implementation 'io.github.dreierf:material-intro-screen:0.0.6'
-  implementation 'com.facebook.fresco:fresco:2.0.0'
+  implementation 'com.facebook.fresco:fresco:2.6.0'
   implementation 'com.scwang.wave:MultiWaveHeader:1.0.0-alpha-1'
   implementation 'com.github.Commit451:YouTubeExtractor:+'
   // debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
