@@ -4,10 +4,10 @@
   "description": "",
   "main": "none",
   "dependencies": {
-    "@semantic-release/changelog": "^3.0.4",
-    "@semantic-release/git": "^7.0.16",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/git": "^10.0.0",
     "gradle-semantic-release-plugin": "github:Code0987/gradle-semantic-release-plugin",
-    "semantic-release": "^15.13.18"
+    "semantic-release": "^23.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
