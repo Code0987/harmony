@@ -140,7 +140,7 @@ dependencies {
   // Using custom build version
   implementation 'com.h6ah4i.android:openslmediaplayer:+@aar'
   implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6'
-  implementation group: 'com.google.http-client', name: 'google-http-client-jackson2', version: '1.31.0'
+  implementation group: 'com.google.http-client', name: 'google-http-client-jackson2', version: '1.44.1'
   implementation group: 'commons-io', name: 'commons-io', version: '2.6'
   implementation 'androidx.appcompat:appcompat:1.0.0'
   implementation 'androidx.mediarouter:mediarouter:1.0.0'
