@@ -1,0 +1,9 @@
+Harmony 1.2.0 Android 16 preview
+
+- Targets Android 16 (API 36)
+- Playback uses Media3 ExoPlayer
+- Visualizers no longer need the microphone
+- YouTube extract, ads, and Firebase removed
+- Library is rebuilt from MediaStore on each launch (not persisted yet)
+
+Sideload this debug APK, grant Music and audio, then play a local file.
