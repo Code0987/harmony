@@ -11,20 +11,9 @@ import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.cache.DefaultBitmapMemoryCacheParamsSupplier;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.imagepipeline.memory.PoolFactory;
-import com.google.android.gms.ads.MobileAds;
-import com.ilusons.harmony.base.MusicService;
-import com.ilusons.harmony.base.MusicServiceLibraryUpdaterAsyncTask;
 import com.ilusons.harmony.data.Analytics;
-import com.ilusons.harmony.data.Music;
-import com.ilusons.harmony.ref.AndroidEx;
-import com.ilusons.harmony.ref.IOEx;
-import com.ilusons.harmony.ref.RealmEx;
-import com.squareup.leakcanary.LeakCanary;
+import com.ilusons.harmony.data.LibraryStore;
 
-import java.io.File;
-
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import jonathanfinerty.once.Once;
 
 public class App extends Application {
@@ -38,19 +27,6 @@ public class App extends Application {
 	public void onCreate() {
 		super.onCreate();
 
-		// Memory leak
-		try {
-			if (LeakCanary.isInAnalyzerProcess(this)) {
-				// This process is dedicated to LeakCanary for heap analysis.
-				// You should not init your app in this process.
-				return;
-			}
-			LeakCanary.install(this);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		// WTFs
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread thread, Throwable e) {
@@ -58,14 +34,8 @@ public class App extends Application {
 			}
 		});
 
-		// DB
-		try {
-			Realm.init(this);
-		} catch (Exception e) {
-			// Eat ?
-		}
+		LibraryStore.init(this);
 
-		// Images
 		try {
 			ImagePipelineConfig config = ImagePipelineConfig.newBuilder(this)
 					.setMainDiskCacheConfig(DiskCacheConfig
@@ -77,27 +47,14 @@ public class App extends Application {
 			e.printStackTrace();
 		}
 
-		// Prefs
 		Once.initialise(this);
 
-		// Analytics
-		Analytics.getInstance().initSettings(this);
-		Analytics.getInstance().initLastfm(this);
-		Analytics.getInstance().initDC(this);
-
-		// Start scan
 		try {
-			if (MusicServiceLibraryUpdaterAsyncTask.getScanAutoEnabled(this)) {
-				Intent musicServiceIntent = new Intent(this, MusicService.class);
-				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATE);
-				startService(musicServiceIntent);
-			}
+			Analytics.getInstance().initSettings(this);
+			Analytics.getInstance().initLastfm(this);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		// Ads
-		MobileAds.initialize(this, BuildConfig.AD_PUB_ID);
 
 	}
 

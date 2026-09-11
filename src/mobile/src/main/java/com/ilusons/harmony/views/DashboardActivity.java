@@ -2,9 +2,6 @@ package com.ilusons.harmony.views;
 
 import android.annotation.SuppressLint;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -1444,15 +1441,6 @@ public class DashboardActivity extends BaseUIActivity {
 	//region Ads
 
 	private void createAds() {
-		if (MusicService.IsPremium && !BuildConfig.DEBUG)
-			return;
-
-		AdView adView = findViewById(R.id.adView);
-
-		adView.loadAd(new AdRequest.Builder()
-				.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-				.addTestDevice("B05C5B9D95FB8E67F43E070ECCD3E4D5")
-				.build());
 	}
 
 	//endregion

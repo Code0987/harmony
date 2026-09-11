@@ -69,18 +69,9 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import io.realm.Case;
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
-import io.realm.RealmObject;
-import io.realm.RealmResults;
-import io.realm.Sort;
-import io.realm.annotations.Index;
-import io.realm.annotations.PrimaryKey;
-
 import static com.ilusons.harmony.ref.ImageEx.findImageUrlFromItunes;
 
-public class Music extends RealmObject {
+public class Music {
 
 	// Logger TAG
 	private static final String TAG = Music.class.getSimpleName();
@@ -89,9 +80,20 @@ public class Music extends RealmObject {
 	public static final String KEY_CACHE_DIR_LYRICS = "lyrics";
 
 	// Basic
-	@PrimaryKey
-	@Index
 	private String Path;
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (!(obj instanceof Music)) return false;
+		String other = ((Music) obj).Path;
+		return Path != null && Path.equals(other);
+	}
+
+	@Override
+	public int hashCode() {
+		return Path == null ? 0 : Path.hashCode();
+	}
 
 	public String getPath() {
 		return Path;
@@ -156,7 +158,6 @@ public class Music extends RealmObject {
 		return false;
 	}
 
-	@Index
 	private String Title = "";
 
 	public String getTitle() {
@@ -167,7 +168,6 @@ public class Music extends RealmObject {
 		Title = title;
 	}
 
-	@Index
 	private String Artist = "";
 
 	public String getArtist() {
@@ -433,19 +433,6 @@ public class Music extends RealmObject {
 		if (Year <= 0)
 			value = -1;
 		Year = value;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		Music other = (Music) obj;
-
-		if (other == null)
-			return false;
-
-		if (Path != null && other.Path != null && Path.equals(other.Path))
-			return true;
-
-		return false;
 	}
 
 	public String getText(String del) {
@@ -861,32 +848,21 @@ public class Music extends RealmObject {
 				.subscribe(new Consumer<Collection<de.umass.lastfm.Tag>>() {
 					@Override
 					public void accept(final Collection<de.umass.lastfm.Tag> r) throws Exception {
-						try (Realm realm = Music.getDB()) {
-							if (realm == null)
-								return;
+						final ArrayList<String> tags = new ArrayList<>();
+						List<de.umass.lastfm.Tag> apiTags = new ArrayList<>(r);
+						Collections.sort(apiTags, new Comparator<de.umass.lastfm.Tag>() {
+							@Override
+							public int compare(de.umass.lastfm.Tag l, de.umass.lastfm.Tag r) {
+								return Integer.compare(l.getCount(), r.getCount());
+							}
+						});
+						Collections.reverse(apiTags);
+						apiTags = apiTags.subList(0, Math.min(10, apiTags.size()));
+						for (de.umass.lastfm.Tag tag : apiTags)
+							tags.add(tag.getName());
 
-							final ArrayList<String> tags = new ArrayList<>();
-							List<de.umass.lastfm.Tag> apiTags = new ArrayList<>(r);
-							Collections.sort(apiTags, new Comparator<de.umass.lastfm.Tag>() {
-								@Override
-								public int compare(de.umass.lastfm.Tag l, de.umass.lastfm.Tag r) {
-									return Integer.compare(l.getCount(), r.getCount());
-								}
-							});
-							Collections.reverse(apiTags);
-							apiTags = apiTags.subList(0, Math.min(10, apiTags.size()));
-							for (de.umass.lastfm.Tag tag : apiTags)
-								tags.add(tag.getName());
-
-							realm.executeTransaction(new Realm.Transaction() {
-								@Override
-								public void execute(Realm realm) {
-									music.updateTags(tags);
-
-									realm.insertOrUpdate(music);
-								}
-							});
-						}
+						music.updateTags(tags);
+						music.update();
 
 						if (onTags != null)
 							onTags.execute(r);
@@ -1246,128 +1222,59 @@ public class Music extends RealmObject {
 
 	//region DB
 
-	private static RealmConfiguration realmConfiguration;
-
-	public static RealmConfiguration getDBConfig() {
-		if (realmConfiguration == null) {
-			realmConfiguration = new RealmConfiguration.Builder()
-					.name("music.realm")
-					.deleteRealmIfMigrationNeeded()
-					.build();
-		}
-		return realmConfiguration;
+	public static LibraryStore getDB() {
+		return LibraryStore.get();
 	}
 
-	public static Realm getDB() {
-		Realm realm = null;
-		try {
-			realm = Realm.getInstance(getDBConfig());
-
-			Log.i(TAG, "Realm: " + realm.getPath() + " " + realm.getVersion());
-		} catch (Exception e) {
-			e.printStackTrace();
+	public static Music get(LibraryStore store, final String path) {
+		if (store == null) {
+			return null;
 		}
-		return realm;
-	}
-
-	public static Music get(Realm realm, final String path) {
-		Music data = null;
-		if (realm != null) {
-			data = realm.where(Music.class).equalTo("Path", path).findFirst();
-
-		}
-		return data;
+		return store.getTrack(path);
 	}
 
 	public static Music get(String path) {
-		try (Realm realm = getDB()) {
-			if (realm == null)
-				return null;
-			return realm.copyFromRealm(get(realm, path));
-		}
+		return LibraryStore.get().getTrack(path);
 	}
 
 	public static boolean exists(String path) {
-		try (Realm realm = getDB()) {
-			if (realm == null)
-				return false;
-			return realm.where(Music.class).equalTo("Path", path).count() > 0;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
+		return LibraryStore.get().hasTrack(path);
 	}
 
 	public static Music load(Context context, String path) {
-		Music data = null;
-		try (Realm realm = getDB()) {
-			if (realm != null) {
-				data = realm.where(Music.class).equalTo("Path", path).findFirst();
-				if (data == null) {
-					data = Music.createFromLocal(context, path, null, true, null);
-					if (data != null) {
-						final Music finalData = data;
-						realm.executeTransaction(new Realm.Transaction() {
-							@Override
-							public void execute(@NonNull Realm realm) {
-								realm.insertOrUpdate(finalData);
-							}
-						});
-					}
-				} else {
-					data = realm.copyFromRealm(data);
-				}
+		Music data = LibraryStore.get().getTrack(path);
+		if (data == null) {
+			data = Music.createFromLocal(context, path, null, true, null);
+			if (data != null) {
+				LibraryStore.get().upsert(data);
 			}
 		}
 		return data;
 	}
 
 	public void update() {
-		try (Realm realm = getDB()) {
-			if (realm != null) {
-				realm.insertOrUpdate(this);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		LibraryStore.get().upsert(this);
 	}
 
 	public void refresh(final Context context) {
 		try {
-			final Music data = this;
-			Music.createFromLocal(context, data.getPath(), null, false, data);
-			try (Realm realm = getDB()) {
-				if (realm != null) {
-					realm.executeTransaction(new Realm.Transaction() {
-						@Override
-						public void execute(@NonNull Realm realm) {
-							realm.insertOrUpdate(data);
-						}
-					});
-				}
-			}
-
+			Music.createFromLocal(context, getPath(), null, false, this);
+			update();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void delete(final MusicService musicService, final Realm realm, final String path, boolean notify) {
+	public static void delete(final MusicService musicService, final LibraryStore store, final String path, boolean notify) {
+		delete(musicService, path, notify);
+	}
+
+	public static void delete(final MusicService musicService, final String path, boolean notify) {
 		try {
-			if (musicService.getMusic().Path.equals(path))
+			if (musicService.getMusic() != null && path.equals(musicService.getMusic().Path))
 				musicService.next(musicService.isPlaying());
 
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(Realm realm) {
-					realm.where(Music.class)
-							.equalTo("Path", path, Case.INSENSITIVE)
-							.findAll()
-							.deleteAllFromRealm();
-				}
-			});
-
-			(new File(path)).deleteOnExit();
+			LibraryStore.get().removeTrack(path);
 
 			if (notify) {
 				final Context context = musicService;
@@ -1379,30 +1286,16 @@ public class Music extends RealmObject {
 
 				Intent musicServiceIntent = new Intent(context, MusicService.class);
 				musicServiceIntent.setAction(MusicService.ACTION_LIBRARY_UPDATED);
-				context.startService(musicServiceIntent);
+				context.startForegroundService(musicServiceIntent);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-	}
-
-	public static void delete(final MusicService musicService, final String path, boolean notify) {
-		try (Realm realm = getDB()) {
-			delete(musicService, realm, path, notify);
 		}
 	}
 
 	public static long getSize() {
-		long r = 0;
-		try (Realm realm = getDB()) {
-			if (realm != null) {
-				r = realm.where(Music.class).count();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return r;
+		return LibraryStore.get().trackCount();
 	}
 
 	//endregion
@@ -1537,16 +1430,12 @@ public class Music extends RealmObject {
 
 	public static Music getAtTopByScore() {
 		try {
-			if (atTopByScore == null)
-				try (Realm realm = getDB()) {
-					RealmResults<Music> result = realm
-							.where(Music.class)
-							.sort("Score", Sort.DESCENDING)
-							.findAll();
-
-					if (!(result == null || result.size() == 0))
-						atTopByScore = realm.copyFromRealm(result.first());
+			if (atTopByScore == null) {
+				List<Music> sorted = getAllSortedByScore(1);
+				if (!sorted.isEmpty()) {
+					atTopByScore = sorted.get(0);
 				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1554,37 +1443,38 @@ public class Music extends RealmObject {
 		return atTopByScore;
 	}
 
-	public static List<Music> getAllSorted(int count, String field, Sort order) {
-		ArrayList<Music> result = new ArrayList<>();
-
-		try {
-			try (Realm realm = getDB()) {
-				RealmResults<Music> realmResults = realm
-						.where(Music.class)
-						.sort(field, order)
-						.findAll();
-
-				if (!(realmResults.size() == 0)) {
-					result.addAll(realm.copyFromRealm(realmResults.subList(0, Math.min(count, realmResults.size()))));
+	public static List<Music> getAllSorted(int count, String field, boolean descending) {
+		ArrayList<Music> result = new ArrayList<>(LibraryStore.get().allTracks());
+		Collections.sort(result, new Comparator<Music>() {
+			@Override
+			public int compare(Music l, Music r) {
+				int c = 0;
+				if ("Score".equals(field)) {
+					c = Double.compare(l.getScore(), r.getScore());
+				} else if ("TimeLastPlayed".equals(field)) {
+					c = Long.compare(l.getTimeLastPlayed(), r.getTimeLastPlayed());
+				} else if ("Title".equals(field)) {
+					c = String.valueOf(l.getTitle()).compareToIgnoreCase(String.valueOf(r.getTitle()));
 				}
+				return descending ? -c : c;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		});
+		if (result.size() > count) {
+			return new ArrayList<>(result.subList(0, count));
 		}
-
 		return result;
 	}
 
 	public static List<Music> getAllSortedByScore(int count) {
-		return getAllSorted(count, "Score", Sort.DESCENDING);
+		return getAllSorted(count, "Score", true);
 	}
 
 	public static List<Music> getAllSortedByTimeLastPlayed(int count) {
-		return getAllSorted(count, "TimeLastPlayed", Sort.DESCENDING);
+		return getAllSorted(count, "TimeLastPlayed", true);
 	}
 
 	public static List<Music> getAllSortedByTimeAdded(int count) {
-		return getAllSorted(count, "TimeAdded", Sort.DESCENDING);
+		return getAllSorted(count, "TimeAdded", true);
 	}
 
 	//endregion

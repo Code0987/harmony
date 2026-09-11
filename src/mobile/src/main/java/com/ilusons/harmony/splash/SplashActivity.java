@@ -67,32 +67,28 @@ public class SplashActivity extends Activity {
 	}
 
 	private static final int REQUEST_PERMISSIONS = 786;
-	private static final String[] PERMISSIONS = new String[]{
-			android.Manifest.permission.READ_EXTERNAL_STORAGE,
-			android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-			android.Manifest.permission.MODIFY_AUDIO_SETTINGS,
-			android.Manifest.permission.RECEIVE_BOOT_COMPLETED,
-			android.Manifest.permission.WAKE_LOCK,
-			android.Manifest.permission.INTERNET,
-			android.Manifest.permission.ACCESS_NETWORK_STATE,
-			android.Manifest.permission.SET_WALLPAPER,
-			android.Manifest.permission.SET_WALLPAPER_HINTS,
-			// "com.android.vending.BILLING",
-			// "com.android.vending.CHECK_LICENSE"
-	};
+	private static String[] requiredPermissions() {
+		if (Build.VERSION.SDK_INT >= 33) {
+			return new String[]{
+					android.Manifest.permission.READ_MEDIA_AUDIO,
+					android.Manifest.permission.POST_NOTIFICATIONS
+			};
+		}
+		return new String[]{
+				android.Manifest.permission.READ_EXTERNAL_STORAGE
+		};
+	}
 
 	private boolean checkPermissions() {
-		boolean result = true;
-
-		for (String permission : PERMISSIONS)
-			result &= ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
-
-		return result;
+		String audio = Build.VERSION.SDK_INT >= 33
+				? android.Manifest.permission.READ_MEDIA_AUDIO
+				: android.Manifest.permission.READ_EXTERNAL_STORAGE;
+		return ContextCompat.checkSelfPermission(this, audio) == PackageManager.PERMISSION_GRANTED;
 	}
 
 	private void requestPermissions() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			requestPermissions(PERMISSIONS, REQUEST_PERMISSIONS);
+			requestPermissions(requiredPermissions(), REQUEST_PERMISSIONS);
 		} else {
 			executePermissionsTask();
 		}

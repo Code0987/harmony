@@ -1,268 +1,122 @@
-apply plugin: 'com.android.application'
-apply plugin: 'realm-android'
-apply plugin: 'com.github.triplet.play'
-
-// Keys
-def keys_keyAlias = ""
-def keys_keyPassword = ""
-def keys_storePassword = ""
-try {
-    def keys = new Properties()
-    file("$rootDir/../safe/keys.properties").withInputStream { keys.load(it) }
-
-    keys_keyAlias = keys.getProperty("keyAlias", "")
-    keys_keyPassword = keys.getProperty("keyPassword", "")
-    keys_storePassword = keys.getProperty("storePassword", "")
-} catch (ex) {
-    println(ex)
+plugins {
+    id 'com.android.application'
 }
 
 android {
-  signingConfigs {
-    config {
-      keyAlias keys_keyAlias
-      keyPassword keys_keyPassword
-      storeFile file("$rootDir/../safe/keystore.jks")
-      storePassword keys_storePassword
-    }
-  }
-  compileSdkVersion 28
-  buildToolsVersion '28.0.3'
-  defaultConfig {
-    applicationId "com.ilusons.harmony"
-    minSdkVersion 21
-    targetSdkVersion 28
-    versionCode Integer.parseInt(project.property('versionCode'))
-    versionName project.property('version')
-    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    vectorDrawables.useSupportLibrary = true
-    multiDexEnabled = true
-    ndk {
-      abiFilters "arm64-v8a"
-    }
-  }
-  buildTypes {
-    debug {
-      buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
-      buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-3940256099942544/2177258514\""
-      buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
+    namespace 'com.ilusons.harmony'
+    compileSdk 36
 
-      versionNameSuffix '-debug'
+    defaultConfig {
+        applicationId "com.ilusons.harmony"
+        minSdk 26
+        targetSdk 36
+        versionCode Integer.parseInt(project.findProperty('versionCode') ?: '100010003')
+        versionName (project.findProperty('version') ?: '1.2.0')
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
+    }
 
-      ext.alwaysUpdateBuildId = false
+    buildTypes {
+        debug {
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            versionNameSuffix '-release'
+        }
     }
-    release {
-      buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
-      buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
-      buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
 
-      minifyEnabled true
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-      versionNameSuffix '-release'
-      signingConfig signingConfigs.config
-      debuggable true
-      jniDebuggable false
-      renderscriptDebuggable false
-      zipAlignEnabled true
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
-    releaseAlpha {
-      buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
-      buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
-      buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
 
-      minifyEnabled true
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-      versionNameSuffix '-alpha'
-      signingConfig signingConfigs.config
-      debuggable false
-      jniDebuggable false
-      renderscriptDebuggable false
-      zipAlignEnabled true
+    buildFeatures {
+        buildConfig true
     }
-    releaseBeta {
-      buildConfigField "String", "AD_PUB_ID", "\"ca-app-pub-4739450309172378~5670478444\""
-      buildConfigField "String", "AD_UNIT_ID_NE1", "\"ca-app-pub-4739450309172378/4054144442\""
-      buildConfigField "String", "AD_UNIT_ID_I1", "\"ca-app-pub-4739450309172378/6929788446\""
 
-      minifyEnabled true
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-      versionNameSuffix '-beta'
-      signingConfig signingConfigs.config
-      debuggable false
-      jniDebuggable false
-      renderscriptDebuggable false
-      zipAlignEnabled true
+    sourceSets {
+        main {
+            def lastfm = file('../../res/libs/lastfm-java/src/main/java')
+            if (lastfm.exists()) java.srcDirs += lastfm
+
+            java.exclude '**/FCMService.java'
+            java.exclude '**/OpenSLMediaPlayerFactory.java'
+            java.exclude '**/AudioTrackMediaPlayerFactory.java'
+            java.exclude '**/AndroidOSMediaPlayerFactory.java'
+            java.exclude '**/vending/**'
+            java.exclude '**/RealmEx.java'
+
+            java.exclude '**/VisualizerEx.java'
+        }
     }
-  }
-  dexOptions {
-  }
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
-  }
-  externalNativeBuild {
-    ndkBuild {
+
+    packaging {
+        resources {
+            excludes += [
+                    'META-INF/DEPENDENCIES.txt',
+                    'META-INF/LICENSE.txt',
+                    'META-INF/NOTICE.txt',
+                    'META-INF/NOTICE',
+                    'META-INF/LICENSE',
+                    'META-INF/DEPENDENCIES',
+                    'META-INF/LGPL2.1'
+            ]
+        }
     }
-  }
-  sourceSets {
-    main {
-      java.srcDirs += '../../res/libs/lastfm-java/src/main/java'
-      java.srcDirs += '../../res/libs/musicbrainz-android/api/src/main/java'
-      res.srcDirs = ['src/main/res']
+
+    lint {
+        abortOnError false
     }
-  }
-  packagingOptions {
-    exclude 'META-INF/DEPENDENCIES.txt'
-    exclude 'META-INF/LICENSE.txt'
-    exclude 'META-INF/NOTICE.txt'
-    exclude 'META-INF/NOTICE'
-    exclude 'META-INF/LICENSE'
-    exclude 'META-INF/DEPENDENCIES'
-    exclude 'META-INF/notice.txt'
-    exclude 'META-INF/license.txt'
-    exclude 'META-INF/dependencies.txt'
-    exclude 'META-INF/LGPL2.1'
-  }
-  useLibrary 'org.apache.http.legacy'
-  lintOptions {
-    abortOnError false
-  }
-  testOptions {
-    unitTests.returnDefaultValues = true
-  }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 dependencies {
-  implementation fileTree(include: ['*.jar'], dir: 'libs')
-  androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
-    exclude group: 'com.android.support', module: 'support-annotations'
-  })
-  // Using custom build version
-  implementation 'com.h6ah4i.android:openslmediaplayer:+@aar'
-  implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6'
-  implementation group: 'com.google.http-client', name: 'google-http-client-jackson2', version: '1.31.0'
-  implementation group: 'commons-io', name: 'commons-io', version: '2.6'
-  implementation 'androidx.appcompat:appcompat:1.0.0'
-  implementation 'androidx.mediarouter:mediarouter:1.0.0'
-  implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
-  implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-  implementation 'com.google.android.material:material:1.0.0'
-  implementation 'androidx.palette:palette:1.0.0'
-  implementation 'androidx.percentlayout:percentlayout:1.0.0'
-  implementation 'androidx.recyclerview:recyclerview:1.0.0'
-  implementation 'androidx.cardview:cardview:1.0.0'
-  implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-  implementation 'commons-codec:commons-codec:20041127.091804'
-  implementation 'com.facebook.fresco:fresco:2.0.0'
-  implementation 'org.jsoup:jsoup:1.12.1'
-  implementation 'org.apache.commons:commons-text:1.8'
-  implementation 'com.google.code.gson:gson:2.8.5'
-  implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-  implementation 'io.reactivex.rxjava2:rxjava:2.2.12'
-  implementation 'com.wang.avi:library:2.1.3'
-  implementation 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:0.7.2'
-  implementation 'com.google.firebase:firebase-core:17.2.0'
-  implementation 'com.google.firebase:firebase-messaging:20.0.0'
-  implementation 'com.google.firebase:firebase-database:19.1.0'
-  implementation 'me.tankery.lib:circularSeekBar:1.1.3'
-  implementation 'org.apache.commons:commons-lang3:3.6'
-  implementation 'com.nononsenseapps:filepicker:4.1.0'
-  implementation 'com.airbnb.android:lottie:2.0.0'
-  implementation 'com.jonathanfinerty.once:once:1.2.2'
-  implementation('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.10.6@aar') {
-    transitive = true
-  }
-  implementation 'jp.wasabeef:blurry:2.1.1'
-  implementation 'com.squareup.okhttp3:okhttp:4.2.0'
-  implementation 'com.github.tozny:java-aes-crypto:1.1.0'
-  implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
-  implementation 'com.github.turing-tech:MaterialScrollBar:12.5.0a'
-  implementation 'com.github.recruit-lifestyle:WaveSwipeRefreshLayout:1.6'
-  implementation 'com.github.jakob-grabner:Circle-Progress-View:v1.3'
-  implementation  ('com.appyvet:materialrangebar:1.4.1') {
-    exclude module: 'support-compat'
-  }
-  implementation('com.github.evgenyneu:js-evaluator-for-android:v1.0.7') {
-    exclude module: 'appcompat-v7'
-  }
-  implementation 'com.google.android.gms:play-services-ads:18.2.0'
-  implementation 'com.google.apis:google-api-services-youtube:v3-rev99-1.17.0-rc'
-  implementation "com.tonyodev.fetch2:fetch2:2.0.0-RC8"
-  implementation "com.tonyodev.fetch2downloaders:fetch2downloaders:2.0.0-RC8"
-  implementation "com.tonyodev.fetch2rx:fetch2rx:2.0.0-RC8"
-  implementation 'me.everything:overscroll-decor-android:1.0.4'
-  implementation 'io.github.dreierf:material-intro-screen:0.0.6'
-  implementation 'com.facebook.fresco:fresco:2.0.0'
-  implementation 'com.scwang.wave:MultiWaveHeader:1.0.0-alpha-1'
-  implementation 'com.github.Commit451:YouTubeExtractor:+'
-  // debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
-  debugImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
-  releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
-  releaseAlphaImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
-  releaseBetaImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
-  testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
-  testImplementation 'junit:junit:4.12'
-  testImplementation 'org.mockito:mockito-core:3.0.0'
-  testImplementation 'org.powermock:powermock-module-junit4:2.0.2'
-  testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.6'
-  testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
-  testImplementation 'org.powermock:powermock-classloading-xstream:2.0.2'
-  testImplementation 'org.robolectric:robolectric:4.3'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'androidx.fragment:fragment:1.8.5'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.palette:palette:1.0.0'
+    implementation 'androidx.media:media:1.7.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
+    implementation 'androidx.work:work-runtime:2.10.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'com.google.android.material:material:1.12.0'
+
+    implementation 'androidx.media3:media3-exoplayer:1.5.1'
+    implementation 'androidx.media3:media3-session:1.5.1'
+    implementation 'androidx.media3:media3-ui:1.5.1'
+    implementation 'androidx.media3:media3-common:1.5.1'
+
+    implementation 'androidx.room:room-runtime:2.6.1'
+    annotationProcessor 'androidx.room:room-compiler:2.6.1'
+
+    implementation 'com.facebook.fresco:fresco:2.6.0'
+    implementation 'org.jsoup:jsoup:1.18.1'
+    implementation 'org.apache.commons:commons-text:1.12.0'
+    implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'commons-io:commons-io:2.16.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.github.tozny:java-aes-crypto:1.1.0'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+
+    implementation 'com.airbnb.android:lottie:6.6.2'
+    implementation 'me.tankery.lib:circularSeekBar:1.4.1'
+    implementation 'jp.wasabeef:blurry:4.0.1'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    implementation 'com.jonathanfinerty.once:once:1.3.1'
+    implementation 'io.github.dreierf:material-intro-screen:0.0.6'
+    implementation 'com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:1.0.0'
+    implementation 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:1.0.0'
+
+    testImplementation 'junit:junit:4.13.2'
 }
-
-android {
-  configurations.all {
-    resolutionStrategy.force 'com.google.code.findbugs:jsr305:2.0.1'
-    exclude module: 'httpclient'
-    exclude module: 'json'
-  }
-}
-
-task copyRaw {
-  doLast {
-    copy {
-      from("${projectDir}/../../res/license/LICENSE.txt")
-      into("${projectDir}/src/main/res/raw")
-      rename("LICENSE.txt", "license")
-    }
-    copy {
-      from("${projectDir}/../../res/timeline/gps_listing.html")
-      into("${projectDir}/src/main/res/raw")
-      rename("gps_listing.html", "gps_listing")
-    }
-    copy {
-      from("${projectDir}/../../res/timeline/notes_premium.html")
-      into("${projectDir}/src/main/res/raw")
-      rename("notes_premium.html", "notes_premium")
-    }
-    copy {
-      from("${projectDir}/../../res/timeline/notes_release.txt")
-      into("${projectDir}/src/main/res/raw")
-      rename("notes_release.txt", "notes_release")
-    }
-    copy {
-      from("${projectDir}/../../res/timeline/notes_release.txt")
-      into("${projectDir}/src/main/play/release-notes/en-IN")
-      rename("notes_release.txt", "default.txt")
-    }
-    copy {
-      from("${projectDir}/../../res/timeline/gps_listing.html")
-      into("${projectDir}/src/main/play/listings/en-IN")
-      rename("gps_listing.html", "full-description.txt")
-    }
-  }
-}
-
-preBuild.dependsOn(copyRaw)
-
-realm {
-  syncEnabled = true
-}
-
-play {
-    serviceAccountCredentials=file("$rootDir/../safe/google-play-android-developer.json")
-    track='production'
-    userFraction=0.9
-}
-
-apply plugin: 'com.google.gms.google-services'

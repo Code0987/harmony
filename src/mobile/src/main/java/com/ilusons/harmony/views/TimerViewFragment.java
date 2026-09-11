@@ -122,12 +122,9 @@ public class TimerViewFragment extends Fragment {
 				text.setText("...");
 
 				set_timer.pauseAnimation();
-				set_timer.setAnimation("clock.json", LottieAnimationView.CacheStrategy.Weak);
-				set_timer.loop(true);
-				set_timer.setScale(1);
+				set_timer.setAnimation("clock.json");
+				set_timer.setRepeatCount(com.airbnb.lottie.LottieDrawable.INFINITE);
 				set_timer.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-				set_timer.clearColorFilters();
-				set_timer.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_green_light), PorterDuff.Mode.MULTIPLY));
 				set_timer.playAnimation();
 
 			} else {
@@ -135,12 +132,9 @@ public class TimerViewFragment extends Fragment {
 				text.setText("Tap above");
 
 				set_timer.pauseAnimation();
-				set_timer.setAnimation("no_notifications!.json", LottieAnimationView.CacheStrategy.Weak);
-				set_timer.loop(true);
-				set_timer.setScale(1);
+				set_timer.setAnimation("no_notifications!.json");
+				set_timer.setRepeatCount(com.airbnb.lottie.LottieDrawable.INFINITE);
 				set_timer.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-				set_timer.clearColorFilters();
-				set_timer.addColorFilter(new PorterDuffColorFilter(ContextCompat.getColor(getContext(), android.R.color.holo_red_light), PorterDuff.Mode.MULTIPLY));
 				set_timer.playAnimation();
 			}
 		} catch (Exception e) {

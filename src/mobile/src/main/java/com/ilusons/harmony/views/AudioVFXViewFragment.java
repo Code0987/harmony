@@ -3,7 +3,6 @@ package com.ilusons.harmony.views;
 import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
-import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,20 +10,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import com.h6ah4i.android.media.audiofx.IHQVisualizer;
-import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.avfx.BaseAVFXCanvasView;
 import com.ilusons.harmony.avfx.BaseAVFXGLView;
 import com.ilusons.harmony.avfx.CirclesView;
 import com.ilusons.harmony.avfx.DotsView;
 import com.ilusons.harmony.avfx.ParticlesView;
+import com.ilusons.harmony.avfx.PlaybackVisualizer;
 import com.ilusons.harmony.avfx.WaveformView;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
-import com.ilusons.harmony.ref.permissions.PermissionsManager;
-import com.ilusons.harmony.ref.permissions.PermissionsResultAction;
 
 import java.lang.ref.WeakReference;
 
@@ -37,8 +33,7 @@ public class AudioVFXViewFragment extends Fragment {
 
 	private MusicService musicService;
 
-	private IHQVisualizer visualizerHQ;
-	private IVisualizer visualizer;
+	private PlaybackVisualizer playbackVisualizer;
 
 	private WaveformView waveformGLView;
 	private BaseAVFXCanvasView waveformCanvasView;
@@ -62,28 +57,9 @@ public class AudioVFXViewFragment extends Fragment {
 	@Override
 	public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-
-		PermissionsManager.getInstance().requestPermissionsIfNecessaryForResult(
-				getActivity(),
-				new String[]{
-						android.Manifest.permission.RECORD_AUDIO
-				},
-				new PermissionsResultAction() {
-					@Override
-					public void onGranted() {
-						hasPermissions = true;
-
-						if (pendingActionForViewReference != null && pendingActionForViewReference.get() != null)
-							pendingActionForViewReference.get().execute();
-
-					}
-
-					@Override
-					public void onDenied(String permission) {
-						hasPermissions = false;
-					}
-				});
-
+		hasPermissions = true;
+		if (pendingActionForViewReference != null && pendingActionForViewReference.get() != null)
+			pendingActionForViewReference.get().execute();
 	}
 
 	@Override
@@ -139,45 +115,21 @@ public class AudioVFXViewFragment extends Fragment {
 		unbindVisualizer();
 	}
 
-	private IHQVisualizer.OnDataCaptureListener onDataCaptureListenerHQ = new IHQVisualizer.OnDataCaptureListener() {
-
+	private final PlaybackVisualizer.Listener playbackListener = new PlaybackVisualizer.Listener() {
 		@Override
-		public void onWaveFormDataCapture(IHQVisualizer visualizerHQ, float[] waveform, int numChannels, int samplingRate) {
+		public void onWaveform(float[] waveform, int channels, int sampleRate) {
 			if (waveformGLView != null) {
-				waveformGLView.updateAudioData(waveform, numChannels, samplingRate);
+				waveformGLView.updateAudioData(waveform, channels, sampleRate);
 			}
-
 			if (waveformCanvasView != null) {
-				waveformCanvasView.updateAudioData(waveform, numChannels, samplingRate);
+				waveformCanvasView.updateAudioData(waveform, channels, sampleRate);
 			}
 		}
 
 		@Override
-		public void onFftDataCapture(IHQVisualizer visualizerHQ, float[] fft, int numChannels, int samplingRate) {
+		public void onFft(float[] fft, int channels, int sampleRate) {
 			if (fftCanvasView != null) {
-				fftCanvasView.updateAudioData(fft, numChannels, samplingRate);
-			}
-		}
-
-	};
-
-	private IVisualizer.OnDataCaptureListener onDataCaptureListener = new IVisualizer.OnDataCaptureListener() {
-
-		@Override
-		public void onWaveFormDataCapture(IVisualizer visualizerHQ, byte[] waveform, int samplingRate) {
-			if (waveformGLView != null) {
-				waveformGLView.updateAudioData(waveform, samplingRate);
-			}
-
-			if (waveformCanvasView != null) {
-				waveformCanvasView.updateAudioData(waveform, samplingRate);
-			}
-		}
-
-		@Override
-		public void onFftDataCapture(IVisualizer visualizerHQ, byte[] fft, int samplingRate) {
-			if (fftCanvasView != null) {
-				fftCanvasView.updateAudioData(fft, samplingRate);
+				fftCanvasView.updateAudioData(fft, channels, sampleRate);
 			}
 		}
 	};
@@ -189,66 +141,10 @@ public class AudioVFXViewFragment extends Fragment {
 			if (musicService == null)
 				return;
 
-			if (MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.AudioTrack || MusicService.getPlayerType(getActivity().getApplicationContext()) == MusicService.PlayerType.OpenSL)
-				visualizerHQ = musicService.getVisualizerHQ();
-			else
-				visualizer = musicService.getVisualizer();
-
-			if (visualizerHQ != null) {
-				visualizerHQ.setEnabled(false);
-
-				// use maximum rate & size
-				int rate = visualizerHQ.getMaxCaptureRate();
-				int size = 2048/*4096*/;
-
-				// NOTE: min = 128, max = 32768
-				size = Math.max(visualizerHQ.getCaptureSizeRange()[0], size);
-				size = Math.min(visualizerHQ.getCaptureSizeRange()[1], size);
-
-				try {
-					visualizerHQ.setCaptureSize(size);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-				visualizerHQ.setWindowFunction(IHQVisualizer.WINDOW_HAMMING | IHQVisualizer.WINDOW_OPT_APPLY_FOR_WAVEFORM);
-
-				visualizerHQ.setDataCaptureListener(
-						onDataCaptureListenerHQ,
-						rate,
-						waveformGLView != null || waveformCanvasView != null,
-						fftCanvasView != null
-				);
-
-				visualizerHQ.setEnabled(true);
-			}
-			if (visualizer != null) {
-				visualizer.setEnabled(false);
-
-				// use maximum rate & size
-				int rate = visualizer.getMaxCaptureRate();
-				int size = visualizer.getCaptureSizeRange()[1];
-
-				try {
-					visualizer.setCaptureSize(size);
-				} catch (Exception e) {
-					try {
-						visualizer.setEnabled(false);
-						visualizer.setCaptureSize(size);
-					} catch (Exception e2) {
-						e2.printStackTrace();
-					}
-				}
-				visualizer.setScalingMode(Visualizer.SCALING_MODE_AS_PLAYED);
-				visualizer.setDataCaptureListener(
-						onDataCaptureListener,
-						rate,
-						waveformGLView != null || waveformCanvasView != null,
-						 fftCanvasView != null
-				);
-				visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
-
-				visualizer.setEnabled(true);
+			playbackVisualizer = musicService.getPlaybackVisualizer();
+			if (playbackVisualizer != null) {
+				playbackVisualizer.setListener(playbackListener);
+				playbackVisualizer.start();
 			}
 		} catch (Exception e) {
 			Log.w(TAG, e);
@@ -256,44 +152,13 @@ public class AudioVFXViewFragment extends Fragment {
 	}
 
 	private void stopVisualizer() {
-		if (visualizerHQ != null) try {
-			visualizerHQ.setEnabled(false);
-
-			visualizerHQ.release();
-
-			visualizerHQ = null;
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (playbackVisualizer != null) {
+			playbackVisualizer.setListener(null);
 		}
-
-		if (visualizer != null) try {
-			visualizer.setEnabled(false);
-
-			visualizer.release();
-
-			visualizer = null;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
 	}
 
 	private void unbindVisualizer() {
-		if (visualizerHQ != null) try {
-			visualizerHQ.setEnabled(false);
-
-			visualizerHQ.setDataCaptureListener(null, 0, false, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (visualizer != null) try {
-			visualizer.setEnabled(false);
-
-			visualizer.setDataCaptureListener(null, 0, false, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		stopVisualizer();
 	}
 
 	public void reset(final MusicService musicService, final AVFXType avfxType, final int color) {

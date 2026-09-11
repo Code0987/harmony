@@ -72,7 +72,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import io.realm.Realm;
 import jp.wasabeef.blurry.Blurry;
 
 public class PlaybackUIActivity extends BaseUIActivity {
@@ -918,13 +917,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		final Music m = getMusicService().getMusic();
 
-		Analytics.findTrackFromTitleArtist(m.getTitle(), m.getArtist())
-				.flatMap(new Function<RecordingInfo, ObservableSource<Recording>>() {
-					@Override
-					public ObservableSource<Recording> apply(RecordingInfo r) throws Exception {
-						return Analytics.findTrackFromMBID(r.getMbid());
-					}
-				})
+		io.reactivex.Observable.<Recording>empty()
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(new Consumer<Recording>() {
@@ -974,28 +967,17 @@ public class PlaybackUIActivity extends BaseUIActivity {
 								.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 									@Override
 									public void onClick(DialogInterface dialogInterface, int i) {
-										try (Realm realm = Music.getDB()) {
-											if (realm == null)
-												return;
-
-											realm.executeTransaction(new Realm.Transaction() {
-												@Override
-												public void execute(Realm realm) {
-													if (!TextUtils.isEmpty(mbid))
-														m.setMBID(mbid);
-													if (!TextUtils.isEmpty(title))
-														m.setTitle(title);
-													if (!TextUtils.isEmpty(artist))
-														m.setArtist(artist.toString());
-													if (!TextUtils.isEmpty(release))
-														m.setAlbum(release.toString());
-													if (!TextUtils.isEmpty(tags))
-														m.setTags(StringUtils.join(m.getTags(), tags.toString(), ','));
-
-													realm.insertOrUpdate(m);
-												}
-											});
-										}
+										if (!TextUtils.isEmpty(mbid))
+											m.setMBID(mbid);
+										if (!TextUtils.isEmpty(title))
+											m.setTitle(title);
+										if (!TextUtils.isEmpty(artist))
+											m.setArtist(artist.toString());
+										if (!TextUtils.isEmpty(release))
+											m.setAlbum(release.toString());
+										if (!TextUtils.isEmpty(tags))
+											m.setTags(StringUtils.join(m.getTags(), tags.toString(), ','));
+										m.update();
 
 										resetForUriIfNeeded(m.getPath(), true);
 

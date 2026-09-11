@@ -34,7 +34,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import io.reactivex.ObservableSource;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.realm.Realm;
 
 public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean, MusicServiceLibraryUpdaterAsyncTask.Result> {
 
@@ -314,43 +313,9 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ALL);
 
-		try (Realm realm = Music.getDB()) {
-			if (realm == null)
-				return;
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(@NonNull Realm realm) {
-					playlist.clear();
-					playlist.addAll(realm.where(Music.class).findAll());
-					realm.insertOrUpdate(playlist);
-				}
-			});
-
-			Playlist.update(
-					context,
-					playlist,
-					true,
-					new JavaEx.ActionExT<String>() {
-						@Override
-						public void execute(String s) throws Exception {
-							if (isCancelled())
-								throw new Exception("Canceled by user");
-
-							updateNotification(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
-						}
-					})
-					.subscribe(new Consumer<Playlist>() {
-						@Override
-						public void accept(Playlist playlist) throws Exception {
-
-						}
-					}, new Consumer<Throwable>() {
-						@Override
-						public void accept(Throwable throwable) throws Exception {
-
-						}
-					});
-		}
+		playlist.clear();
+		playlist.addAll(com.ilusons.harmony.data.LibraryStore.get().allTracks());
+		Playlist.savePlaylist(playlist);
 
 		Playlist.savePlaylist(playlist);
 	}
@@ -367,46 +332,12 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 		final Playlist playlist = Playlist.loadOrCreatePlaylist(Playlist.KEY_PLAYLIST_ONLINE);
 
-		try (Realm realm = Music.getDB()) {
-			if (realm == null)
-				return;
-			realm.executeTransaction(new Realm.Transaction() {
-				@Override
-				public void execute(@NonNull Realm realm) {
-					playlist.clear();
-					for (Music item : realm.where(Music.class).findAll())
-						if (!item.isLocal())
-							playlist.add(item);
-					realm.insertOrUpdate(playlist);
-				}
-			});
-
-			Playlist.update(
-					context,
-					playlist,
-					true,
-					new JavaEx.ActionExT<String>() {
-						@Override
-						public void execute(String s) throws Exception {
-							if (isCancelled())
-								throw new Exception("Canceled by user");
-
-							updateNotification(playlist.getName() + "@..." + s.substring(Math.max(0, Math.min(s.length() - 34, s.length()))), false);
-						}
-					})
-					.subscribe(new Consumer<Playlist>() {
-						@Override
-						public void accept(Playlist playlist) throws Exception {
-
-						}
-					}, new Consumer<Throwable>() {
-						@Override
-						public void accept(Throwable throwable) throws Exception {
-
-						}
-					});
+		playlist.clear();
+		for (Music item : com.ilusons.harmony.data.LibraryStore.get().allTracks()) {
+			if (!item.isLocal()) {
+				playlist.add(item);
+			}
 		}
-
 		Playlist.savePlaylist(playlist);
 	}
 
@@ -438,7 +369,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 		notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		Intent cancelIntent = new Intent(MusicService.ACTION_LIBRARY_UPDATE_CANCEL);
-		PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+		PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 		notificationBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL)
 				.setOngoing(true)
 				.setContentTitle(context.getString(R.string.app_name))

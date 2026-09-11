@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.ilusons.harmony.R;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -48,8 +49,7 @@ public class BaseActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
-		// Start service
-		startService(new Intent(this, MusicService.class));
+		ContextCompat.startForegroundService(this, new Intent(this, MusicService.class));
 
 		super.onCreate(savedInstanceState);
 

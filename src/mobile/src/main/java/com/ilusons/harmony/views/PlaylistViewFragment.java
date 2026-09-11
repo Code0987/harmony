@@ -193,7 +193,7 @@ public class PlaylistViewFragment extends BaseUIFragment {
 			e.printStackTrace();
 		}
 		try {
-			LinearLayout searchEditFrame = searchView.findViewById(R.id.search_edit_frame);
+			LinearLayout searchEditFrame = searchView.findViewById(androidx.appcompat.R.id.search_edit_frame);
 			((LinearLayout.LayoutParams) searchEditFrame.getLayoutParams()).leftMargin = 0;
 		} catch (Exception e) {
 			e.printStackTrace();
