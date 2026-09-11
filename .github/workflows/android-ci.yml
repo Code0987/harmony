@@ -18,8 +18,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      - name: Fetch Last.fm sources
+        run: git submodule update --init --depth 1 res/libs/lastfm-java
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
