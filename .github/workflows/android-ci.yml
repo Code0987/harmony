@@ -1,35 +1,68 @@
 name: Android CI
 
-on: [push]
+on:
+  push:
+    branches:
+      - modernize/android-36
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-
-  android-ci:
+  build:
     runs-on: ubuntu-latest
-    container: code0987/android-ci:latest
 
     steps:
-    - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: test
-      run: |
-        # Keys
-        ## GPG
-        export GPG_TTY=/dev/console
-        echo "$GPG_PRIVATE_KEY" | gpg --batch --import
-        git secret reveal
-        ## SSH
-        'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-        eval $(ssh-agent -s)
-        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-        mkdir -p ~/.ssh
-        chmod 700 ~/.ssh
-        echo "StrictHostKeyChecking no" >> ~/.ssh/config 
-        echo "UserKnownHostsFile /dev/null" >> ~/.ssh/config
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
-        # Setup
-        npm install
-        export GRADLE_USER_HOME=`pwd`./src/.gradle
-        chmod +x ./src/gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-        ./src/gradlew -p ./src bundleDebug
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform
+        run: |
+          sdkmanager --install "platforms;android-36" "build-tools;35.0.0"
+
+      - name: Build debug APK
+        working-directory: src
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :mobile:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: harmony-debug
+          path: src/mobile/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/modernize/android-36'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-36-preview
+          name: Android 16 preview
+          prerelease: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: src/mobile/build/outputs/apk/debug/mobile-debug.apk
+          body: |
+            Sideload preview of Harmony targeting Android 16 (API 36).
+
+            Install `mobile-debug.apk`, grant **Music and audio** (and notifications if asked), then play a local track.
+
+            This prerelease is overwritten on every push to `modernize/android-36`.
