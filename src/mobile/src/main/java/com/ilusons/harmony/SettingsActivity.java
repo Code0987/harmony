@@ -177,99 +177,16 @@ public class SettingsActivity extends BaseActivity {
 		root = findViewById(R.id.root);
 		loading = findViewById(R.id.loading);
 
-		// IAB
-		iabBroadcastReceiver = new IabBroadcastReceiver(iabBroadcastListener);
-
-		iabHelper = new IabHelper(this, MusicService.LICENSE_BASE64_PUBLIC_KEY);
-		if (BuildConfig.DEBUG)
-			iabHelper.enableDebugLogging(true, TAG);
-		iabHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-			public void onIabSetupFinished(IabResult result) {
-				if (!result.isSuccess()) {
-					info("Problem setting up in-app billing!");
-
-					Log.w(TAG, result.toString());
-
-					return;
-				}
-
-				if (iabHelper == null) return;
-
-				// Important: Dynamically register for broadcast messages about updated purchases.
-				// We register the receiver he re instead of as a <receiver> in the Manifest
-				// because we always call getPurchases() at startup, so therefore we can ignore
-				// any broadcasts sent while the app isn't running.
-				// Note: registering this listener in an Activity is a bad idea, but is done here
-				// because this is a SAMPLE. Regardless, the receiver must be registered after
-				// IabHelper is setup, but before first call to getPurchases().
-				IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
-				registerReceiver(iabBroadcastReceiver, broadcastFilter);
-
-				try {
-					iabHelper.queryInventoryAsync(gotInventoryListener);
-				} catch (IabHelper.IabAsyncInProgressException e) {
-					Log.d(TAG, "Error querying inventory. Another async operation in progress.", e);
-				}
-			}
-		});
+		View premium = findViewById(R.id.premium);
+		if (premium != null) {
+			premium.setVisibility(View.GONE);
+		}
 
 		// Set close
 		findViewById(R.id.close).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				finish();
-			}
-		});
-
-		// Set premium
-		findViewById(R.id.premium).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (isFinishing())
-					return;
-
-				String content;
-				try (InputStream is = getResources().openRawResource(R.raw.notes_premium)) {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-						content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>"), Html.FROM_HTML_MODE_LEGACY).toString();
-					} else {
-						content = Html.fromHtml(IOUtils.toString(is, "UTF-8").replace("\n", "<br>")).toString();
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-
-					content = "Error loading data!";
-				}
-
-				AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(SettingsActivity.this, R.style.AppTheme_AlertDialogStyle));
-				builder.setTitle("Purchase premium?");
-				builder.setMessage(content);
-				builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						loading(true);
-
-						dialog.dismiss();
-
-						String payload = MusicService.getDeveloperPayload(SettingsActivity.this, SKU_PREMIUM);
-
-						try {
-							iabHelper.launchPurchaseFlow(SettingsActivity.this, SKU_PREMIUM, REQUEST_SKU_PREMIUM, purchaseFinishedListener, payload);
-						} catch (IabHelper.IabAsyncInProgressException e) {
-							info("Error launching purchase flow. Another async operation in progress.");
-
-							loading(false);
-						}
-					}
-				});
-				builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						dialog.dismiss();
-
-						info(":(");
-					}
-				});
-				AlertDialog dialog = builder.create();
-				dialog.show();
 			}
 		});
 
@@ -281,7 +198,7 @@ public class SettingsActivity extends BaseActivity {
 		// Library section
 		onCreateBindLibrarySection();
 
-		createDownload();
+		// Downloads / YouTube extract removed.
 
 		findViewById(R.id.reset_imageButton).setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -316,49 +233,12 @@ public class SettingsActivity extends BaseActivity {
 			}
 		});
 
-		// Player type
-		RadioGroup player_type_radioGroup = (RadioGroup) findViewById(R.id.player_type_radioGroup);
-
-		CompoundButton.OnCheckedChangeListener player_type_onCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-				if (!b)
-					return;
-
-				MusicService.setPlayerType(SettingsActivity.this, (MusicService.PlayerType) compoundButton.getTag());
-
-				switch (MusicService.getPlayerType(SettingsActivity.this)) {
-					case AudioTrack:
-					case OpenSL:
-						TunePresetsFragment.applyPreset(SettingsActivity.this, TunePresetsFragment.PRESET_HQ_GENERAL);
-						break;
-					case AndroidOS:
-					default:
-						TunePresetsFragment.applyPreset(SettingsActivity.this, TunePresetsFragment.PRESET_SQ_GENERAL);
-						break;
-				}
-
-				info("Player type will be changed after restart! Tune preset changed to default!");
-			}
-		};
-
-		MusicService.PlayerType player_type = MusicService.getPlayerType(getApplicationContext());
-
-		for (MusicService.PlayerType value : MusicService.PlayerType.values()) {
-			RadioButton rb = new RadioButton(new ContextThemeWrapper(this, R.style.AppTheme));
-			rb.setText(value.getFriendlyName());
-			rb.setTag(value);
-			rb.setId(value.ordinal());
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-				rb.setTextAppearance(android.R.style.TextAppearance_Material_Body1);
-			}
-			player_type_radioGroup.addView(rb);
-
-			if (player_type == value)
-				rb.setChecked(true);
-
-			rb.setOnCheckedChangeListener(player_type_onCheckedChangeListener);
-		}
+		hideIfPresent(R.id.player_type_textView);
+		hideIfPresent(R.id.player_type_radioGroup);
+		hideIfPresent(R.id.download_location_title);
+		hideIfPresent(R.id.download_location_value);
+		hideIfPresent(R.id.download_location_select);
+		hideIfPresent(R.id.analytics_dc_status);
 
 		// Headset
 		CheckBox headset_auto_play_on_plug_checkBox = (CheckBox) findViewById(R.id.headset_auto_play_on_plug_checkBox);
@@ -375,8 +255,7 @@ public class SettingsActivity extends BaseActivity {
 		// Analytics
 		createLFM();
 
-		// DC
-		createDC();
+		// Usage reporting (Firebase) removed.
 
 		loading(false);
 
@@ -441,6 +320,13 @@ public class SettingsActivity extends BaseActivity {
 				super.onActivityResult(requestCode, resultCode, data);
 			}
 
+		}
+	}
+
+	private void hideIfPresent(int id) {
+		View v = findViewById(id);
+		if (v != null) {
+			v.setVisibility(View.GONE);
 		}
 	}
 

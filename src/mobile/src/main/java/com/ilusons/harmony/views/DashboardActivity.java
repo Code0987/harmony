@@ -264,16 +264,9 @@ public class DashboardActivity extends BaseUIActivity {
 		});
 
 		MenuItem online = menu.findItem(R.id.online);
-		online.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-			@Override
-			public boolean onMenuItemClick(MenuItem menuItem) {
-				Intent intent = new Intent(DashboardActivity.this, OnlineViewActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				startActivity(intent);
-
-				return true;
-			}
-		});
+		if (online != null) {
+			online.setVisible(false);
+		}
 
 		MenuItem playlist = menu.findItem(R.id.playlist);
 		playlist.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {

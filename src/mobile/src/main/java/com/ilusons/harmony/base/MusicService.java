@@ -32,11 +32,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
-import androidx.media3.common.audio.AudioProcessor;
-import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.audio.AudioSink;
-import androidx.media3.exoplayer.audio.DefaultAudioSink;
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaSessionService;
 
@@ -120,18 +116,7 @@ public class MusicService extends MediaSessionService {
 		playlist = Playlist.loadOrCreatePlaylist(Playlist.getActivePlaylist(this));
 
 		playbackVisualizer = new PlaybackVisualizer();
-		DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this) {
-			@Override
-			protected AudioSink buildAudioSink(Context context, boolean enableFloatOutput, boolean enableAudioTrackPlaybackParams) {
-				return new DefaultAudioSink.Builder(context)
-						.setEnableFloatOutput(enableFloatOutput)
-						.setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
-						.setAudioProcessors(new AudioProcessor[]{playbackVisualizer.getProcessor()})
-						.build();
-			}
-		};
-
-		player = new ExoPlayer.Builder(this, renderersFactory).build();
+		player = new ExoPlayer.Builder(this).build();
 		player.setAudioAttributes(
 				new androidx.media3.common.AudioAttributes.Builder()
 						.setUsage(C.USAGE_MEDIA)
@@ -148,6 +133,13 @@ public class MusicService extends MediaSessionService {
 				} else if (playbackState == Player.STATE_ENDED) {
 					nextSmart(true);
 				}
+			}
+
+			@Override
+			public void onPlayerError(androidx.media3.common.PlaybackException error) {
+				Log.e(TAG, "playback failed", error);
+				prepared = false;
+				broadcast(ACTION_PREPARED);
 			}
 
 			@Override
@@ -421,13 +413,15 @@ public class MusicService extends MediaSessionService {
 		}
 		current = music;
 		prepared = false;
-		String playUri = music.getLastPlaybackUrl();
-		if (TextUtils.isEmpty(playUri)) {
-			playUri = music.getPath();
+		Uri playUri = Music.toPlaybackUri(music);
+		if (playUri == null) {
+			Log.w(TAG, "no playback uri for " + music.getPath());
+			return;
 		}
 		try {
-			player.setMediaItem(MediaItem.fromUri(Uri.parse(playUri)));
+			player.setMediaItem(MediaItem.fromUri(playUri));
 			player.prepare();
+			player.play();
 			Intent broadcastIntent = new Intent(ACTION_OPEN);
 			broadcastIntent.putExtra(KEY_URI, music.getPath());
 			LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent);

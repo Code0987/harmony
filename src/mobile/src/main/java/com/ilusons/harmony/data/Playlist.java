@@ -350,9 +350,8 @@ public class Playlist {
 							music = Music.createFromLocal(context, pair.second.toString(), pair.second, fastMode, null);
 						}
 						if (music != null) {
-							if (TextUtils.isEmpty(music.getPath())) {
-								music.setPath(pair.second.toString());
-							}
+							music.setPath(pair.second.toString());
+							music.setLastPlaybackUrl(pair.second.toString());
 							LibraryStore.get().upsert(music);
 							found.add(music);
 						}

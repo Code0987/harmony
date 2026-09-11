@@ -15,7 +15,6 @@ import android.widget.Toast;
 import com.ilusons.harmony.R;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -49,7 +48,9 @@ public class BaseActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
-		ContextCompat.startForegroundService(this, new Intent(this, MusicService.class));
+		// Visible activities may start the service; MediaSessionService goes
+		// foreground only once playback actually starts.
+		startService(new Intent(this, MusicService.class));
 
 		super.onCreate(savedInstanceState);
 

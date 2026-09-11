@@ -111,6 +111,27 @@ public class Music {
 		return (getPath() != null) && !(getPath().toLowerCase().startsWith("http"));
 	}
 
+	public static Uri toPlaybackUri(Music music) {
+		if (music == null) {
+			return null;
+		}
+		String raw = music.getLastPlaybackUrl();
+		if (TextUtils.isEmpty(raw)) {
+			raw = music.getPath();
+		}
+		if (TextUtils.isEmpty(raw)) {
+			return null;
+		}
+		if (raw.startsWith("content:") || raw.startsWith("file:") || raw.startsWith("http:") || raw.startsWith("https:")) {
+			return Uri.parse(raw);
+		}
+		File file = new File(raw);
+		if (file.exists()) {
+			return Uri.fromFile(file);
+		}
+		return Uri.parse(raw);
+	}
+
 	public String getCoverPath(final Context context) {
 		try {
 			return IOEx.getDiskCacheFile(context, KEY_CACHE_DIR_COVER, Path).getAbsolutePath();
@@ -888,6 +909,13 @@ public class Music {
 			if (oldData == null)
 				data = new Music();
 
+			if (contentUri != null) {
+				data.setPath(contentUri.toString());
+				data.setLastPlaybackUrl(contentUri.toString());
+			} else if (!TextUtils.isEmpty(path)) {
+				data.setPath(path);
+			}
+
 			data.TimeAdded = System.currentTimeMillis();
 			data.TimeLastPlayed = System.currentTimeMillis();
 			data.TimeLastSkipped = System.currentTimeMillis();
@@ -1000,11 +1028,18 @@ public class Music {
 						// Eat
 					}
 
-					data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))).getPath();
-					data.Timestamp = (new File(data.Path)).lastModified();
+					if (contentUri != null) {
+						data.Path = contentUri.toString();
+						data.setLastPlaybackUrl(contentUri.toString());
+					}
+					data.Timestamp = System.currentTimeMillis();
 
 					try {
-						mmr.setDataSource(data.Path);
+						if (contentUri != null) {
+							mmr.setDataSource(context, contentUri);
+						} else if (!TextUtils.isEmpty(data.Path)) {
+							mmr.setDataSource(context, Uri.parse(data.Path));
+						}
 
 						try {
 							byte[] cover = mmr.getEmbeddedPicture();
@@ -1076,12 +1111,19 @@ public class Music {
 					// Eat
 				}
 
-				data.Path = Uri.parse(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA))).getPath();
-				data.Timestamp = (new File(data.Path)).lastModified();
+				if (contentUri != null) {
+					data.Path = contentUri.toString();
+					data.setLastPlaybackUrl(contentUri.toString());
+				}
+				data.Timestamp = System.currentTimeMillis();
 
 				if (!fastMode) {
 					try {
-						mmr.setDataSource(data.Path);
+						if (contentUri != null) {
+							mmr.setDataSource(context, contentUri);
+						} else {
+							mmr.setDataSource(context, Uri.parse(data.Path));
+						}
 
 						try {
 							ExecutorService executor = Executors.newCachedThreadPool();
@@ -1244,8 +1286,16 @@ public class Music {
 	public static Music load(Context context, String path) {
 		Music data = LibraryStore.get().getTrack(path);
 		if (data == null) {
-			data = Music.createFromLocal(context, path, null, true, null);
+			Uri uri = null;
+			if (path != null && (path.startsWith("content:") || path.startsWith("file:"))) {
+				uri = Uri.parse(path);
+			}
+			data = Music.createFromLocal(context, path, uri, true, null);
 			if (data != null) {
+				if (uri != null) {
+					data.setPath(uri.toString());
+					data.setLastPlaybackUrl(uri.toString());
+				}
 				LibraryStore.get().upsert(data);
 			}
 		}
