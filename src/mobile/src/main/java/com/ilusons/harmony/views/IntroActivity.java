@@ -2,6 +2,7 @@ package com.ilusons.harmony.views;
 
 import android.Manifest;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -9,6 +10,8 @@ import android.widget.Toast;
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
 import com.ilusons.harmony.SettingsActivity;
+
+import androidx.core.app.ActivityCompat;
 
 import io.github.dreierf.materialintroscreen.MaterialIntroActivity;
 import io.github.dreierf.materialintroscreen.MessageButtonBehaviour;
@@ -24,11 +27,15 @@ public class IntroActivity extends MaterialIntroActivity {
 
 		enableLastSlideAlphaExitTransition(true);
 
+		// The intro "Grant" button only works for permissions declared in the manifest.
+		// Ask immediately so the user is not stuck if the library button is a no-op.
+		ActivityCompat.requestPermissions(this, allIntroPermissions(), 15621);
+
 		addSlide(new SlideFragmentBuilder()
 						.backgroundColor(R.color.colorPrimaryDark)
 						.buttonsColor(R.color.gradient43)
-						.possiblePermissions(new String[]{Manifest.permission.RECORD_AUDIO})
-						.neededPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE})
+						.possiblePermissions(optionalPermissions())
+						.neededPermissions(requiredAudioPermissions())
 						.image(R.drawable.logo)
 						.title(getString(R.string.app_name))
 						.description("Next, we're gonna change\nthe way you play music!")
@@ -90,6 +97,30 @@ public class IntroActivity extends MaterialIntroActivity {
 					}
 				}, "Add folders!"));
 
+	}
+
+	private static String[] requiredAudioPermissions() {
+		if (Build.VERSION.SDK_INT >= 33) {
+			return new String[]{Manifest.permission.READ_MEDIA_AUDIO};
+		}
+		return new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+	}
+
+	private static String[] optionalPermissions() {
+		if (Build.VERSION.SDK_INT >= 33) {
+			return new String[]{Manifest.permission.POST_NOTIFICATIONS};
+		}
+		return new String[0];
+	}
+
+	private static String[] allIntroPermissions() {
+		if (Build.VERSION.SDK_INT >= 33) {
+			return new String[]{
+					Manifest.permission.READ_MEDIA_AUDIO,
+					Manifest.permission.POST_NOTIFICATIONS
+			};
+		}
+		return new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
 	}
 
 	@Override
