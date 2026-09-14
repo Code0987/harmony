@@ -47,7 +47,7 @@ import com.ilusons.harmony.ref.AndroidTouchEx;
 import com.ilusons.harmony.ref.CacheEx;
 import com.ilusons.harmony.ref.ImageEx;
 import com.ilusons.harmony.ref.SPrefEx;
-import com.ilusons.harmony.ref.ui.CircleIndicator;
+
 import com.scwang.wave.MultiWaveHeader;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -66,7 +66,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import androidx.palette.graphics.Palette;
-import androidx.viewpager.widget.ViewPager;
+
 import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -137,16 +137,14 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	protected void onStart() {
 		super.onStart();
 
-		if (viewPager != null)
-			viewPager.addOnPageChangeListener(onPageChangeListener);
+
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
 
-		if (viewPager != null)
-			viewPager.removeOnPageChangeListener(onPageChangeListener);
+
 	}
 
 	@Override
@@ -464,16 +462,35 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	private View.OnTouchListener touchListener;
 
-	private ViewPager viewPager;
+	private int centerPage = 1;
+	private View tabVfx;
+	private View tabCover;
+	private View tabLyrics;
+	private View lyricsPage;
+	private View coverPage;
 
-	private ViewPager.SimpleOnPageChangeListener onPageChangeListener = new ViewPager.SimpleOnPageChangeListener() {
-		@Override
-		public void onPageSelected(int position) {
-			super.onPageSelected(position);
-
-			updateAVFX();
+	private void showCenterPage(int page) {
+		centerPage = page;
+		if (avfxView != null) {
+			avfxView.setVisibility(page == 0 ? View.VISIBLE : View.GONE);
+			avfxView.setRunning(page == 0);
 		}
-	};
+		if (coverPage != null) {
+			coverPage.setVisibility(page == 1 ? View.VISIBLE : View.GONE);
+		}
+		if (lyricsPage != null) {
+			lyricsPage.setVisibility(page == 2 ? View.VISIBLE : View.GONE);
+		}
+		if (tabVfx != null) {
+			tabVfx.setAlpha(page == 0 ? 1f : 0.4f);
+		}
+		if (tabCover != null) {
+			tabCover.setAlpha(page == 1 ? 1f : 0.4f);
+		}
+		if (tabLyrics != null) {
+			tabLyrics.setAlpha(page == 2 ? 1f : 0.4f);
+		}
+	}
 
 	private void createRoot() {
 		root = findViewById(R.id.root);
@@ -546,21 +563,36 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		});
 		root.setLongClickable(true);
 
-		viewPager = findViewById(R.id.viewPager);
-
-		viewPager.post(new Runnable() {
-			@Override
-			public void run() {
-				CircleIndicator viewPagerIndicator = findViewById(R.id.viewPagerIndicator);
-				viewPagerIndicator.setViewPager(viewPager);
-
-				try {
-					viewPager.setCurrentItem(1);
-				} catch (Exception e) {
-					// Eat ?
+		tabVfx = findViewById(R.id.tab_vfx);
+		tabCover = findViewById(R.id.tab_cover);
+		tabLyrics = findViewById(R.id.tab_lyrics);
+		lyricsPage = findViewById(R.id.lyrics_layout);
+		coverPage = findViewById(R.id.cover);
+		if (tabVfx != null) {
+			tabVfx.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					showCenterPage(0);
 				}
-			}
-		});
+			});
+		}
+		if (tabCover != null) {
+			tabCover.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					showCenterPage(1);
+				}
+			});
+		}
+		if (tabLyrics != null) {
+			tabLyrics.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					showCenterPage(2);
+				}
+			});
+		}
+		showCenterPage(1);
 	}
 
 	//endregion
@@ -1075,12 +1107,10 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void updateAVFX() {
-		if (avfxView == null) {
-			return;
-		}
-		boolean show = viewPager != null && viewPager.getCurrentItem() == 0;
 		applyVfxStyle();
-		avfxView.setRunning(show);
+		if (avfxView != null) {
+			avfxView.setRunning(centerPage == 0);
+		}
 	}
 
 	private void applyVfxStyle() {

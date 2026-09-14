@@ -85,82 +85,78 @@
 
     </RelativeLayout>
 
-    <view
-        android:id="@+id/viewPagerIndicator"
-        class="com.ilusons.harmony.ref.ui.CircleIndicator"
+    <LinearLayout
+        android:id="@+id/page_tabs"
         android:layout_width="0dp"
-        android:layout_height="48dp"
-        app:layout_constraintBottom_toTopOf="@+id/viewPager"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/page_host"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/metadata_layout"/>
+        app:layout_constraintTop_toBottomOf="@id/metadata_layout">
 
-    <view
-        android:id="@+id/viewPager"
-        class="com.ilusons.harmony.ref.ViewEx$StaticViewPager"
+        <TextView
+            android:id="@+id/tab_vfx"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="VFX"
+            android:textColor="@color/primary_text"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:id="@+id/tab_cover"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="Cover"
+            android:textColor="@color/primary_text"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:id="@+id/tab_lyrics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="Lyrics"
+            android:textColor="@color/primary_text"
+            android:textSize="13sp"/>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/page_host"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:descendantFocusability="beforeDescendants"
-        android:focusableInTouchMode="true"
-        android:gravity="center"
         app:layout_constraintBottom_toTopOf="@id/controls_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/viewPagerIndicator"
-        >
+        app:layout_constraintTop_toBottomOf="@id/page_tabs">
 
-        <RelativeLayout
+        <com.ilusons.harmony.avfx.VizCanvas
+            android:id="@+id/avfx_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            >
+            android:visibility="gone"/>
 
-            <com.ilusons.harmony.avfx.VizCanvas
-                android:id="@+id/avfx_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                />
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/av_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            >
-
-            <ImageView
-                android:id="@+id/cover"
-                android:layout_width="282dp"
-                android:layout_height="282dp"
-                android:layout_centerInParent="true"
-                android:elevation="9dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/logo"
-                android:transitionName="transition_cover"
-                />
-
-            <View
-                android:id="@+id/video"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:visibility="gone"
-                />
-
-        </RelativeLayout>
+        <ImageView
+            android:id="@+id/cover"
+            android:layout_width="282dp"
+            android:layout_height="282dp"
+            android:layout_gravity="center"
+            android:elevation="9dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/logo"
+            android:transitionName="transition_cover"/>
 
         <ScrollView
             android:id="@+id/lyrics_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="0dp"
-            android:layout_marginEnd="0dp"
-            android:layout_marginStart="0dp"
-            android:layout_marginTop="0dp"
             android:fadingEdgeLength="36dp"
-            android:orientation="vertical"
             android:requiresFadingEdge="vertical"
             android:scrollbars="none"
-            >
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/lyrics"
@@ -170,7 +166,6 @@
                 android:layout_marginEnd="32dp"
                 android:layout_marginStart="32dp"
                 android:layout_marginTop="24dp"
-                android:background="@null"
                 android:fontFamily="serif"
                 android:gravity="center"
                 android:lineSpacingExtra="3dp"
@@ -182,13 +177,9 @@
                 android:shadowDy="1.5"
                 android:shadowRadius="1.7"
                 android:textAlignment="center"
-                android:textSize="16.5sp"
-                tools:text="Exorcizamus te, omnis immundus spiritus, omnis satanica potestas omnis incursio infernalis adversarii. Omnis legio! Omnis con...potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis......legio diabolica, adiuramus te! Exorcizamus te, omnis immundus spiritus, omnis satanica potestas, omnis incursio infernalis adversarii. Omnis legio! Omnis congregatio et secta diabolica! Ergo, Draco maledicte et omnis legio diabolica, adiuramus te!"
-                />
-
+                android:textSize="16.5sp"/>
         </ScrollView>
-
-    </view>
+    </FrameLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/metadata_layout"
