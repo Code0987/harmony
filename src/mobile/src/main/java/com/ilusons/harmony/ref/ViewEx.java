@@ -272,9 +272,8 @@ public class ViewEx {
 		protected void onAttachedToWindow() {
 			super.onAttachedToWindow();
 
-			// Make sure all are loaded at once
 			final int childrenCount = getChildCount();
-			setOffscreenPageLimit(childrenCount - 1);
+			setOffscreenPageLimit(1);
 
 			// Attach the adapter
 			setAdapter(new PagerAdapter() {

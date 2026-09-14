@@ -34,7 +34,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ilusons.harmony.avfx.LiteVfxView;
+import com.ilusons.harmony.avfx.VizCanvas;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -151,19 +151,27 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
-
+		if (avfxView != null) {
+			avfxView.setRunning(false);
+		}
 		if (progressHandlerRunnable != null) {
 			handler.removeCallbacks(progressHandlerRunnable);
 		}
+		super.onDestroy();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-
-		// Restore audio vis.
 		updateAVFX();
+	}
+
+	@Override
+	protected void onPause() {
+		if (avfxView != null) {
+			avfxView.setRunning(false);
+		}
+		super.onPause();
 	}
 
 	@Override
@@ -1058,21 +1066,21 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	//region AVFX
 
-	private LiteVfxView avfxView;
+	private VizCanvas avfxView;
 
 	private void createAVFX() {
 		avfxView = findViewById(R.id.avfx_view);
 		applyVfxStyle();
+		updateAVFX();
 	}
 
 	private void updateAVFX() {
 		if (avfxView == null) {
 			return;
 		}
-		if (viewPager != null && viewPager.getCurrentItem() == 0) {
-			avfxView.setVisibility(View.VISIBLE);
-			applyVfxStyle();
-		}
+		boolean show = viewPager != null && viewPager.getCurrentItem() == 0;
+		applyVfxStyle();
+		avfxView.setRunning(show);
 	}
 
 	private void applyVfxStyle() {
@@ -1084,15 +1092,15 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		AudioVFXViewFragment.AVFXType type = AudioVFXViewFragment.getAVFXType(getApplicationContext());
 		switch (type) {
 			case Waveform:
-				avfxView.setStyle(LiteVfxView.Style.WAVE);
+				avfxView.setMode(VizCanvas.Mode.WAVE);
 				break;
 			case Particles:
 			case Dots:
-				avfxView.setStyle(LiteVfxView.Style.DOTS);
+				avfxView.setMode(VizCanvas.Mode.DOTS);
 				break;
 			case Circles:
 			default:
-				avfxView.setStyle(LiteVfxView.Style.RINGS);
+				avfxView.setMode(VizCanvas.Mode.RINGS);
 				break;
 		}
 	}

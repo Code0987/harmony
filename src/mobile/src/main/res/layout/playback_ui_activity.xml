@@ -114,11 +114,10 @@
             android:layout_height="match_parent"
             >
 
-            <com.ilusons.harmony.avfx.LiteVfxView
+            <com.ilusons.harmony.avfx.VizCanvas
                 android:id="@+id/avfx_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="visible"
                 />
 
         </RelativeLayout>
