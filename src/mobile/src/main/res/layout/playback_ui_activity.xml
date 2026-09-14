@@ -133,12 +133,6 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/page_tabs">
 
-        <com.ilusons.harmony.avfx.VizCanvas
-            android:id="@+id/avfx_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
-
         <ImageView
             android:id="@+id/cover"
             android:layout_width="282dp"
@@ -148,6 +142,13 @@
             android:scaleType="fitXY"
             android:src="@drawable/logo"
             android:transitionName="transition_cover"/>
+
+        <ImageView
+            android:id="@+id/avfx_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:visibility="gone"/>
 
         <ScrollView
             android:id="@+id/lyrics_layout"

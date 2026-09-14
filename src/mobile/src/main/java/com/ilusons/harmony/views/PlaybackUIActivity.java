@@ -34,7 +34,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ilusons.harmony.avfx.VizCanvas;
+import com.ilusons.harmony.avfx.VizEngine;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -149,8 +149,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	@Override
 	protected void onDestroy() {
-		if (avfxView != null) {
-			avfxView.setRunning(false);
+		if (vizEngine != null) {
+			vizEngine.release();
+			vizEngine = null;
 		}
 		if (progressHandlerRunnable != null) {
 			handler.removeCallbacks(progressHandlerRunnable);
@@ -161,13 +162,15 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		updateAVFX();
+		if (centerPage == 0 && vizEngine != null) {
+			vizEngine.start();
+		}
 	}
 
 	@Override
 	protected void onPause() {
-		if (avfxView != null) {
-			avfxView.setRunning(false);
+		if (vizEngine != null) {
+			vizEngine.stop();
 		}
 		super.onPause();
 	}
@@ -470,25 +473,38 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	private View coverPage;
 
 	private void showCenterPage(int page) {
+		Log.i("HarmonyViz", "showCenterPage " + page);
 		centerPage = page;
-		if (avfxView != null) {
-			avfxView.setVisibility(page == 0 ? View.VISIBLE : View.GONE);
-			avfxView.setRunning(page == 0);
-		}
-		if (coverPage != null) {
-			coverPage.setVisibility(page == 1 ? View.VISIBLE : View.GONE);
-		}
-		if (lyricsPage != null) {
-			lyricsPage.setVisibility(page == 2 ? View.VISIBLE : View.GONE);
-		}
-		if (tabVfx != null) {
-			tabVfx.setAlpha(page == 0 ? 1f : 0.4f);
-		}
-		if (tabCover != null) {
-			tabCover.setAlpha(page == 1 ? 1f : 0.4f);
-		}
-		if (tabLyrics != null) {
-			tabLyrics.setAlpha(page == 2 ? 1f : 0.4f);
+		try {
+			if (avfxView != null) {
+				avfxView.setVisibility(page == 0 ? View.VISIBLE : View.INVISIBLE);
+			}
+			if (coverPage != null) {
+				// INVISIBLE keeps layout stable so switching tabs cannot stall playback.
+				coverPage.setVisibility(page == 1 ? View.VISIBLE : View.INVISIBLE);
+			}
+			if (lyricsPage != null) {
+				lyricsPage.setVisibility(page == 2 ? View.VISIBLE : View.GONE);
+			}
+			if (tabVfx != null) {
+				tabVfx.setAlpha(page == 0 ? 1f : 0.4f);
+			}
+			if (tabCover != null) {
+				tabCover.setAlpha(page == 1 ? 1f : 0.4f);
+			}
+			if (tabLyrics != null) {
+				tabLyrics.setAlpha(page == 2 ? 1f : 0.4f);
+			}
+			if (vizEngine != null) {
+				if (page == 0) {
+					applyVfxStyle();
+					vizEngine.start();
+				} else {
+					vizEngine.stop();
+				}
+			}
+		} catch (Throwable t) {
+			Log.e("HarmonyViz", "showCenterPage failed", t);
 		}
 	}
 
@@ -1098,39 +1114,50 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	//region AVFX
 
-	private VizCanvas avfxView;
+	private ImageView avfxView;
+	private VizEngine vizEngine;
 
 	private void createAVFX() {
 		avfxView = findViewById(R.id.avfx_view);
+		vizEngine = new VizEngine();
+		vizEngine.attach(avfxView);
 		applyVfxStyle();
-		updateAVFX();
+		if (avfx != null) {
+			avfx.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					if (centerPage == 0) {
+						changeAVFXStyle();
+					} else {
+						showCenterPage(0);
+					}
+				}
+			});
+		}
 	}
 
 	private void updateAVFX() {
 		applyVfxStyle();
-		if (avfxView != null) {
-			avfxView.setRunning(centerPage == 0);
-		}
 	}
 
 	private void applyVfxStyle() {
-		if (avfxView == null) {
+		if (vizEngine == null) {
 			return;
 		}
 		int c = colorLight != 0 ? colorLight : ContextCompat.getColor(this, R.color.accent);
-		avfxView.setColor(c);
+		vizEngine.setColor(c);
 		AudioVFXViewFragment.AVFXType type = AudioVFXViewFragment.getAVFXType(getApplicationContext());
 		switch (type) {
 			case Waveform:
-				avfxView.setMode(VizCanvas.Mode.WAVE);
+				vizEngine.setMode(VizEngine.Mode.WAVE);
 				break;
 			case Particles:
 			case Dots:
-				avfxView.setMode(VizCanvas.Mode.DOTS);
+				vizEngine.setMode(VizEngine.Mode.DOTS);
 				break;
 			case Circles:
 			default:
-				avfxView.setMode(VizCanvas.Mode.RINGS);
+				vizEngine.setMode(VizEngine.Mode.RINGS);
 				break;
 		}
 	}
