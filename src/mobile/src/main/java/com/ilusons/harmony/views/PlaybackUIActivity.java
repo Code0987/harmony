@@ -370,10 +370,17 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 				// Load video
 				if (video != null && music.hasVideo()) {
-					toggleVideo(getPlaybackUIVideoHidden(this));
-					video.setVideoPath(music.getPath());
-					video.requestFocus();
-					video.start();
+					try {
+						toggleVideo(getPlaybackUIVideoHidden(this));
+						android.net.Uri playUri = Music.toPlaybackUri(music);
+						if (playUri != null) {
+							video.setVideoURI(playUri);
+							video.requestFocus();
+							video.start();
+						}
+					} catch (Exception e) {
+						Log.w(TAG, e);
+					}
 				}
 
 				if (video != null && music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -381,8 +388,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				}
 
 				loading.smoothToHide();
-
-				resetLyrics();
 
 				updateControls();
 			}

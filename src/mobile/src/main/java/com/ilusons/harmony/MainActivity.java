@@ -70,7 +70,7 @@ public class MainActivity extends BaseActivity {
 					|| scheme.equals(ContentResolver.SCHEME_CONTENT)) {
 
 				try {
-					final Uri uri = Uri.parse(StorageEx.getPath(MainActivity.this, intent.getData()));
+					final Uri uri = intent.getData();
 
 					handler.postDelayed(new Runnable() {
 						@Override

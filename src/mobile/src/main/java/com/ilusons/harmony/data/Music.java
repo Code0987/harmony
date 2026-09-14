@@ -656,10 +656,14 @@ public class Music {
 					} catch (Exception e) {
 						// pass
 					}
-					// If not local or forced or if local but non-existent
-					if (forceDownload || TextUtils.isEmpty(uri) || ((file != null && file.isAbsolute() && !file.exists()))) {
+					// Do not hit the network on the open path. Missing art just stays empty.
+					if (forceDownload) {
 						downloadUri = Uri.parse(findImageUrlFromItunes(query, imageType, 3000, 360));
 						isDownloaded = true;
+					} else if (file == null || !file.exists()) {
+						oe.onNext(null);
+						oe.onComplete();
+						return;
 					}
 
 					ImageDecodeOptions decodeOptions = ImageDecodeOptions.newBuilder()
@@ -909,62 +913,88 @@ public class Music {
 			if (oldData == null)
 				data = new Music();
 
-			if (contentUri != null) {
-				data.setPath(contentUri.toString());
-				data.setLastPlaybackUrl(contentUri.toString());
+			Uri playUri = contentUri;
+			if (playUri == null && !TextUtils.isEmpty(path)) {
+				if (path.startsWith("content:") || path.startsWith("file:")) {
+					playUri = Uri.parse(path);
+				}
+			}
+
+			if (playUri != null) {
+				data.setPath(playUri.toString());
+				data.setLastPlaybackUrl(playUri.toString());
 			} else if (!TextUtils.isEmpty(path)) {
 				data.setPath(path);
+				data.setLastPlaybackUrl(path);
 			}
 
 			data.TimeAdded = System.currentTimeMillis();
 			data.TimeLastPlayed = System.currentTimeMillis();
 			data.TimeLastSkipped = System.currentTimeMillis();
 
-			// HACK: Calling the devil
-			System.gc();
-			Runtime.getRuntime().gc();
+			fillMetadataFromMediaStore(context, playUri, data);
 
-			// Metadata from system
-			if (Looper.myLooper() == null) try {
-				Looper.prepare(); // HACK
-			} catch (Exception e) {
-				Log.w(TAG, e);
-			}
-			if (Looper.myLooper() != null) {
-				final MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-
-				tryToFillMetadataFromOS(context, contentUri, data, fastMode, mmr);
-			}
-
-			// Metadata from tags
-			if (!fastMode && path != null && contentUri == null) {
-				tryToFillMetadataFromTags(context, path, data, fastMode);
-			}
-
-			// Metadata from file name
-			if (TextUtils.isEmpty(data.Title)
-					|| TextUtils.isEmpty(data.Artist)
-					|| data.Artist.contains("unknown"))
-				try {
-					ArrayList<String> at = SongsEx.getArtistAndTitle((new File(data.Path)).getName());
-
-					data.Artist = at.get(0);
-					data.Title = at.get(1);
-				} catch (Exception e) {
-					if (!TextUtils.isEmpty(path)) {
-						data.Path = path;
-
-						data.Title = (new File(data.Path)).getName().replaceFirst("[.][^.]+$", "");
-					} else {
-						throw new Exception("WTF happened!");
-					}
+			if (TextUtils.isEmpty(data.Title)) {
+				String name = playUri != null ? playUri.getLastPathSegment() : path;
+				if (!TextUtils.isEmpty(name)) {
+					data.Title = name.replaceFirst("[.][^.]+$", "");
+				} else {
+					data.Title = "Unknown";
 				}
+			}
+			if (TextUtils.isEmpty(data.Artist)) {
+				data.Artist = "Unknown";
+			}
 
 			return data;
 		} catch (Throwable e) {
 			Log.w(TAG, e);
 		}
 		return null;
+	}
+
+	private static void fillMetadataFromMediaStore(Context context, Uri contentUri, Music data) {
+		if (context == null || contentUri == null) {
+			return;
+		}
+		String[] projection = new String[]{
+				MediaStore.MediaColumns.DISPLAY_NAME,
+				MediaStore.MediaColumns.TITLE,
+				MediaStore.Audio.Media.ARTIST,
+				MediaStore.Audio.Media.ALBUM,
+				MediaStore.Audio.Media.DURATION,
+				MediaStore.Audio.Media.YEAR
+		};
+		try (Cursor cursor = context.getContentResolver().query(contentUri, projection, null, null, null)) {
+			if (cursor == null || !cursor.moveToFirst()) {
+				return;
+			}
+			int title = cursor.getColumnIndex(MediaStore.MediaColumns.TITLE);
+			if (title < 0) {
+				title = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
+			}
+			if (title >= 0) {
+				data.Title = cursor.getString(title);
+			}
+			int artist = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
+			if (artist >= 0) {
+				data.Artist = cursor.getString(artist);
+			}
+			int album = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
+			if (album >= 0) {
+				data.Album = cursor.getString(album);
+			}
+			int duration = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
+			if (duration >= 0) {
+				data.Length = (int) cursor.getLong(duration);
+			}
+			int year = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR);
+			if (year >= 0) {
+				data.Year = cursor.getInt(year);
+			}
+		} catch (Exception e) {
+			Log.w(TAG, "mediastore metadata", e);
+		}
 	}
 
 	private static void tryToFillMetadataFromOS(final Context context, final Uri contentUri, final Music data, final boolean fastMode, final MediaMetadataRetriever mmr) {

@@ -53,7 +53,7 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 	public MusicServiceLibraryUpdaterAsyncTask(Context c, boolean force, boolean fastMode) {
 		contextRef = new WeakReference<>(c);
 		this.force = force;
-		this.fastMode = fastMode;
+		this.fastMode = true;
 	}
 
 	protected Result doInBackground(Void... params) {
@@ -96,13 +96,6 @@ public class MusicServiceLibraryUpdaterAsyncTask extends AsyncTask<Void, Boolean
 
 					// Scan media store
 					if (getScanMediaStoreEnabled(context)) {
-						// Looper needed
-						if (Looper.myLooper() == null) try {
-							Looper.prepare(); // HACK
-						} catch (Exception e) {
-							Log.w(TAG, e);
-						}
-
 						scanMediaStoreAudio();
 
 						updateNotification("Media store audio scan completed.", true);

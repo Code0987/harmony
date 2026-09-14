@@ -129,7 +129,6 @@ public class MusicService extends MediaSessionService {
 				if (playbackState == Player.STATE_READY) {
 					prepared = true;
 					broadcast(ACTION_PREPARED);
-					attachEffects();
 				} else if (playbackState == Player.STATE_ENDED) {
 					nextSmart(true);
 				}
@@ -145,7 +144,6 @@ public class MusicService extends MediaSessionService {
 			@Override
 			public void onIsPlayingChanged(boolean isPlaying) {
 				if (isPlaying) {
-					playbackVisualizer.start();
 					broadcast(ACTION_PLAY);
 				} else {
 					broadcast(ACTION_PAUSE);

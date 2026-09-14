@@ -372,10 +372,6 @@ public class DashboardActivity extends BaseUIActivity {
 	@Override
 	public void OnMusicServicePrepared() {
 		resetPlayback();
-
-		updateRecommended();
-
-		updateRecent();
 	}
 
 	@Override
