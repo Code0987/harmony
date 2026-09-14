@@ -11,13 +11,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.ilusons.harmony.R;
-import com.ilusons.harmony.avfx.BaseAVFXCanvasView;
-import com.ilusons.harmony.avfx.BaseAVFXGLView;
-import com.ilusons.harmony.avfx.CirclesView;
-import com.ilusons.harmony.avfx.DotsView;
-import com.ilusons.harmony.avfx.ParticlesView;
-import com.ilusons.harmony.avfx.PlaybackVisualizer;
-import com.ilusons.harmony.avfx.WaveformView;
+import com.ilusons.harmony.avfx.LiteVfxView;
 import com.ilusons.harmony.base.MusicService;
 import com.ilusons.harmony.ref.JavaEx;
 import com.ilusons.harmony.ref.SPrefEx;
@@ -33,11 +27,7 @@ public class AudioVFXViewFragment extends Fragment {
 
 	private MusicService musicService;
 
-	private PlaybackVisualizer playbackVisualizer;
-
-	private WaveformView waveformGLView;
-	private BaseAVFXCanvasView waveformCanvasView;
-	private BaseAVFXCanvasView fftCanvasView;
+	private LiteVfxView vfxView;
 
 	private FrameLayout root;
 
@@ -65,190 +55,49 @@ public class AudioVFXViewFragment extends Fragment {
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
-
-		waveformGLView = null;
-		waveformCanvasView = null;
-		fftCanvasView = null;
-	}
-
-	@Override
-	public void onStart() {
-		super.onStart();
-	}
-
-	@Override
-	public void onStop() {
-		super.onStop();
-	}
-
-	@Override
-	public void onResume() {
-		super.onResume();
-
-		if (waveformGLView != null) {
-			waveformGLView.onResume();
-		}
-		if (waveformCanvasView != null) {
-			waveformCanvasView.onResume();
-		}
-		if (fftCanvasView != null) {
-			fftCanvasView.onResume();
-		}
-
-		startVisualizer();
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-
-		if (waveformGLView != null) {
-			waveformGLView.onPause();
-		}
-		if (waveformCanvasView != null) {
-			waveformCanvasView.onPause();
-		}
-		if (fftCanvasView != null) {
-			fftCanvasView.onPause();
-		}
-
-		unbindVisualizer();
-	}
-
-	private final PlaybackVisualizer.Listener playbackListener = new PlaybackVisualizer.Listener() {
-		@Override
-		public void onWaveform(float[] waveform, int channels, int sampleRate) {
-			if (waveformGLView != null) {
-				waveformGLView.updateAudioData(waveform, channels, sampleRate);
-			}
-			if (waveformCanvasView != null) {
-				waveformCanvasView.updateAudioData(waveform, channels, sampleRate);
-			}
-		}
-
-		@Override
-		public void onFft(float[] fft, int channels, int sampleRate) {
-			if (fftCanvasView != null) {
-				fftCanvasView.updateAudioData(fft, channels, sampleRate);
-			}
-		}
-	};
-
-	private void startVisualizer() {
-		try {
-			stopVisualizer();
-
-			if (musicService == null)
-				return;
-
-			playbackVisualizer = musicService.getPlaybackVisualizer();
-			if (playbackVisualizer != null) {
-				playbackVisualizer.setListener(playbackListener);
-				playbackVisualizer.start();
-			}
-		} catch (Exception e) {
-			Log.w(TAG, e);
-		}
-	}
-
-	private void stopVisualizer() {
-		if (playbackVisualizer != null) {
-			playbackVisualizer.setListener(null);
-		}
-	}
-
-	private void unbindVisualizer() {
-		stopVisualizer();
+		vfxView = null;
 	}
 
 	public void reset(final MusicService musicService, final AVFXType avfxType, final int color) {
 		if (musicService == null)
 			return;
 
-		if (!isAdded() || !isVisible() || root == null || !hasPermissions) {
+		if (!isAdded() || root == null || !hasPermissions) {
 			pendingActionForViewReference = new WeakReference<JavaEx.Action>(new JavaEx.Action() {
 				@Override
 				public void execute() {
 					reset(musicService, avfxType, color);
 				}
 			});
-
 			return;
 		}
 
 		try {
-			unbindVisualizer();
-
-			stopVisualizer();
-
-			if (isRemoving())
-				return;
-
 			this.musicService = musicService;
-
 			root.removeAllViews();
 
-			if (waveformGLView != null) {
-				waveformGLView = null;
-			}
-			if (waveformCanvasView != null) {
-				waveformCanvasView = null;
-			}
-			if (fftCanvasView != null) {
-				fftCanvasView = null;
-			}
-
-			float r = Color.red(color) / 255.0f;
-			float g = Color.green(color) / 255.0f;
-			float b = Color.blue(color) / 255.0f;
-			float a = Color.alpha(color) / 255.0f;
-
-			a = 1f;
-
+			vfxView = new LiteVfxView(getActivity());
+			vfxView.setColor(color == 0 ? Color.CYAN : color);
 			switch (avfxType) {
 				case Waveform:
-					waveformGLView = new WaveformView(getActivity().getApplicationContext());
-
-					waveformGLView.setColor(
-							new BaseAVFXGLView.FloatColor(r, g, b, a),
-							new BaseAVFXGLView.FloatColor(g + b - r, b + r - g, r + g - b, a));
-
-					root.addView(waveformGLView);
+					vfxView.setStyle(LiteVfxView.Style.WAVE);
 					break;
-
 				case Particles:
-					ParticlesView particles = new ParticlesView(getActivity());
-
-					particles.setColor(color);
-
-					root.addView(particles);
-
-					waveformCanvasView = particles;
+					vfxView.setStyle(LiteVfxView.Style.DOTS);
 					break;
-
-				case Circles:
-					CirclesView circles = new CirclesView(getActivity());
-
-					root.addView(circles);
-
-					fftCanvasView = circles;
-					break;
-
 				case Dots:
-					DotsView dots = new DotsView(getActivity());
-
-					dots.setColor(color);
-
-					root.addView(dots);
-
-					fftCanvasView = dots;
+					vfxView.setStyle(LiteVfxView.Style.DOTS);
+					break;
+				case Circles:
+				default:
+					vfxView.setStyle(LiteVfxView.Style.RINGS);
 					break;
 			}
-
-			startVisualizer();
-
+			root.addView(vfxView, new FrameLayout.LayoutParams(
+					ViewGroup.LayoutParams.MATCH_PARENT,
+					ViewGroup.LayoutParams.MATCH_PARENT));
 		} catch (Exception e) {
-			e.printStackTrace();
+			Log.w(TAG, e);
 		}
 	}
 
