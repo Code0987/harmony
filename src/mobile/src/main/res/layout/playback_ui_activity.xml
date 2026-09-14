@@ -114,10 +114,11 @@
             android:layout_height="match_parent"
             >
 
-            <FrameLayout
-                android:id="@+id/avfx_layout"
+            <com.ilusons.harmony.avfx.LiteVfxView
+                android:id="@+id/avfx_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:visibility="visible"
                 />
 
         </RelativeLayout>
@@ -139,15 +140,11 @@
                 android:transitionName="transition_cover"
                 />
 
-            <VideoView
+            <View
                 android:id="@+id/video"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentStart="true"
-                android:layout_centerInParent="true"
-                android:background="@color/translucent"
-                android:visibility="invisible"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
                 />
 
         </RelativeLayout>

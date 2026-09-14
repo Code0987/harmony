@@ -65,7 +65,7 @@ public class LiteVfxView extends View {
 	protected void onAttachedToWindow() {
 		super.onAttachedToWindow();
 		attached = true;
-		postOnAnimation(frame);
+		kick();
 	}
 
 	@Override
@@ -73,6 +73,23 @@ public class LiteVfxView extends View {
 		attached = false;
 		removeCallbacks(frame);
 		super.onDetachedFromWindow();
+	}
+
+	@Override
+	protected void onVisibilityChanged(View changedView, int visibility) {
+		super.onVisibilityChanged(changedView, visibility);
+		if (visibility == VISIBLE) {
+			kick();
+		} else {
+			removeCallbacks(frame);
+		}
+	}
+
+	private void kick() {
+		removeCallbacks(frame);
+		if (attached && getVisibility() == VISIBLE) {
+			postOnAnimation(frame);
+		}
 	}
 
 	@Override

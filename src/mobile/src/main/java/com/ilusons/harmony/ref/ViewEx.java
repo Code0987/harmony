@@ -301,7 +301,11 @@ public class ViewEx {
 
 				@Override
 				public CharSequence getPageTitle(int position) {
-					return getChildAt(position).getTag().toString();
+					View child = getChildAt(position);
+					if (child != null && child.getTag() != null) {
+						return child.getTag().toString();
+					}
+					return "";
 				}
 			});
 		}

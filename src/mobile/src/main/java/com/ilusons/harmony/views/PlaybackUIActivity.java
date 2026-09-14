@@ -14,7 +14,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -34,7 +33,8 @@ import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
+
+import com.ilusons.harmony.avfx.LiteVfxView;
 
 import com.ilusons.harmony.MainActivity;
 import com.ilusons.harmony.R;
@@ -153,7 +153,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	protected void onDestroy() {
 		super.onDestroy();
 
-		handler.removeCallbacks(videoSyncTask);
+		if (progressHandlerRunnable != null) {
+			handler.removeCallbacks(progressHandlerRunnable);
+		}
 	}
 
 	@Override
@@ -212,58 +214,22 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		super.OnMusicServicePlay();
 
 		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_music_pause));
-
-		try {
-			if (getMusicService() != null) {
-				if (getMusicService().getMusic() == null)
-					return;
-				final String path = getMusicService().getMusic().getPath();
-				resetForUriIfNeeded(path);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (video != null && video.getVisibility() == View.VISIBLE)
-			video.start();
-
 		wave.start();
 	}
 
 	@Override
 	public void OnMusicServicePause() {
-		super.OnMusicServicePlay();
+		super.OnMusicServicePause();
 
 		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_music_play));
-
-		try {
-			if (getMusicService() != null) {
-				if (getMusicService().getMusic() == null)
-					return;
-				final String path = getMusicService().getMusic().getPath();
-				resetForUriIfNeeded(path);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (video != null && video.getVisibility() == View.VISIBLE)
-			video.pause();
-
 		wave.stop();
 	}
 
 	@Override
 	public void OnMusicServiceStop() {
-		super.OnMusicServicePlay();
+		super.OnMusicServiceStop();
 
 		play_pause_stop.setImageDrawable(getDrawable(R.drawable.ic_music_play));
-
-		if (video != null && video.getVisibility() == View.VISIBLE) {
-			video.stopPlayback();
-			video.setVisibility(View.INVISIBLE);
-		}
-
 		wave.stop();
 	}
 
@@ -300,11 +266,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		currentUri = uri;
 
 		loading.smoothToShow();
-
-		if (video != null && video.getVisibility() == View.VISIBLE) {
-			video.stopPlayback();
-			video.setVisibility(View.INVISIBLE);
-		}
 
 		try {
 			final Music music = Music.load(this, uri);
@@ -366,25 +327,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 									throwableConsumerWithRetry);
 				} catch (Exception e) {
 					e.printStackTrace();
-				}
-
-				// Load video
-				if (video != null && music.hasVideo()) {
-					try {
-						toggleVideo(getPlaybackUIVideoHidden(this));
-						android.net.Uri playUri = Music.toPlaybackUri(music);
-						if (playUri != null) {
-							video.setVideoURI(playUri);
-							video.requestFocus();
-							video.start();
-						}
-					} catch (Exception e) {
-						Log.w(TAG, e);
-					}
-				}
-
-				if (video != null && music.hasVideo() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-					root.setBackground(null);
 				}
 
 				loading.smoothToHide();
@@ -461,9 +403,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 		updateControls(color, colorLight);
 
-		if (audioVFXViewFragment != null && audioVFXViewFragment.isAdded()) {
-			audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-		}
+		applyVfxStyle();
 
 		if (!(root.getBackground() == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)) {
 			root.setBackground(new ColorDrawable(ColorUtils.setAlphaComponent(color, 160)));
@@ -623,18 +563,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	private TextView artist;
 	private TextView info;
 	private ImageView cover;
-	private VideoView video;
-
-	private Runnable videoSyncTask = new Runnable() {
-		@Override
-		public void run() {
-			if (video != null && video.getVisibility() == View.VISIBLE)
-				video.seekTo(getMusicService().getPosition());
-
-			handler.removeCallbacks(videoSyncTask);
-			handler.postDelayed(videoSyncTask, 9 * 1000);
-		}
-	};
 
 	private void createMetadata() {
 		View metadata_layout = findViewById(R.id.metadata_layout);
@@ -656,72 +584,6 @@ public class PlaybackUIActivity extends BaseUIActivity {
 		info = findViewById(R.id.info);
 
 		cover = findViewById(R.id.cover);
-		video = findViewById(R.id.video);
-
-		toggleVideo(getPlaybackUIVideoHidden(this));
-
-		// Video, if loaded is on mute
-		if (video != null) {
-			if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-				video.setZOrderOnTop(false);
-			} else {
-				video.setZOrderOnTop(true);
-			}
-			video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-				public void onPrepared(MediaPlayer mediaPlayer) {
-					mediaPlayer.setVolume(0, 0);
-
-					if (getMusicService() != null)
-						getMusicService().play();
-
-					handler.postDelayed(videoSyncTask, 1000);
-
-					handler.postDelayed(new Runnable() {
-						@Override
-						public void run() {
-							if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-								toggleVideo(false);
-								toggleControls(true);
-							}
-						}
-					}, 3500);
-				}
-			});
-			video.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-				@Override
-				public void onCompletion(MediaPlayer mediaPlayer) {
-					video.setVisibility(View.INVISIBLE);
-
-					handler.removeCallbacks(videoSyncTask);
-
-					handler.post(new Runnable() {
-						@Override
-						public void run() {
-							toggleVideo(true);
-							toggleControls(false);
-						}
-					});
-				}
-			});
-			video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-				@Override
-				public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-					video.setVisibility(View.INVISIBLE);
-
-					handler.removeCallbacks(videoSyncTask);
-
-					handler.post(new Runnable() {
-						@Override
-						public void run() {
-							toggleVideo(true);
-							toggleControls(false);
-						}
-					});
-
-					return false;
-				}
-			});
-		}
 
 		cover.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
@@ -753,19 +615,9 @@ public class PlaybackUIActivity extends BaseUIActivity {
 	}
 
 	private void toggleVideo(boolean hide) {
-		if (video != null) {
-			if (hide) {
-				video.setVisibility(View.INVISIBLE);
-				setPlaybackUIVideoHidden(PlaybackUIActivity.this, true);
-			} else {
-				video.setVisibility(View.VISIBLE);
-				setPlaybackUIVideoHidden(PlaybackUIActivity.this, false);
-			}
-		}
 	}
 
 	private void toggleVideo() {
-		toggleVideo(!getPlaybackUIVideoHidden(this));
 	}
 
 	//endregion
@@ -1206,45 +1058,42 @@ public class PlaybackUIActivity extends BaseUIActivity {
 
 	//region AVFX
 
-	private View avfx_layout;
-
-	private AudioVFXViewFragment audioVFXViewFragment;
+	private LiteVfxView avfxView;
 
 	private void createAVFX() {
-		avfx_layout = findViewById(R.id.avfx_layout);
-
-		avfx.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				changeAVFXStyle();
-			}
-		});
+		avfxView = findViewById(R.id.avfx_view);
+		applyVfxStyle();
 	}
 
 	private void updateAVFX() {
-		if (viewPager.getCurrentItem() == 0) {
-			if (!isFinishing() && audioVFXViewFragment == null) {
-				avfx_layout.setVisibility(View.VISIBLE);
+		if (avfxView == null) {
+			return;
+		}
+		if (viewPager != null && viewPager.getCurrentItem() == 0) {
+			avfxView.setVisibility(View.VISIBLE);
+			applyVfxStyle();
+		}
+	}
 
-				audioVFXViewFragment = AudioVFXViewFragment.create();
-				getFragmentManager()
-						.beginTransaction()
-						.replace(R.id.avfx_layout, audioVFXViewFragment)
-						.commit();
-
-				audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-			}
-		} else {
-			if (audioVFXViewFragment != null) {
-				getFragmentManager()
-						.beginTransaction()
-						.remove(audioVFXViewFragment)
-						.commit();
-
-				audioVFXViewFragment = null;
-
-				avfx_layout.setVisibility(View.INVISIBLE);
-			}
+	private void applyVfxStyle() {
+		if (avfxView == null) {
+			return;
+		}
+		int c = colorLight != 0 ? colorLight : ContextCompat.getColor(this, R.color.accent);
+		avfxView.setColor(c);
+		AudioVFXViewFragment.AVFXType type = AudioVFXViewFragment.getAVFXType(getApplicationContext());
+		switch (type) {
+			case Waveform:
+				avfxView.setStyle(LiteVfxView.Style.WAVE);
+				break;
+			case Particles:
+			case Dots:
+				avfxView.setStyle(LiteVfxView.Style.DOTS);
+				break;
+			case Circles:
+			default:
+				avfxView.setStyle(LiteVfxView.Style.RINGS);
+				break;
 		}
 	}
 
@@ -1262,19 +1111,15 @@ public class PlaybackUIActivity extends BaseUIActivity {
 			public void onClick(DialogInterface dialog, int itemIndex) {
 				try {
 					AudioVFXViewFragment.setAVFXType(getApplicationContext(), values[itemIndex]);
-
-					audioVFXViewFragment.reset(getMusicService(), AudioVFXViewFragment.getAVFXType(getApplicationContext()), colorLight);
-
-					info(getString(R.string.now_using_) + AudioVFXViewFragment.getAVFXType(getApplicationContext()) + getString(R.string._fx));
+					applyVfxStyle();
+					info(getString(R.string.now_using_) + values[itemIndex] + getString(R.string._fx));
 				} catch (Exception e) {
 					Log.w(TAG, e);
-
 					info(getString(R.string.error));
 				}
 			}
 		});
-		AlertDialog dialog = builder.create();
-		dialog.show();
+		builder.create().show();
 	}
 
 	//endregion
@@ -1305,8 +1150,7 @@ public class PlaybackUIActivity extends BaseUIActivity {
 				if (getMusicService() != null) {
 					getMusicService().seek(i);
 
-					if (video != null && video.getVisibility() == View.VISIBLE)
-						video.seekTo(getMusicService().getPosition());
+
 				}
 
 			}
