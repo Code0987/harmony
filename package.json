@@ -4,8 +4,8 @@
   "description": "",
   "main": "none",
   "dependencies": {
-    "@semantic-release/changelog": "^3.0.4",
-    "@semantic-release/git": "^7.0.16",
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/git": "^11.0.0",
     "gradle-semantic-release-plugin": "github:Code0987/gradle-semantic-release-plugin",
     "semantic-release": "^15.13.18"
   },
